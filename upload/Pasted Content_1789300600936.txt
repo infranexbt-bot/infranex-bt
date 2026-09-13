@@ -1,0 +1,2274 @@
+# INFRANEX BT — AUTONOMOUS DEVOPS ENGINE
+
+## Master Coding-Agent Implementation Prompt — V2
+
+You are the principal software architect, senior backend engineer, DevOps engineer, cloud infrastructure engineer, Bittensor engineer, and frontend engineer responsible for implementing the **Infranex BT Autonomous DevOps Engine** inside the existing Infranex BT application.
+
+Do not build a toy demo.
+
+Build a production-oriented, modular system that can eventually operate as an autonomous DevOps engineer for Bittensor mining infrastructure.
+
+---
+
+# 1. EXISTING PROJECT
+
+Project name:
+
+**Infranex BT**
+
+Existing frontend:
+
+https://infranex-bt.vercel.app/
+
+The application is intended for personal/solo use initially.
+
+The system's purpose is:
+
+> Discover profitable Bittensor mining opportunities, determine the correct GPU/provider configuration, prepare the infrastructure, deploy the miner, monitor it, automatically recover from failures, and continuously optimize the mining operation.
+
+The application must not assume a fixed investment amount or fixed capital.
+
+All infrastructure economics must be dynamic.
+
+---
+
+# 2. CORE DESIGN PRINCIPLE
+
+Infranex BT must NOT simply:
+
+"Find highest emissions → rent GPU → start miner."
+
+Instead:
+
+"Understand subnet → understand incentive mechanism → understand workload → understand hardware requirements → evaluate GPU/provider economics → validate compatibility → generate deployment plan → obtain approval → provision infrastructure → configure environment → deploy miner → monitor → self-heal → optimize → re-evaluate."
+
+The DevOps Engine must therefore behave like an experienced infrastructure/DevOps engineer.
+
+---
+
+# 3. ARCHITECTURE
+
+Implement the following high-level architecture:
+
+Bittensor Network
+|
+v
+Network Intelligence Engine
+|
+v
+AI Mining Agent
+|
+v
+Opportunity Engine
+|
++-------------------------------+
+|                               |
+v                               v
+Subnet Intelligence              Economics Engine
+|                               |
++---------------+---------------+
+|
+v
+Autonomous DevOps Engine
+|
++---------------+----------------+
+|               |                |
+v               v                v
+Environment       Hardware Fit      Provider Engine
+Discovery         Engine            RunPod/Vast/etc.
+|               |                |
++---------------+----------------+
+|
+v
+Resource Optimizer
+|
+v
+Compatibility Lab
+|
+v
+Deployment Planner
+|
+USER APPROVAL
+|
+v
+Deployment Engine
+|
+v
+GPU Infrastructure
+|
+v
+Machine Bootstrap Engine
+|
+v
+Runtime Manager
+|
+v
+Miner Deployment
+|
+v
+MINER RUNNING
+|
+v
+Monitoring Engine
+|
++---------+---------+
+|                   |
+v                   v
+Self-Healing Engine   Optimization Engine
+|                   |
++---------+---------+
+|
+v
+Migration Engine
+|
+v
+AI Mining Agent
+
+---
+
+# 4. DEVOPS ENGINE MODULES
+
+Create these modules:
+
+1. Environment Discovery Engine
+2. Subnet Environment Manifest
+3. Hardware-Fit Engine
+4. Resource Optimization Engine
+5. Provider Infrastructure Engine
+6. Deployment Planner
+7. Compatibility Lab
+8. Machine Bootstrap Engine
+9. Runtime Manager
+10. Miner Deployment Engine
+11. Monitoring Engine
+12. Self-Healing Engine
+13. Rollback Engine
+14. Repository/Git Intelligence
+15. Benchmark Engine
+16. Cost-Aware Infrastructure Engine
+17. Migration Engine
+18. Security/Secrets Engine
+19. Audit/Activity Engine
+20. AI DevOps Agent
+
+Keep each module independently testable.
+
+---
+
+# 5. TECHNOLOGY STACK
+
+Use the existing project's technology where practical.
+
+Frontend:
+
+* Next.js
+* TypeScript
+* App Router
+* Tailwind CSS
+* Lucide icons
+* Recharts
+
+Backend:
+
+* Python 3.11+
+* FastAPI
+* Pydantic v2
+* async architecture
+
+Database:
+
+* PostgreSQL
+
+Use Supabase-compatible PostgreSQL architecture.
+
+Infrastructure:
+
+* Docker
+* NVIDIA Container Toolkit
+* CUDA
+* SSH/Paramiko where required
+* RunPod API
+* Vast.ai API where supported
+* Bittensor SDK
+
+Background processing:
+
+* Redis/Valkey
+* Celery or asyncio workers
+
+Do not introduce unnecessary infrastructure.
+
+The initial implementation must remain simple enough to run locally.
+
+---
+
+# 6. IMPORTANT DEVELOPMENT RULE
+
+Do not destroy or rewrite the existing Infranex BT frontend unnecessarily.
+
+First inspect the existing repository.
+
+Understand:
+
+* current pages
+* components
+* routes
+* API architecture
+* database schema
+* environment variables
+* existing Bittensor integration
+* existing provider integration
+* current dashboard
+* current deployment architecture
+
+Then extend the system.
+
+Reuse existing components wherever appropriate.
+
+Do not duplicate existing functionality.
+
+---
+
+# 7. SUBNET ENVIRONMENT DISCOVERY
+
+Build a system that analyzes a subnet and creates a machine-readable environment manifest.
+
+Example:
+
+{
+"netuid": 64,
+"repository": "...",
+"branch": "main",
+"python_version": "3.11",
+"cuda_requirement": "12.x",
+"pytorch_requirement": "...",
+"bittensor_version": "...",
+"minimum_vram_gb": 24,
+"recommended_vram_gb": 24,
+"minimum_ram_gb": 32,
+"minimum_cpu_cores": 8,
+"minimum_disk_gb": 100,
+"network_requirements": {},
+"required_ports": [],
+"dependencies": [],
+"environment_variables": [],
+"wallet_requirements": {},
+"miner_entrypoint": "...",
+"startup_command": "...",
+"health_check": "..."
+}
+
+Do not hardcode these values.
+
+Discover them from:
+
+* subnet repositories
+* configuration files
+* requirements files
+* pyproject.toml
+* Dockerfiles
+* README/documentation where appropriate
+* Bittensor metadata
+* known subnet configuration
+* controlled execution tests
+
+---
+
+# 8. ENVIRONMENT MANIFEST VERSIONING
+
+Every subnet environment must be versioned.
+
+Example:
+
+Subnet 64
+
+Environment v1
+Environment v2
+Environment v3
+
+Store:
+
+* dependency versions
+* Git commit
+* Docker image
+* CUDA runtime
+* Python version
+* configuration
+* timestamp
+* compatibility result
+
+This enables rollback.
+
+---
+
+# 9. HARDWARE-FIT ENGINE
+
+Build a Hardware-Fit Engine.
+
+It must compare subnet requirements against available GPUs.
+
+Evaluate:
+
+GPU:
+
+* model
+* VRAM
+* compute capability
+* architecture
+* CUDA compatibility
+* utilization capability
+
+CPU:
+
+* cores
+* architecture
+
+Memory:
+
+* RAM
+
+Storage:
+
+* capacity
+* expected I/O
+
+Network:
+
+* bandwidth
+* latency
+* connectivity
+
+Other:
+
+* driver compatibility
+* Docker support
+* NVIDIA Container Toolkit
+* temperature/power constraints where available
+
+Return:
+
+{
+"compatible": true,
+"score": 94,
+"confidence": 0.91,
+"reasons": [],
+"warnings": [],
+"blocking_issues": []
+}
+
+Never assume:
+
+"More expensive GPU = better."
+
+The objective is:
+
+BEST ECONOMICALLY SUITABLE CONFIGURATION.
+
+---
+
+# 10. GPU MEMORY MANAGER
+
+Implement a GPU memory model.
+
+Do not treat total VRAM as completely available.
+
+Estimate:
+
+## TOTAL VRAM
+
+## CUDA/system reserve
+
+## miner/framework reserve
+
+## runtime reserve
+
+# safety margin
+
+USABLE WORKLOAD VRAM
+
+Example:
+
+RTX 4090 = 24 GB
+
+Possible usable workload memory:
+
+~17–20 GB depending on runtime.
+
+The actual value must be measured dynamically where possible.
+
+Monitor:
+
+* total VRAM
+* allocated VRAM
+* reserved VRAM
+* free VRAM
+* utilization
+* OOM events
+
+---
+
+# 11. RESOURCE OPTIMIZATION ENGINE
+
+Create an abstraction called:
+
+**Adaptive Runtime Engine**
+
+The engine decides which execution strategy is appropriate.
+
+Modes:
+
+MODE 1:
+Standard GPU execution
+
+MODE 2:
+Memory-optimized execution
+
+MODE 3:
+CPU/RAM-assisted execution
+
+MODE 4:
+Streaming/offload execution
+
+MODE 5:
+Alternative GPU
+
+MODE 6:
+Alternative provider
+
+Do not automatically use offloading.
+
+Only use it when:
+
+* technically supported
+* economically useful
+* performance remains acceptable
+
+The system must understand that memory-saving techniques can increase:
+
+* latency
+* disk I/O
+* CPU/RAM usage
+* complexity
+
+Therefore optimization must be economics-aware.
+
+---
+
+# 12. AIRLLM-INSPIRED DESIGN
+
+Do not embed AirLLM blindly.
+
+Use its architectural concept:
+
+GPU memory can sometimes be reduced by streaming/offloading workload components through:
+
+GPU
+CPU RAM
+Disk
+
+Implement an abstraction:
+
+ResourceStrategy
+
+Possible values:
+
+STANDARD
+VRAM_OPTIMIZED
+CPU_OFFLOAD
+STREAMING
+ALTERNATIVE_GPU
+
+The actual implementation should be workload-specific.
+
+Never assume every Bittensor subnet supports this.
+
+Latency-sensitive workloads should generally prefer standard GPU execution.
+
+---
+
+# 13. SOUP-INSPIRED AUTOPILOT
+
+Implement an Infranex equivalent of:
+
+Autopilot
+
+It receives:
+
+* subnet
+* workload
+* available GPUs
+* providers
+* pricing
+* hardware requirements
+* historical performance
+* current mining economics
+
+and produces:
+
+Recommended GPU
+Recommended provider
+Runtime strategy
+Environment
+Deployment plan
+Expected cost
+Expected performance
+Risk
+
+It must support:
+
+DRY RUN
+
+and
+
+PLAN
+
+before APPLY.
+
+---
+
+# 14. MINER DOCTOR
+
+Create:
+
+**Infranex Doctor**
+
+It must diagnose the complete environment.
+
+Checks:
+
+* OS
+* CPU
+* RAM
+* disk
+* GPU
+* VRAM
+* NVIDIA driver
+* CUDA
+* Docker
+* NVIDIA Container Toolkit
+* Python
+* Git
+* Bittensor SDK
+* subnet dependencies
+* repository
+* wallet configuration
+* hotkey configuration
+* network
+* ports
+* DNS/connectivity
+* miner process
+* subnet connection
+
+Return:
+
+READY
+WARNING
+BLOCKED
+
+with detailed reasons.
+
+Example:
+
+CUDA:
+FAILED
+
+Required:
+CUDA 12.4+
+
+Detected:
+CUDA 11.8
+
+Recommendation:
+Rebuild runtime container.
+
+---
+
+# 15. MACHINE BOOTSTRAP ENGINE
+
+After a provider creates a GPU machine:
+
+The bootstrap engine must:
+
+1. Connect securely.
+2. Detect operating system.
+3. Detect GPU.
+4. Detect NVIDIA driver.
+5. Detect CUDA compatibility.
+6. Detect Docker.
+7. Detect NVIDIA Container Toolkit.
+8. Install missing safe dependencies.
+9. Configure runtime.
+10. Verify GPU access inside Docker.
+11. Verify Python.
+12. Verify Git.
+13. Verify network.
+14. Prepare workspace.
+15. Run Infranex Doctor.
+
+Do not blindly modify a machine.
+
+Create a preflight report first.
+
+---
+
+# 16. DEPLOYMENT PLAN
+
+Before executing any infrastructure-changing action, generate a plan.
+
+Example:
+
+INFRANEX DEPLOYMENT PLAN
+
+Subnet:
+SN64
+
+GPU:
+RTX 4090
+
+Provider:
+RunPod
+
+Runtime:
+Docker
+
+CUDA:
+12.x
+
+Python:
+3.11
+
+Disk:
+100 GB
+
+Estimated hourly cost:
+$X
+
+Estimated daily cost:
+$X
+
+Registration requirement:
+YES/NO
+
+Burn requirement:
+X TAO
+
+Environment:
+SN64-v4
+
+Actions:
+
+1. Create GPU instance
+2. Configure Docker
+3. Configure CUDA runtime
+4. Clone repository
+5. Install dependencies
+6. Configure wallet
+7. Configure miner
+8. Run compatibility tests
+9. Start miner
+10. Verify health
+
+Risk:
+LOW
+
+Require explicit approval.
+
+---
+
+# 17. PLAN / APPLY SYSTEM
+
+Implement:
+
+POST /devops/plan
+
+POST /devops/apply
+
+POST /devops/rollback
+
+The frontend must clearly distinguish:
+
+PLAN
+
+from
+
+APPLY.
+
+No destructive infrastructure action should happen from a simple analysis request.
+
+---
+
+# 18. COMPATIBILITY LAB
+
+Before production deployment:
+
+Create an isolated test environment.
+
+Test:
+
+1. GPU detection
+2. CUDA
+3. Docker
+4. dependencies
+5. repository
+6. miner startup
+7. subnet connection
+8. wallet/hotkey
+9. task reception where safely testable
+10. resource usage
+11. health checks
+
+Return:
+
+PASS
+FAIL
+WARNING
+
+Do not deploy if a critical compatibility test fails.
+
+---
+
+# 19. CONTAINERIZED MINER RUNTIME
+
+Prefer:
+
+GPU Host
+|
+NVIDIA Driver
+|
+NVIDIA Container Toolkit
+|
+Docker
+|
+Infranex Miner Container
+|
+Python
+CUDA runtime
+Bittensor
+Subnet code
+Miner
+
+Each subnet should have an isolated runtime.
+
+Do not pollute the host environment unnecessarily.
+
+---
+
+# 20. RUNTIME IMMUTABILITY
+
+Store the exact runtime definition.
+
+Example:
+
+Docker image
+Git commit
+requirements lock
+Python version
+CUDA version
+configuration version
+
+This enables reproducibility.
+
+---
+
+# 21. MINER DEPLOYMENT ENGINE
+
+Deployment process:
+
+Provider instance
+↓
+Bootstrap
+↓
+Doctor
+↓
+Environment creation
+↓
+Repository checkout
+↓
+Dependency installation
+↓
+Wallet configuration
+↓
+Miner configuration
+↓
+Compatibility test
+↓
+Miner start
+↓
+Health verification
+↓
+Mining ACTIVE
+
+The system must not report "Mining Active" merely because the process started.
+
+It should verify actual subnet connectivity and miner health.
+
+---
+
+# 22. MINER HEALTH MODEL
+
+Create a health score:
+
+0–100.
+
+Consider:
+
+* process alive
+* subnet connection
+* task activity
+* GPU utilization
+* VRAM
+* errors
+* response time
+* uptime
+* reward activity
+* validator interaction where measurable
+
+Example:
+
+Health:
+94/100
+
+Status:
+HEALTHY
+
+---
+
+# 23. MONITORING ENGINE
+
+Monitor continuously:
+
+SYSTEM
+
+* CPU
+* RAM
+* disk
+* disk I/O
+* network
+* GPU
+* VRAM
+* temperature
+* power where available
+
+MINER
+
+* process
+* logs
+* exceptions
+* restart count
+* task activity
+* latency
+* throughput
+
+BITTENSOR
+
+* subnet connectivity
+* UID
+* incentive
+* emissions
+* alpha
+* TAO
+* validator interaction
+* registration state
+
+ECONOMICS
+
+* GPU cost
+* accumulated reward
+* estimated revenue
+* net economics
+* ROI trend
+
+---
+
+# 24. SELF-HEALING ENGINE
+
+Implement escalating recovery.
+
+LEVEL 1:
+
+Miner process failure
+
+→ restart miner
+
+LEVEL 2:
+
+Container failure
+
+→ restart container
+
+LEVEL 3:
+
+Configuration failure
+
+→ restore last known good configuration
+
+LEVEL 4:
+
+Dependency/environment failure
+
+→ rebuild environment
+
+LEVEL 5:
+
+GPU/runtime failure
+
+→ restart workload / instance if appropriate
+
+LEVEL 6:
+
+Provider failure
+
+→ provision replacement infrastructure
+
+LEVEL 7:
+
+Subnet opportunity failure
+
+→ notify Opportunity Engine
+
+Do not endlessly restart.
+
+Implement:
+
+max retries
+backoff
+cooldown
+failure classification
+
+---
+
+# 25. ROLLBACK ENGINE
+
+Every successful deployment must create a rollback point.
+
+Store:
+
+* environment version
+* Git commit
+* Docker image
+* configuration
+* dependencies
+* deployment metadata
+
+If new version fails:
+
+Rollback automatically when policy allows.
+
+Example:
+
+V1 → V2 → V3
+
+V3 fails
+
+→ rollback to V2.
+
+---
+
+# 26. GIT / REPOSITORY INTELLIGENCE
+
+Monitor miner repositories.
+
+Detect:
+
+* new commits
+* dependency changes
+* Docker changes
+* CUDA changes
+* Python changes
+* configuration changes
+* miner logic changes
+
+Do not automatically deploy every Git change.
+
+Pipeline:
+
+Git change
+→ analyze
+→ compatibility test
+→ generate deployment plan
+→ approval
+→ canary
+→ production
+
+---
+
+# 27. CANARY DEPLOYMENT
+
+For major runtime/miner updates:
+
+Current version
+|
+New version
+|
+Canary test
+|
+health/performance check
+|
+PASS → production
+FAIL → rollback
+
+Never replace a healthy production miner blindly.
+
+---
+
+# 28. BENCHMARK ENGINE
+
+Before committing to a GPU/provider configuration, benchmark where practical.
+
+Measure:
+
+* startup time
+* GPU utilization
+* VRAM utilization
+* task throughput
+* latency
+* CPU
+* RAM
+* disk I/O
+* network
+* temperature
+* errors
+* reward/incentive where measurable
+
+Create:
+
+GPU + subnet performance profile.
+
+Example:
+
+SN64
+
+RTX 4090:
+Performance score 91
+Cost score 95
+Economic score 93
+
+A100:
+Performance score 94
+Cost score 81
+Economic score 87
+
+Recommendation:
+RTX 4090
+
+---
+
+# 29. PROVIDER ENGINE
+
+Build provider abstraction.
+
+Provider interface:
+
+create_instance()
+terminate_instance()
+restart_instance()
+get_instance()
+get_gpu_options()
+get_prices()
+get_status()
+get_connection_details()
+
+Initial providers:
+
+RunPod
+Vast.ai
+
+Design for:
+
+Yotta
+E2E
+other providers
+
+later.
+
+Never hardcode provider-specific logic throughout the application.
+
+---
+
+# 30. PROVIDER SELECTION
+
+The system should score:
+
+GPU price
+availability
+reliability
+startup time
+network
+storage
+region
+GPU performance
+historical stability
+failure rate
+
+Then select:
+
+BEST ECONOMICALLY SUITABLE PROVIDER.
+
+---
+
+# 31. COST-AWARE DEVOPS
+
+Calculate:
+
+GPU rental
++
+storage
++
+network
++
+registration/burn
++
+other infrastructure costs
+
+against:
+
+Mining revenue
++
+alpha accumulation
++
+TAO economics
+
+Return:
+
+Gross revenue
+Infrastructure cost
+Net economics
+Confidence
+Risk
+
+Do not promise profitability.
+
+Use estimates and confidence intervals where possible.
+
+---
+
+# 32. MIGRATION ENGINE
+
+If infrastructure becomes unsuitable:
+
+Current GPU
+|
+Analyze
+|
+Find alternatives
+|
+Benchmark
+|
+Generate migration plan
+|
+Approval
+|
+Create new infrastructure
+|
+Deploy
+|
+Verify
+|
+Stop old instance
+
+Migration should preserve:
+
+* environment
+* configuration
+* miner state where possible
+* wallet/hotkey references
+* deployment history
+
+Never expose private keys.
+
+---
+
+# 33. SUBNET CHANGE DETECTION
+
+Continuously monitor relevant subnet changes.
+
+Detect:
+
+* incentive changes
+* hardware requirement changes
+* dependency changes
+* miner repository changes
+* validator behavior changes
+* reward changes
+* task activity changes
+* registration changes
+* burn changes
+* performance changes
+
+Trigger:
+
+RE-EVALUATION.
+
+---
+
+# 34. AI DEVOPS AGENT
+
+Build an AI orchestration layer.
+
+The AI agent should NOT directly execute arbitrary shell commands.
+
+It should use controlled tools.
+
+Example tools:
+
+discover_environment
+run_doctor
+check_hardware
+generate_plan
+run_compatibility_test
+create_provider_instance
+bootstrap_machine
+deploy_miner
+get_miner_status
+restart_miner
+rollback_deployment
+benchmark
+calculate_economics
+generate_migration_plan
+
+The AI agent decides:
+
+WHAT SHOULD HAPPEN.
+
+The deterministic DevOps engine performs:
+
+HOW IT HAPPENS.
+
+This separation is critical.
+
+---
+
+# 35. COMMAND SAFETY
+
+Never allow unrestricted arbitrary shell execution from the AI model.
+
+Use:
+
+* command allowlists
+* parameter validation
+* timeout
+* privilege restrictions
+* dry-run
+* approval gates
+* audit logs
+
+Dangerous actions require approval.
+
+Examples:
+
+* terminate GPU
+* migrate provider
+* change wallet
+* install system packages
+* change firewall
+* modify SSH
+* delete infrastructure
+
+---
+
+# 36. WALLET SECURITY
+
+Never store private keys in plain text.
+
+Never display:
+
+* seed phrases
+* private keys
+* passwords
+
+in:
+
+* UI
+* logs
+* API responses
+* Git
+* Docker images
+
+Use a secure secrets abstraction.
+
+Hotkey configuration must be separated from public wallet information.
+
+---
+
+# 37. AUDIT LOG
+
+Every important operation must create an audit record.
+
+Example:
+
+2026-09-13 12:31
+Subnet requirement changed
+
+12:31
+Compatibility analysis started
+
+12:32
+CUDA mismatch detected
+
+12:33
+New environment generated
+
+12:34
+Compatibility test passed
+
+12:35
+Deployment plan created
+
+12:36
+User approved
+
+12:37
+Deployment started
+
+12:39
+Miner healthy
+
+Store:
+
+timestamp
+action
+actor
+resource
+result
+before
+after
+error
+deployment ID
+
+---
+
+# 38. DATABASE MODELS
+
+Create suitable PostgreSQL models.
+
+Minimum entities:
+
+Subnet
+SubnetEnvironment
+GpuProfile
+Provider
+ProviderInstance
+Deployment
+DeploymentPlan
+DeploymentStep
+CompatibilityTest
+Benchmark
+Miner
+MinerHealth
+MinerEvent
+RuntimeProfile
+ResourceMetric
+CostRecord
+RewardRecord
+Migration
+RollbackPoint
+RepositoryVersion
+AuditLog
+Alert
+OptimizationRecommendation
+SecretReference
+
+Use foreign keys.
+
+Use timestamps.
+
+Use indexes for:
+
+netuid
+provider
+deployment
+miner
+status
+created_at
+
+---
+
+# 39. API STRUCTURE
+
+Create clear API modules.
+
+Example:
+
+/api/subnets
+/api/hardware
+/api/providers
+/api/devops
+/api/deployments
+/api/compatibility
+/api/miners
+/api/monitoring
+/api/benchmarks
+/api/migrations
+/api/optimization
+/api/audit
+/api/alerts
+
+Do not create one huge FastAPI file.
+
+---
+
+# 40. FRONTEND — DEVOPS CENTER
+
+Add a dedicated:
+
+**DevOps Center**
+
+Navigation:
+
+Dashboard
+Subnets
+Opportunities
+GPUs
+Providers
+Deployments
+Miners
+DevOps Center
+Monitoring
+Benchmarks
+Optimization
+Audit Logs
+Settings
+
+---
+
+# 41. DEVOPS CENTER UI
+
+Main page:
+
+DEVOPS ENGINE
+
+System:
+Healthy
+
+Active Machines:
+X
+
+Active Miners:
+X
+
+Healthy:
+X
+
+Warnings:
+X
+
+Critical:
+X
+
+Current Infrastructure Cost:
+$X/day
+
+Mining Revenue:
+$X/day
+
+Net:
+$X/day
+
+---
+
+# 42. MACHINE VIEW
+
+For each machine show:
+
+Provider
+GPU
+CPU
+RAM
+Disk
+CUDA
+Driver
+Docker
+Container
+Subnet
+Miner
+Health
+Cost
+Uptime
+
+Actions:
+
+Doctor
+Restart
+Logs
+Deploy
+Rollback
+Migrate
+Stop
+
+---
+
+# 43. DEPLOYMENT VIEW
+
+Show:
+
+Deployment ID
+Subnet
+GPU
+Provider
+Environment version
+Docker image
+Git commit
+Status
+Started
+Completed
+
+Timeline:
+
+PLAN
+APPROVAL
+PROVISION
+BOOTSTRAP
+DOCTOR
+COMPATIBILITY
+DEPLOY
+VERIFY
+ACTIVE
+
+---
+
+# 44. DEPLOYMENT PLAN UI
+
+Make the plan visually clear.
+
+Show:
+
+WHAT WILL CHANGE
+
+WHAT WILL COST MONEY
+
+WHAT WILL BE INSTALLED
+
+WHAT WILL BE STOPPED
+
+EXPECTED RESULT
+
+RISK
+
+Require:
+
+[ APPROVE & APPLY ]
+
+[ CANCEL ]
+
+---
+
+# 45. LIVE LOGS
+
+Show real-time logs with:
+
+timestamp
+severity
+source
+message
+
+Examples:
+
+INFO GPU detected
+INFO CUDA compatible
+INFO Docker ready
+INFO repository cloned
+INFO dependencies installed
+INFO miner started
+SUCCESS subnet connection established
+
+---
+
+# 46. ALERTS
+
+Implement alert categories:
+
+INFO
+WARNING
+CRITICAL
+
+Examples:
+
+GPU memory high
+Miner crashed
+Subnet inactive
+Reward declining
+Provider unavailable
+Dependency mismatch
+CUDA mismatch
+Disk almost full
+Mining economics negative
+New miner version available
+
+---
+
+# 47. OPTIMIZATION ENGINE
+
+The optimization engine continuously asks:
+
+Can we improve?
+
+Dimensions:
+
+GPU
+provider
+runtime
+CUDA
+batch/configuration
+resource allocation
+miner version
+subnet
+cost
+uptime
+
+But do not optimize blindly.
+
+Every recommendation should include:
+
+Current
+Proposed
+Expected benefit
+Expected cost
+Risk
+Confidence
+
+---
+
+# 48. AUTONOMOUS OPTIMIZATION POLICY
+
+Use levels:
+
+LEVEL 0:
+Observe only
+
+LEVEL 1:
+Recommend
+
+LEVEL 2:
+Auto-fix low-risk issues
+
+LEVEL 3:
+Auto-restart/rebuild
+
+LEVEL 4:
+Require approval for infrastructure changes
+
+LEVEL 5:
+Fully autonomous mode
+
+Default:
+
+LEVEL 1/2.
+
+Do NOT enable unrestricted autonomous infrastructure replacement by default.
+
+---
+
+# 49. DRY RUN MODE
+
+Everything possible should support dry run.
+
+Example:
+
+"infranex deploy --dry-run"
+
+The UI equivalent:
+
+SIMULATE
+
+No real provider instance should be created.
+
+---
+
+# 50. ERROR HANDLING
+
+Every subsystem must return structured errors.
+
+Example:
+
+{
+"code": "CUDA_VERSION_MISMATCH",
+"severity": "BLOCKING",
+"message": "...",
+"recommended_action": "...",
+"retryable": false
+}
+
+Do not return vague errors such as:
+
+"Something went wrong."
+
+---
+
+# 51. OBSERVABILITY
+
+Implement structured logging.
+
+Every request/action should have:
+
+request_id
+deployment_id
+miner_id
+provider_instance_id
+
+Use correlation IDs so one deployment can be traced across services.
+
+---
+
+# 52. TESTING
+
+Create tests for:
+
+Unit:
+
+* hardware-fit
+* VRAM calculation
+* provider scoring
+* cost calculation
+* environment parsing
+* deployment plan generation
+* health scoring
+
+Integration:
+
+* provider adapter
+* Docker runtime
+* Bittensor integration
+* database
+* Redis
+
+Simulation:
+
+* miner crash
+* Docker crash
+* CUDA mismatch
+* dependency mismatch
+* provider failure
+* subnet change
+* negative economics
+
+Do not require a real paid GPU for normal CI tests.
+
+Use mocks/simulators.
+
+---
+
+# 53. LOCAL DEVELOPMENT MODE
+
+The system must support:
+
+LOCAL_SIMULATION=true
+
+In simulation mode:
+
+* no real GPU required
+* no real provider required
+* fake machines
+* fake deployment
+* fake monitoring
+* fake miner
+* fake failures
+* fake economics
+
+This allows the entire architecture to be tested locally before spending money.
+
+---
+
+# 54. ENVIRONMENT VARIABLES
+
+Create `.env.example`.
+
+Never commit secrets.
+
+Example categories:
+
+DATABASE_URL
+REDIS_URL
+
+BITTENSOR_NETWORK
+BITTENSOR_ENDPOINT
+
+RUNPOD_API_KEY
+VAST_API_KEY
+
+SECRET_STORAGE_CONFIG
+
+AI_PROVIDER_CONFIG
+
+Do not put real secrets in source code.
+
+---
+
+# 55. DEVELOPMENT PHASES
+
+Do NOT attempt to implement everything simultaneously.
+
+Implement in phases.
+
+## PHASE 1 — Foundation
+
+Build:
+
+* database models
+* FastAPI structure
+* DevOps Center UI
+* provider abstraction
+* environment manifest
+* hardware-fit engine
+* Doctor
+* deployment plan
+
+Everything should work in simulation mode.
+
+---
+
+## PHASE 2 — Real Infrastructure
+
+Implement:
+
+* RunPod adapter
+* SSH
+* machine bootstrap
+* Docker
+* NVIDIA detection
+* CUDA detection
+* miner deployment
+
+Keep user approval mandatory.
+
+---
+
+## PHASE 3 — Monitoring
+
+Implement:
+
+* GPU monitoring
+* system monitoring
+* miner monitoring
+* logs
+* health score
+* alerts
+* audit logs
+
+---
+
+## PHASE 4 — Self-Healing
+
+Implement:
+
+* restart
+* rebuild
+* rollback
+* retry
+* failure classification
+
+---
+
+## PHASE 5 — Optimization
+
+Implement:
+
+* benchmarking
+* provider comparison
+* GPU comparison
+* runtime optimization
+* cost optimization
+* migration recommendations
+
+---
+
+## PHASE 6 — AI DevOps
+
+Implement:
+
+* AI DevOps Agent
+* tool calling
+* plan generation
+* diagnostic reasoning
+* recommendation engine
+
+The AI should operate through controlled DevOps tools.
+
+---
+
+## PHASE 7 — Advanced Resource Optimization
+
+Implement:
+
+* VRAM-aware execution
+* CPU offload
+* streaming where applicable
+* adaptive runtime
+* workload profiling
+
+AirLLM-inspired concepts should be used here, not forced into MVP.
+
+---
+
+# 56. MVP DEFINITION
+
+The first usable MVP of the DevOps Engine must be able to:
+
+1. Select a subnet.
+2. Discover its environment requirements.
+3. Analyze GPU compatibility.
+4. Select a provider.
+5. Generate deployment plan.
+6. Wait for user approval.
+7. Create GPU instance in simulation or RunPod.
+8. Bootstrap machine.
+9. Run Doctor.
+10. Create Docker environment.
+11. Deploy miner.
+12. Verify miner.
+13. Monitor health.
+14. Restart failed miner.
+15. Show logs.
+16. Record audit trail.
+17. Roll back failed deployment.
+
+Do not block MVP on advanced AI or AirLLM-style streaming.
+
+---
+
+# 57. IMPORTANT: ONE GPU = ONE SUBNET
+
+Respect the current Infranex BT operating model:
+
+ONE GPU INSTANCE
+→ ONE SUBNET
+→ ONE MINING WORKLOAD
+
+Do not implement multi-subnet GPU sharing unless explicitly requested later.
+
+---
+
+# 58. IMPORTANT: ECONOMICS
+
+Do not hardcode:
+
+* investment amount
+* fixed GPU budget
+* fixed monthly profit
+* fixed TAO price
+* fixed subnet profitability
+
+Everything must be dynamic.
+
+The system should calculate economics using current inputs.
+
+---
+
+# 59. IMPORTANT: BITTENSOR LOGIC
+
+Do not rank subnets only by emissions.
+
+Opportunity analysis should consider:
+
+* incentive mechanism
+* emissions
+* validator behavior
+* competition
+* task availability
+* hardware requirements
+* registration requirements
+* burn
+* alpha/TAO economics
+* liquidity
+* reward trend
+* uptime
+* miner difficulty
+* historical performance
+* infrastructure cost
+* risk
+
+The DevOps Engine consumes this analysis but should not duplicate the entire Opportunity Engine.
+
+---
+
+# 60. DEVOPS ENGINE RESPONSIBILITY BOUNDARY
+
+Opportunity Engine answers:
+
+"Should we mine this?"
+
+DevOps Engine answers:
+
+"How do we run it reliably and economically?"
+
+Optimization Engine answers:
+
+"Can we run it better?"
+
+AI Mining Agent coordinates the three.
+
+---
+
+# 61. FINAL SYSTEM BEHAVIOR
+
+The intended workflow is:
+
+1. Intelligence Engine scans Bittensor.
+2. Opportunity Engine identifies promising subnet.
+3. AI Mining Agent asks DevOps Engine:
+   "Can we run this economically?"
+4. DevOps Engine discovers requirements.
+5. Hardware-Fit Engine evaluates GPUs.
+6. Provider Engine evaluates providers.
+7. Resource Optimizer evaluates runtime strategies.
+8. Compatibility Lab validates configuration.
+9. Deployment Planner generates plan.
+10. User approves.
+11. Provider instance created.
+12. Machine Bootstrap prepares machine.
+13. Doctor validates environment.
+14. Runtime Manager creates isolated environment.
+15. Miner Deployment Engine deploys miner.
+16. Miner starts.
+17. Health verification confirms operation.
+18. Monitoring begins.
+19. Self-Healing handles failures.
+20. Repository intelligence detects updates.
+21. Benchmark Engine measures performance.
+22. Optimization Engine searches for improvements.
+23. Migration Engine proposes better infrastructure when necessary.
+24. AI Mining Agent continuously re-evaluates.
+
+---
+
+# 62. SUCCESS CRITERIA
+
+The implementation is successful when Infranex BT can demonstrate this scenario entirely in simulation mode:
+
+SUBNET SELECTED
+
+↓
+
+Requirements automatically discovered
+
+↓
+
+GPU candidates analyzed
+
+↓
+
+Best GPU selected
+
+↓
+
+Best provider selected
+
+↓
+
+Runtime strategy selected
+
+↓
+
+Deployment plan generated
+
+↓
+
+User approves
+
+↓
+
+Simulated GPU created
+
+↓
+
+Machine bootstrapped
+
+↓
+
+Doctor passes
+
+↓
+
+Docker runtime created
+
+↓
+
+Miner deployed
+
+↓
+
+Miner becomes healthy
+
+↓
+
+Monitoring starts
+
+↓
+
+Miner failure simulated
+
+↓
+
+Self-healing detects failure
+
+↓
+
+Miner restarts
+
+↓
+
+Health restored
+
+↓
+
+Subnet requirement change simulated
+
+↓
+
+Compatibility engine detects mismatch
+
+↓
+
+New environment generated
+
+↓
+
+Deployment plan generated
+
+↓
+
+Rollback/new deployment executed
+
+↓
+
+Audit trail contains every action.
+
+---
+
+# 63. CODE QUALITY REQUIREMENTS
+
+Use:
+
+* type safety
+* Pydantic validation
+* clean interfaces
+* dependency injection
+* structured logging
+* clear service boundaries
+* error codes
+* retries with backoff
+* timeouts
+* idempotent operations
+* database transactions where needed
+* environment configuration
+* tests
+
+Avoid:
+
+* giant files
+* hardcoded secrets
+* duplicated provider logic
+* unrestricted shell execution
+* hardcoded GPU specifications
+* hardcoded subnet assumptions
+* hardcoded profitability
+* destructive operations without approval
+
+---
+
+# 64. DOCUMENTATION
+
+Create:
+
+/docs/architecture.md
+/docs/devops-engine.md
+/docs/deployment.md
+/docs/provider-engine.md
+/docs/security.md
+/docs/local-development.md
+/docs/simulation.md
+/docs/troubleshooting.md
+
+Also create:
+
+`.env.example`
+
+and clear setup instructions.
+
+---
+
+# 65. IMPLEMENTATION PROCESS
+
+Before writing significant code:
+
+1. Inspect the existing repository.
+2. Map current architecture.
+3. Identify what already exists.
+4. Identify reusable components.
+5. Identify missing DevOps functionality.
+6. Create an implementation plan.
+7. Show the planned file/module changes.
+8. Then implement.
+
+Do not rewrite functioning parts without reason.
+
+After each phase:
+
+* run tests
+* run lint/type checks
+* verify API
+* verify frontend
+* verify database migrations
+* verify simulation mode
+
+Fix errors before moving forward.
+
+---
+
+# 66. FINAL ARCHITECTURAL PRINCIPLE
+
+Infranex BT should become:
+
+NOT:
+
+"A dashboard that tells me which subnet is profitable."
+
+BUT:
+
+"An intelligent Bittensor mining infrastructure operating system."
+
+Its responsibility is:
+
+DISCOVER
+→ UNDERSTAND
+→ PLAN
+→ VALIDATE
+→ DEPLOY
+→ OPERATE
+→ MONITOR
+→ HEAL
+→ OPTIMIZE
+→ MIGRATE
+→ LEARN
+
+The DevOps Engine is the operational core.
+
+Soup-inspired concepts provide:
+
+AUTOPILOT
+HARDWARE FIT
+DOCTOR
+PLAN/APPLY
+ENVIRONMENT MANAGEMENT
+REPRODUCIBILITY
+
+AirLLM-inspired concepts provide:
+
+RESOURCE AWARENESS
+VRAM OPTIMIZATION
+CPU/RAM OFFLOAD
+STREAMING
+ADAPTIVE EXECUTION
+
+Bittensor intelligence provides:
+
+SUBNET ECONOMICS
+INCENTIVE ANALYSIS
+VALIDATOR BEHAVIOR
+MINING PERFORMANCE
+REWARD ANALYSIS
+
+Infranex BT combines all three into a single system.
+
+Build the system modularly so that advanced autonomous behavior can be added without rewriting the foundation.
+
+Start with PHASE 1 and provide the implementation plan before making large architectural changes.
