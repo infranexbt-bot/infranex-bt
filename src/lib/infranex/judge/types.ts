@@ -1,8 +1,8 @@
 /**
  * Judge Intelligence — shared types.
  *
- * A "judge" is a subnet's validator scoring function. Before spending money
- * on hardware, we deconstruct HOW the judge scores miners (which dimensions
+ * A validator is a subnet's scoring function. Before spending money
+ * on hardware, we deconstruct HOW it scores miners (which dimensions
  * it rewards, how brutally it distributes incentive) and simulate a miner
  * spec against it.
  */
@@ -154,7 +154,7 @@ export const ARCHETYPE_PRIORS: Record<JudgeKind, Record<string, number>> = {
   },
 };
 
-/** Cohort telemetry — how brutally this subnet's judge distributes incentive. */
+/** Cohort telemetry — how brutally this subnet's validator distributes incentive. */
 export interface JudgeCohort {
   registeredUids: number;
   earningUids: number;
@@ -178,7 +178,7 @@ export interface JudgeSource {
   note?: string;
 }
 
-/** A full per-subnet judge profile (persisted in JudgeProfile). */
+/** A full per-subnet validator profile (persisted in JudgeProfile). */
 export interface JudgeProfileData {
   netuid: number;
   subnetName: string;

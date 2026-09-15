@@ -10,11 +10,11 @@ import {
 
 /**
  * Mock-validator harness — simulate "if I run THIS miner, how does the
- * judge's composite score me?"
+ * validator's composite score me?"
  *
  * All curves are DETERMINISTIC and pure — the same spec against the same
- * profile always produces the same result. These are models of judge
- * behaviour, not the judge itself; the disclaimer says so.
+ * profile always produces the same result. These are models of validator
+ * behaviour, not the validator itself; the disclaimer says so.
  */
 
 // ---------------------------------------------------------------------------

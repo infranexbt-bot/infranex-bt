@@ -605,7 +605,7 @@ interface DeploymentRow {
 }
 
 /**
- * "Apply to miner" — bridges one Judge fix to a live deployment: pick the
+ * "Apply to miner" — bridges one Validator fix to a live deployment: pick the
  * miner, the engine snapshots the config, merges the recipe env delta and
  * pushes apply_config via the node daemon (mock deployments get a tick).
  */
@@ -651,7 +651,7 @@ function ApplyFixButton({
   };
 
   // Sort: same-subnet deployments first (a fix computed for this subnet's
-  // judge profile lands hardest there), then everything else.
+  // validator profile lands hardest there), then everything else.
   const sorted = (deployments ?? []).slice().sort((a, b) => {
     const am = a.netuid === netuid ? 0 : 1;
     const bm = b.netuid === netuid ? 0 : 1;

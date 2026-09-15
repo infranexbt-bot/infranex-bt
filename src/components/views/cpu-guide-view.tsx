@@ -74,7 +74,7 @@ interface CpuProfile {
   mechanics: string;
   /** What the CPU box actually does (drives the budget card). */
   hardwareNote: string;
-  /** Deep guide exists (SN67) — richer copy, judge weights, gate numbers. */
+  /** Deep guide exists (SN67) — richer copy, validator weights, gate numbers. */
   deep?: boolean;
   /** Hand-verified links only. */
   links: [string, string][];

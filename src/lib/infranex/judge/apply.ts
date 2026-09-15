@@ -1,6 +1,6 @@
-// JUDGE-APPLY — the one sanctioned bridge from Judge Lab advice to live miners.
+// JUDGE-APPLY — the one sanctioned bridge from Validator Lab advice to live miners.
 //
-// The Judge itself is purely advisory: it simulates a MinerSpec against a
+// The Lab itself is purely advisory: it simulates a MinerSpec against a
 // subnet profile and ranks composite gains per dimension, but never touches
 // a deployment. This module closes the loop: it maps a recommendation
 // (dimensionKey) to a concrete on-host env delta using the same INFANEX_*
@@ -76,7 +76,7 @@ const clampPrice = (v: number) =>
   Math.min(100, Math.max(0.01, Math.round(v * 100) / 100));
 
 /**
- * Apply one Judge Lab recommendation to a deployment.
+ * Apply one Validator Lab recommendation to a deployment.
  * Same transport ladder as applyRuntimeOptimization:
  *   daemon reachable → apply_config push; mock → simulated tick;
  *   otherwise durable platform-side config update + honest note.
@@ -132,8 +132,8 @@ export async function applyJudgeFix(
       const { snapshotRevision } = await import("../deployment/revisions");
       await snapshotRevision(
         row.id,
-        "judge-fix",
-        `before judge fix: ${recipe.label}`,
+        "validator-fix",
+        `before validator fix: ${recipe.label}`,
         "engine"
       ).catch(() => null);
       const envVars = Array.isArray(cfg.docker.envVars) ? [...cfg.docker.envVars] : [];
@@ -160,7 +160,7 @@ export async function applyJudgeFix(
     await enqueueCommand(row.id, "apply_config", { env: envDelta });
     return {
       ok: true,
-      note: `apply_config queued via node daemon — env (${Object.keys(envDelta).join(", ")}) persisted on-host; the miner restarts under the new profile within 60s. Re-run the Judge in a few minutes to measure the gain.`,
+      note: `apply_config queued via node daemon — env (${Object.keys(envDelta).join(", ")}) persisted on-host; the miner restarts under the new profile within 60s. Re-run Validator Lab in a few minutes to measure the gain.`,
       applied,
       envDelta,
       transport: "daemon",

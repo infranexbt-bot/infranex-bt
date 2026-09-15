@@ -57,7 +57,7 @@ async function fetchRuns(): Promise<{ ok: boolean; runs: JudgeRunRecord[] }> {
   return res.json();
 }
 
-/** Persisted judge profiles (polled every 60s). */
+/** Persisted validator profiles (polled every 60s). */
 export function useJudgeProfiles() {
   return useQuery({
     queryKey: ["judge-profiles"],
@@ -75,7 +75,7 @@ export function useJudgeRuns() {
   });
 }
 
-/** Sync (build/refresh) a subnet's judge profile. */
+/** Sync (build/refresh) a subnet's validator profile. */
 export function useJudgeSync() {
   const qc = useQueryClient();
   return async (netuid: number): Promise<{ profile: JudgeProfileData }> => {

@@ -4,7 +4,7 @@ import { buildJudgeProfile, resolveSubnetName } from "@/lib/infranex/judge/servi
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
 
-// POST /api/judge/sync { netuid } — (re)build a subnet's judge profile
+// POST /api/judge/sync { netuid } — (re)build a subnet's validator profile
 export async function POST(req: NextRequest) {
   try {
     const body = (await req.json()) as { netuid?: number };

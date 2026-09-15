@@ -1,6 +1,6 @@
 // JUDGE-APPLY endpoint — POST /api/judge/apply
 //
-// Applies one Judge Lab recommendation to a live deployment. Body:
+// Applies one Validator Lab recommendation to a live deployment. Body:
 //   { deploymentId: string, dimensionKey: string, priceTargetUsd?: number }
 //
 // The heavy lifting (recipe mapping, revision snapshot, daemon push ladder)
@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(result);
   } catch (e) {
     return NextResponse.json(
-      { error: e instanceof Error ? e.message : "Judge fix apply failed" },
+      { error: e instanceof Error ? e.message : "Validator fix apply failed" },
       { status: 500 }
     );
   }

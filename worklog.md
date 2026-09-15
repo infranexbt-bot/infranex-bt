@@ -289,3 +289,34 @@ Work Log:
 Stage Summary:
 - Nav 04 is now "Validator Lab" everywhere the user can see; all judge APIs/types unchanged so
   zero functional risk. Handbook PDFs still say "Judge Lab" (static files) — regenerate on request.
+
+---
+Task ID: rename-validator-lab-2
+Agent: main
+Task: Second-pass sweep of "Judge Lab"/"judge" wording missed by the first rename pass (follow-up to rename-validator-lab-1).
+
+Work Log:
+- Swept src/ for remaining "Judge Lab"/"Judge for"/"Judge fix"/"judge profile" strings.
+- User-visible strings renamed: extract.ts buildSummary outputs ("Judge for X classified…"
+  → "Validator for X classified…"); apply.ts daemon apply note ("Re-run the Judge…" →
+  "Re-run Validator Lab…"); revision snapshot cause "judge-fix" → "validator-fix" + note
+  "before judge fix:" → "before validator fix:"; /api/judge/apply 500 fallback error
+  "Judge fix apply failed" → "Validator fix apply failed".
+- RevisionCause union updated in deployment/revisions.ts (judge-fix → validator-fix; DTO
+  cause is RevisionCause|string so old DB rows still render); added violet chip style for
+  "validator-fix" in revisions-dialog CAUSE_CHIP.
+- Comment/doc consistency pass: apply.ts header, service.ts, types.ts, simulate.ts,
+  use-judge.ts, extract.ts, judge-view.tsx, cpu-guide-view.tsx, api/judge/sync/route.ts.
+  devops-monitor.ts "can't judge thermals" kept (English verb, not the feature).
+- Internal identifiers intentionally stable: /api/judge/* routes, use-judge, JudgeKind,
+  judgeKind, quality_judge, nav key "judge", JudgeProfile prisma model.
+- Verification: rg sweep zero matches for "Judge Lab|Judge for|Judge fix|the Judge|judge
+  profile|judge weights"; tsc clean on src/ (pre-existing errors only in scripts/ + skills/
+  which are outside the app build); live: login 200, GET /api/judge/profiles?netuid=67 → 200
+  with renamed summary text.
+
+Stage Summary:
+- Rename fully complete — zero user-visible or doc-level "Judge Lab"/"judge" wording left in
+  src/; all APIs/types stable; committed locally as rename follow-up. NOT pushed yet: no git
+  remote configured (prior push used ad-hoc token URL) and no stored credentials — awaiting
+  fresh token or user-side push.

@@ -41,6 +41,7 @@ const CAUSE_CHIP: Record<string, string> = {
   deploy: "border-primary/40 text-primary",
   drift: "border-cyan-500/40 text-cyan-600 dark:text-cyan-400",
   "runtime-opt": "border-fuchsia-500/40 text-fuchsia-600 dark:text-fuchsia-400",
+  "validator-fix": "border-violet-500/40 text-violet-600 dark:text-violet-400",
   "rollback-backup": "border-amber-500/40 text-amber-600 dark:text-amber-400",
 };
 

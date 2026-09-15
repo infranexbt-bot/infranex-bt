@@ -29,7 +29,7 @@ export type RevisionCause =
   | "deploy"
   | "drift"
   | "runtime-opt"
-  | "judge-fix"
+  | "validator-fix"
   | "rollback-backup"
   | "migrate";
 

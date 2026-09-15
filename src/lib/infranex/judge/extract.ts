@@ -8,7 +8,7 @@ import {
 } from "./types";
 
 /**
- * Judge extraction — mines a subnet's validator scoring profile from its
+ * Validator Lab extraction — mines a subnet's validator scoring profile from its
  * own GitHub repo.
  *
  * Strategy (in order):
@@ -128,7 +128,7 @@ async function fetchRepoTree(info: RepoInfo): Promise<{ paths: string[]; failed:
 }
 
 /**
- * Fetch the raw inputs for judge extraction. Unthrottled raw probing first;
+ * Fetch the raw inputs for validator extraction. Unthrottled raw probing first;
  * git-trees API as a fallback to discover validator files that live outside
  * the standard paths.
  */
@@ -417,13 +417,13 @@ function buildSummary(
   evidenceHits: number
 ): string {
   if (evidenceHits === 0) {
-    return `Judge for ${subnetName} could not be classified from repo evidence — weights are archetype priors. Dominant axes: ${topAxes(dimensions, 2)}.`;
+    return `Validator for ${subnetName} could not be classified from repo evidence — weights are archetype priors. Dominant axes: ${topAxes(dimensions, 2)}.`;
   }
   const axes = topAxes(dimensions, 2);
   const deadlinePart = deadlineMs
     ? ` A response deadline of ~${deadlineMs / 1000}s was mined from the validator code.`
     : "";
-  return `Judge for ${subnetName} classified as ${kind.replace("_", " ")} from ${evidenceHits} evidence hits. Dominant axes: ${axes}.${deadlinePart}`;
+  return `Validator for ${subnetName} classified as ${kind.replace("_", " ")} from ${evidenceHits} evidence hits. Dominant axes: ${axes}.${deadlinePart}`;
 }
 
 function topAxes(dimensions: JudgeDimension[], n: number): string {

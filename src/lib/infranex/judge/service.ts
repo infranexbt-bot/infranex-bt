@@ -7,7 +7,7 @@ import { simulateAgainstProfile } from "./simulate";
 import type { JudgeProfileData, JudgeCohort, MinerSpec, SimulationResult } from "./types";
 
 /**
- * Judge service — profile cache (6h TTL), chain-backed cohort telemetry,
+ * Validator Lab service — profile cache (6h TTL), chain-backed cohort telemetry,
  * run persistence.
  */
 
@@ -68,7 +68,7 @@ async function fetchCohort(netuid: number): Promise<JudgeCohort> {
   }
 }
 
-/** Build (or rebuild) a judge profile for a subnet. */
+/** Build (or rebuild) a validator profile for a subnet. */
 export async function buildJudgeProfile(
   netuid: number,
   subnetName: string
