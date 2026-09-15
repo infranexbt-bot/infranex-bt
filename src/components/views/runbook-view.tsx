@@ -9,6 +9,7 @@ import {
   ArrowRight,
   CheckCircle2,
   Clock,
+  Coins,
   Cpu,
   Gauge,
   Radar,
@@ -37,9 +38,13 @@ export function RunbookView({ onNavigate }: RunbookViewProps) {
         <p className="max-w-2xl text-sm text-muted-foreground">
           What to verify when a GPU miner comes online — and what the DevOps
           Engine keeps watching so you do not have to. Thresholds below are the
-          live defaults the engine enforces on every 90-second pass.
+          live defaults the engine enforces on every 90-second pass. A cash-out
+          runbook covers the last mile: turning mined alpha into spendable TAO.
         </p>
-        <div className="flex shrink-0 gap-2">
+        <div className="flex shrink-0 flex-wrap gap-2">
+          <Button size="sm" variant="outline" onClick={() => onNavigate("miners")}>
+            <Coins className="h-4 w-4" /> Stake Portfolio
+          </Button>
           <Button size="sm" variant="outline" onClick={() => onNavigate("devops")}>
             <Radar className="h-4 w-4" /> DevOps Engine
           </Button>
@@ -206,6 +211,53 @@ export function RunbookView({ onNavigate }: RunbookViewProps) {
         </Card>
       </div>
 
+      {/* RUNBOOK-2 — cash-out runbook: alpha → TAO → exchange */}
+      <Card className="border-border/60">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Coins className="h-4 w-4 text-primary" aria-hidden="true" />
+            Cash-out runbook · alpha → TAO → exchange
+          </CardTitle>
+          <p className="text-xs text-muted-foreground">
+            Mining rewards land as staked alpha on your hotkey. Unstaking sells
+            that alpha into the subnet&apos;s liquidity pool and credits TAO to
+            the coldkey — the Stake Portfolio card tracks both ends live.
+          </p>
+        </CardHeader>
+        <CardContent className="grid gap-4 lg:grid-cols-2">
+          <div className="space-y-3">
+            {CASHOUT_STEPS.map((s, i) => (
+              <div key={s.title} className="flex gap-3">
+                <span className="mono mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[10px] font-semibold text-primary">
+                  {i + 1}
+                </span>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium">{s.title}</p>
+                  <p className="text-xs leading-relaxed text-muted-foreground">{s.detail}</p>
+                  {s.code ? (
+                    <pre className="mono mt-1.5 overflow-x-auto rounded-md bg-muted/60 px-2.5 py-1.5 text-[11px] leading-relaxed text-foreground/90">
+                      {s.code}
+                    </pre>
+                  ) : null}
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="space-y-3">
+            <p className="text-eyebrow text-muted-foreground">Watch-outs</p>
+            {CASHOUT_WARNINGS.map((w) => (
+              <div key={w.title} className="flex gap-3">
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" aria-hidden="true" />
+                <div>
+                  <p className="text-sm font-medium">{w.title}</p>
+                  <p className="text-xs leading-relaxed text-muted-foreground">{w.detail}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Registration reminder */}
       <Card className="border-border/60">
         <CardContent className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
@@ -304,4 +356,54 @@ const TRIGGER_KINDS = [
   { kind: "RUNWAY", hot: false },
   { kind: "UPSTREAM_DRIFT", hot: false },
   { kind: "BENCH_REGRESS", hot: false },
+] as const;
+
+const CASHOUT_STEPS = [
+  {
+    title: "Check what you hold — and where",
+    detail:
+      "My Miners → Stake Portfolio shows α staked per subnet, the α/TAO pool spot, 24h drift, and the coldkey's free TAO. Cross-check with btcli wallet overview. Prefer unstaking from deep pools (e.g. Chutes α64) — thin pools move the price against you.",
+    code: "btcli wallet overview --network finney",
+  },
+  {
+    title: "Unstake: sell alpha for TAO onto the coldkey",
+    detail:
+      "btcli stake remove is interactive (wallet → hotkey → subnet → amount). No lockups — the TAO lands within seconds to a few blocks. Newer btcli versions offer --safe-staking to split large unstakes into chunks; run btcli stake remove --help for the current flags.",
+    code: "btcli stake remove \\\n  --wallet.name <wallet> --wallet.hotkey <hotkey> \\\n  --netuid 64 --amount 1.2 --network finney\n\n# all alpha from one subnet:\nbtcli stake remove --wallet.name <wallet> --netuid 64 --all-alpha",
+  },
+  {
+    title: "Confirm the TAO arrived on the coldkey",
+    detail:
+      "The Stake Portfolio card's “Free TAO on coldkeys” ticks up after the unstake. btcli wallet balance shows the same number chain-side.",
+    code: "btcli wallet balance --network finney",
+  },
+  {
+    title: "Optional: move TAO to an exchange",
+    detail:
+      "Kraken, Binance, MEXC and Gate.io all list TAO. Send a small test amount first and make sure the destination is a Bittensor (TAO chain) address — never an EVM/0x address.",
+    code: "btcli wallet transfer \\\n  --dest <exchange-deposit-address> \\\n  --amount 0.5 --network finney",
+  },
+] as const;
+
+const CASHOUT_WARNINGS = [
+  {
+    title: "Rate = pool price at execution",
+    detail:
+      "You get the pool rate when the unstake executes, minus pool impact and a small protocol swap fee. Check the 24h drift on the Stake Portfolio card before pulling the trigger on a large position.",
+  },
+  {
+    title: "Root stake needs no conversion",
+    detail:
+      "Root (netuid 0) stake is already TAO-denominated — only subnet alpha needs the unstake step.",
+  },
+  {
+    title: "The mnemonic never goes online",
+    detail:
+      "Staking operations run locally with your wallet files — no seed phrase belongs in any website or support ticket. Anyone asking for it is a scammer.",
+  },
+  {
+    title: "Test-transfer rule",
+    detail:
+      "First time moving TAO anywhere: send the minimum, confirm arrival, then send the rest. Addresses on Bittensor cannot be un-sent from.",
+  },
 ] as const;
