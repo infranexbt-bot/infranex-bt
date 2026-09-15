@@ -379,3 +379,42 @@ Work Log:
 
 Stage Summary:
 - platform-live fully synced: Validator Lab rename + Edition 2 handbooks + autosave.
+
+---
+Task ID: overlay-1-2-gap-fixes
+Agent: main (Super Z)
+Task: Fix the two per-subnet requirements gaps: (1) profiler ignores user-provided
+SubnetOverride.githubUrl, (2) pod docker image came from fake category templates.
+
+Work Log:
+- OVERLAY-1 (subnet-requirements.ts): override layer added to buildProfile —
+  SubnetOverride.githubUrl (normalized: bare domains, .git suffix, /tree/branch)
+  now takes precedence over the on-chain identity link; "override" provenance
+  source + validation notes; confidence logic unchanged.
+- OVERLAY-1 (override route): PUT/DELETE now invalidate the 6h SubnetRequirements
+  cache so the next pull re-fetches from the user's repo immediately.
+- OVERLAY-2 (config.ts): pod image no longer fake "bittensor/*" placeholders —
+  resolvePodImage() selects runpod/pytorch CUDA devel image matched to the
+  subnet's parsed min CUDA (11.8 / 12.1 ladder; RunPod deploy API has no command
+  override, so pod image must be keep-alive + sshd). SubnetProfileHint passed
+  from POST /api/deployments (pullSubnetRequirements, cached) into
+  createDeployment → buildDeploymentConfig: imageSource + repoDockerfileBase
+  recorded, entrypoint/python/cuda from profile. Repo's real Dockerfile still
+  rules the miner image via in-pod docker build (installer step 5).
+- Robust Dockerfile FROM parsing: multi-stage → last concrete FROM; skips
+  ${VAR} indirection and scratch; --platform flag handled.
+- engine.ts: approve-step mode line no longer infers from imageName; profileHint
+  plumbed through CreateDeploymentInput.
+- UI: deployments-view shows "Repo Dockerfile base" row; client type mirror synced.
+- Tests: scripts/test-overlay-fixes.ts (25 unit checks) PASS;
+  scripts/test-profiler-e2e.ts (10 authenticated e2e checks incl. override
+  round-trip PUT→repo wins→invalid URL rejected→DELETE reverts) PASS;
+  test-tier2.ts 58 PASS / 0 FAIL; test-tier4.ts PASS; tsc clean for touched code.
+- Committed cb62b1a. NOT pushed: no git remote/credentials in workspace (by
+  design after PAT exposure) — push to infranexbt-bot/infranex-bt platform-live
+  pending fresh fine-grained token from user.
+
+Stage Summary:
+- Both gaps fixed and verified e2e. Deployment configs now carry
+  imageSource="subnet-requirements" + repoDockerfileBase; profiler honors team
+  overrides with cache invalidation. Local commit cb62b1a awaits push.
