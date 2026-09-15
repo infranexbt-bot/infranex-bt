@@ -52,7 +52,7 @@ import {
 
 const KIND_BADGE: Record<JudgeKind, { label: string; className: string }> = {
   latency_race: { label: "Latency Race", className: "bg-cyan-500/15 text-cyan-300 border-cyan-500/30" },
-  quality_judge: { label: "Quality Judge", className: "bg-violet-500/15 text-violet-300 border-violet-500/30" },
+  quality_judge: { label: "Quality Validator", className: "bg-violet-500/15 text-violet-300 border-violet-500/30" },
   market_clearing: { label: "Market Clearing", className: "bg-amber-500/15 text-amber-300 border-amber-500/30" },
   uptime_sla: { label: "Uptime SLA", className: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30" },
   resource_fit: { label: "Resource Fit", className: "bg-sky-500/15 text-sky-300 border-sky-500/30" },
@@ -193,8 +193,8 @@ export function JudgeView() {
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="text-eyebrow text-primary">Judge Intelligence</p>
-          <h2 className="text-display text-2xl font-bold tracking-tight">Judge Lab</h2>
+          <p className="text-eyebrow text-primary">Validator Intelligence</p>
+          <h2 className="text-display text-2xl font-bold tracking-tight">Validator Lab</h2>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
             Deconstruct each subnet&apos;s validator scoring BEFORE spending on hardware, then
             simulate your miner against it. Evidence-cited, cohort-aware, honestly uncertain.
@@ -265,7 +265,7 @@ export function JudgeView() {
         <Card className="border-border/60 bg-card/40">
           <CardContent className="flex items-center justify-center gap-2 py-16 text-muted-foreground">
             <RefreshCw className="h-5 w-5 animate-spin" />
-            <span className="text-sm">Mining judge profile…</span>
+            <span className="text-sm">Mining validator profile…</span>
           </CardContent>
         </Card>
       ) : !profile ? (
@@ -282,7 +282,7 @@ export function JudgeView() {
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2 text-base">
                   <Gavel className="h-4 w-4 text-primary" />
-                  Judge profile · α{profile.netuid} {profile.subnetName}
+                  Validator profile · α{profile.netuid} {profile.subnetName}
                 </CardTitle>
                 <Badge variant="outline" className={KIND_BADGE[profile.judgeKind]?.className}>
                   {KIND_BADGE[profile.judgeKind]?.label ?? profile.judgeKind}
@@ -412,7 +412,7 @@ export function JudgeView() {
                 />
                 <Button onClick={handleRun} disabled={running} className="w-full gap-2">
                   <Play className="h-4 w-4" />
-                  {running ? "Scoring against judge…" : "Run simulation"}
+                  {running ? "Scoring against validator…" : "Run simulation"}
                 </Button>
               </CardContent>
             </Card>

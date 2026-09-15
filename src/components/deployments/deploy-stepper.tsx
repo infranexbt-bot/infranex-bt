@@ -772,7 +772,7 @@ export function DeployStepper() {
                     2 · Connect the daemon
                   </p>
                   <p className="mt-1.5 text-xs text-muted-foreground">
-                    One paste on the GPU pod installs a supervised agent. It is how Judge Lab
+                    One paste on the GPU pod installs a supervised agent. It is how Validator Lab
                     pushes fixes to this miner and how health checks reach it. Copy the setup
                     command, paste it as root (or into the provider&apos;s start script), and the
                     chip turns online in about a minute.
@@ -794,7 +794,7 @@ export function DeployStepper() {
                     <p className="flex items-start gap-1.5">
                       <FlaskConical className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
                       <span>
-                        <span className="font-medium text-foreground">Judge Lab</span> — run a
+                        <span className="font-medium text-foreground">Validator Lab</span> — run a
                         check on this subnet, then apply the recommended fixes straight to this
                         miner.
                       </span>

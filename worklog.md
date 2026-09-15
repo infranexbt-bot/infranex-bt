@@ -264,3 +264,28 @@ Stage Summary:
 - Dev server restored via platform dev.sh (pid changes across restarts; port 3000 confirmed).
 - User guidance: targon-01 no longer exists (fresh DB) — redeploy from Deployments; if a deploy
   is ever interrupted, the ticker resumes it automatically within seconds.
+
+---
+Task ID: rename-validator-lab-1
+Agent: main (Super Z)
+Task: Rename "Judge Lab" to "Validator Lab" across user-facing UI (user asked for rename suggestions)
+
+Work Log:
+- Chose "Validator Lab" (user's first option; singular = correct Bittensor term; keeps the
+  simulate+apply "lab" concept). Alternatives offered: Validator Scores, Score Simulator.
+- Renamed user-facing strings only — sidebar label, page title + eyebrow, judge-view header/
+  buttons/badges ("Quality Judge"→"Quality Validator", "Mining judge profile…", "Scoring
+  against validator…"), cpu-guide-view guide copy (~15 strings: "judge profile/weights/shape/
+  sim" → "validator …"), deploy-stepper + daemon-install-dialog copy, service-health runbook
+  line, simulate.ts disclaimer. Internal identifiers untouched: /api/judge routes, judge-view/
+  use-judge/apply.ts, JudgeKind + judgeKind + quality_judge type keys, route key "judge".
+- Also reseeded users this session (fresh DB had 0 AppUser rows → login 401s) from the
+  /tmp wipe-proof mirror; original codes preserved; session secret regenerated; server
+  restarted via .zscripts/dev.sh; login verified 200 + session cookie.
+- Verification: rg sweep shows zero user-facing "Judge" left (only internal keys/comments);
+  tsc clean on src; eslint 0 errors (1 pre-existing unused-disable warning); live check:
+  login → GET / HTML contains "Validator Lab", no "Judge Lab".
+
+Stage Summary:
+- Nav 04 is now "Validator Lab" everywhere the user can see; all judge APIs/types unchanged so
+  zero functional risk. Handbook PDFs still say "Judge Lab" (static files) — regenerate on request.

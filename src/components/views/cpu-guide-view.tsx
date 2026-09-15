@@ -48,10 +48,10 @@ import type { ViewKey } from "@/lib/infranex/types";
 //   1. Subnet picker — every live opportunity with minVramGb ≤ 0, scored,
 //      verified profiles pinned on top.
 //   2. Live per-subnet economics strip — same chain numbers as Opportunities.
-//   3. Golden-order banner — register LAST, after the Judge Lab gate is green.
+//   3. Golden-order banner — register LAST, after the Validator Lab gate is green.
 //   4. Nine phase cards (0-8) with copyable commands, cost badges and
 //      per-user per-subnet progress (localStorage).
-//   5. Judge Lab gate card — SN67 case study proves the gate; sync works
+//   5. Validator Lab gate card — SN67 case study proves the gate; sync works
 //      for any netuid.
 //   6. Honest boundaries — what the app deliberately does NOT do on this path.
 // ---------------------------------------------------------------------------
@@ -412,28 +412,28 @@ const DEEP_SN67_PHASES: Phase[] = [
   {
     id: "p3",
     n: 3,
-    title: "Study the champion + mine the judge profile",
+    title: "Study the champion + mine the validator profile",
     cost: "free",
-    why: "SN67 clears the market on Price (56% of the reward weight) with Quality at 19%, a ~30 s response deadline, a ~$0.50/1M price reference and ~25 tps throughput reference. That mix is the judge's actual scoring shape — mined live, not guessed.",
+    why: "SN67 clears the market on Price (56% of the reward weight) with Quality at 19%, a ~30 s response deadline, a ~$0.50/1M price reference and ~25 tps throughput reference. That mix is the validator's actual scoring shape — mined live, not guessed.",
     steps: [
-      "Judge Lab → Sync netuid 67 — the profile arrives in ~15 s from the repo + chain.",
+      "Validator Lab → Sync netuid 67 — the profile arrives in ~15 s from the repo + chain.",
       "Probe the top miner through the champion endpoint (MCP: api.harnyx.ai/mcp) — read its latency, price and citation style.",
       "Write the three numbers on a sticky note: <30 s, ≤$0.50/1M, ≥25 tps.",
     ],
     appNote:
-      "Judge Lab (nav 04) is your free sparring partner — no burn needed to see the judge's shape.",
+      "Validator Lab (nav 04) is your free sparring partner — no burn needed to see the validator's shape.",
   },
   {
     id: "p4",
     n: 4,
     title: "Build the agent (your CPU is the forge)",
     cost: "free",
-    why: "Validators execute your script in sandboxes, so the hardware that matters is theirs. Your box only needs to produce the script. Optimize for the judge's shape: fast, cheap, good-enough quality with citations.",
+    why: "Validators execute your script in sandboxes, so the hardware that matters is theirs. Your box only needs to produce the script. Optimize for the validator's shape: fast, cheap, good-enough quality with citations.",
     steps: [
       "Implement the agent inside the harnyx-miner-sdk harness.",
       "Tune response time under the ~30 s deadline — slow answers lose on Market Clearing.",
       "Price at or below the ~$0.50/1M reference; keep quality ≥80% with citations.",
-      "Target ≥25 tps throughput — the judge rewards speed per token, not just total time.",
+      "Target ≥25 tps throughput — the validator rewards speed per token, not just total time.",
     ],
     appNote:
       "CPU is enough — this is the one mining path where the GPU wizard, CUDA config and nvidia-smi telemetry stay out of your way.",
@@ -441,11 +441,11 @@ const DEEP_SN67_PHASES: Phase[] = [
   {
     id: "p5",
     n: 5,
-    title: "Local eval — spar with Judge Lab until the gate is green",
+    title: "Local eval — spar with Validator Lab until the gate is green",
     cost: "free",
-    why: "Re-run the simulation after every design change. The judge sim scores your agent's latency / quality / price / throughput mix into a composite — before you ever spend a wei of burn. Proof from the last pre-flight: a slow-but-deep agent (240 s, $0.60, 72%) scored 41.9 = weak; a tuned fast+cheap one scored 62.1 = competitive ≈ p90 (1.87× the median).",
+    why: "Re-run the simulation after every design change. The validator sim scores your agent's latency / quality / price / throughput mix into a composite — before you ever spend a wei of burn. Proof from the last pre-flight: a slow-but-deep agent (240 s, $0.60, 72%) scored 41.9 = weak; a tuned fast+cheap one scored 62.1 = competitive ≈ p90 (1.87× the median).",
     steps: [
-      "Judge Lab → netuid 67 → drag the sliders to your agent's real numbers.",
+      "Validator Lab → netuid 67 → drag the sliders to your agent's real numbers.",
       "Read the verdict: weak / below-median / competitive — and the p-position.",
       "Iterate: cut latency, cut price, hold quality — re-simulate each time.",
     ],
@@ -459,7 +459,7 @@ const DEEP_SN67_PHASES: Phase[] = [
     cost: "burn",
     why: "Registration burns ~0.05 TAO (≈$12 — the cheapest entry seen in the network vs ~1 TAO on SN64) and takes a seat on SN67. It floats with demand, so check the strip before executing. This is the point of no return — the gate must be green first.",
     steps: [
-      "Confirm the Judge Lab gate card below shows competitive (~p90) or better.",
+      "Confirm the Validator Lab gate card below shows competitive (~p90) or better.",
       "Check the burn cost in the strip — if it spiked, the seat demand changed.",
       "Register (command below), then verify the hotkey appears in the SN67 metagraph.",
     ],
@@ -605,26 +605,26 @@ function genericPhases(ctx: GenericCtx): Phase[] {
     {
       id: "p3",
       n: 3,
-      title: "Mine the judge profile in Judge Lab — free",
+      title: "Mine the validator profile in Validator Lab — free",
       cost: "free",
-      why: "Judge Lab mines the subnet's actual scoring shape from the repo + chain before you spend anything. For SN67 the profile is deep (weights, deadlines, price references); for other subnets the profile may be partial — treat it as a map with gaps, and cross-check the repo's reward function where the profile is thin.",
+      why: "Validator Lab mines the subnet's actual scoring shape from the repo + chain before you spend anything. For SN67 the profile is deep (weights, deadlines, price references); for other subnets the profile may be partial — treat it as a map with gaps, and cross-check the repo's reward function where the profile is thin.",
       steps: [
-        `Judge Lab → Sync netuid ${netuid} — the profile arrives from the repo + chain.`,
+        `Validator Lab → Sync netuid ${netuid} — the profile arrives from the repo + chain.`,
         "Read the mined weights: which axis (speed, price, quality, coverage) actually moves rewards here.",
         "If the profile looks incomplete, say so in your notes and lean on the repo's reward function instead.",
       ],
       appNote:
-        "Judge Lab (nav 04) is your free sparring partner — no burn needed to see the judge's shape.",
+        "Validator Lab (nav 04) is your free sparring partner — no burn needed to see the validator's shape.",
     },
     {
       id: "p4",
       n: 4,
       title: "Build the miner (your CPU is the forge)",
       cost: "free",
-      why: `${profile.hardwareNote.charAt(0).toUpperCase()}${profile.hardwareNote.slice(1)}. Build toward the judge's shape from Phase 3, not toward guesswork — and keep the implementation inside the repo's own miner harness so protocol updates don't strand you.`,
+      why: `${profile.hardwareNote.charAt(0).toUpperCase()}${profile.hardwareNote.slice(1)}. Build toward the validator's shape from Phase 3, not toward guesswork — and keep the implementation inside the repo's own miner harness so protocol updates don't strand you.`,
       steps: [
         "Implement the miner per the repo's own harness/examples — resist custom plumbing.",
-        "Match the mined judge weights: optimize what is actually scored, ignore what isn't.",
+        "Match the mined validator weights: optimize what is actually scored, ignore what isn't.",
         "Dry-run against the testnet first (docs.bittensor.com) — mainnet epochs score for real.",
       ],
       appNote:
@@ -633,11 +633,11 @@ function genericPhases(ctx: GenericCtx): Phase[] {
     {
       id: "p5",
       n: 5,
-      title: "Local eval — spar with Judge Lab until the gate is green",
+      title: "Local eval — spar with Validator Lab until the gate is green",
       cost: "free",
       why: "Re-run the simulation after every design change, before you ever spend a wei of burn. The SN67 case study below proves the gate catches weak miners: a slow-but-deep agent scored 41.9 = weak; a tuned one scored 62.1 = competitive ≈ p90. The same discipline transfers to every subnet — simulate, iterate, only burn on competitive.",
       steps: [
-        `Judge Lab → netuid ${netuid} → drag the sliders to your miner's real numbers.`,
+        `Validator Lab → netuid ${netuid} → drag the sliders to your miner's real numbers.`,
         "Read the verdict: weak / below-median / competitive — and the p-position.",
         "Iterate: cut the weak axis, hold the strong one — re-simulate each time.",
       ],
@@ -651,7 +651,7 @@ function genericPhases(ctx: GenericCtx): Phase[] {
       cost: "burn",
       why: `Registration burns ${burnTxt} and takes a seat on SN${netuid}. It floats with demand, so check the strip before executing. This is the point of no return — the gate must be green first, and every phase before this one was free on purpose.`,
       steps: [
-        "Confirm the Judge Lab gate card below shows competitive or better.",
+        "Confirm the Validator Lab gate card below shows competitive or better.",
         "Check the burn cost in the strip — if it spiked, the seat demand changed.",
         `Register (command below), then verify the hotkey appears in the SN${netuid} metagraph.`,
       ],
@@ -809,7 +809,7 @@ export function CpuGuideView({ onNavigate }: { onNavigate: (v: ViewKey) => void 
               <>
                 The complete Harnyx (SN67) path — the cheapest live entry in the network:
                 no GPU, no always-on box, one ~$12 burn. Follow the phases in order; the
-                register step is gated on Judge Lab by design.
+                register step is gated on Validator Lab by design.
               </>
             ) : (
               <>
@@ -910,7 +910,7 @@ export function CpuGuideView({ onNavigate }: { onNavigate: (v: ViewKey) => void 
               Golden order — register LAST.
             </p>
             <p className="mt-0.5 text-muted-foreground">
-              Never burn before the Judge Lab gate is green. The proof is real: slow agent{" "}
+              Never burn before the Validator Lab gate is green. The proof is real: slow agent{" "}
               <span className="mono tabular">41.9</span> ={" "}
               <span className="font-medium text-warning">weak — don&apos;t burn</span>;
               tuned agent <span className="mono tabular">62.1</span> ={" "}
@@ -1052,25 +1052,25 @@ export function CpuGuideView({ onNavigate }: { onNavigate: (v: ViewKey) => void 
         })}
       </div>
 
-      {/* Judge Lab gate card */}
+      {/* Validator Lab gate card */}
       <Card className="border-primary/30">
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2 text-base">
             <Gavel className="h-4 w-4 text-primary" aria-hidden="true" />
-            The pre-burn gate — Judge Lab (nav 04)
+            The pre-burn gate — Validator Lab (nav 04)
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3.5">
           <p className="text-sm leading-relaxed text-muted-foreground">
             {isDeep ? (
               <>
-                Judge Lab mines the judge&apos;s real behavior from the repo and simulates
+                Validator Lab mines the validator&apos;s real behavior from the repo and simulates
                 your agent before the burn. Same discipline as the SN64 pre-flight. The two
                 outcomes, from the actual run:
               </>
             ) : (
               <>
-                Judge Lab syncs per netuid — sync <span className="mono tabular">{netuid}</span>{" "}
+                Validator Lab syncs per netuid — sync <span className="mono tabular">{netuid}</span>{" "}
                 and simulate your miner before the burn. The gate itself is proven on SN67;
                 the two outcomes from that pre-flight:
               </>
@@ -1099,7 +1099,7 @@ export function CpuGuideView({ onNavigate }: { onNavigate: (v: ViewKey) => void 
               Rule: simulate → iterate → only burn on <span className="font-medium text-foreground">competitive</span> or better.
             </p>
             <Button size="sm" className="gap-1.5" onClick={() => onNavigate("judge")}>
-              Open Judge Lab
+              Open Validator Lab
               <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
             </Button>
           </div>
@@ -1190,7 +1190,7 @@ export function CpuGuideView({ onNavigate }: { onNavigate: (v: ViewKey) => void 
                 </span>{" "}
                 — SN67&apos;s weights and gate numbers are researched; other subnets run the
                 same discipline with live economics and explicit &quot;verify in docs&quot;
-                flags. No fabricated repos, no invented judge weights.
+                flags. No fabricated repos, no invented validator weights.
               </span>
             </li>
           </ul>

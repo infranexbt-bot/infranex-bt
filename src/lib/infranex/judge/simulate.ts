@@ -194,7 +194,7 @@ export function simulateAgainstProfile(
     dimensionScores: dimScores,
     recommendations: rankRecommendations(dimScores, spec),
     disclaimer:
-      "Deterministic model of this judge's behaviour — not the actual validator. Calibrate with small stakes first.",
+      "Deterministic model of this subnet's validator behaviour — not the actual validator. Calibrate with small stakes first.",
   };
 }
 

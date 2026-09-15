@@ -618,7 +618,7 @@ async function evaluateServiceForDep(
           runbook: [
             "Verify the axon is still announced on-chain (a restart re-announces it).",
             "Check the subnet's validator set changed (stake moves) — see Subnet Drift events.",
-            "Compare your serving quality against the cohort (Runtime Optimizer / Judge profiles).",
+            "Compare your serving quality against the cohort (Runtime Optimizer / Validator profiles).",
             "Approve to acknowledge once query volume recovers.",
           ],
         });

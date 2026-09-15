@@ -119,7 +119,7 @@ export function DaemonInstallDialog({
           <DialogDescription className="text-xs">
             The daemon is a zero-dependency Python 3.8+ script (stdlib only, HMAC-SHA256 signed).
             It reports GPU/telemetry every 60s and executes platform-approved commands — including
-            the Judge Lab apply_config pushes. Run it on the GPU pod, as root.
+            the Validator Lab apply_config pushes. Run it on the GPU pod, as root.
           </DialogDescription>
         </DialogHeader>
 
@@ -189,7 +189,7 @@ export function DaemonInstallDialog({
                   <span className="font-medium text-success">online</span>.
                 </li>
                 <li>
-                  <span className="font-medium text-foreground">4.</span> From then on, Judge Lab
+                  <span className="font-medium text-foreground">4.</span> From then on, Validator Lab
                   &quot;Apply&quot; fixes and DevOps actions reach the real miner on-host.
                 </li>
               </ol>

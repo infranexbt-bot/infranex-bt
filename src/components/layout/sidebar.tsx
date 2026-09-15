@@ -43,7 +43,7 @@ const NAV_GROUPS: { label: string; items: { key: ViewKey; label: string; icon: t
       { key: "dashboard", label: "Dashboard", icon: LayoutDashboard, hint: "01" },
       { key: "opportunities", label: "Opportunities", icon: TrendingUp, hint: "02" },
       { key: "subnets", label: "Subnets", icon: Network, hint: "03" },
-      { key: "judge", label: "Judge Lab", icon: Gavel, hint: "04" },
+      { key: "judge", label: "Validator Lab", icon: Gavel, hint: "04" },
       { key: "cpu-guide", label: "CPU Guide", icon: ListChecks, hint: "05" },
     ],
   },

@@ -28,7 +28,7 @@ const VIEW_META: Record<
   dashboard: { title: "Network Intelligence", eyebrow: "Section · 01 · Dashboard" },
   opportunities: { title: "Opportunities", eyebrow: "Section · 02 · Scoring" },
   subnets: { title: "Subnets", eyebrow: "Section · 03 · Chain explorer" },
-  judge: { title: "Judge Lab", eyebrow: "Section · 04 · Judge intelligence" },
+  judge: { title: "Validator Lab", eyebrow: "Section · 04 · Validator intelligence" },
   "cpu-guide": { title: "CPU Guide", eyebrow: "Section · 05 · Harnyx SN67 mining path" },
   gpus: { title: "GPU Catalog", eyebrow: "Section · 06 · Infrastructure" },
   miners: { title: "My Miners", eyebrow: "Section · 09 · Portfolio" },
