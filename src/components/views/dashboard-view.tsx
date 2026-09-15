@@ -1,9 +1,11 @@
 "use client";
 
-import { RefreshCw, Network, TrendingUp, Coins, Activity, ArrowRight } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { RefreshCw, Network, TrendingUp, Coins, Activity, ArrowRight, Pickaxe, Landmark, ShieldQuestion } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";import { computeOpportunityScore, type OpportunityScoreResult, type ScoredStrategy } from "@/lib/infranex/opportunity-score";
 import { MetricCard } from "@/components/cards/metric-card";
 import { DataSourceBanner } from "@/components/cards/data-source-banner";
 import { OpportunityTable } from "@/components/tables/opportunity-table";
@@ -90,6 +92,9 @@ export function DashboardView({ onSelectOpportunity, onStartMining, onNavigate }
           <DataSourceBanner />
         </div>
       </header>
+
+      {/* TAO Opportunity Score — mine vs stake, in numbers */}
+      <OpportunityScoreCard onNavigate={onNavigate} />
 
       {/* Metrics */}
       <section className="stagger grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -461,5 +466,301 @@ function Stat({ label, value }: { label: string; value: string }) {
       <p className="tabular text-display text-lg font-bold tracking-tight">{value}</p>
       <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</p>
     </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// TAO Opportunity Score — the home-screen "what earns more, mine or stake?"
+// verdict. Numbers come from the live chain snapshot (emissions, pool depths,
+// TAO spot) through the shared opportunity-score engine — no hardcoded
+// returns. Capital input scales the staking leg; mining is per miner slot.
+// ---------------------------------------------------------------------------
+
+const CAPITAL_KEY = "infranex-opportunity-capital-tao";
+
+function formatINR(usd: number, usdInr: number): string {
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 0,
+  }).format(usd * usdInr);
+}
+
+function riskBadgeClass(risk: string): string {
+  if (risk === "low") return "text-success bg-success/10 ring-1 ring-success/20";
+  if (risk === "medium") return "text-warning bg-warning/10 ring-1 ring-warning/20";
+  return "text-destructive bg-destructive/10 ring-1 ring-destructive/20";
+}
+
+function scoreColor(score: number): string {
+  if (score >= 70) return "hsl(var(--success))";
+  if (score >= 40) return "hsl(var(--warning))";
+  return "hsl(var(--destructive))";
+}
+
+function ScoreRing({ score }: { score: number }) {
+  const r = 52;
+  const c = 2 * Math.PI * r;
+  const filled = (clampScore(score) / 100) * c;
+  return (
+    <div className="relative h-[136px] w-[136px] shrink-0">
+      <svg viewBox="0 0 120 120" className="h-full w-full -rotate-90">
+        <circle cx="60" cy="60" r={r} fill="none" stroke="hsl(var(--muted))" strokeWidth="9" />
+        <circle
+          cx="60"
+          cy="60"
+          r={r}
+          fill="none"
+          stroke={scoreColor(score)}
+          strokeWidth="9"
+          strokeLinecap="round"
+          strokeDasharray={`${filled} ${c}`}
+          className="transition-all duration-1000"
+        />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="text-display text-4xl font-bold tabular">{score}</span>
+        <span className="text-[10px] uppercase tracking-wider text-muted-foreground">score</span>
+      </div>
+    </div>
+  );
+}
+
+function clampScore(s: number): number {
+  return Math.min(100, Math.max(0, s));
+}
+
+function StrategyRow({
+  s,
+  kind,
+  usdInr,
+  capitalTao,
+  primary,
+}: {
+  s: ScoredStrategy;
+  kind: "mine" | "stake";
+  usdInr: number;
+  capitalTao: number;
+  primary?: boolean;
+}) {
+  const Icon = kind === "mine" ? Pickaxe : Landmark;
+  return (
+    <div
+      className={cn(
+        "rounded-xl border p-4 transition-colors",
+        primary
+          ? "border-primary/40 bg-primary/5"
+          : "border-border/40 bg-background/60"
+      )}
+    >
+      <div className="flex flex-wrap items-center gap-2">
+        <span
+          className={cn(
+            "inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-xs font-semibold",
+            kind === "mine" ? "bg-primary/15 text-primary" : "bg-muted text-foreground"
+          )}
+        >
+          <Icon className="h-3.5 w-3.5" />
+          {kind === "mine" ? "Mine" : "Stake TAO"}
+        </span>
+        <span className="text-sm font-semibold">{s.title}</span>
+        {s.netuid != null && s.netuid > 0 && (
+          <Badge variant="outline" className="text-[10px] text-muted-foreground">
+            α{s.netuid}
+          </Badge>
+        )}
+        <span className={cn("ml-auto rounded-full px-2 py-0.5 text-[10px] uppercase tracking-wide", riskBadgeClass(s.riskLevel))}>
+          {s.riskLevel} risk
+        </span>
+      </div>
+      <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <div>
+          <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+            {kind === "mine" ? "Expected net return" : "Expected yield (net)"}
+          </p>
+          <p className="mono tabular text-lg font-bold">
+            {kind === "mine"
+              ? formatINR(s.netMonthlyUsd, usdInr)
+              : `${s.roiMonthlyPct.toFixed(2)}%/mo`}
+          </p>
+          <p className="text-[10px] text-muted-foreground">
+            {kind === "mine"
+              ? `$${s.netMonthlyUsd.toLocaleString()}/mo · ${s.roiMonthlyPct.toFixed(1)}%/mo ROI`
+              : `${s.roiMonthlyPct.toFixed(2)}% × 12 net APY`}
+          </p>
+        </div>
+        <div>
+          <p className="text-[10px] uppercase tracking-wider text-muted-foreground">TAO accumulation</p>
+          <p className="mono tabular text-lg font-bold">
+            {s.taoPerMonth.toFixed(3)}
+            <span className="ml-1 text-xs font-normal text-muted-foreground">TAO/mo</span>
+          </p>
+          <p className="text-[10px] text-muted-foreground">
+            {kind === "stake" ? `on ${capitalTao} TAO staked` : "gross emission share"}
+          </p>
+        </div>
+        <div className="col-span-2 sm:col-span-1">
+          <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+            {kind === "mine" ? "GPU required" : "Confidence"}
+          </p>
+          {kind === "mine" ? (
+            <>
+              <p className="mono truncate text-sm font-semibold">{s.requiredGpu ?? "—"}</p>
+              <p className="text-[10px] text-muted-foreground">
+                {s.minVramGb != null ? `${s.minVramGb} GB VRAM · ` : ""}
+                {Math.round(s.confidence * 100)}% confidence
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="mono text-sm font-semibold">{Math.round(s.confidence * 100)}%</p>
+              <p className="text-[10px] text-muted-foreground">{s.detail}</p>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function OpportunityScoreCard({ onNavigate }: { onNavigate: (v: ViewKey) => void }) {
+  const { data: snap, isFetching } = useNetwork();
+  const { data: profConfig } = useProfitabilityConfig();
+  const [capitalInput, setCapitalInput] = useState("10");
+  const [capitalTao, setCapitalTao] = useState(10);
+
+  // Restore the capital assumption across visits. Deferred past the
+  // hydration pass so SSR markup stays deterministic (same pattern as the
+  // opportunities view's GPU filter).
+  useEffect(() => {
+    let saved: string | null = null;
+    try { saved = localStorage.getItem(CAPITAL_KEY); } catch { /* ignore */ }
+    if (!saved) return;
+    const t = setTimeout(() => {
+      setCapitalInput(saved!);
+      const n = parseFloat(saved!);
+      if (Number.isFinite(n) && n > 0) setCapitalTao(n);
+    }, 0);
+    return () => clearTimeout(t);
+  }, []);
+
+  const applyCapital = (raw: string) => {
+    setCapitalInput(raw);
+    const n = parseFloat(raw);
+    if (Number.isFinite(n) && n > 0) {
+      setCapitalTao(n);
+      try { localStorage.setItem(CAPITAL_KEY, String(n)); } catch { /* ignore */ }
+    }
+  };
+
+  const score: OpportunityScoreResult | null = useMemo(() => {
+    if (!snap || snap.subnets.length === 0) return null;
+    try {
+      return computeOpportunityScore(snap, { capitalTao, profConfig: profConfig ?? undefined });
+    } catch {
+      return null;
+    }
+  }, [snap, capitalTao, profConfig]);
+
+  const recommended = score ? score.recommended : null;
+  const alternative = score ? score.alternative : null;
+  const showAlternative = alternative && recommended && alternative !== recommended;
+
+  return (
+    <Card className="glass">
+      <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3 space-y-0">
+        <div>
+          <p className="text-eyebrow text-muted-foreground">
+            Decision · mine vs stake, in numbers
+          </p>
+          <CardTitle className="text-display mt-2 text-2xl font-bold">
+            TAO Opportunity Score
+          </CardTitle>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground">Staking capital</span>
+          <Input
+            value={capitalInput}
+            onChange={(e) => applyCapital(e.target.value)}
+            inputMode="decimal"
+            className="mono h-9 w-28 text-right tabular"
+            aria-label="Capital in TAO"
+          />
+          <span className="text-xs text-muted-foreground">TAO</span>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {!score || !recommended ? (
+          <div className="flex h-[180px] flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border/50 text-center">
+            <ShieldQuestion className="h-5 w-5 text-muted-foreground/50" />
+            <p className="max-w-[320px] text-xs text-muted-foreground">
+              {isFetching ? "Syncing the live chain snapshot…" : "Awaiting the chain scan — the score appears once subnets, emissions and pool depths land."}
+            </p>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-6 lg:flex-row">
+            <div className="flex flex-col items-center justify-center gap-3 lg:w-[190px]">
+              <ScoreRing score={score.score} />
+              <div className="flex flex-wrap items-center justify-center gap-1.5">
+                <span className={cn("rounded-full px-2 py-0.5 text-[10px] uppercase tracking-wide", riskBadgeClass(recommended.riskLevel))}>
+                  {recommended.riskLevel} risk
+                </span>
+                <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
+                  {Math.round(recommended.confidence * 100)}% confidence
+                </span>
+              </div>
+              <p className="text-center text-[10px] leading-relaxed text-muted-foreground">
+                {score.liveData ? "Live chain data" : "Curated fallback"} · TAO ${score.taoPriceUsd.toFixed(0)} · ₹{score.usdInr}/$
+              </p>
+            </div>
+            <div className="min-w-0 flex-1 space-y-3">
+              <div>
+                <p className="text-eyebrow mb-2 text-muted-foreground">
+                  Recommended strategy
+                  {score.closeCall ? " · close call" : ""}
+                </p>
+                <StrategyRow
+                  s={recommended}
+                  kind={recommended.strategy}
+                  usdInr={score.usdInr}
+                  capitalTao={score.capitalTao}
+                  primary
+                />
+              </div>
+              {showAlternative && (
+                <div>
+                  <p className="text-eyebrow mb-2 text-muted-foreground">Alternative</p>
+                  <StrategyRow
+                    s={alternative}
+                    kind={alternative.strategy}
+                    usdInr={score.usdInr}
+                    capitalTao={score.capitalTao}
+                  />
+                </div>
+              )}
+              {score.notes.length > 0 && (
+                <ul className="space-y-1 pt-1">
+                  {score.notes.slice(0, 3).map((n, i) => (
+                    <li key={i} className="flex gap-1.5 text-[11px] leading-relaxed text-muted-foreground">
+                      <span className="mt-[5px] h-1 w-1 shrink-0 rounded-full bg-muted-foreground/60" />
+                      {n}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <div className="flex items-center justify-between pt-1">
+                <p className="text-[10px] text-muted-foreground">
+                  Mining ROI is per miner slot (net of GPU + infra); staking scales with your capital input.
+                </p>
+                <Button variant="outline" size="sm" onClick={() => onNavigate("opportunities")} className="shrink-0 rounded-lg border-border/60 bg-card/50">
+                  Open opportunities
+                  <ArrowRight className="ml-2 h-3.5 w-3.5" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
