@@ -320,3 +320,20 @@ Stage Summary:
   src/; all APIs/types stable; committed locally as rename follow-up. NOT pushed yet: no git
   remote configured (prior push used ad-hoc token URL) and no stored credentials — awaiting
   fresh token or user-side push.
+
+---
+Task ID: git-push-platform-live-4
+Agent: main
+Task: Push rename follow-up + pending commits to infranexbt-bot/infranex-bt platform-live.
+
+Work Log:
+- User re-supplied GitHub PAT (same ghp_iXdt… as prior session); used as ad-hoc push URL,
+  never written to disk or .git/config.
+- git push main:platform-live → success (826d1dd..5d342d1). Remote head verified via
+  ls-remote = 5d342d1 = local HEAD (5d342d1 is a platform autosave commit on top of the
+  rename commit d92c754, matching the existing UUID-message autosave pattern in history).
+
+Stage Summary:
+- platform-live now contains: Validator Lab rename (826d1dd) + follow-up sweep (d92c754) +
+  autosave (5d342d1). Token shared twice in chat — user should rotate/revoke and prefer
+  fine-grained tokens (Contents: R/W, short expiry) for future pushes.
