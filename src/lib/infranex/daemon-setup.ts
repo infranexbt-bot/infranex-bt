@@ -40,6 +40,8 @@ export function buildDaemonSetupCommand(script: string): string {
     `WantedBy=multi-user.target`,
     UNIT_MARK,
     `  systemctl daemon-reload`,
+    `  # kill strays from an older nohup/watchdog install so exactly one daemon runs`,
+    `  pkill -f infranex_daemon.py >/dev/null 2>&1 || true`,
     `  systemctl enable infranex-daemon >/dev/null 2>&1`,
     `  systemctl restart infranex-daemon`,
     `  echo "launcher=systemd — infranex-daemon enabled (auto-starts on boot)"`,
@@ -56,5 +58,6 @@ export function buildDaemonSetupCommand(script: string): string {
 export const DAEMON_UNINSTALL_COMMAND = [
   `systemctl disable --now infranex-daemon 2>/dev/null; pkill -f infranex_daemon.py 2>/dev/null`,
   `rm -f /etc/systemd/system/infranex-daemon.service /root/infranex_daemon.py /root/.infranex_miner_override`,
+  `systemctl daemon-reload 2>/dev/null`,
   `echo "infranex daemon removed"`,
 ].join("\n");
