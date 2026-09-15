@@ -587,3 +587,29 @@ Stage Summary:
 - Everything is saved and push-ready. BLOCKED only on a fresh fine-grained
   PAT (repo: infranexbt-bot/infranex-bt only; Contents: Read/Write; short
   expiry). User supplies TOKEN → `bash scripts/push-live.sh` → done.
+
+---
+Task ID: github-push-2
+Agent: main (Super Z)
+Task: Execute the GitHub push with the user-supplied token.
+
+Work Log:
+- User re-supplied the same classic PAT (ghp_iXdt…). Verified via API: HTTP
+  200 on infranexbt-bot/infranex-bt; default branch nextjs-platform; public
+  repo; platform-live head was 4a8ee58 (auto-checkpoint).
+- Fetched platform-live and compared: remote had ZERO commits not in local
+  main (strict ancestor) → clean fast-forward, no force needed.
+- Pushed via scripts/push-live.sh (token transient in one-shot URL):
+  4a8ee58..2c41cfc main -> platform-live. 16 commits landed, incl. Trust
+  Loop (75eaba5), score runner-ups (8b17e97), hydration guard (10f0601).
+- Post-push verification: remote head = 2c41cfc (matches local main);
+  spot-checked opportunity-score.ts and layout.tsx EXTENSION-GUARD-1 present
+  on platform-live via raw fetch.
+- Hygiene: rg over .git/ metadata found zero token traces; no git remote
+  configured (still credential-free by design); token not written to any
+  file or config.
+
+Stage Summary:
+- ALL pending work is now on GitHub platform-live. Follow-up for the user:
+  rotate/revoke the PAT (it has now been shared in chat twice) and generate
+  a fresh fine-grained one only when the next push is needed.
