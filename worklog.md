@@ -499,3 +499,38 @@ Stage Summary:
   paced into verdicts, and the Opportunity Score's confidence is now earned from
   observed accuracy once 7+ miner-days exist. Next candidates: stake portfolio
   (read-only first), auto-rebalance, live FX + validator-take picker.
+
+---
+Task ID: score-runnerups-1
+Agent: main (Super Z)
+Task: Answer "why does the TAO Opportunity Score show only Chutes subnets?" and fix the visibility gap behind it.
+
+Work Log:
+- Diagnosed live: the score runs ALL 128 mining subnets through the Miner's
+  Ledger, but only 7 clear the net-profit bar (net>0 AND meetsMinimum) —
+  Chutes SN64 leads that pool at ~471%/mo net ROI (RTX 4090, $1.6k/mo net),
+  followed by Epago #36 (447%/mo, H200), Targon #4 (304%), NOVA #68 (257%),
+  Teutonic #3 (139%), KubeTEE #90 (52%), SN35 (84%). 118/128 are net-negative
+  under current cost settings (GPU rent > emission share).
+- Root cause of the perception: the hero card is a single verdict by design
+  (1 mining pick + 1 staking lane) AND it computed alternatives (top-3
+  runners) but never rendered them — the losing subnets were invisible.
+- Fix (opportunity-score.ts): exposed miningCandidates + miningEvaluated on
+  the result; new always-on note "Verdict = best of N net-positive mining
+  subnets (128 evaluated) vs best staking lane — runner-ups were scored,
+  just not picked".
+- Fix (dashboard-view.tsx): Runner-ups chip row under Alternative — mining
+  runner-ups (netuid, name, ROI %/mo, GPU) + staking runner-ups (name, net
+  APY), excluding picked netuids; footer now reads "Scored 128 mining
+  subnets · 7 net-positive — the card pits the best against the best staking
+  lane"; notes slice 3→4.
+- Verified: unit tests ALL PASS, live smoke test shows the new note, tier2
+  58 PASS / 0 FAIL, tsc + eslint clean, browser-verified both screenshot
+  regions (runner-ups chips + notes/footer), 0 page errors.
+- Committed 8b17e97. Push still pending user's fine-grained PAT (pending:
+  cb62b1a, 7702586, 75eaba5, 8b17e97).
+
+Stage Summary:
+- The card no longer looks Chutes-only: runner-ups are visible with their
+  ROI/APY, and the note + footer explain the pool size. Chutes still wins
+  on live data — that is the honest verdict, now transparently justified.
