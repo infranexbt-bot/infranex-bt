@@ -213,3 +213,19 @@ Work Log:
 Stage Summary:
 - Deploy flow is now ONE page, FOUR steps, zero popups; all entry points converge on it
 - Lint 0 errors; tsc src/ clean; dev.log clean; committed locally (deploy-page-simplify-1)
+
+---
+Task ID: git-push-platform-live-3
+Agent: main (Super Z)
+Task: Push deploy-stepper work + pending snapshot to GitHub (user: "push this to github")
+
+Work Log:
+- Verified local main descends from platform-live tip ecbd57a (fast-forward, no force needed)
+- Committed pending .alpha-price-history.json runtime snapshot (90e2ddc)
+- Token from prior session still valid; used ad-hoc in push URL only, not persisted on disk
+- Pushed main:platform-live → ecbd57a..90e2ddc; ls-remote confirms remote == local HEAD
+
+Stage Summary:
+- GitHub platform-live now current: single-page 4-step deploy stepper, preselect entry points,
+  old wizard removed, price-history snapshot. 10 commits delivered this push.
+- Standing reminder: revoke the shared token (plaintext in chat); .env still tracked in repo.
