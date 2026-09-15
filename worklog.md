@@ -613,3 +613,42 @@ Stage Summary:
 - ALL pending work is now on GitHub platform-live. Follow-up for the user:
   rotate/revoke the PAT (it has now been shared in chat twice) and generate
   a fresh fine-grained one only when the next push is needed.
+
+---
+Task ID: stake-portfolio-1
+Agent: main (Super Z)
+Task: User confirmed "yes" — build the read-only Stake Portfolio view and answer (1) where earned alpha shows up, (2) how alpha converts to TAO.
+
+Work Log:
+- Probed live Finney (spec 458, block 9.07M) to find supported queries:
+  TotalHotkeyAlpha is a DOUBLE MAP (hotkey, netuid) → u64 rao; no
+  stakeInfo/swapRuntimeApi in polkadot-js types → α→TAO must come from
+  the platform's own pool spot prices. Probe saved as scripts/probe-stake-queries.ts.
+- Built src/lib/infranex/stake-portfolio.ts: batched .multi reads of
+  TotalHotkeyAlpha across all ~129 netuids per hotkey, Owner(hotkey) →
+  coldkey, system.account(cold) free/reserved TAO, positions priced at
+  subnet moving price with 24h drift; pure buildHotkeyPortfolio() for
+  unit tests; human units (rao/1e9).
+- API GET /api/wallets/stake-portfolio: ?hotkey= (max 8, SS58-validated)
+  else platform registry (WalletProfile.hotAddress + Deployment.hotkey);
+  enriches with EarningsDaily lifetime rollup, wallet labels, deployment
+  counts. Read-only — no signing, no secrets (WALLET-ECON-1 respected).
+- UI: Stake Portfolio card in My Miners (stake-portfolio-card.tsx) —
+  totals row (staked α TAO value / coldkey free TAO / lifetime mined),
+  per-hotkey positions table, "How payouts work" guide answering both
+  questions in-product (btcli wallet overview / stake remove / taostats),
+  honest empty states. use-stake-portfolio.ts polls every 60s.
+- Tests: scripts/test-stake-portfolio.ts — 25 PASS / 0 FAIL (unit math,
+  live chain: 1.2335 α on α64 Chutes @ 0.2977 = 0.3672 TAO = $80.72,
+  coldkey free 0.044 TAO; API 401 gate + query/registry resolution).
+- tsc + eslint clean; browser-verified empty AND populated states
+  (temp wallet profile registered, screenshotted, deleted) — 0 console
+  errors. Committed 9278986.
+
+Stage Summary:
+- Platform now answers the payout questions natively: alpha lands as
+  staked α on the hotkey (visible in card / btcli wallet overview /
+  taostats), unstake (btcli stake remove) converts α→TAO onto the
+  coldkey free balance (also shown in card). Push pending user's fresh
+  fine-grained PAT (queue: 9278986). Reminder: old classic PAT ghp_iXdt…
+  shared twice in chat — must be revoked.
