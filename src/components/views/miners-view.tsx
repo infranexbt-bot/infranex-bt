@@ -25,6 +25,7 @@ import {
   type TrustRow,
 } from "@/lib/infranex/use-trust";
 import { cn, formatCurrency, formatRelativeTime, shortAddress } from "@/lib/utils";
+import { StakePortfolioCard } from "@/components/cards/stake-portfolio-card";
 import type { ViewKey } from "@/lib/infranex/types";
 
 interface MinersViewProps {
@@ -286,6 +287,9 @@ export function MinersView({ onNavigate }: MinersViewProps) {
           </CardContent>
         </Card>
       </section>
+
+      {/* STAKE-PORTFOLIO-1 — where mining rewards actually land */}
+      <StakePortfolioCard />
 
       {/* Miners list — real deployments */}
       <Card className="border-border/60 bg-card/40 backdrop-blur-sm">
