@@ -806,6 +806,18 @@ function OpportunityScoreCard({ onNavigate }: { onNavigate: (v: ViewKey) => void
   const recommended = score ? score.recommended : null;
   const alternative = score ? score.alternative : null;
   const showAlternative = alternative && recommended && alternative !== recommended;
+  // Runner-ups — the subnets the score evaluated and did NOT pick. Rendered
+  // so the verdict is transparent: the card pits the best mining subnet
+  // against the best staking lane, but the losers are visible too.
+  const hideNetuids = new Set(
+    [recommended?.netuid, alternative?.netuid].filter((n): n is number => n != null)
+  );
+  const runnerUpsMining = score
+    ? score.alternatives.mining.filter((m) => !hideNetuids.has(m.netuid)).slice(0, 3)
+    : [];
+  const runnerUpsStaking = score
+    ? score.alternatives.staking.filter((s) => !hideNetuids.has(s.netuid)).slice(0, 3)
+    : [];
 
   return (
     <Card className="glass">
@@ -879,9 +891,39 @@ function OpportunityScoreCard({ onNavigate }: { onNavigate: (v: ViewKey) => void
                   />
                 </div>
               )}
+              {(runnerUpsMining.length > 0 || runnerUpsStaking.length > 0) && (
+                <div>
+                  <p className="text-eyebrow mb-2 text-muted-foreground">
+                    Runner-ups · scored, not picked
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {runnerUpsMining.map((m) => (
+                      <span
+                        key={`m-${m.netuid}`}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-border/50 bg-background/60 px-2.5 py-1 text-[11px]"
+                      >
+                        <Pickaxe className="h-3 w-3 text-primary/70" />
+                        <span className="font-semibold">#{m.netuid} {m.name}</span>
+                        <span className="mono tabular text-muted-foreground">{m.roiMonthlyPct.toFixed(0)}%/mo</span>
+                        <span className="text-muted-foreground/70">{m.gpu}</span>
+                      </span>
+                    ))}
+                    {runnerUpsStaking.map((s) => (
+                      <span
+                        key={`s-${s.kind}-${s.netuid}`}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-border/50 bg-background/60 px-2.5 py-1 text-[11px]"
+                      >
+                        <Landmark className="h-3 w-3 text-muted-foreground" />
+                        <span className="font-semibold">{s.kind === "root" ? "Root staking" : `#${s.netuid} ${s.name}`}</span>
+                        <span className="mono tabular text-muted-foreground">{s.netApyPct.toFixed(1)}% APY</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
               {score.notes.length > 0 && (
                 <ul className="space-y-1 pt-1">
-                  {score.notes.slice(0, 3).map((n, i) => (
+                  {score.notes.slice(0, 4).map((n, i) => (
                     <li key={i} className="flex gap-1.5 text-[11px] leading-relaxed text-muted-foreground">
                       <span className="mt-[5px] h-1 w-1 shrink-0 rounded-full bg-muted-foreground/60" />
                       {n}
@@ -891,7 +933,7 @@ function OpportunityScoreCard({ onNavigate }: { onNavigate: (v: ViewKey) => void
               )}
               <div className="flex items-center justify-between pt-1">
                 <p className="text-[10px] text-muted-foreground">
-                  Mining ROI is per miner slot (net of GPU + infra); staking scales with your capital input.
+                  Scored {score.miningEvaluated} mining subnets · {score.miningCandidates} net-positive — the card pits the best against the best staking lane. Mining ROI is per miner slot (net of GPU + infra); staking scales with your capital input.
                 </p>
                 <Button variant="outline" size="sm" onClick={() => onNavigate("opportunities")} className="shrink-0 rounded-lg border-border/60 bg-card/50">
                   Open opportunities

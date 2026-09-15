@@ -59,6 +59,11 @@ export interface OpportunityScoreResult {
     mining: Array<{ netuid: number; name: string; roiMonthlyPct: number; netMonthlyUsd: number; gpu: string; riskLevel: string }>;
     staking: Array<{ netuid: number; name: string; netApyPct: number; riskLevel: string; kind: "root" | "subnet" }>;
   };
+  /** How many mining subnets were net-positive under current cost settings —
+   *  i.e. the size of the pool the headline pick was chosen from. */
+  miningCandidates: number;
+  /** Total mining subnets evaluated (chain scan minus root). */
+  miningEvaluated: number;
   notes: string[];
   /** True when a live chain snapshot backs the verdict (vs curated fallback). */
   liveData: boolean;
@@ -185,6 +190,7 @@ export function computeOpportunityScore(
 
   const notes: string[] = [];
   const liveData = Boolean(snap && snap.source === "live" && snap.subnets.length > 1);
+  const miningEvaluated = Math.max((snap?.subnets.length ?? 1) - 1, 0);
 
   let recommended: ScoredStrategy;
   let alternative: ScoredStrategy;
@@ -206,6 +212,10 @@ export function computeOpportunityScore(
     }
     notes.push(
       `Mining ROI ${miningStrategyRow.roiMonthlyPct.toFixed(1)}%/mo vs staking ${stakingStrategyRow.roiMonthlyPct.toFixed(2)}%/mo — the score tracks this edge.`
+    );
+    // Why the card is a single subnet verdict — the pool it was picked from.
+    notes.push(
+      `Verdict = best of ${miners.length} net-positive mining subnets (${miningEvaluated} evaluated) vs best staking lane — runner-ups were scored, just not picked; full ranking in Opportunities.`
     );
   }
 
@@ -292,6 +302,8 @@ export function computeOpportunityScore(
     stakingRoot,
     stakingTopSubnet,
     alternatives,
+    miningCandidates: miners.length,
+    miningEvaluated,
     notes,
     liveData,
   };
