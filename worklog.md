@@ -652,3 +652,30 @@ Stage Summary:
   coldkey free balance (also shown in card). Push pending user's fresh
   fine-grained PAT (queue: 9278986). Reminder: old classic PAT ghp_iXdt…
   shared twice in chat — must be revoked.
+
+---
+Task ID: runbook-cashout-1
+Agent: main (Super Z)
+Task: User confirmed "yes" — add a Cash-out runbook entry (alpha → TAO → exchange) to the Runbook view.
+
+Work Log:
+- Read runbook-view.tsx structure (phase cards + threshold strip + warnings).
+- Added RUNBOOK-2 card between Phase 3 grid and the registration reminder:
+  4 numbered steps with btcli command blocks (wallet overview → stake
+  remove incl. --all-alpha + safe-staking note → wallet balance → wallet
+  transfer with test-transfer rule) + 4 watch-outs (execution-time pool
+  rate, root needs no conversion, mnemonic never online, test transfers).
+- Header quick-action row: added "Stake Portfolio" button (jump to the
+  STAKE-PORTFOLIO-1 card), kept DevOps + Monitoring; intro paragraph
+  mentions the cash-out runbook.
+- Verified: tsc clean (my files), eslint OK, browser screenshot of the
+  rendered card — 0 console errors. Committed eceb79e (an automated
+  checkpoint dee0e73 had captured the same edit mid-flight — both in
+  history, no content conflict).
+
+Stage Summary:
+- The full mining loop is now documented in-product: mine → watch alpha
+  accrue (Stake Portfolio card) → cash out (Runbook cash-out steps) →
+  transfer to exchange. Push queue for platform-live: 9278986, e8c344d,
+  eceb79e (+ checkpoint dee0e73) — awaiting user's fresh fine-grained
+  PAT; classic PAT ghp_iXdt… still must be revoked.
