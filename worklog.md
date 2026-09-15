@@ -84,3 +84,19 @@ Work Log:
 Stage Summary:
 - Operator flow is now: Deployments → card → Install daemon → copy setup command → paste on GPU pod as root → chip online in ~60s → Judge Lab Apply pushes reach the real miner.
 - Real-pod caveat: platform URL must be the public URL (preview URL now, VPS domain after migration); daemon process needs a supervisor (systemd/pm2) to survive pod reboots.
+
+---
+Task ID: daemon-systemd-autostart-1
+Agent: main (Super Z)
+Task: Add systemd auto-start generator to the daemon install dialog (user confirmed)
+
+Work Log:
+- Extracted the setup-command wrapper into a pure, testable module: src/lib/infranex/daemon-setup.ts (buildDaemonSetupCommand + DAEMON_UNINSTALL_COMMAND).
+- Upgraded the installer: writes the daemon py, then systemd present → /etc/systemd/system/infranex-daemon.service (Restart=always, RestartSec=15, WantedBy=multi-user.target → survives pod reboots) + daemon-reload/enable/restart; no systemd (RunPod/Vast containers) → pkill old process + bash watchdog loop relaunch every 15s. Idempotent — re-paste updates in place. Prints "launcher=systemd" or "launcher=watchdog".
+- Dialog updates: primary button now "Copy setup command (auto-start service)", steps + tip text refreshed, added a "copy uninstall command" link (disable/remove service + files).
+- Fixed test-script Bun type error by using node:fs/child_process; added scripts/test-daemon-setup.ts sandbox E2E.
+
+Stage Summary:
+- Sandbox E2E PASS: bash -n OK; python AST OK; sandbox installer ran → chose launcher=watchdog (no systemd in this container, mirrors RunPod/Vast); daemonState flipped status "online" with fresh lastSeenAt. Test artifacts with embedded secrets deleted after run.
+- Browser verified: dialog renders the full auto-start setup command + uninstall copy link.
+- Operator experience: paste once as root → daemon installed, supervised, auto-starts on reboot; uninstall is one copy-paste.

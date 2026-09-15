@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/dialog";
 import { CheckCircle2, Copy, Loader2, RefreshCw, ShieldCheck, TriangleAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { buildDaemonSetupCommand, DAEMON_UNINSTALL_COMMAND } from "@/lib/infranex/daemon-setup";
 
 interface InstallResponse {
   ok?: boolean;
@@ -32,18 +33,6 @@ interface InstallResponse {
   script?: string;
   secretHint?: string;
   error?: string;
-}
-
-const HEREDOC_MARK = "INFRANEX_DAEMON_EOF";
-
-function setupCommand(script: string): string {
-  return [
-    `cat > /root/infranex_daemon.py << '${HEREDOC_MARK}'`,
-    script,
-    HEREDOC_MARK,
-    `nohup python3 /root/infranex_daemon.py >> /var/log/infranex-daemon.log 2>&1 &`,
-    `echo "infranex daemon started (pid $!) — first telemetry in ~60s"`,
-  ].join("\n");
 }
 
 export function DaemonInstallDialog({
@@ -60,7 +49,7 @@ export function DaemonInstallDialog({
   const [platformUrl, setPlatformUrl] = useState("");
   const [data, setData] = useState<InstallResponse | null>(null);
   const [loading, setLoading] = useState(false);
-  const [copied, setCopied] = useState<"setup" | "script" | null>(null);
+  const [copied, setCopied] = useState<"setup" | "script" | "uninstall" | null>(null);
 
   const isLocalhost = /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/i.test(platformUrl);
 
@@ -92,9 +81,19 @@ export function DaemonInstallDialog({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, platformUrl]);
 
-  const copy = async (kind: "setup" | "script") => {
+  const copy = async (kind: "setup" | "script" | "uninstall") => {
+    if (kind === "uninstall") {
+      try {
+        await navigator.clipboard.writeText(DAEMON_UNINSTALL_COMMAND);
+      } catch {
+        /* best-effort */
+      }
+      setCopied(kind);
+      setTimeout(() => setCopied(null), 2000);
+      return;
+    }
     if (!data?.script) return;
-    const text = kind === "setup" ? setupCommand(data.script) : data.script;
+    const text = kind === "setup" ? buildDaemonSetupCommand(data.script) : data.script;
     try {
       await navigator.clipboard.writeText(text);
     } catch {
@@ -180,7 +179,9 @@ export function DaemonInstallDialog({
                 <li>
                   <span className="font-medium text-foreground">2.</span> Paste the{" "}
                   <span className="font-medium text-foreground">full setup command</span> into the
-                  shell — it writes the daemon and starts it in the background.
+                  shell — it writes the daemon AND an auto-start service: systemd unit when
+                  available (survives pod reboots), bash watchdog fallback in containers
+                  (RunPod/Vast).
                 </li>
                 <li>
                   <span className="font-medium text-foreground">3.</span> Within ~60s the first
@@ -200,7 +201,7 @@ export function DaemonInstallDialog({
                   ) : (
                     <Copy className="h-3 w-3" />
                   )}
-                  {copied === "setup" ? "Copied" : "Copy full setup command"}
+                  {copied === "setup" ? "Copied" : "Copy setup command (auto-start service)"}
                 </Button>
                 <Button
                   variant="outline"
@@ -222,13 +223,23 @@ export function DaemonInstallDialog({
               </div>
 
               <pre className="mono max-h-72 overflow-y-auto rounded-lg border border-border/50 bg-background/60 p-3 text-[10px] leading-relaxed text-muted-foreground">
-                {setupCommand(data.script)}
+                {buildDaemonSetupCommand(data.script)}
               </pre>
 
               <p className="text-[10px] text-muted-foreground/70">
-                Tip: the same script keeps working after pod reboots only while its process runs —
-                add it to your pod&apos;s startup (or ask the launcher to supervise it) if your
-                provider recycles containers. {data.secretHint ? `Key: ${data.secretHint}` : ""}
+                Re-paste any time to update the daemon — the command is idempotent (systemd
+                restarts the service; the watchdog replaces the old process). The pod prints which
+                launcher it chose: <span className="mono">launcher=systemd</span> or{" "}
+                <span className="mono">launcher=watchdog</span>.{" "}
+                {data.secretHint ? `Key: ${data.secretHint}. ` : ""}
+                Remove later with the uninstall command:
+                <button
+                  type="button"
+                  className="ml-1 text-primary underline underline-offset-2"
+                  onClick={() => void copy("uninstall")}
+                >
+                  {copied === "uninstall" ? "copied ✓" : "copy uninstall command"}
+                </button>
               </p>
             </>
           )}
