@@ -460,7 +460,7 @@ def apply_config(args):
     env_pairs = (args or {}).get("env") or {}
     applied = []
     if env_pairs and isinstance(env_pairs, dict):
-        lines = "".join(f"export {k}={shlex.quote(str(v))}\n" for k, v in env_pairs.items())
+        lines = "".join(f"export {k}={shlex.quote(str(v))}\\n" for k, v in env_pairs.items())
         with open("/root/.infranex_miner_env", "a") as f:
             f.write(lines)
         applied.append(f"{len(env_pairs)} env vars")

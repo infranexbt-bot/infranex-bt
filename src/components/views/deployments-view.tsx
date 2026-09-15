@@ -43,6 +43,7 @@ import {
 import type { OpenDeployWizardOptions } from "@/components/deployments/deploy-wizard";
 import { RevisionsDialog } from "@/components/deployments/revisions-dialog";
 import { MigrateDialog } from "@/components/deployments/migrate-dialog";
+import { DaemonInstallDialog } from "@/components/deployments/daemon-install-dialog";
 import { DevOpsEngineSection } from "@/components/devops/devops-console";
 import { WalletRegistrationDialog } from "@/components/devops/wallet-registration-dialog";
 
@@ -208,6 +209,7 @@ function DeploymentCard({
   const [wizardBusy, setWizardBusy] = useState(false);
   const [revOpen, setRevOpen] = useState(false);
   const [migOpen, setMigOpen] = useState(false);
+  const [daemonOpen, setDaemonOpen] = useState(false);
 
   const isStarted = d.status === "started";
   const hasHotkey = SS58_RE.test(d.hotkey ?? "");
@@ -391,6 +393,19 @@ function DeploymentCard({
             <History className="h-3.5 w-3.5" />
             Revisions
           </Button>
+          {/* DAEMON-INSTALL — node daemon setup script (Judge Apply / DevOps pushes).
+              Any live pod can host the daemon — not just fully "started" ones. */}
+          {!isTerminal && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5"
+              onClick={() => setDaemonOpen(true)}
+            >
+              <Server className="h-3.5 w-3.5" />
+              Install daemon
+            </Button>
+          )}
           {/* TIER3 — migrate to a different GPU offer (spec §20) */}
           {isStarted && (
             <Button
@@ -507,6 +522,12 @@ function DeploymentCard({
         currentHourlyCost={d.hourlyCost}
         open={migOpen}
         onOpenChange={setMigOpen}
+      />
+      <DaemonInstallDialog
+        deploymentId={d.id}
+        minerName={d.minerName}
+        open={daemonOpen}
+        onOpenChange={setDaemonOpen}
       />
     </Card>
   );

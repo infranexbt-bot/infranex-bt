@@ -67,3 +67,20 @@ Stage Summary:
 - DB confirmed: deployment env now INFANEX_QUANT=fp8, INFANEX_SELF_VERIFY=1 (+ earlier INFANEX_ASK_PRICE_USD=0.31); revisions rev3/rev4 snapshot cause="judge-fix" note="before judge fix: Quality upshift (FP8 tier + self-verification)".
 - Reload path verified: after reload → pick SN4 → verdict + Apply buttons auto-restore without re-running.
 - Screenshots: tool-results/judge-apply-buttons.png, tool-results/judge-restored-verdict.png
+
+---
+Task ID: daemon-install-ui-1
+Agent: main (Super Z)
+Task: Walk user through daemon install — built the missing Install Daemon UI, found+fixed a fatal generated-script bug, proved the chain live
+
+Work Log:
+- Found POST /api/daemon/install existed (per-deployment Python daemon, one-shot HMAC secret) but NO UI surfaced it; runbook even pointed users to a panel button that didn't exist.
+- Built src/components/deployments/daemon-install-dialog.tsx: editable platform URL (defaults to browser origin, localhost warning), generates script via the API, "Copy full setup command" (heredoc + nohup launch) + "Copy script only", 4-step instructions, secret-shown-once note.
+- Wired "Install daemon" button into deployment cards (deployments-view.tsx) — shown for all non-terminal deployments.
+- CRITICAL BUG: generated Python had a fatal SyntaxError — JS template literal in buildDaemonScript consumed the \n in the f-string at apply_config's env-export line (daemon-bridge.ts:463), producing an unterminated f-string. The daemon would have died on startup on ANY pod. Fixed with \\n escape.
+- Verified: python AST parse of the real generated script OK; ran the daemon live (scripts/gen-daemon-test.ts regenerates it from DB secret via decryptSecret) → telemetry POST accepted → daemonState flipped status "pending" → "online" with lastSeenAt.
+- Confirmed daemon telemetry/commands routes are HMAC-authed (no browser session needed from remote pods); install route stays session-guarded.
+
+Stage Summary:
+- Operator flow is now: Deployments → card → Install daemon → copy setup command → paste on GPU pod as root → chip online in ~60s → Judge Lab Apply pushes reach the real miner.
+- Real-pod caveat: platform URL must be the public URL (preview URL now, VPS domain after migration); daemon process needs a supervisor (systemd/pm2) to survive pod reboots.
