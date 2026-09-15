@@ -147,3 +147,16 @@ Work Log:
 
 Stage Summary:
 - GitHub platform-live is now current with the workspace: systemd/watchdog auto-start installer, hardened setup module, dialog automation tip, E2E scripts, worklog.
+
+---
+Task ID: app-analysis-1
+Agent: main (Super Z)
+Task: Full product research — what the app is, menu-by-menu analysis, operating advice
+
+Work Log:
+- Mapped navigation: 15 views in 4 groups (Intelligence / Operations / Platform / Administration) from sidebar.tsx.
+- Read README (product pitch, data sources, stack), per-view on-screen sections, devops trigger vocabulary, optimization action set, economics lib, docs/ tree (setup-guide + screenshots).
+- Delivered in-chat analysis; no code changes.
+
+Stage Summary:
+- Product identified as: Bittensor intelligence + mining operations platform; core loop = research subnets → deploy miner → install daemon → judge → apply fixes → monitor/optimize.
