@@ -337,3 +337,33 @@ Stage Summary:
 - platform-live now contains: Validator Lab rename (826d1dd) + follow-up sweep (d92c754) +
   autosave (5d342d1). Token shared twice in chat — user should rotate/revoke and prefer
   fine-grained tokens (Contents: R/W, short expiry) for future pushes.
+
+---
+Task ID: operator-handbook-pdf-2
+Agent: main (Super Z)
+Task: Regenerate Operator Handbook PDFs with Validator Lab naming + recent platform updates (user: "provide updated operator handbook pdf").
+
+Work Log:
+- Reused the approved Creative Flow handbook (download/infranex-operator-handbook.html) —
+  design untouched, content edits only. scripts/update_handbook_rename.py applied 44
+  exact-match replacements (each asserted count==1; two section titles needed \u00a0 NBSP
+  before the em-dash): Judge Lab -> Validator Lab across cover chips/path, golden path,
+  phases 0-5, when-to-run table, troubleshooting, rhythms, quick reference, ending
+  ("Mine. Validate. Apply. Repeat."); "simulated judge" -> "simulated validator";
+  "re-judge" -> "re-validate"; cover edition 1 -> 2. Phase 2 lifecycle copy updated for
+  DEPLOY-2: "auto-advances on the platform server even if you close the tab".
+- Re-rendered via html2pdf-next.js (794x1123, Paged.js) -> postprocess_handbook.py (page
+  numbers 1-9 on body pages, metadata Subject now says Validator Lab; corruption scan
+  migrated to pymupdf to dodge pypdf KeyError(bbox)) -> pdf_qa: 11 checks PASS, same 2
+  benign line-start-quote warnings as the approved original. PDF text scan: 0 judge, 17
+  Validator Lab, 11 pages.
+- Secondary ReportLab variant kept consistent: scripts/update_handbook2_rename.py updated
+  handbook_content.py (12 targeted rules + global Judge Lab) + cover html (Validate-to-Apply
+  loop, Edition 2); cover re-rendered via html2poster.js -> tool-results/handbook_cover.pdf;
+  gen_handbook_pdf.py rebuilt body + merged -> download/infranex-bt-operator-handbook.pdf
+  (14 pages). pdf_qa --skip-cover: full PASS, TOC populated. 0 judge mentions.
+
+Stage Summary:
+- DELIVERED: download/infranex-operator-handbook.pdf (11 pp, Edition 2, Validator Lab,
+  server-side ticker documented) + infranex-bt-operator-handbook.pdf (14 pp, consistent).
+  HTML sources delivered alongside per skill rule. Update scripts persisted for future edits.

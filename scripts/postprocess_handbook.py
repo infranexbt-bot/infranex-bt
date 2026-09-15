@@ -34,7 +34,7 @@ for i, page in enumerate(reader.pages):
 writer.add_metadata({
     "/Title": "Infranex BT - Operator Handbook: The Complete Mining Workflow",
     "/Author": "Z.ai",
-    "/Subject": "Step-by-step Bittensor mining workflow: subnet selection, GPU deployment, node daemon connection, Judge Lab testing and fix application",
+    "/Subject": "Step-by-step Bittensor mining workflow: subnet selection, GPU deployment, node daemon connection, Validator Lab testing and fix application",
     "/Creator": "Z.ai PDF Workbench (Playwright + Paged.js)",
 })
 
@@ -42,8 +42,11 @@ with open(SRC, "wb") as f:
     writer.write(f)
 print(f"stamped pages 2..{n-1} as 1..{n-2}, metadata set, {n} pages total")
 
-# corruption scan
-text = "".join(p.extract_text() or "" for p in PdfReader(SRC).pages)
+# corruption scan (pymupdf — pypdf's extract_text hits KeyError('bbox') on these fonts)
+import fitz  # pymupdf
+doc = fitz.open(SRC)
+text = "".join(page.get_text() for page in doc)
+doc.close()
 bad = text.count("\ufffd")
 print(f"U+FFFD count in extracted text: {bad}")
 print(f"extracted chars: {len(text)}")

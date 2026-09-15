@@ -226,7 +226,7 @@ td b { color: var(--header-fill); }
   <div class="cover-summary">
     A field manual for running Bittensor miners on the Infranex&nbsp;BT platform.
     It walks the full path in exact order — researching subnets, renting GPU
-    capacity, connecting the node daemon, testing against the Judge Lab, and
+    capacity, connecting the node daemon, testing against the Validator Lab, and
     applying fixes to live machines — with every click, every checkpoint, and
     the recovery steps for when something goes wrong.
   </div>
@@ -234,14 +234,14 @@ td b { color: var(--header-fill); }
     <span class="cover-chip">Pick subnet</span><span class="cover-arrow">&#8594;</span>
     <span class="cover-chip">Deploy GPU</span><span class="cover-arrow">&#8594;</span>
     <span class="cover-chip">Daemon online</span><span class="cover-arrow">&#8594;</span>
-    <span class="cover-chip">Judge</span><span class="cover-arrow">&#8594;</span>
+    <span class="cover-chip">Validate</span><span class="cover-arrow">&#8594;</span>
     <span class="cover-chip">Apply</span><span class="cover-arrow">&#8594;</span>
     <span class="cover-chip">Operate</span>
   </div>
   <div class="cover-meta">Infranex BT Mining Operations</div>
-  <div class="cover-meta-sub">Platform guide · 15 views · Judge Lab closed loop · DevOps Engine</div>
+  <div class="cover-meta-sub">Platform guide · 15 views · Validator Lab closed loop · DevOps Engine</div>
   <div class="cover-date">September 2026</div>
-  <div class="cover-edition">Edition 1</div>
+  <div class="cover-edition">Edition 2</div>
 </div>
 
 <!-- ================= BODY ================= -->
@@ -256,14 +256,14 @@ td b { color: var(--header-fill); }
   <p class="body-text lead">
     Infranex&nbsp;BT is a Bittensor mining operations platform: it watches the TAO chain,
     rents GPU capacity from providers, drives your miners through a node daemon, and
-    continuously tests each miner against a simulated judge to tell you exactly what to fix.
+    continuously tests each miner against a simulated validator to tell you exactly what to fix.
     The whole product is built around one repeating loop, and every view in the sidebar
     exists to serve one step of that loop. This chapter gives you the map; the rest of the
     handbook walks each step in full detail, in the exact order you should perform them.
   </p>
   <p class="body-text">
     The single most important ordering rule in this handbook is this: <b>the daemon must be
-    online before you run the Judge Lab&#8217;s Apply step.</b> Mining a judge profile runs on the
+    online before you run the Validator Lab&#8217;s Apply step.</b> Mining a validator profile runs on the
     platform server, so it works even with no GPU attached — but the moment you click
     <b>Apply</b>, the platform pushes a config change to a real machine through that machine&#8217;s
     daemon. No daemon, no push. Follow the phases in order and this can never bite you.
@@ -302,8 +302,8 @@ td b { color: var(--header-fill); }
   <div class="flow-node">
     <div class="flow-num">4</div>
     <div class="flow-body">
-      <div class="flow-title">Run the Judge Lab</div>
-      <div class="flow-where">Judge Lab</div>
+      <div class="flow-title">Run the Validator Lab</div>
+      <div class="flow-where">Validator Lab</div>
       <div class="flow-desc">Select the same subnet, re-mine the profile once, then run the simulation. You get a verdict, a composite score, and per-dimension recommendations.</div>
       <span class="flow-output">Output: verdict + ranked fix list</span>
     </div>
@@ -313,7 +313,7 @@ td b { color: var(--header-fill); }
     <div class="flow-num">5</div>
     <div class="flow-body">
       <div class="flow-title">Apply the fixes</div>
-      <div class="flow-where">Judge Lab &#8594; Apply</div>
+      <div class="flow-where">Validator Lab &#8594; Apply</div>
       <div class="flow-desc">One click per fix: the platform maps the recommendation to a config change, snapshots the current revision, and pushes it to your miner via the daemon.</div>
       <span class="flow-output">Output: tuned miner + rollback snapshot</span>
     </div>
@@ -324,15 +324,15 @@ td b { color: var(--header-fill); }
     <div class="flow-body">
       <div class="flow-title">Operate — then leave it alone</div>
       <div class="flow-where">Monitoring · DevOps Engine</div>
-      <div class="flow-desc">Monitoring and the 14 DevOps triggers watch the fleet for you. You touch Judge Lab again only when an alert fires, the subnet changes upstream, or the weekly review comes around.</div>
+      <div class="flow-desc">Monitoring and the 14 DevOps triggers watch the fleet for you. You touch Validator Lab again only when an alert fires, the subnet changes upstream, or the weekly review comes around.</div>
       <span class="flow-output">Output: sustained earnings, early warnings</span>
     </div>
   </div>
 
   <div class="note" style="margin-top:16px;">
-    <p><b>The one-liner to remember:</b> Subnet &#8594; GPU &#8594; daemon online &#8594; Judge &#8594; Apply
-    &#8594; then it is hands-off until an alert tells you to re-judge. If you ever wonder
-    &#8220;when do I run the Judge Lab?&#8221; — the answer is <b>after</b> the daemon chip turns
+    <p><b>The one-liner to remember:</b> Subnet &#8594; GPU &#8594; daemon online &#8594; Validate &#8594; Apply
+    &#8594; then it is hands-off until an alert tells you to re-validate. If you ever wonder
+    &#8220;when do I run the Validator Lab?&#8221; — the answer is <b>after</b> the daemon chip turns
     green, and <b>again</b> whenever Monitoring or the DevOps Engine says something drifted.</p>
   </div>
 
@@ -405,7 +405,7 @@ td b { color: var(--header-fill); }
       <div class="step-title">Sync the chain data</div>
       <div class="step-detail">Open <b>Subnets</b> and click <b>Sync all</b>. The table refreshes
       from the chain RPC every ~30 seconds on its own, but an explicit sync guarantees the
-      seat counts and emission numbers you are about to judge are current, not cached.</div>
+      seat counts and emission numbers you are about to evaluate are current, not cached.</div>
     </div>
   </div>
   <div class="step">
@@ -434,13 +434,13 @@ td b { color: var(--header-fill); }
       <div class="step-title">Choose and write it down</div>
       <div class="step-detail">Pick one <b>netuid</b> and note it together with the subnet&#8217;s
       minimum VRAM from the requirements shown later — you will type the netuid into the
-      Judge Lab and the Deploy Wizard, so having it in front of you avoids mistakes.</div>
+      Validator Lab and the Deploy Wizard, so having it in front of you avoids mistakes.</div>
     </div>
   </div>
   <div class="checkpoint">
     <div class="checkpoint-tag">Checkpoint — you are done when</div>
     <p>You have one netuid chosen and a rough expectation of its VRAM floor. Do not over-research:
-    the Judge Lab in Phase&nbsp;4 will verify the economics against your actual machine anyway.</p>
+    the Validator Lab in Phase&nbsp;4 will verify the economics against your actual machine anyway.</p>
   </div>
 
   <!-- Chapter 4: Phase 2 -->
@@ -493,7 +493,7 @@ td b { color: var(--header-fill); }
       <div class="step-title">Step 4 — Rent and auto-install</div>
       <div class="step-detail">Confirming the rent creates the deployment and starts a real
       ten-step install runner with a live log. You can literally watch each step complete;
-      the lifecycle auto-advances while you watch, and when the deployment status flips to
+      the lifecycle auto-advances on the platform server even if you close the tab, and when the deployment status flips to
       <span class="mono">started</span> the wizard moves itself to the final step.</div>
     </div>
   </div>
@@ -528,7 +528,7 @@ td b { color: var(--header-fill); }
   </div>
   <p class="body-text">
     The daemon is a tiny agent that runs on your GPU pod and polls the platform for work.
-    Everything downstream — Judge Lab&#8217;s <b>Apply</b>, DevOps automated responses, config
+    Everything downstream — Validator Lab&#8217;s <b>Apply</b>, DevOps automated responses, config
     edits from the deployment card — travels through it. Installing it is the one genuinely
     manual moment in the whole workflow, and even that is a single copy-paste. The dialog
     itself summarizes the contract: <i>SSH as root &#8594; paste one command &#8594; wait about
@@ -588,7 +588,7 @@ td b { color: var(--header-fill); }
   <div class="checkpoint">
     <div class="checkpoint-tag">Checkpoint — you are done when</div>
     <p>The daemon chip on the deployment card is green <b>Online</b> with a fresh
-    &#8220;last seen&#8221;. From this moment, Judge Lab Apply has somewhere real to push to.</p>
+    &#8220;last seen&#8221;. From this moment, Validator Lab Apply has somewhere real to push to.</p>
   </div>
   <div class="note">
     <p><b>Updating later:</b> re-paste the setup command any time — it is idempotent, so
@@ -600,11 +600,11 @@ td b { color: var(--header-fill); }
   <!-- Chapter 6: Phase 4 -->
   <div class="chapter-header">
     <div class="section-tag">Phase 4 · Verify</div>
-    <div class="section-title">Judge Lab — Test, Read the Verdict, Apply</div>
+    <div class="section-title">Validator Lab — Test, Read the Verdict, Apply</div>
     <div class="divider"></div>
   </div>
   <p class="body-text">
-    The Judge Lab is the platform&#8217;s dress rehearsal: it mines a profile of what your target
+    The Validator Lab is the platform&#8217;s dress rehearsal: it mines a profile of what your target
     subnet&#8217;s validator actually rewards, simulates your miner against it, and returns a
     verdict with per-dimension scores — quality, resource fit, throughput, speed, price,
     availability. Each weak dimension comes with a concrete recommendation, and each
@@ -615,9 +615,9 @@ td b { color: var(--header-fill); }
     <div class="step-num">1</div>
     <div class="step-body">
       <div class="step-title">Select the subnet</div>
-      <div class="step-detail">Open <b>Judge Lab</b> and pick the <b>same netuid</b> your
-      deployment mines. The judge&#8217;s recommendations are subnet-specific — a fix computed
-      for one subnet&#8217;s judge may be wrong for another.</div>
+      <div class="step-detail">Open <b>Validator Lab</b> and pick the <b>same netuid</b> your
+      deployment mines. The Lab&#8217;s recommendations are subnet-specific — a fix computed
+      for one subnet&#8217;s validator may be wrong for another.</div>
     </div>
   </div>
   <div class="step">
@@ -635,7 +635,7 @@ td b { color: var(--header-fill); }
     <div class="step-body">
       <div class="step-title">Run the simulation</div>
       <div class="step-detail">Press <b>Run simulation</b>. While it scores, the button reads
-      <span class="mono">Scoring against judge…</span>. When it finishes you get a
+      <span class="mono">Scoring against validator…</span>. When it finishes you get a
       <b>Verdict</b> panel: overall verdict badge, composite score, per-dimension scores,
       and a ranked list of the highest-leverage fixes.</div>
     </div>
@@ -659,7 +659,7 @@ td b { color: var(--header-fill); }
       <div class="step-title">Know that verdicts survive</div>
       <div class="step-detail">The <b>Recent runs</b> list keeps every simulation. Click any
       row to restore that verdict and its Apply buttons — nothing is lost by navigating away
-      or by the page reloading. Availability fixes are deliberately manual; the judge will
+      or by the page reloading. Availability fixes are deliberately manual; the Lab will
       say so instead of pretending to automate them.</div>
     </div>
   </div>
@@ -667,13 +667,13 @@ td b { color: var(--header-fill); }
     <div class="checkpoint-tag">Checkpoint — you are done when</div>
     <p>At least one fix is applied, the deployment card&#8217;s config tab shows the changed
     environment, and a new revision snapshot exists for rollback. The miner now runs the
-    judge-approved configuration.</p>
+    validator-approved configuration.</p>
   </div>
 
-  <p class="body-text" style="margin-top:6px;"><b>When should you run the Judge Lab?</b>
+  <p class="body-text" style="margin-top:6px;"><b>When should you run the Validator Lab?</b>
   The table below is the complete answer — first time is immediately after the daemon comes
   online, and every later run is triggered by one of four events. If none of these happened,
-  there is nothing to re-judge; spend the time on Monitoring instead.</p>
+  there is nothing to re-validate; spend the time on Monitoring instead.</p>
   <table>
     <thead>
       <tr><th style="width:30%;">Moment</th><th>Why</th></tr>
@@ -689,7 +689,7 @@ td b { color: var(--header-fill); }
   <!-- Chapter 7: Phase 5 -->
   <div class="chapter-header">
     <div class="section-tag">Phase 5 · Operate</div>
-    <div class="section-title">Operate — Monitor, Automate, Re-Judge</div>
+    <div class="section-title">Operate — Monitor, Automate, Re-Validate</div>
     <div class="divider"></div>
   </div>
   <p class="body-text">
@@ -704,7 +704,7 @@ td b { color: var(--header-fill); }
     <div class="col">
       <div class="col-title">Monitoring — what to glance at daily</div>
       <ul>
-        <li><b>Composite / inference score</b> — the miner&#8217;s actual standing; a slow slide means the judge profile aged.</li>
+        <li><b>Composite / inference score</b> — the miner&#8217;s actual standing; a slow slide means the validator profile aged.</li>
         <li><b>Daemon heartbeats</b> — &#8220;last seen&#8221; age should stay in seconds, never minutes.</li>
         <li><b>Cost vs estimated revenue</b> — the deployment card&#8217;s two headline numbers must stay in healthy proportion.</li>
         <li><b>Alert stream</b> — anything the DevOps Engine escalated to a human.</li>
@@ -715,7 +715,7 @@ td b { color: var(--header-fill); }
       <p>GPU HEALTH · SUBNET DRIFT · DEREG-RISK · ARBITRAGE · RUNTIME OPT · PROBE FAIL ·
       SERVICE LATENCY · QUERY DROUGHT · ESCALATION · UPSTREAM · BENCH REGRESS · RE-SYNC ·
       SCALE · KILL. Each trigger documents what it watches and what it does; treat UPSTREAM
-      and BENCH REGRESS as your &#8220;go re-judge&#8221; signals, and KILL as the engine&#8217;s
+      and BENCH REGRESS as your &#8220;go re-validate&#8221; signals, and KILL as the engine&#8217;s
       last-resort circuit breaker for a runaway deployment.</p>
     </div>
   </div>
@@ -762,7 +762,7 @@ td b { color: var(--header-fill); }
       <div class="step-title">Inspect the deployment card</div>
       <div class="step-detail">Open the card&#8217;s <b>logs</b> and <b>config</b> tabs. The logs
       show the install runner and daemon activity; the config tab shows the exact environment
-      the miner is running — compare it against what the last Judge apply claimed to set.</div>
+      the miner is running — compare it against what the last Validator Lab apply claimed to set.</div>
     </div>
   </div>
   <div class="step">
@@ -789,9 +789,9 @@ td b { color: var(--header-fill); }
     </thead>
     <tbody>
       <tr><td>Daemon chip gray / offline</td><td>Pod rebooted without auto-start, or spot eviction</td><td>Re-paste setup command; if SSH fails, the pod is gone — redeploy</td></tr>
-      <tr><td>Judge <b>Apply</b> errors</td><td>No live deployment selected, or daemon offline</td><td>Verify daemon Online, retry; check the result note for the push ladder&#8217;s message</td></tr>
+      <tr><td>Validator <b>Apply</b> errors</td><td>No live deployment selected, or daemon offline</td><td>Verify daemon Online, retry; check the result note for the push ladder&#8217;s message</td></tr>
       <tr><td>GPU Catalog: no offers</td><td>Provider key missing, expired, or out of credit</td><td>Reconnect the provider key in GPU Catalog</td></tr>
-      <tr><td>Sudden composite drop</td><td>Upstream change or data-source outage</td><td>System &amp; Errors first, then Re-mine profile + re-run judge</td></tr>
+      <tr><td>Sudden composite drop</td><td>Upstream change or data-source outage</td><td>System &amp; Errors first, then Re-mine profile + re-run simulation</td></tr>
       <tr><td>Config change didn&#8217;t stick</td><td>Apply pushed but daemon applied an older revision</td><td>Check Revisions; re-apply the fix and confirm the note</td></tr>
     </tbody>
   </table>
@@ -814,9 +814,9 @@ td b { color: var(--header-fill); }
       <tr><th style="width:22%;">Rhythm</th><th style="width:26%;">Time</th><th>What you actually do</th></tr>
     </thead>
     <tbody>
-      <tr><td><b>First-time setup</b></td><td>~30 minutes, once</td><td>Phase 0 keys &#8594; pick subnet &#8594; run the Deploy Wizard &#8594; daemon online &#8594; judge &#8594; apply the top fixes.</td></tr>
+      <tr><td><b>First-time setup</b></td><td>~30 minutes, once</td><td>Phase 0 keys &#8594; pick subnet &#8594; run the Deploy Wizard &#8594; daemon online &#8594; validate &#8594; apply the top fixes.</td></tr>
       <tr><td><b>Daily</b></td><td>~5 minutes</td><td>Glance at Monitoring: composite, daemon ages, cost vs revenue, escalations. Touch nothing that is green.</td></tr>
-      <tr><td><b>Weekly</b></td><td>~15 minutes</td><td>Re-run Judge Lab, compare the composite with last week, re-mine the profile if upstream changed, apply drifts. Skim System &amp; Errors for recurring warnings.</td></tr>
+      <tr><td><b>Weekly</b></td><td>~15 minutes</td><td>Re-run Validator Lab, compare the composite with last week, re-mine the profile if upstream changed, apply drifts. Skim System &amp; Errors for recurring warnings.</td></tr>
       <tr><td><b>On alert</b></td><td>as needed</td><td>Follow the recovery order: System &amp; Errors &#8594; Monitoring scope &#8594; card logs/config &#8594; Revisions rollback &#8594; daemon re-paste.</td></tr>
     </tbody>
   </table>
@@ -830,9 +830,9 @@ td b { color: var(--header-fill); }
       <tr><td>Pick</td><td>Subnets</td><td>Sync all &#8594; active-only filter &#8594; choose netuid (ROI, dereg risk, seats)</td></tr>
       <tr><td>Deploy</td><td>GPU Catalog</td><td>Connect provider key (once) &#8594; Provision &#8594; wizard: Subnet &#8594; Requirements &#8594; GPU &#8594; Install &#8594; Hotkey &amp; run</td></tr>
       <tr><td>Connect</td><td>Deployments</td><td>Install daemon &#8594; Copy setup command &#8594; paste on pod (SSH or provider start script) &#8594; chip Online</td></tr>
-      <tr><td>Judge</td><td>Judge Lab</td><td>Select subnet &#8594; Re-mine profile (first time / upstream change) &#8594; Run simulation &#8594; read verdict</td></tr>
-      <tr><td>Apply</td><td>Judge Lab</td><td>Apply on a recommendation &#8594; pick deployment &#8594; confirm &#8594; snapshot + push</td></tr>
-      <tr><td>Operate</td><td>Monitoring · DevOps</td><td>Daily glance; let the 14 triggers act; re-judge on UPSTREAM / BENCH REGRESS / weekly</td></tr>
+      <tr><td>Validate</td><td>Validator Lab</td><td>Select subnet &#8594; Re-mine profile (first time / upstream change) &#8594; Run simulation &#8594; read verdict</td></tr>
+      <tr><td>Apply</td><td>Validator Lab</td><td>Apply on a recommendation &#8594; pick deployment &#8594; confirm &#8594; snapshot + push</td></tr>
+      <tr><td>Operate</td><td>Monitoring · DevOps</td><td>Daily glance; let the 14 triggers act; re-validate on UPSTREAM / BENCH REGRESS / weekly</td></tr>
       <tr><td>Recover</td><td>System &amp; Errors</td><td>Platform health first, then card logs, then Revisions rollback</td></tr>
     </tbody>
   </table>
@@ -840,7 +840,7 @@ td b { color: var(--header-fill); }
   <div class="note">
     <p><b>Strengths and cautions, honestly stated:</b> the platform&#8217;s strongest assets are
     the honest transmission labeling (mock vs live is never blurred), the revision snapshots
-    behind every apply, and the closed Judge&#8594;Apply loop. Its sharp edges: preview URLs can
+    behind every apply, and the closed Validate&#8594;Apply loop. Its sharp edges: preview URLs can
     leak into copied configs, mock deployments can pollute fleet views if you experiment in
     the same workspace, spot instances can be evicted mid-run (prefer persistent pods for
     long-lived miners), and a data-source outage can masquerade as a miner failure — always
@@ -854,16 +854,16 @@ td b { color: var(--header-fill); }
   <div class="ending-frame"></div>
   <div class="ending-center">
     <div class="ending-kicker">The Whole Handbook in One Line</div>
-    <div class="ending-big">Mine. Judge. Apply.<br>Repeat.</div>
+    <div class="ending-big">Mine. Validate. Apply.<br>Repeat.</div>
     <div class="ending-text">
       The golden path never changes: pick a subnet worth mining, put a real GPU under it,
-      connect the daemon so the platform has hands on the machine, let the Judge Lab find
+      connect the daemon so the platform has hands on the machine, let the Validator Lab find
       the gap between your miner and the validator&#8217;s expectations, and apply the fixes
       with one click. After that, Monitoring and the DevOps Engine keep watch — and you
       only return when an alert, an upstream change, or the weekly review calls you back.
     </div>
     <div class="ending-path">
-      Subnet &#8594; GPU &#8594; Daemon online &#8594; Judge &#8594; Apply &#8594; Operate
+      Subnet &#8594; GPU &#8594; Daemon online &#8594; Validate &#8594; Apply &#8594; Operate
     </div>
   </div>
   <div class="ending-footer">
