@@ -114,6 +114,8 @@ function baseConfig(command: string, envValue: string, image = "bittensor/subnet
     },
     docker: {
       imageName: image,
+      imageSource: "subnet-requirements" as const,
+      repoDockerfileBase: null,
       runtime: "nvidia",
       ports: ["8091/http"],
       volumes: [],

@@ -8,6 +8,8 @@
 //   GITHUB  → README (VRAM / CUDA / GPU model), requirements.txt (pip deps),
 //             pyproject.toml (python version), Dockerfile (image, CUDA base),
 //             repo tree (miner entrypoint, setup scripts)
+//   OVERRIDE→ team-curated SubnetOverride.githubUrl (user-provided repo link
+//             takes precedence over the on-chain identity link)
 //   CURATED → work-type classifier fallback (GPU tier by incentive category)
 //
 // The output SubnetRequirementsProfile is what the installer turns into an
@@ -60,7 +62,7 @@ export interface SubnetRequirementsProfile {
   minerCommandTemplate: string;
 
   // Provenance
-  sources: ("chain" | "github" | "curated")[];
+  sources: ("chain" | "github" | "curated" | "override")[];
   confidence: "high" | "medium" | "low";
   notes: string[];
   fetchedAt: string;
@@ -76,14 +78,27 @@ interface RepoInfo {
 
 function parseGithubUrl(url: string): RepoInfo | null {
   try {
-    const u = new URL(url);
+    // Tolerate user-pasted links: "github.com/org/repo", ".../tree/dev",
+    // ".git" suffixes — normalize before parsing.
+    const normalized = /^https?:\/\//i.test(url) ? url : `https://${url}`;
+    const u = new URL(normalized);
     if (!u.hostname.includes("github.com")) return null;
     const parts = u.pathname.split("/").filter(Boolean);
     if (parts.length < 2) return null;
-    return { owner: parts[0], repo: parts[1], branch: parts[3] || "main" };
+    return {
+      owner: parts[0],
+      repo: parts[1].replace(/\.git$/, ""),
+      branch: parts[3] || "main",
+    };
   } catch {
     return null;
   }
+}
+
+/** Canonical https repo URL for a pasted/chain GitHub link, or null. */
+function normalizeGithubUrl(url: string): string | null {
+  const info = parseGithubUrl(url);
+  return info ? `https://github.com/${info.owner}/${info.repo}` : null;
 }
 
 async function fetchRaw(
@@ -308,7 +323,7 @@ export async function pullSubnetRequirements(
 
 async function buildProfile(netuid: number): Promise<SubnetRequirementsProfile> {
   const notes: string[] = [];
-  const sources: ("chain" | "github" | "curated")[] = [];
+  const sources: SubnetRequirementsProfile["sources"] = [];
 
   // --- Chain layer ---
   let name = `Subnet ${netuid}`;
@@ -335,8 +350,29 @@ async function buildProfile(netuid: number): Promise<SubnetRequirementsProfile> 
     );
   }
 
-  // --- GitHub layer ---
+  // --- Override layer (team-curated repo link beats the chain) ------------
   let githubUrl = identityGithub;
+  try {
+    const ov = await db.subnetOverride.findUnique({ where: { netuid } });
+    if (ov?.githubUrl) {
+      const normalized = normalizeGithubUrl(ov.githubUrl);
+      if (normalized) {
+        githubUrl = normalized;
+        sources.push("override");
+        notes.push(
+          "Repo URL comes from the team's subnet override (user-provided) — it takes precedence over the on-chain identity link."
+        );
+      } else {
+        notes.push(
+          `Subnet override GitHub URL "${ov.githubUrl}" is not a valid github.com repo link — falling back to the chain.`
+        );
+      }
+    }
+  } catch {
+    /* override table unavailable — chain URL stands */
+  }
+
+  // --- GitHub layer ---
   let scraped: ScrapedMetadata | null = null;
   let reqInfo: { content: string; branch: string } | null = null;
   let pyprojectInfo: { content: string; branch: string } | null = null;
@@ -416,9 +452,26 @@ async function buildProfile(netuid: number): Promise<SubnetRequirementsProfile> 
   const cudaMinVersion = combinedText ? parseCudaVersion(combinedText) : null;
   const osPackages = combinedText ? parseAptPackages(combinedText) : [];
   const bittensorStack = parseBittensorStack(pipPackages);
-  const dockerImage = dockerfileInfo
-    ? dockerfileInfo.content.match(/^\s*FROM\s+(\S+)/m)?.[1] ?? null
-    : null;
+
+  // Dockerfile base image: multi-stage builds → the LAST concrete FROM is
+  // the runtime base. Skip `scratch` and ${VAR} indirection (unresolvable
+  // remotely) — those repos fall back to the venv install path.
+  let dockerImage: string | null = null;
+  if (dockerfileInfo) {
+    const froms = [
+      ...dockerfileInfo.content.matchAll(
+        /^\s*FROM\s+(?:--platform=\S+\s+)?(\S+)/gim
+      ),
+    ]
+      .map((m) => m[1])
+      .filter((img) => img && !img.includes("${") && img.toLowerCase() !== "scratch");
+    dockerImage = froms.length > 0 ? froms[froms.length - 1] : null;
+    if (!dockerImage) {
+      notes.push(
+        "Dockerfile found but its base image is build-arg-driven — the install plan uses the Python venv path."
+      );
+    }
+  }
 
   // Entrypoint: raw probes (no rate limit) → README run commands → tree API
   // (last resort — the GitHub API is easily rate-limited on shared IPs).
@@ -464,6 +517,8 @@ async function buildProfile(netuid: number): Promise<SubnetRequirementsProfile> 
   if (registeredMiners === 0) notes.push("No registered miners yet — treat entrypoint/command as provisional.");
   if (hasRepo && !entrypoint)
     notes.push("Entrypoint not found (repo tree unreachable or unusual layout) — the plan uses the neurons/miner.py default; edit if the subnet documents a different one.");
+  if (sources.includes("override"))
+    notes.push("Profile confidence is backed by the user-provided repo link — verify the requirements after the first install run.");
 
   const profile: SubnetRequirementsProfile = {
     netuid,

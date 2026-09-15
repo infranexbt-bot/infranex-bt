@@ -95,6 +95,8 @@ function makeConfig(overrides?: Partial<DeploymentConfig>): DeploymentConfig {
     gpu: { model: "RTX 4090", vramGb: 24, provider: "Vast.ai", hourlyPrice: 0.4, monthlyPrice: 288, region: "global", offerId: "vast-424242" },
     docker: {
       imageName: "bittensor/subnet:latest",
+      imageSource: "category-fallback" as const,
+      repoDockerfileBase: null,
       runtime: "nvidia",
       ports: ["8091/http"],
       volumes: [{ path: "/workspace", sizeGb: 100 }],

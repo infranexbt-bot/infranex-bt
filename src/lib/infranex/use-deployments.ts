@@ -14,7 +14,7 @@ export interface DeploymentStep {
 export interface DeploymentConfig {
   subnet: { netuid: number; name: string; symbol: string; category: string; minVramGb: number; recommendedGpu: string };
   gpu: { model: string; vramGb: number; provider: string; hourlyPrice: number; monthlyPrice: number; region: string };
-  docker: { imageName: string; runtime: string; ports: string[]; volumes: { path: string; sizeGb: number }[]; envVars: { name: string; value: string; secret: boolean }[]; command: string; minMemoryGb: number; minVcpuCount: number; diskGb: number };
+  docker: { imageName: string; imageSource?: "subnet-requirements" | "category-fallback"; repoDockerfileBase?: string | null; runtime: string; ports: string[]; volumes: { path: string; sizeGb: number }[]; envVars: { name: string; value: string; secret: boolean }[]; command: string; minMemoryGb: number; minVcpuCount: number; diskGb: number };
   miner: { network: string; netuid: number; walletName: string; hotkeyName: string; axonPort: number; prometheusPort: number; subtensorNetwork: string; extraArgs: string[] };
   cost: { hourlyUsd: number; monthlyUsd: number; estimatedMonthlyRevenueUsd: number; estimatedRoiPercent: number };
   requirements: { minVramGb: number; pythonVersion: string; cudaVersion: string; dockerRequired: boolean; nvidiaRuntimeRequired: boolean };

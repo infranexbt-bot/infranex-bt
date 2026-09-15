@@ -6,6 +6,7 @@ import {
 import { subnets } from "@/lib/infranex/data";
 import { fetchLiveSnapshot } from "@/lib/infranex/chain";
 import { pullSubnetRequirements } from "@/lib/devops/subnet-requirements";
+import type { SubnetProfileHint } from "@/lib/infranex/deployment/config";
 import { SESSION_COOKIE, verifySessionToken } from "@/lib/auth";
 import type { Subnet, GPUOffer } from "@/lib/infranex/types";
 
@@ -130,6 +131,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "minerName is required" }, { status: 400 });
     }
 
+    // OVERLAY-2 — pull the requirements profile (6h DB cache) so the pod
+    // template + runtime requirements reflect THIS subnet's repo instead of
+    // a category template: CUDA-matched image, parsed entrypoint, real
+    // python/cuda versions. Failure is non-fatal (template fallback).
+    let profileHint: SubnetProfileHint | null = null;
+    try {
+      profileHint = (await pullSubnetRequirements(netuid)).profile;
+    } catch {
+      profileHint = null;
+    }
+
     // TIER4 — attribute the deployment to its creator (light tenancy).
     const session = await verifySessionToken(req.cookies.get(SESSION_COOKIE)?.value);
     const deployment = await createDeployment({
@@ -139,6 +151,7 @@ export async function POST(req: NextRequest) {
       hotkey: hotkey?.trim() || undefined,
       walletName: walletName?.trim() || undefined,
       mode,
+      profileHint,
       owner: session?.uid
         ? { userId: session.uid, label: session.label ?? undefined }
         : undefined,

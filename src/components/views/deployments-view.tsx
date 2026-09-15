@@ -652,6 +652,9 @@ function DeploymentDetail({
               </p>
               <div className="space-y-2 text-xs">
                 <ConfigRow label="Image" value={cfg.docker.imageName} mono />
+                {cfg.docker.repoDockerfileBase ? (
+                  <ConfigRow label="Repo Dockerfile base" value={cfg.docker.repoDockerfileBase} mono />
+                ) : null}
                 <ConfigRow label="Runtime" value={cfg.docker.runtime} mono />
                 <ConfigRow label="Ports" value={cfg.docker.ports.join(", ")} mono />
                 <ConfigRow label="Min memory" value={`${cfg.docker.minMemoryGb} GB`} mono />

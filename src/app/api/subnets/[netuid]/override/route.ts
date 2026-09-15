@@ -40,6 +40,13 @@ export async function PUT(
     update: data,
   });
 
+  // OVERLAY-1 — the requirements profiler caches per netuid (6h TTL). A user
+  // override can change the repo URL / VRAM, so drop the cached profile; the
+  // next pull re-fetches requirements from the user's repo immediately.
+  await db.subnetRequirements
+    .deleteMany({ where: { netuid: n } })
+    .catch(() => {});
+
   return NextResponse.json({ override });
 }
 
@@ -51,5 +58,9 @@ export async function DELETE(
   const { netuid } = await params;
   const n = parseInt(netuid, 10);
   await db.subnetOverride.delete({ where: { netuid: n } }).catch(() => {});
+  // OVERLAY-1 — revert to the chain profile: drop the cached requirements.
+  await db.subnetRequirements
+    .deleteMany({ where: { netuid: n } })
+    .catch(() => {});
   return NextResponse.json({ success: true });
 }

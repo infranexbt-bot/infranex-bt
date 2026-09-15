@@ -47,7 +47,7 @@ function getProvider(mode: string): ProviderAdapter {
 }
 
 // Step output generators — produce realistic-looking logs per step.
-function stepOutput(step: string, config: DeploymentConfig): string[] {
+function stepOutput(step: string, config: DeploymentConfig, mode: string): string[] {
   switch (step) {
     case "request":
       return [
@@ -59,7 +59,8 @@ function stepOutput(step: string, config: DeploymentConfig): string[] {
     case "approve":
       return [
         "Approval check passed (L1 auto-approve)",
-        `Mode: ${config.docker.imageName.includes("bittensor") ? "production" : "mock"}`,
+        `Mode: ${mode === "mock" ? "engine test harness" : `production (${mode})`}`,
+        `Pod image: ${config.docker.imageName} (${config.docker.imageSource}${config.docker.repoDockerfileBase ? `, repo base: ${config.docker.repoDockerfileBase}` : ""})`,
         "Hotkey & registration come LAST — after the miner runs (step 5 of the wizard)",
       ];
     case "provision":
@@ -122,6 +123,10 @@ export interface CreateDeploymentInput {
   walletName?: string;
   // TIER4 — "vast" rents a real Vast.ai bundle (provider adapter vast.ts).
   mode: "mock" | "runpod" | "vast";
+  // OVERLAY-2 — requirements profile (chain+github) shaping the pod template:
+  // CUDA-matched image, real entrypoint, python/cuda versions. Optional —
+  // when absent the config falls back to category defaults.
+  profileHint?: import("./config").SubnetProfileHint | null;
   // TIER4 — light tenancy: attribute the deployment to its creator.
   owner?: { userId: string; label?: string };
 }
@@ -232,6 +237,7 @@ export async function createDeployment(input: CreateDeploymentInput): Promise<De
   const config = buildDeploymentConfig(input.subnet, input.offer, {
     hotkey: input.hotkey,
     walletName: input.walletName,
+    profileHint: input.profileHint ?? null,
   });
   const row = await db.deployment.create({
     data: {
@@ -305,7 +311,7 @@ export async function advanceDeployment(
   // must survive later advances, so no canned text is ever written for them.
   const config = rec.config;
   for (const s of ["request", "approve", "provision"]) {
-    stepOutputs[s] = stepOutput(s, config);
+    stepOutputs[s] = stepOutput(s, config, rec.mode);
   }
 
   // Honest headers when a runner-owned phase STARTS; afterwards the runner
