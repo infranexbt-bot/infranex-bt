@@ -4,6 +4,13 @@ import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import { Slider } from "@/components/ui/slider";
 import { Separator } from "@/components/ui/separator";
@@ -26,6 +33,9 @@ import {
   Heart,
   Info,
   Sparkles,
+  Wrench,
+  CheckCircle2,
+  AlertTriangle,
 } from "lucide-react";
 import { cn, formatRelativeTime } from "@/lib/utils";
 import { useNetwork } from "@/lib/infranex/use-network";
@@ -374,7 +384,7 @@ export function JudgeView() {
               </CardContent>
             </Card>
 
-            {result && <VerdictPanel result={result} />}
+            {result && <VerdictPanel result={result} spec={spec} />}
           </div>
         </div>
       )}
@@ -534,7 +544,193 @@ function SimSlider(props: {
 }
 
  
-function VerdictPanel({ result }: { result: any }) {
+// JUDGE-APPLY — dimensions the engine can push to a miner (must mirror
+// JUDGE_FIX_RECIPES in src/lib/infranex/judge/apply.ts). Anything outside
+// this set stays manual by design.
+const APPLYABLE_FIX_DIMS = new Set([
+  "response_quality",
+  "resource_efficiency",
+  "throughput",
+  "response_speed",
+  "price",
+]);
+
+interface DeploymentRow {
+  id: string;
+  minerName: string;
+  netuid: number;
+  mode: string;
+  status: string;
+}
+
+/**
+ * "Apply to miner" — bridges one Judge fix to a live deployment: pick the
+ * miner, the engine snapshots the config, merges the recipe env delta and
+ * pushes apply_config via the node daemon (mock deployments get a tick).
+ */
+function ApplyFixButton({
+  dimensionKey,
+  netuid,
+  priceTargetUsd,
+}: {
+  dimensionKey: string;
+  netuid: number;
+  priceTargetUsd?: number;
+}) {
+  const [open, setOpen] = useState(false);
+  const [deployments, setDeployments] = useState<DeploymentRow[] | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [result, setResult] = useState<{ ok: boolean; note: string } | null>(null);
+
+  const load = async () => {
+    try {
+      const res = await fetch("/api/deployments");
+      const data = await res.json().catch(() => ({}));
+      setDeployments(Array.isArray(data.deployments) ? data.deployments : []);
+    } catch {
+      setDeployments([]);
+    }
+  };
+
+  const apply = async (id: string) => {
+    setBusyId(id);
+    setResult(null);
+    try {
+      const res = await fetch("/api/judge/apply", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ deploymentId: id, dimensionKey, priceTargetUsd }),
+      });
+      const data = await res.json().catch(() => ({}));
+      setResult({ ok: res.ok, note: data.note || data.error || (res.ok ? "Applied." : "Apply failed.") });
+    } catch {
+      setResult({ ok: false, note: "Network error — is the server reachable?" });
+    }
+    setBusyId(null);
+  };
+
+  // Sort: same-subnet deployments first (a fix computed for this subnet's
+  // judge profile lands hardest there), then everything else.
+  const sorted = (deployments ?? []).slice().sort((a, b) => {
+    const am = a.netuid === netuid ? 0 : 1;
+    const bm = b.netuid === netuid ? 0 : 1;
+    return am - bm || a.minerName.localeCompare(b.minerName);
+  });
+
+  const openDialog = () => {
+    setOpen(true);
+    setResult(null);
+    // Fetch here, not in an effect: the trigger Button sets `open`
+    // programmatically and Radix never calls onOpenChange for it.
+    if (deployments === null) void load();
+  };
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(o) => {
+        setOpen(o);
+        if (!o) {
+          setResult(null);
+          setDeployments(null); // refetch fresh on next open
+        }
+      }}
+    >
+      <Button
+        variant="outline"
+        size="sm"
+        className="h-6 shrink-0 gap-1 border-primary/30 px-2 text-[11px] text-primary hover:bg-primary/10"
+        onClick={(e) => {
+          e.stopPropagation();
+          openDialog();
+        }}
+      >
+        <Wrench className="h-3 w-3" />
+        Apply
+      </Button>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-sm">
+            Apply fix <span className="text-primary">{dimensionKey}</span> to a miner
+          </DialogTitle>
+          <DialogDescription className="text-xs">
+            The engine snapshots the current config first (one-click rollback), merges the
+            recipe env delta, then pushes apply_config via the node daemon. Mock deployments
+            simulate the apply.
+          </DialogDescription>
+        </DialogHeader>
+        {priceTargetUsd !== undefined && (
+          <p className="rounded-lg border border-primary/20 bg-primary/5 p-2 text-[11px] text-muted-foreground">
+            Price target computed from this run&apos;s own math:{" "}
+            <span className="mono text-foreground">${priceTargetUsd.toFixed(2)}/1M tokens</span>{" "}
+            — lands the price dimension on the 0.75 bar.
+          </p>
+        )}
+        {deployments === null ? (
+          <p className="py-3 text-center text-xs text-muted-foreground">Loading deployments…</p>
+        ) : sorted.length === 0 ? (
+          <p className="py-3 text-center text-xs text-muted-foreground">
+            No deployments yet — create one in Section 07 (GPU Catalog → Deploy) first.
+          </p>
+        ) : (
+          <div className="max-h-64 space-y-1.5 overflow-y-auto pr-1">
+            {sorted.map((d) => (
+              <div
+                key={d.id}
+                className="flex items-center justify-between gap-2 rounded-lg border border-border/40 bg-background/30 p-2"
+              >
+                <div className="min-w-0">
+                  <p className="truncate text-xs font-medium">
+                    {d.minerName}{" "}
+                    {d.netuid === netuid ? (
+                      <Badge variant="outline" className="ml-1 border-primary/30 text-[10px] text-primary">
+                        SN{netuid}
+                      </Badge>
+                    ) : (
+                      <span className="ml-1 text-[10px] text-muted-foreground/60">
+                        SN{d.netuid} · different subnet
+                      </span>
+                    )}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground">
+                    {d.mode} · {d.status}
+                  </p>
+                </div>
+                <Button
+                  size="sm"
+                  className="h-7 shrink-0 text-[11px]"
+                  disabled={busyId !== null}
+                  onClick={() => void apply(d.id)}
+                >
+                  {busyId === d.id ? "Applying…" : "Apply"}
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
+        {result && (
+          <p
+            className={cn(
+              "flex items-start gap-1.5 rounded-lg border p-2 text-[11px]",
+              result.ok
+                ? "border-primary/30 bg-primary/5 text-foreground"
+                : "border-red-500/30 bg-red-500/5 text-red-400"
+            )}
+          >
+            {result.ok ? (
+              <CheckCircle2 className="mt-0.5 h-3 w-3 shrink-0 text-primary" />
+            ) : (
+              <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0" />
+            )}
+            {result.note}
+          </p>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function VerdictPanel({ result, spec }: { result: any; spec?: { pricePerMTokUsd?: number } }) {
   const dims = (result.dimensionScores ?? []) as {
     key: string;
     label: string;
@@ -543,7 +739,27 @@ function VerdictPanel({ result }: { result: any }) {
     contribution: number;
     note: string;
   }[];
-  const recs = (result.recommendations ?? []) as { label: string; gain: number; text: string }[];
+  const recs = (result.recommendations ?? []) as {
+    dimensionKey?: string;
+    label: string;
+    gain: number;
+    text: string;
+  }[];
+
+  // Price fix target derived from the run's own priceScore math:
+  // score = clamp01(1 − price/(2·ref)) → ref = price/(2·(1−score));
+  // the 0.75 "good" bar sits at 0.5·ref → target = price·(1−score)/0.5... i.e.
+  // target = price × (1 − score) / (2 × (1 − 0.75)) — but only when the caller
+  // gave us the spec price and the run actually scored the price dimension.
+  const priceDim = dims.find((d) => d.key === "price");
+  const priceTargetUsd =
+    spec?.pricePerMTokUsd !== undefined &&
+    priceDim &&
+    typeof priceDim.score === "number" &&
+    priceDim.score < 0.99
+      ? Math.round(((spec.pricePerMTokUsd * (1 - priceDim.score)) / (2 * (1 - 0.75))) * 100) / 100
+      : undefined;
+
   return (
     <Card className="border-primary/30 bg-card/60">
       <CardHeader className="pb-3">
@@ -601,17 +817,35 @@ function VerdictPanel({ result }: { result: any }) {
           <div>
             <p className="text-eyebrow mb-1.5 text-muted-foreground">Highest-leverage fixes</p>
             <div className="space-y-1.5">
-              {recs.map((r, i) => (
-                <div
-                  key={i}
-                  className="flex items-start gap-2 rounded-lg border border-border/40 bg-background/30 p-2.5 text-xs"
-                >
-                  <Badge variant="outline" className="mt-0.5 shrink-0 border-primary/30 text-primary">
-                    +{r.gain.toFixed(1)}
-                  </Badge>
-                  <span className="text-muted-foreground">{r.text}</span>
-                </div>
-              ))}
+              {recs.map((r, i) => {
+                const key = r.dimensionKey ?? "";
+                const applyable = key !== "" && APPLYABLE_FIX_DIMS.has(key);
+                return (
+                  <div
+                    key={i}
+                    className="flex items-start gap-2 rounded-lg border border-border/40 bg-background/30 p-2.5 text-xs"
+                  >
+                    <Badge variant="outline" className="mt-0.5 shrink-0 border-primary/30 text-primary">
+                      +{r.gain.toFixed(1)}
+                    </Badge>
+                    <span className="text-muted-foreground">{r.text}</span>
+                    {applyable ? (
+                      <ApplyFixButton
+                        dimensionKey={key}
+                        netuid={result.netuid}
+                        priceTargetUsd={key === "price" ? priceTargetUsd : undefined}
+                      />
+                    ) : (
+                      <span
+                        className="mt-0.5 shrink-0 text-[10px] text-muted-foreground/50"
+                        title="No safe on-host recipe — change this one manually on the host"
+                      >
+                        manual
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
