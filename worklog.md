@@ -194,3 +194,22 @@ Work Log:
 Stage Summary:
 - DELIVERED: download/infranex-operator-handbook.pdf (11 pages, 450.6 KB, vector, page-numbered) + download/infranex-operator-handbook.html (editable source)
 - Content: golden path one-liner (Subnet->GPU->Daemon online->Judge->Apply->Operate), daemon-before-judge timing rule, every button name verified against source
+
+---
+Task ID: deploy-page-simplify-1
+Agent: main (Super Z)
+Task: Simplify the deployment page — clear step-by-step deploy flow on a single page (user: "i need clear step by step options in the deployment page for deploying the miner in single page, simplify more")
+
+Work Log:
+- Rebuilt the deploy flow as an INLINE 4-step stepper on the Deployments page (no popup): 1 Subnet → 2 GPU (requirements strip folded into this step) → 3 Deploy (review summary + Rent & deploy + live install log) → 4 Go live (Register on-chain + Connect daemon + What's next)
+- Created src/components/deployments/deploy-stepper.tsx (~700 lines): clickable step rail showing each step's picked value (α4 · Targon / RTX 4090 · $0.34/hr / installed / live UID), always-visible "Your picks" summary panel, auto-advance from install to Go live when miner starts, post-live "Deploy another miner" reset, wallet wizard + daemon dialogs bound to the in-flight deployment, steps lock once the GPU is rented
+- Created deploy-preselect.ts module singleton (take-once semantics) replacing the app-root dialog singleton; page.tsx entry points now navigate to Deployments + preseed the stepper: opportunity "Start mining" → subnet, GPU catalog "Provision" → offer
+- deployments-view.tsx: simplified header, stepper leads, cards below ("Your deployments · N active"), DevOps Engine demoted to collapsed <details> "Advanced — deploy on your own GPU hosts" at page bottom
+- Deleted deploy-wizard.tsx (old 5-step dialog); fixed lint error in analytics-view.tsx (manual useMemo blocked React Compiler optimization)
+- Wallet name prefill converted from setState-in-effect to derived-at-render (effWalletName) to satisfy react-hooks/set-state-in-effect
+- Browser E2E (agent-browser): step 1 live chain list → select α4 Targon → step 2 requirement strip "Needs ≥ 24GB VRAM" + burn-entry warning + offer list + miner/wallet inputs → step 3 review rows + honest no-key error toast → (with mocked provider boundary) install log with step progression → auto-advance to step 4 (Register/daemon/next-steps blocks) → daemon dialog opens → DevOps section collapses/expands → "Start mining" preseeds α64 at step 2 → "Provision" preseeds H100 offer at step 1 → mobile 390px layout OK (2×2 grid)
+- Verification notes: no provider keys in DB → /api/gpu-offers returns 0 offers (MOCK-PURGE-2, honest empty state); real rental path verified previously via same API/hooks; deployment lifecycle mocked at browser level only for UI-state verification
+
+Stage Summary:
+- Deploy flow is now ONE page, FOUR steps, zero popups; all entry points converge on it
+- Lint 0 errors; tsc src/ clean; dev.log clean; committed locally (deploy-page-simplify-1)
