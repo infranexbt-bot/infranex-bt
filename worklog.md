@@ -565,3 +565,25 @@ Stage Summary:
   similar), with app-side guard shipped so every user's console stays clean
   regardless of extensions. User-side option: test in incognito or disable
   the extension — error vanishes either way.
+
+---
+Task ID: github-push-1
+Agent: main (Super Z)
+Task: "Save the project and push to GitHub."
+
+Work Log:
+- Verified local state clean: committed the pending alpha-price-history
+  scanner sync (5762fdb) and the one-shot push helper (ffa1758).
+- Secret-scanned all tracked files before push: no live credentials; the
+  only match is a truncated, unusable ghp_iXdt… prefix in historical notes.
+- Confirmed NO credentials exist in the environment (no env token, no
+  ~/.git-credentials, no ~/.netrc, no gh CLI) — remote was removed by
+  design after the old PAT exposure.
+- Created scripts/push-live.sh: pushes main → platform-live on
+  infranexbt-bot/infranex-bt; token passed transiently via TOKEN env var,
+  embedded only in the one-shot push URL, never persisted.
+
+Stage Summary:
+- Everything is saved and push-ready. BLOCKED only on a fresh fine-grained
+  PAT (repo: infranexbt-bot/infranex-bt only; Contents: Read/Write; short
+  expiry). User supplies TOKEN → `bash scripts/push-live.sh` → done.
