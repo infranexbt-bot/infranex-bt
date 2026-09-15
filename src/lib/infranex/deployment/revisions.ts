@@ -25,7 +25,13 @@ import { tickDeployment } from "./engine";
 /** Keep the chain bounded — oldest revisions are pruned beyond this. */
 export const MAX_REVISIONS_PER_DEPLOYMENT = 20;
 
-export type RevisionCause = "deploy" | "drift" | "runtime-opt" | "rollback-backup" | "migrate";
+export type RevisionCause =
+  | "deploy"
+  | "drift"
+  | "runtime-opt"
+  | "judge-fix"
+  | "rollback-backup"
+  | "migrate";
 
 export interface RevisionDTO {
   id: string;

@@ -1,0 +1,861 @@
+     1→"use client";
+     2→
+     3→import { useEffect, useMemo, useState } from "react";
+     4→import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+     5→import { Button } from "@/components/ui/button";
+     6→import { Badge } from "@/components/ui/badge";
+     7→import {
+     8→  Dialog,
+     9→  DialogContent,
+    10→  DialogDescription,
+    11→  DialogHeader,
+    12→  DialogTitle,
+    13→} from "@/components/ui/dialog";
+    14→import { Progress } from "@/components/ui/progress";
+    15→import { Slider } from "@/components/ui/slider";
+    16→import { Separator } from "@/components/ui/separator";
+    17→import {
+    18→  Select,
+    19→  SelectContent,
+    20→  SelectItem,
+    21→  SelectTrigger,
+    22→  SelectValue,
+    23→} from "@/components/ui/select";
+    24→import {
+    25→  Gavel,
+    26→  RefreshCw,
+    27→  Play,
+    28→  ChevronDown,
+    29→  ChevronRight,
+    30→  ShieldAlert,
+    31→  Fish,
+    32→  Scale,
+    33→  Heart,
+    34→  Info,
+    35→  Sparkles,
+    36→  Wrench,
+    37→  CheckCircle2,
+    38→  AlertTriangle,
+    39→} from "lucide-react";
+    40→import { cn, formatRelativeTime } from "@/lib/utils";
+    41→import { useNetwork } from "@/lib/infranex/use-network";
+    42→import { subnets as curatedSubnets } from "@/lib/infranex/data";
+    43→import {
+    44→  useJudgeProfiles,
+    45→  useJudgeRuns,
+    46→  useJudgeSimulate,
+    47→  useJudgeSync,
+    48→  type JudgeProfileData,
+    49→  type JudgeKind,
+    50→} from "@/lib/infranex/judge/use-judge";
+    51→
+    52→const KIND_BADGE: Record<JudgeKind, { label: string; className: string }> = {
+    53→  latency_race: { label: "Latency Race", className: "bg-cyan-500/15 text-cyan-300 border-cyan-500/30" },
+    54→  quality_judge: { label: "Quality Judge", className: "bg-violet-500/15 text-violet-300 border-violet-500/30" },
+    55→  market_clearing: { label: "Market Clearing", className: "bg-amber-500/15 text-amber-300 border-amber-500/30" },
+    56→  uptime_sla: { label: "Uptime SLA", className: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30" },
+    57→  resource_fit: { label: "Resource Fit", className: "bg-sky-500/15 text-sky-300 border-sky-500/30" },
+    58→  unknown: { label: "Unclassified", className: "bg-muted text-muted-foreground border-border" },
+    59→};
+    60→
+    61→const VERDICT_BADGE: Record<string, string> = {
+    62→  strong: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30",
+    63→  competitive: "bg-lime-500/15 text-lime-300 border-lime-500/30",
+    64→  marginal: "bg-amber-500/15 text-amber-300 border-amber-500/30",
+    65→  weak: "bg-red-500/15 text-red-300 border-red-500/30",
+    66→};
+    67→
+    68→const BAND_META: Record<string, { label: string; icon: typeof Fish; className: string }> = {
+    69→  forgiving: { label: "Forgiving", icon: Heart, className: "text-emerald-300" },
+    70→  moderate: { label: "Moderate", icon: Scale, className: "text-lime-300" },
+    71→  brutal: { label: "Brutal", icon: ShieldAlert, className: "text-amber-300" },
+    72→  shark_tank: { label: "Shark Tank", icon: Fish, className: "text-red-300" },
+    73→};
+    74→
+    75→const DEFAULT_SPEC = {
+    76→  latencyMs: 2000,
+    77→  uptimePct: 99.5,
+    78→  qualityPct: 80,
+    79→  throughputTps: 25,
+    80→  pricePerMTokUsd: 0.5,
+    81→};
+    82→
+    83→export function JudgeView() {
+    84→  const { data: net } = useNetwork();
+    85→  const { data: profilesData } = useJudgeProfiles();
+    86→  const { data: runsData } = useJudgeRuns();
+    87→  const syncProfile = useJudgeSync();
+    88→  const simulate = useJudgeSimulate();
+    89→
+    90→  const [netuid, setNetuid] = useState<number | null>(null);
+    91→  const [profile, setProfile] = useState<JudgeProfileData | null>(null);
+    92→  const [profileLoading, setProfileLoading] = useState(false);
+    93→  const [syncing, setSyncing] = useState(false);
+    94→  const [spec, setSpec] = useState(DEFAULT_SPEC);
+    95→  const [running, setRunning] = useState(false);
+    96→  const [result, setResult] = useState<(Record<string, unknown> & { composite: number; verdict: string }) | null>(null);
+    97→  const [error, setError] = useState<string | null>(null);
+    98→
+    99→  const profiledNetuids = useMemo(
+   100→    () => new Set((profilesData?.profiles ?? []).map((p) => p.netuid)),
+   101→    [profilesData]
+   102→  );
+   103→
+   104→  // Live subnets merged with the curated list for the picker.
+   105→  const subnets = useMemo(() => {
+   106→    const names = new Map<number, string>();
+   107→    for (const s of curatedSubnets) names.set(s.netuid, s.name);
+   108→    for (const s of net?.subnets ?? []) {
+   109→      if (s.name) names.set(s.netuid, s.name);
+   110→    }
+   111→    return [...names.entries()]
+   112→      .map(([netuid, name]) => ({ netuid, name }))
+   113→      .sort((a, b) => a.netuid - b.netuid);
+   114→  }, [net]);
+   115→
+   116→  // Load profile when a subnet is picked.
+   117→  useEffect(() => {
+   118→    if (netuid === null) return;
+   119→    let cancelled = false;
+   120→    setProfileLoading(true);
+   121→    setError(null);
+   122→    fetch(`/api/judge/profiles?netuid=${netuid}`, { cache: "no-store" })
+   123→      .then((r) => r.json())
+   124→      .then((j) => {
+   125→        if (!cancelled) setProfile(j.profile ?? null);
+   126→      })
+   127→      .catch(() => !cancelled && setError("Failed to load profile"))
+   128→      .finally(() => !cancelled && setProfileLoading(false));
+   129→    return () => {
+   130→      cancelled = true;
+   131→    };
+   132→  }, [netuid]);
+   133→
+   134→  const handleSync = async () => {
+   135→    if (netuid === null) return;
+   136→    setSyncing(true);
+   137→    setError(null);
+   138→    try {
+   139→      const j = await syncProfile(netuid);
+   140→      setProfile(j.profile);
+   141→    } catch (e) {
+   142→      setError(e instanceof Error ? e.message : "Sync failed");
+   143→    } finally {
+   144→      setSyncing(false);
+   145→    }
+   146→  };
+   147→
+   148→  const handleRun = async () => {
+   149→    if (netuid === null) return;
+   150→    setRunning(true);
+   151→    setError(null);
+   152→    try {
+   153→      const j = await simulate(netuid, spec);
+   154→      setResult(j.result);
+   155→      setProfile(j.profile);
+   156→    } catch (e) {
+   157→      setError(e instanceof Error ? e.message : "Simulation failed");
+   158→    } finally {
+   159→      setRunning(false);
+   160→    }
+   161→  };
+   162→
+   163→  // Latency slider: log scale 100ms → 600_000ms.
+   164→  const latencyValue = Math.log10(spec.latencyMs);
+   165→  const setLatencyLog = (v: number) =>
+   166→    setSpec((s) => ({ ...s, latencyMs: Math.round(Math.pow(10, v)) }));
+   167→
+   168→  return (
+   169→    <div className="space-y-6">
+   170→      {/* Header */}
+   171→      <div className="flex flex-wrap items-start justify-between gap-4">
+   172→        <div>
+   173→          <p className="text-eyebrow text-primary">Judge Intelligence</p>
+   174→          <h2 className="text-display text-2xl font-bold tracking-tight">Judge Lab</h2>
+   175→          <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+   176→            Deconstruct each subnet&apos;s validator scoring BEFORE spending on hardware, then
+   177→            simulate your miner against it. Evidence-cited, cohort-aware, honestly uncertain.
+   178→          </p>
+   179→        </div>
+   180→        <div className="flex items-center gap-2">
+   181→          <Select
+   182→            value={netuid === null ? "" : String(netuid)}
+   183→            onValueChange={(v) => {
+   184→              setNetuid(Number(v));
+   185→              setResult(null);
+   186→            }}
+   187→          >
+   188→            <SelectTrigger className="w-[260px] bg-card/60">
+   189→              <SelectValue placeholder="Pick a subnet…" />
+   190→            </SelectTrigger>
+   191→            <SelectContent className="max-h-80">
+   192→              {subnets.map((s) => (
+   193→                <SelectItem key={s.netuid} value={String(s.netuid)}>
+   194→                  <span className="mono">α{s.netuid}</span> · {s.name}
+   195→                  {profiledNetuids.has(s.netuid) && (
+   196→                    <span className="ml-1 text-primary">· profiled</span>
+   197→                  )}
+   198→                </SelectItem>
+   199→              ))}
+   200→            </SelectContent>
+   201→          </Select>
+   202→          <Button
+   203→            variant="outline"
+   204→            size="sm"
+   205→            onClick={handleSync}
+   206→            disabled={netuid === null || syncing}
+   207→            className="gap-1.5"
+   208→          >
+   209→            <RefreshCw className={cn("h-3.5 w-3.5", syncing && "animate-spin")} />
+   210→            {syncing ? "Mining…" : "Re-mine profile"}
+   211→          </Button>
+   212→        </div>
+   213→      </div>
+   214→
+   215→      {error && (
+   216→        <Card className="border-red-500/30 bg-red-500/5">
+   217→          <CardContent className="py-3 text-sm text-red-300">{error}</CardContent>
+   218→        </Card>
+   219→      )}
+   220→
+   221→      {netuid === null ? (
+   222→        <Card className="border-border/60 bg-card/40">
+   223→          <CardContent className="flex flex-col items-center gap-3 py-16 text-muted-foreground">
+   224→            <Gavel className="h-10 w-10 text-primary/40" />
+   225→            <p className="text-sm">
+   226→              Pick a subnet above — the lab mines its validator&apos;s scoring behaviour from the
+   227→              subnet&apos;s own repo + on-chain cohort telemetry.
+   228→            </p>
+   229→          </CardContent>
+   230→        </Card>
+   231→      ) : profileLoading ? (
+   232→        <Card className="border-border/60 bg-card/40">
+   233→          <CardContent className="flex items-center justify-center gap-2 py-16 text-muted-foreground">
+   234→            <RefreshCw className="h-5 w-5 animate-spin" />
+   235→            <span className="text-sm">Mining judge profile…</span>
+   236→          </CardContent>
+   237→        </Card>
+   238→      ) : !profile ? (
+   239→        <Card className="border-border/60 bg-card/40">
+   240→          <CardContent className="py-16 text-center text-sm text-muted-foreground">
+   241→            No profile yet — hit <span className="text-foreground">Re-mine profile</span>.
+   242→          </CardContent>
+   243→        </Card>
+   244→      ) : (
+   245→        <div className="grid gap-6 lg:grid-cols-2">
+   246→          {/* Profile panel */}
+   247→          <Card className="border-border/60 bg-card/40">
+   248→            <CardHeader className="pb-3">
+   249→              <div className="flex items-center justify-between">
+   250→                <CardTitle className="flex items-center gap-2 text-base">
+   251→                  <Gavel className="h-4 w-4 text-primary" />
+   252→                  Judge profile · α{profile.netuid} {profile.subnetName}
+   253→                </CardTitle>
+   254→                <Badge variant="outline" className={KIND_BADGE[profile.judgeKind]?.className}>
+   255→                  {KIND_BADGE[profile.judgeKind]?.label ?? profile.judgeKind}
+   256→                </Badge>
+   257→              </div>
+   258→            </CardHeader>
+   259→            <CardContent className="space-y-4">
+   260→              <p className="text-sm text-muted-foreground">{profile.summary}</p>
+   261→
+   262→              {/* Confidence */}
+   263→              <div>
+   264→                <div className="mb-1.5 flex items-center justify-between text-xs">
+   265→                  <span className="text-eyebrow text-muted-foreground">Profile confidence</span>
+   266→                  <span className="mono tabular text-foreground/80">
+   267→                    {Math.round(profile.confidence * 100)}%
+   268→                  </span>
+   269→                </div>
+   270→                <Progress value={profile.confidence * 100} className="h-1.5" />
+   271→              </div>
+   272→
+   273→              <Separator className="bg-border/40" />
+   274→
+   275→              {/* Cohort brutality */}
+   276→              <CohortCard cohort={profile.cohort} />
+   277→
+   278→              <Separator className="bg-border/40" />
+   279→
+   280→              {/* Weight bars with evidence */}
+   281→              <div className="space-y-2.5">
+   282→                <p className="text-eyebrow text-muted-foreground">Composite weights</p>
+   283→                {profile.dimensions
+   284→                  .slice()
+   285→                  .sort((a, b) => b.weight - a.weight)
+   286→                  .map((d) => (
+   287→                    <WeightBar key={d.key} dim={d} />
+   288→                  ))}
+   289→              </div>
+   290→
+   291→              {/* Sources */}
+   292→              {profile.sources?.length > 0 && (
+   293→                <div className="text-xs text-muted-foreground">
+   294→                  <p className="text-eyebrow mb-1">Sources</p>
+   295→                  <ul className="space-y-0.5">
+   296→                    {profile.sources.slice(0, 5).map((s, i) => (
+   297→                      <li key={i} className="truncate">
+   298→                        · {s.kind}
+   299→                        {s.url ? (
+   300→                          <a
+   301→                            href={s.url}
+   302→                            target="_blank"
+   303→                            rel="noreferrer"
+   304→                            className="ml-1 text-primary/80 hover:text-primary"
+   305→                          >
+   306→                            {s.url.replace("https://github.com/", "")}
+   307→                          </a>
+   308→                        ) : s.note ? (
+   309→                          <span className="ml-1">{s.note}</span>
+   310→                        ) : null}
+   311→                      </li>
+   312→                    ))}
+   313→                  </ul>
+   314→                </div>
+   315→              )}
+   316→            </CardContent>
+   317→          </Card>
+   318→
+   319→          {/* Simulator + verdict */}
+   320→          <div className="space-y-6">
+   321→            <Card className="border-border/60 bg-card/40">
+   322→              <CardHeader className="pb-3">
+   323→                <CardTitle className="flex items-center gap-2 text-base">
+   324→                  <Sparkles className="h-4 w-4 text-primary" />
+   325→                  Mock-validator simulator
+   326→                </CardTitle>
+   327→              </CardHeader>
+   328→              <CardContent className="space-y-5">
+   329→                <SimSlider
+   330→                  label="Response latency"
+   331→                  display={
+   332→                    spec.latencyMs >= 1000
+   333→                      ? `${(spec.latencyMs / 1000).toFixed(spec.latencyMs < 10_000 ? 2 : 1)}s`
+   334→                      : `${spec.latencyMs}ms`
+   335→                  }
+   336→                  min={2} // log10(100)
+   337→                  max={5.778} // log10(600_000)
+   338→                  step={0.01}
+   339→                  value={latencyValue}
+   340→                  onChange={setLatencyLog}
+   341→                />
+   342→                <SimSlider
+   343→                  label="Uptime"
+   344→                  display={`${spec.uptimePct.toFixed(2)}%`}
+   345→                  min={90}
+   346→                  max={100}
+   347→                  step={0.1}
+   348→                  value={spec.uptimePct}
+   349→                  onChange={(v) => setSpec((s) => ({ ...s, uptimePct: Math.round(v * 10) / 10 }))}
+   350→                />
+   351→                <SimSlider
+   352→                  label="Response quality"
+   353→                  display={`${Math.round(spec.qualityPct)}%`}
+   354→                  min={0}
+   355→                  max={100}
+   356→                  step={1}
+   357→                  value={spec.qualityPct}
+   358→                  onChange={(v) => setSpec((s) => ({ ...s, qualityPct: Math.round(v) }))}
+   359→                />
+   360→                <SimSlider
+   361→                  label="Throughput"
+   362→                  display={`${Math.round(spec.throughputTps)} units/s`}
+   363→                  min={0}
+   364→                  max={200}
+   365→                  step={1}
+   366→                  value={spec.throughputTps}
+   367→                  onChange={(v) => setSpec((s) => ({ ...s, throughputTps: Math.round(v) }))}
+   368→                />
+   369→                <SimSlider
+   370→                  label="Price / 1M tokens"
+   371→                  display={`$${spec.pricePerMTokUsd.toFixed(2)}`}
+   372→                  min={0}
+   373→                  max={5}
+   374→                  step={0.05}
+   375→                  value={spec.pricePerMTokUsd}
+   376→                  onChange={(v) =>
+   377→                    setSpec((s) => ({ ...s, pricePerMTokUsd: Math.round(v * 100) / 100 }))
+   378→                  }
+   379→                />
+   380→                <Button onClick={handleRun} disabled={running} className="w-full gap-2">
+   381→                  <Play className="h-4 w-4" />
+   382→                  {running ? "Scoring against judge…" : "Run simulation"}
+   383→                </Button>
+   384→              </CardContent>
+   385→            </Card>
+   386→
+   387→            {result && <VerdictPanel result={result} spec={spec} />}
+   388→          </div>
+   389→        </div>
+   390→      )}
+   391→
+   392→      {/* Recent runs */}
+   393→      {(runsData?.runs?.length ?? 0) > 0 && (
+   394→        <Card className="border-border/60 bg-card/40">
+   395→          <CardHeader className="pb-3">
+   396→            <CardTitle className="text-base">Recent runs</CardTitle>
+   397→          </CardHeader>
+   398→          <CardContent>
+   399→            <div className="space-y-1.5">
+   400→              {runsData!.runs.slice(0, 8).map((r) => (
+   401→                <div
+   402→                  key={r.id}
+   403→                  className="flex items-center justify-between rounded-lg border border-border/40 bg-background/30 px-3 py-2 text-sm"
+   404→                >
+   405→                  <div className="flex items-center gap-3">
+   406→                    <span className="mono text-xs text-muted-foreground">α{r.netuid}</span>
+   407→                    <span className="font-medium">{r.subnetName}</span>
+   408→                    <Badge variant="outline" className={cn("text-[10px]", VERDICT_BADGE[r.verdict])}>
+   409→                      {r.verdict}
+   410→                    </Badge>
+   411→                  </div>
+   412→                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
+   413→                    <span className="mono tabular">
+   414→                      composite <span className="text-foreground">{r.composite.toFixed(1)}</span>
+   415→                    </span>
+   416→                    <span className="mono tabular">~p{r.result?.percentileEstimate ?? "—"}</span>
+   417→                    <span>{formatRelativeTime(r.createdAt)}</span>
+   418→                  </div>
+   419→                </div>
+   420→              ))}
+   421→            </div>
+   422→          </CardContent>
+   423→        </Card>
+   424→      )}
+   425→    </div>
+   426→  );
+   427→}
+   428→
+   429→// ---------------------------------------------------------------------------
+   430→
+   431→function CohortCard({ cohort }: { cohort: JudgeProfileData["cohort"] }) {
+   432→  const meta = BAND_META[cohort.band] ?? BAND_META.moderate;
+   433→  const Icon = meta.icon;
+   434→  return (
+   435→    <div className="rounded-xl border border-border/50 bg-background/30 p-4">
+   436→      <div className="flex items-center justify-between">
+   437→        <p className="text-eyebrow text-muted-foreground">Cohort brutality</p>
+   438→        <span className={cn("flex items-center gap-1.5 text-sm font-semibold", meta.className)}>
+   439→          <Icon className="h-4 w-4" />
+   440→          {meta.label}
+   441→        </span>
+   442→      </div>
+   443→      <div className="mt-2 flex items-baseline gap-2">
+   444→        <span className="text-display text-3xl font-bold">{cohort.brutality}</span>
+   445→        <span className="text-xs text-muted-foreground">/ 100</span>
+   446→      </div>
+   447→      <Progress value={cohort.brutality} className="mt-2 h-1.5" />
+   448→      <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs text-muted-foreground sm:grid-cols-4">
+   449→        <div>
+   450→          <span className="block text-foreground/90 mono tabular">{cohort.registeredUids}</span>
+   451→          registered
+   452→        </div>
+   453→        <div>
+   454→          <span className="block text-foreground/90 mono tabular">{cohort.earningUids}</span>
+   455→          earning
+   456→        </div>
+   457→        <div>
+   458→          <span className="block text-foreground/90 mono tabular">
+   459→            {(cohort.earningRatio * 100).toFixed(1)}%
+   460→          </span>
+   461→          earn ratio
+   462→        </div>
+   463→        <div>
+   464→          <span className="block text-foreground/90 mono tabular">
+   465→            {(cohort.top10Take * 100).toFixed(0)}%
+   466→          </span>
+   467→          top-10% take
+   468→        </div>
+   469→      </div>
+   470→    </div>
+   471→  );
+   472→}
+   473→
+   474→function WeightBar({ dim }: { dim: JudgeProfileData["dimensions"][number] }) {
+   475→  const [open, setOpen] = useState(false);
+   476→  const pct = Math.round(dim.weight * 100);
+   477→  return (
+   478→    <div>
+   479→      <button
+   480→        className="flex w-full items-center gap-2 text-left"
+   481→        onClick={() => dim.evidence.length > 0 && setOpen(!open)}
+   482→      >
+   483→        {dim.evidence.length > 0 ? (
+   484→          open ? (
+   485→            <ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+   486→          ) : (
+   487→            <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+   488→          )
+   489→        ) : (
+   490→          <span className="w-3.5 shrink-0" />
+   491→        )}
+   492→        <span className="w-44 shrink-0 text-sm">{dim.label}</span>
+   493→        <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted/40">
+   494→          <div
+   495→            className="h-full rounded-full bg-primary/70"
+   496→            style={{ width: `${pct}%` }}
+   497→          />
+   498→        </div>
+   499→        <span className="mono w-10 shrink-0 text-right text-xs tabular text-muted-foreground">
+   500→          {pct}%
+   501→        </span>
+   502→      </button>
+   503→      {open && dim.evidence.length > 0 && (
+   504→        <div className="mt-1.5 ml-6 space-y-1 rounded-lg border border-border/40 bg-background/40 p-2.5">
+   505→          {dim.evidence.map((ev, i) => (
+   506→            <div key={i} className="text-xs">
+   507→              <span className="mono text-[10px] text-primary/70">{ev.file}</span>
+   508→              <pre className="mt-0.5 whitespace-pre-wrap break-all font-mono text-[11px] text-muted-foreground">
+   509→                {ev.line}
+   510→              </pre>
+   511→            </div>
+   512→          ))}
+   513→        </div>
+   514→      )}
+   515→    </div>
+   516→  );
+   517→}
+   518→
+   519→function SimSlider(props: {
+   520→  label: string;
+   521→  display: string;
+   522→  min: number;
+   523→  max: number;
+   524→  step: number;
+   525→  value: number;
+   526→  onChange: (v: number) => void;
+   527→}) {
+   528→  return (
+   529→    <div>
+   530→      <div className="mb-1.5 flex items-center justify-between text-xs">
+   531→        <span className="text-eyebrow text-muted-foreground">{props.label}</span>
+   532→        <span className="mono tabular text-foreground/90">{props.display}</span>
+   533→      </div>
+   534→      <Slider
+   535→        min={props.min}
+   536→        max={props.max}
+   537→        step={props.step}
+   538→        value={[props.value]}
+   539→        onValueChange={([v]) => props.onChange(v)}
+   540→        className="[&_[data-slot=slider-range]]:bg-primary"
+   541→      />
+   542→    </div>
+   543→  );
+   544→}
+   545→
+   546→ 
+   547→// JUDGE-APPLY — dimensions the engine can push to a miner (must mirror
+   548→// JUDGE_FIX_RECIPES in src/lib/infranex/judge/apply.ts). Anything outside
+   549→// this set stays manual by design.
+   550→const APPLYABLE_FIX_DIMS = new Set([
+   551→  "response_quality",
+   552→  "resource_efficiency",
+   553→  "throughput",
+   554→  "response_speed",
+   555→  "price",
+   556→]);
+   557→
+   558→interface DeploymentRow {
+   559→  id: string;
+   560→  minerName: string;
+   561→  netuid: number;
+   562→  mode: string;
+   563→  status: string;
+   564→}
+   565→
+   566→/**
+   567→ * "Apply to miner" — bridges one Judge fix to a live deployment: pick the
+   568→ * miner, the engine snapshots the config, merges the recipe env delta and
+   569→ * pushes apply_config via the node daemon (mock deployments get a tick).
+   570→ */
+   571→function ApplyFixButton({
+   572→  dimensionKey,
+   573→  netuid,
+   574→  priceTargetUsd,
+   575→}: {
+   576→  dimensionKey: string;
+   577→  netuid: number;
+   578→  priceTargetUsd?: number;
+   579→}) {
+   580→  const [open, setOpen] = useState(false);
+   581→  const [deployments, setDeployments] = useState<DeploymentRow[] | null>(null);
+   582→  const [busyId, setBusyId] = useState<string | null>(null);
+   583→  const [result, setResult] = useState<{ ok: boolean; note: string } | null>(null);
+   584→
+   585→  const load = async () => {
+   586→    try {
+   587→      const res = await fetch("/api/deployments");
+   588→      const data = await res.json().catch(() => ({}));
+   589→      setDeployments(Array.isArray(data.deployments) ? data.deployments : []);
+   590→    } catch {
+   591→      setDeployments([]);
+   592→    }
+   593→  };
+   594→
+   595→  const apply = async (id: string) => {
+   596→    setBusyId(id);
+   597→    setResult(null);
+   598→    try {
+   599→      const res = await fetch("/api/judge/apply", {
+   600→        method: "POST",
+   601→        headers: { "Content-Type": "application/json" },
+   602→        body: JSON.stringify({ deploymentId: id, dimensionKey, priceTargetUsd }),
+   603→      });
+   604→      const data = await res.json().catch(() => ({}));
+   605→      setResult({ ok: res.ok, note: data.note || data.error || (res.ok ? "Applied." : "Apply failed.") });
+   606→    } catch {
+   607→      setResult({ ok: false, note: "Network error — is the server reachable?" });
+   608→    }
+   609→    setBusyId(null);
+   610→  };
+   611→
+   612→  // Sort: same-subnet deployments first (a fix computed for this subnet's
+   613→  // judge profile lands hardest there), then everything else.
+   614→  const sorted = (deployments ?? []).slice().sort((a, b) => {
+   615→    const am = a.netuid === netuid ? 0 : 1;
+   616→    const bm = b.netuid === netuid ? 0 : 1;
+   617→    return am - bm || a.minerName.localeCompare(b.minerName);
+   618→  });
+   619→
+   620→  const openDialog = () => {
+   621→    setOpen(true);
+   622→    setResult(null);
+   623→    // Fetch here, not in an effect: the trigger Button sets `open`
+   624→    // programmatically and Radix never calls onOpenChange for it.
+   625→    if (deployments === null) void load();
+   626→  };
+   627→
+   628→  return (
+   629→    <Dialog
+   630→      open={open}
+   631→      onOpenChange={(o) => {
+   632→        setOpen(o);
+   633→        if (!o) {
+   634→          setResult(null);
+   635→          setDeployments(null); // refetch fresh on next open
+   636→        }
+   637→      }}
+   638→    >
+   639→      <Button
+   640→        variant="outline"
+   641→        size="sm"
+   642→        className="h-6 shrink-0 gap-1 border-primary/30 px-2 text-[11px] text-primary hover:bg-primary/10"
+   643→        onClick={(e) => {
+   644→          e.stopPropagation();
+   645→          openDialog();
+   646→        }}
+   647→      >
+   648→        <Wrench className="h-3 w-3" />
+   649→        Apply
+   650→      </Button>
+   651→      <DialogContent className="max-w-md">
+   652→        <DialogHeader>
+   653→          <DialogTitle className="text-sm">
+   654→            Apply fix <span className="text-primary">{dimensionKey}</span> to a miner
+   655→          </DialogTitle>
+   656→          <DialogDescription className="text-xs">
+   657→            The engine snapshots the current config first (one-click rollback), merges the
+   658→            recipe env delta, then pushes apply_config via the node daemon. Mock deployments
+   659→            simulate the apply.
+   660→          </DialogDescription>
+   661→        </DialogHeader>
+   662→        {priceTargetUsd !== undefined && (
+   663→          <p className="rounded-lg border border-primary/20 bg-primary/5 p-2 text-[11px] text-muted-foreground">
+   664→            Price target computed from this run&apos;s own math:{" "}
+   665→            <span className="mono text-foreground">${priceTargetUsd.toFixed(2)}/1M tokens</span>{" "}
+   666→            — lands the price dimension on the 0.75 bar.
+   667→          </p>
+   668→        )}
+   669→        {deployments === null ? (
+   670→          <p className="py-3 text-center text-xs text-muted-foreground">Loading deployments…</p>
+   671→        ) : sorted.length === 0 ? (
+   672→          <p className="py-3 text-center text-xs text-muted-foreground">
+   673→            No deployments yet — create one in Section 07 (GPU Catalog → Deploy) first.
+   674→          </p>
+   675→        ) : (
+   676→          <div className="max-h-64 space-y-1.5 overflow-y-auto pr-1">
+   677→            {sorted.map((d) => (
+   678→              <div
+   679→                key={d.id}
+   680→                className="flex items-center justify-between gap-2 rounded-lg border border-border/40 bg-background/30 p-2"
+   681→              >
+   682→                <div className="min-w-0">
+   683→                  <p className="truncate text-xs font-medium">
+   684→                    {d.minerName}{" "}
+   685→                    {d.netuid === netuid ? (
+   686→                      <Badge variant="outline" className="ml-1 border-primary/30 text-[10px] text-primary">
+   687→                        SN{netuid}
+   688→                      </Badge>
+   689→                    ) : (
+   690→                      <span className="ml-1 text-[10px] text-muted-foreground/60">
+   691→                        SN{d.netuid} · different subnet
+   692→                      </span>
+   693→                    )}
+   694→                  </p>
+   695→                  <p className="text-[10px] text-muted-foreground">
+   696→                    {d.mode} · {d.status}
+   697→                  </p>
+   698→                </div>
+   699→                <Button
+   700→                  size="sm"
+   701→                  className="h-7 shrink-0 text-[11px]"
+   702→                  disabled={busyId !== null}
+   703→                  onClick={() => void apply(d.id)}
+   704→                >
+   705→                  {busyId === d.id ? "Applying…" : "Apply"}
+   706→                </Button>
+   707→              </div>
+   708→            ))}
+   709→          </div>
+   710→        )}
+   711→        {result && (
+   712→          <p
+   713→            className={cn(
+   714→              "flex items-start gap-1.5 rounded-lg border p-2 text-[11px]",
+   715→              result.ok
+   716→                ? "border-primary/30 bg-primary/5 text-foreground"
+   717→                : "border-red-500/30 bg-red-500/5 text-red-400"
+   718→            )}
+   719→          >
+   720→            {result.ok ? (
+   721→              <CheckCircle2 className="mt-0.5 h-3 w-3 shrink-0 text-primary" />
+   722→            ) : (
+   723→              <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0" />
+   724→            )}
+   725→            {result.note}
+   726→          </p>
+   727→        )}
+   728→      </DialogContent>
+   729→    </Dialog>
+   730→  );
+   731→}
+   732→
+   733→function VerdictPanel({ result, spec }: { result: any; spec?: { pricePerMTokUsd?: number } }) {
+   734→  const dims = (result.dimensionScores ?? []) as {
+   735→    key: string;
+   736→    label: string;
+   737→    weight: number;
+   738→    score: number;
+   739→    contribution: number;
+   740→    note: string;
+   741→  }[];
+   742→  const recs = (result.recommendations ?? []) as {
+   743→    dimensionKey?: string;
+   744→    label: string;
+   745→    gain: number;
+   746→    text: string;
+   747→  }[];
+   748→
+   749→  // Price fix target derived from the run's own priceScore math:
+   750→  // score = clamp01(1 − price/(2·ref)) → ref = price/(2·(1−score));
+   751→  // the 0.75 "good" bar sits at 0.5·ref → target = price·(1−score)/0.5... i.e.
+   752→  // target = price × (1 − score) / (2 × (1 − 0.75)) — but only when the caller
+   753→  // gave us the spec price and the run actually scored the price dimension.
+   754→  const priceDim = dims.find((d) => d.key === "price");
+   755→  const priceTargetUsd =
+   756→    spec?.pricePerMTokUsd !== undefined &&
+   757→    priceDim &&
+   758→    typeof priceDim.score === "number" &&
+   759→    priceDim.score < 0.99
+   760→      ? Math.round(((spec.pricePerMTokUsd * (1 - priceDim.score)) / (2 * (1 - 0.75))) * 100) / 100
+   761→      : undefined;
+   762→
+   763→  return (
+   764→    <Card className="border-primary/30 bg-card/60">
+   765→      <CardHeader className="pb-3">
+   766→        <div className="flex items-center justify-between">
+   767→          <CardTitle className="text-base">Verdict</CardTitle>
+   768→          <Badge variant="outline" className={VERDICT_BADGE[result.verdict] ?? ""}>
+   769→            {result.verdict}
+   770→          </Badge>
+   771→        </div>
+   772→      </CardHeader>
+   773→      <CardContent className="space-y-4">
+   774→        <div className="grid grid-cols-3 gap-3 text-center">
+   775→          <div className="rounded-xl border border-border/50 bg-background/30 p-3">
+   776→            <p className="text-display text-3xl font-bold">{result.composite.toFixed(1)}</p>
+   777→            <p className="text-eyebrow mt-1 text-muted-foreground">composite</p>
+   778→          </div>
+   779→          <div className="rounded-xl border border-border/50 bg-background/30 p-3">
+   780→            <p className="text-display text-3xl font-bold">~p{result.percentileEstimate}</p>
+   781→            <p className="text-eyebrow mt-1 text-muted-foreground">cohort percentile</p>
+   782→          </div>
+   783→          <div className="rounded-xl border border-border/50 bg-background/30 p-3">
+   784→            <p className="text-display text-3xl font-bold">
+   785→              {result.medianMultiple.toFixed(2)}×
+   786→            </p>
+   787→            <p className="text-eyebrow mt-1 text-muted-foreground">vs median</p>
+   788→          </div>
+   789→        </div>
+   790→
+   791→        <div className="space-y-2">
+   792→          {dims.map((d) => (
+   793→            <div key={d.key} className="flex items-center gap-2">
+   794→              <span className="w-44 shrink-0 truncate text-xs text-muted-foreground" title={d.note}>
+   795→                {d.label}
+   796→              </span>
+   797→              <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted/40">
+   798→                <div className="flex h-full">
+   799→                  <div
+   800→                    className="h-full bg-primary/80"
+   801→                    style={{ width: `${Math.min(100, d.contribution * 100)}%` }}
+   802→                  />
+   803→                  <div
+   804→                    className="h-full bg-muted/20"
+   805→                    style={{ width: `${Math.max(0, (d.weight - d.contribution) * 100)}%` }}
+   806→                  />
+   807→                </div>
+   808→              </div>
+   809→              <span className="mono w-12 shrink-0 text-right text-[11px] tabular text-muted-foreground">
+   810→                {d.score.toFixed(2)}
+   811→              </span>
+   812→            </div>
+   813→          ))}
+   814→        </div>
+   815→
+   816→        {recs.length > 0 && (
+   817→          <div>
+   818→            <p className="text-eyebrow mb-1.5 text-muted-foreground">Highest-leverage fixes</p>
+   819→            <div className="space-y-1.5">
+   820→              {recs.map((r, i) => {
+   821→                const key = r.dimensionKey ?? "";
+   822→                const applyable = key !== "" && APPLYABLE_FIX_DIMS.has(key);
+   823→                return (
+   824→                  <div
+   825→                    key={i}
+   826→                    className="flex items-start gap-2 rounded-lg border border-border/40 bg-background/30 p-2.5 text-xs"
+   827→                  >
+   828→                    <Badge variant="outline" className="mt-0.5 shrink-0 border-primary/30 text-primary">
+   829→                      +{r.gain.toFixed(1)}
+   830→                    </Badge>
+   831→                    <span className="text-muted-foreground">{r.text}</span>
+   832→                    {applyable ? (
+   833→                      <ApplyFixButton
+   834→                        dimensionKey={key}
+   835→                        netuid={result.netuid}
+   836→                        priceTargetUsd={key === "price" ? priceTargetUsd : undefined}
+   837→                      />
+   838→                    ) : (
+   839→                      <span
+   840→                        className="mt-0.5 shrink-0 text-[10px] text-muted-foreground/50"
+   841→                        title="No safe on-host recipe — change this one manually on the host"
+   842→                      >
+   843→                        manual
+   844→                      </span>
+   845→                    )}
+   846→                  </div>
+   847→                );
+   848→              })}
+   849→            </div>
+   850→          </div>
+   851→        )}
+   852→
+   853→        <p className="flex items-start gap-1.5 text-[11px] text-muted-foreground/70">
+   854→          <Info className="mt-0.5 h-3 w-3 shrink-0" />
+   855→          {result.disclaimer}
+   856→        </p>
+   857→      </CardContent>
+   858→    </Card>
+   859→  );
+   860→}
+   861→

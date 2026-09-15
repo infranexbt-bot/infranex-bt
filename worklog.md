@@ -49,3 +49,21 @@ Work Log:
 Stage Summary:
 - Feature LIVE on https://preview (port 3000) + GitHub branch platform-live
 - Judge fixes are now one-click applicable; price math self-consistent with judge engine
+
+---
+Task ID: judge-apply-visibility-1
+Agent: main (Super Z)
+Task: Fix "Apply button not found" in Judge Lab — verdict/Apply buttons only existed for the lifetime of one in-session simulation
+
+Work Log:
+- Diagnosed root cause: ApplyFixButton rendered only inside VerdictPanel, which renders solely from in-session `result` state (set by a fresh Run simulation). Page reload / nav away destroyed it; Recent runs list offered no way back. Backend (/api/judge/apply + judge/apply.ts) was already complete and working.
+- use-judge.ts: widened JudgeRunRecord.result to full SimulationResult shape (dimensionScores + recommendations w/ dimensionKey) — the runs API already persisted it.
+- judge-view.tsx: (1) restore-on-load effect — picking a subnet auto-restores its latest run's spec+result; (2) subnet picker onValueChange restores latest run instead of clearing; (3) Recent runs rows converted to clickable buttons (hover highlight, chevron, hint line) via restoreRun() with same-subnet edge handled; (4) Apply trigger button made prominent (default variant, h-7, shadow).
+- revisions.ts: added "judge-fix" to RevisionCause union (fixes pre-existing TS error in judge/apply.ts snapshotRevision call).
+- Verified typecheck clean (app sources only).
+
+Stage Summary:
+- Browser E2E verified: login → Judge Lab → click Targon run row → verdict restored w/ 3 Apply buttons → Apply (response_quality) → dialog lists targon-demo-01 → apply → "Simulated apply — mock deployment ticked".
+- DB confirmed: deployment env now INFANEX_QUANT=fp8, INFANEX_SELF_VERIFY=1 (+ earlier INFANEX_ASK_PRICE_USD=0.31); revisions rev3/rev4 snapshot cause="judge-fix" note="before judge fix: Quality upshift (FP8 tier + self-verification)".
+- Reload path verified: after reload → pick SN4 → verdict + Apply buttons auto-restore without re-running.
+- Screenshots: tool-results/judge-apply-buttons.png, tool-results/judge-restored-verdict.png

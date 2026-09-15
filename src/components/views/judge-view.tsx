@@ -47,6 +47,7 @@ import {
   useJudgeSync,
   type JudgeProfileData,
   type JudgeKind,
+  type JudgeRunRecord,
 } from "@/lib/infranex/judge/use-judge";
 
 const KIND_BADGE: Record<JudgeKind, { label: string; className: string }> = {
@@ -113,6 +114,18 @@ export function JudgeView() {
       .sort((a, b) => a.netuid - b.netuid);
   }, [net]);
 
+  // Restore the latest run's verdict (spec + result) when a subnet is picked
+  // or the page loads — so the verdict panel, and its Apply buttons, survive
+  // page reloads and return visits instead of existing only for the lifetime
+  // of one in-session simulation.
+  useEffect(() => {
+    if (netuid === null || result !== null) return;
+    const last = (runsData?.runs ?? []).find((r) => r.netuid === netuid);
+    if (!last) return;
+    setSpec(last.spec);
+    setResult(last.result);
+  }, [netuid, runsData, result]);
+
   // Load profile when a subnet is picked.
   useEffect(() => {
     if (netuid === null) return;
@@ -143,6 +156,16 @@ export function JudgeView() {
     } finally {
       setSyncing(false);
     }
+  };
+
+  /** Click a past run (Recent runs) → restore its verdict + spec verbatim. */
+  const restoreRun = (r: JudgeRunRecord) => {
+    if (r.netuid !== netuid) {
+      setProfile(null); // different subnet — the netuid effect refetches the profile
+      setNetuid(r.netuid);
+    }
+    setSpec(r.spec);
+    setResult(r.result);
   };
 
   const handleRun = async () => {
@@ -181,8 +204,18 @@ export function JudgeView() {
           <Select
             value={netuid === null ? "" : String(netuid)}
             onValueChange={(v) => {
-              setNetuid(Number(v));
-              setResult(null);
+              const nu = Number(v);
+              setNetuid(nu);
+              // Restore this subnet's latest verdict if one exists — fresh
+              // pick keeps working as before when there is no run yet.
+              const last = (runsData?.runs ?? []).find((r) => r.netuid === nu);
+              if (last) {
+                setSpec(last.spec);
+                setResult(last.result);
+              } else {
+                setSpec(DEFAULT_SPEC);
+                setResult(null);
+              }
             }}
           >
             <SelectTrigger className="w-[260px] bg-card/60">
@@ -389,7 +422,7 @@ export function JudgeView() {
         </div>
       )}
 
-      {/* Recent runs */}
+      {/* Recent runs — click any row to restore that verdict (and its Apply buttons) */}
       {(runsData?.runs?.length ?? 0) > 0 && (
         <Card className="border-border/60 bg-card/40">
           <CardHeader className="pb-3">
@@ -398,9 +431,12 @@ export function JudgeView() {
           <CardContent>
             <div className="space-y-1.5">
               {runsData!.runs.slice(0, 8).map((r) => (
-                <div
+                <button
                   key={r.id}
-                  className="flex items-center justify-between rounded-lg border border-border/40 bg-background/30 px-3 py-2 text-sm"
+                  type="button"
+                  onClick={() => restoreRun(r)}
+                  title="Restore this verdict — reopen its fix list with Apply buttons"
+                  className="flex w-full cursor-pointer items-center justify-between rounded-lg border border-border/40 bg-background/30 px-3 py-2 text-left text-sm transition-colors hover:border-primary/40 hover:bg-primary/5"
                 >
                   <div className="flex items-center gap-3">
                     <span className="mono text-xs text-muted-foreground">α{r.netuid}</span>
@@ -415,10 +451,15 @@ export function JudgeView() {
                     </span>
                     <span className="mono tabular">~p{r.result?.percentileEstimate ?? "—"}</span>
                     <span>{formatRelativeTime(r.createdAt)}</span>
+                    <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/60" />
                   </div>
-                </div>
+                </button>
               ))}
             </div>
+            <p className="mt-2 text-[11px] text-muted-foreground/70">
+              Click a run to restore its verdict and re-open the highest-leverage fixes with Apply
+              buttons.
+            </p>
           </CardContent>
         </Card>
       )}
@@ -637,9 +678,9 @@ function ApplyFixButton({
       }}
     >
       <Button
-        variant="outline"
+        variant="default"
         size="sm"
-        className="h-6 shrink-0 gap-1 border-primary/30 px-2 text-[11px] text-primary hover:bg-primary/10"
+        className="h-7 shrink-0 gap-1 px-2.5 text-[11px] font-medium shadow-sm"
         onClick={(e) => {
           e.stopPropagation();
           openDialog();

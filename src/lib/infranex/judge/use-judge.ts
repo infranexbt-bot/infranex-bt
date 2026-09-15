@@ -22,11 +22,15 @@ export interface JudgeRunRecord {
     throughputTps: number;
     pricePerMTokUsd: number;
   };
-  result: {
+  // Full SimulationResult — dimensionScores + recommendations (with
+  // dimensionKey) ride along so a restored run can render the verdict panel
+  // with its Apply buttons, exactly like a fresh in-session run.
+  result: Record<string, unknown> & {
     composite: number;
     verdict: string;
-    percentileEstimate: number;
-    medianMultiple: number;
+    percentileEstimate?: number;
+    medianMultiple?: number;
+    netuid?: number;
   };
   composite: number;
   verdict: string;
