@@ -132,3 +132,18 @@ Work Log:
 
 Stage Summary:
 - Manual paste remains the one-time bootstrap per pod; provider start scripts are the zero-code automation path; SSH auto-install and enrollment-token bootstrap one-liner identified as opt-in future work.
+
+---
+Task ID: git-push-platform-live-2
+Agent: main (Super Z)
+Task: Push accumulated work (daemon auto-start + dialog automation tip) to GitHub
+
+Work Log:
+- Located repo infranexbt-bot/infranex-bt via worklog; no remote/credentials in workspace after sandbox reset — user supplied a fresh classic token (ghp_...).
+- ls-remote: nextjs-platform @ 3dab7af, platform-live @ bc77d4a (previous push point). Local HEAD ecbd57a confirmed descendant (fast-forward, no force).
+- Pushed HEAD:platform-live — bc77d4a..ecbd57a; ls-remote verifies remote == local HEAD.
+- Token NOT persisted (no remote added, nothing on disk); used ad-hoc in push URL only.
+- Outstanding security items flagged to user: revoke the pasted token (plaintext in chat, classic repo-wide scope); .env still tracked in repo and present in pushed history.
+
+Stage Summary:
+- GitHub platform-live is now current with the workspace: systemd/watchdog auto-start installer, hardened setup module, dialog automation tip, E2E scripts, worklog.
