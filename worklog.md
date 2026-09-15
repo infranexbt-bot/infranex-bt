@@ -452,3 +452,50 @@ Work Log:
 Stage Summary:
 - Feature LIVE on the dashboard. Phase 2 candidates: live FX rate, validator
   take picker (9-18%), staking execution via wallet integration, auto-rebalance.
+
+---
+Task ID: trust-loop-1
+Agent: main (Super Z)
+Task: Build the Trust Loop — projected vs actual earnings per miner, with calibration
+feeding the TAO Opportunity Score (my pick from the "what should we build next" shortlist).
+
+Work Log:
+- Found the old estimatedRevenue still came from CATEGORY_REVENUE_ESTIMATE (fake
+  category templates) — Trust Loop starts by making the projection real.
+- Prisma: Deployment += projectedMonthlyTao, projectedGrossMonthlyUsd,
+  projectedNetMonthlyUsd, projectionSource, projectionRampWeeks, projectedAt (db pushed).
+- trust.ts (new): computeDeploymentProjection (live chain per-earning-miner rate,
+  loadProfitabilityConfig for net leg; honest null when chain offline/zero emission);
+  evaluateTrust bands (on-track >=0.85 / lagging >=0.60 / off-track, warming-up <3
+  earning days due to bond-EMA ramp, no-baseline/no-data honest states); getTrustReport
+  (per-miner rows from EarningsDaily + SpendLedger, portfolio pace + verdict counts,
+  calibration = day-weighted accuracy over miners with 7+ earning days).
+- opportunity-score.ts: TrustCalibrationInput option; headline confidence now RETURNED
+  (was computed but dropped) and blended 70% model + 30% observed accuracy when
+  calibration has >=7 miner-days; note explains the provenance.
+- config.ts: cost.revenueSource ("live-chain" | "category-fallback"), projection option;
+  engine.ts: projection plumbed into createDeployment + DeploymentRecord/toRecord;
+  POST /api/deployments snapshots the projection at creation.
+- UI: GET /api/trust + use-trust.ts hook (+ verdict chip styles); miners-view verdict
+  chip + "Proj. vs actual" TAO/mo column (est chip for pre-trust rows); dashboard
+  TrustLoopCard ("Did we earn the promise?" — projected vs actual pace, fleet accuracy,
+  verdict counts, calibration note, honest empty state) + score card confidence chip
+  uses the calibrated headline.
+- Debugging note: tool-output renderer in this session eats literal "[m" sequences —
+  cost 3 detours; config.ts was never broken (IMAGES[major] intact, bun build OK).
+- Dev server had to be restarted after prisma db push (stale client made new columns
+  read undefined). Port-3000 tangle cleaned; relaunched via nohup run-dev.sh.
+- Tests: scripts/test-trust-loop.ts 27 PASS (verdict units, calibration blend incl.
+  thin-sample rejection + clamping, live SN8 projection, authed e2e: seeded fleet
+  A on-track 90% / B off-track 50% / C warming-up / D no-data, calibration only from
+  >=7-day miners, spend rollup; cleanup verified). tier2 58 PASS, tier4 76 PASS,
+  tsc + eslint clean (tier2/tier4 gained revenueSource field).
+- Browser-verified: dashboard Trust card + empty state render, My Miners renders,
+  0 page errors. Committed 75eaba5. NOT pushed (still awaiting user's fine-grained
+  PAT; pending pushes now: cb62b1a, 7702586, 75eaba5).
+
+Stage Summary:
+- Trust Loop LIVE: every new deployment carries a chain-measured promise, actuals are
+  paced into verdicts, and the Opportunity Score's confidence is now earned from
+  observed accuracy once 7+ miner-days exist. Next candidates: stake portfolio
+  (read-only first), auto-rebalance, live FX + validator-take picker.
