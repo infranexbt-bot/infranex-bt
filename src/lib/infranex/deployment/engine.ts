@@ -127,6 +127,9 @@ export interface CreateDeploymentInput {
   // CUDA-matched image, real entrypoint, python/cuda versions. Optional —
   // when absent the config falls back to category defaults.
   profileHint?: import("./config").SubnetProfileHint | null;
+  // TRUST-LOOP — chain-measured earning projection snapshotted at creation.
+  // Optional/null: the miner then gets no trust verdict (honest no-baseline).
+  projection?: import("../trust").DeploymentProjection | null;
   // TIER4 — light tenancy: attribute the deployment to its creator.
   owner?: { userId: string; label?: string };
 }
@@ -161,6 +164,13 @@ export interface DeploymentRecord {
   // TIER4 — creator attribution (null = team-shared / pre-tenancy row).
   ownerUserId: string | null;
   createdByLabel: string | null;
+  // TRUST-LOOP — the projection this deployment is judged against.
+  projectedMonthlyTao: number | null;
+  projectedGrossMonthlyUsd: number | null;
+  projectedNetMonthlyUsd: number | null;
+  projectionSource: string | null;
+  projectionRampWeeks: number | null;
+  projectedAt: string | null;
   steps: DeploymentStep[];
   createdAt: string;
   updatedAt: string;
@@ -194,6 +204,12 @@ function toRecord(row: {
   restartedAfterRegistration: boolean;
   ownerUserId: string | null;
   createdByLabel: string | null;
+  projectedMonthlyTao: number | null;
+  projectedGrossMonthlyUsd: number | null;
+  projectedNetMonthlyUsd: number | null;
+  projectionSource: string | null;
+  projectionRampWeeks: number | null;
+  projectedAt: Date | null;
   steps: string;
   createdAt: Date;
   updatedAt: Date;
@@ -226,6 +242,12 @@ function toRecord(row: {
     restartedAfterRegistration: row.restartedAfterRegistration,
     ownerUserId: row.ownerUserId,
     createdByLabel: row.createdByLabel,
+    projectedMonthlyTao: row.projectedMonthlyTao,
+    projectedGrossMonthlyUsd: row.projectedGrossMonthlyUsd,
+    projectedNetMonthlyUsd: row.projectedNetMonthlyUsd,
+    projectionSource: row.projectionSource,
+    projectionRampWeeks: row.projectionRampWeeks,
+    projectedAt: row.projectedAt ? row.projectedAt.toISOString() : null,
     steps: deserializeSteps(row.steps),
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
@@ -238,6 +260,7 @@ export async function createDeployment(input: CreateDeploymentInput): Promise<De
     hotkey: input.hotkey,
     walletName: input.walletName,
     profileHint: input.profileHint ?? null,
+    projection: input.projection ?? null,
   });
   const row = await db.deployment.create({
     data: {
@@ -257,6 +280,13 @@ export async function createDeployment(input: CreateDeploymentInput): Promise<De
       hotkey: input.hotkey ?? null,
       ownerUserId: input.owner?.userId ?? null,
       createdByLabel: input.owner?.label ?? null,
+      // TRUST-LOOP — snapshot the promise alongside the reality trackers.
+      projectedMonthlyTao: input.projection?.projectedMonthlyTao ?? null,
+      projectedGrossMonthlyUsd: input.projection?.projectedGrossMonthlyUsd ?? null,
+      projectedNetMonthlyUsd: input.projection?.projectedNetMonthlyUsd ?? null,
+      projectionSource: input.projection?.source ?? null,
+      projectionRampWeeks: input.projection?.rampWeeks ?? null,
+      projectedAt: input.projection ? new Date() : null,
     },
   });
   // TIER2 — r1: the deployment's initial config anchors the rollback chain.

@@ -1,4 +1,5 @@
 import type { Subnet, GPUOffer } from "../types";
+import type { DeploymentProjection } from "../trust";
 
 /**
  * Deployment config builder.
@@ -61,6 +62,9 @@ export interface DeploymentConfig {
     monthlyUsd: number;
     estimatedMonthlyRevenueUsd: number;
     estimatedRoiPercent: number;
+    /** TRUST-LOOP — where the revenue estimate came from:
+     *  "live-chain" (chain-measured, judgeable) | "category-fallback". */
+    revenueSource: "live-chain" | "category-fallback";
   };
   requirements: {
     minVramGb: number;
@@ -174,6 +178,8 @@ export function buildDeploymentConfig(
     walletName?: string;
     network?: "finney" | "test";
     profileHint?: SubnetProfileHint | null;
+    /** TRUST-LOOP — chain-measured projection snapshot (null/absent = none). */
+    projection?: DeploymentProjection | null;
   }
 ): DeploymentConfig {
   const template = SUBNET_TEMPLATES[subnet.category] ?? SUBNET_TEMPLATES.default;
@@ -210,8 +216,18 @@ export function buildDeploymentConfig(
 ${template.extraArgs.join(" \\\n  ")}`;
 
   const monthlyUsd = offer.monthlyPrice || Math.round(offer.hourlyPrice * 730);
+  // TRUST-LOOP — the revenue estimate is the subnet's chain-measured
+  // per-earning-miner rate snapshotted at deploy time, never a category
+  // template. The fallback stays for offline deploys but is labeled so the
+  // UI can render it as an unjudgeable guess.
+  const projection = options?.projection ?? null;
   const estimatedRevenue =
-    CATEGORY_REVENUE_ESTIMATE[subnet.category] ?? 1500;
+    projection?.projectedGrossMonthlyUsd ??
+    CATEGORY_REVENUE_ESTIMATE[subnet.category] ??
+    1500;
+  const revenueSource: "live-chain" | "category-fallback" = projection
+    ? "live-chain"
+    : "category-fallback";
   const roi =
     monthlyUsd > 0
       ? Math.round(((estimatedRevenue - monthlyUsd) / monthlyUsd) * 100)
@@ -263,6 +279,7 @@ ${template.extraArgs.join(" \\\n  ")}`;
       monthlyUsd,
       estimatedMonthlyRevenueUsd: estimatedRevenue,
       estimatedRoiPercent: roi,
+      revenueSource,
     },
     requirements: {
       minVramGb: subnet.minVramGb,

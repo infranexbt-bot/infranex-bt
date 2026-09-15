@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { RefreshCw, Network, TrendingUp, Coins, Activity, ArrowRight, Pickaxe, Landmark, ShieldQuestion } from "lucide-react";
+import { RefreshCw, Network, TrendingUp, Coins, Activity, ArrowRight, Pickaxe, Landmark, ShieldQuestion, BadgeCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +21,7 @@ import { useWorkerStatus } from "@/lib/infranex/use-worker-status";
 import { useEconomics } from "@/lib/infranex/use-platform";
 import { cn, formatNumber, formatCurrency, formatTao, formatRelativeTime } from "@/lib/utils";
 import { useProfitabilityConfig } from "@/lib/infranex/use-profitability";
+import { useTrustReport, trustVerdictStyle } from "@/lib/infranex/use-trust";
 import type { Opportunity, ViewKey } from "@/lib/infranex/types";
 
 interface DashboardViewProps {
@@ -95,6 +96,9 @@ export function DashboardView({ onSelectOpportunity, onStartMining, onNavigate }
 
       {/* TAO Opportunity Score — mine vs stake, in numbers */}
       <OpportunityScoreCard onNavigate={onNavigate} />
+
+      {/* TRUST-LOOP — did the fleet actually earn the projection? */}
+      <TrustLoopCard onNavigate={onNavigate} />
 
       {/* Metrics */}
       <section className="stagger grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -623,11 +627,141 @@ function StrategyRow({
   );
 }
 
+const TRUST_VERDICT_ORDER = [
+  "on-track",
+  "lagging",
+  "off-track",
+  "warming-up",
+  "no-baseline",
+] as const;
+
+/** TRUST-LOOP — the fleet's projected-vs-actual scoreboard on the home screen. */
+function TrustLoopCard({ onNavigate }: { onNavigate: (v: ViewKey) => void }) {
+  const { data: trust, isLoading } = useTrustReport(120_000);
+  const rows = trust?.rows ?? [];
+  const p = trust?.portfolio;
+  const projected = p?.projectedMonthlyTao ?? 0;
+  const actual = p?.actualMonthlyTao ?? 0;
+  const counts = p?.counts;
+  const fleetRatio =
+    projected > 0 && actual > 0
+      ? Math.round((actual / projected) * 100)
+      : null;
+  const hasStory =
+    rows.some((r) => r.verdict !== "no-data") || actual > 0;
+
+  return (
+    <Card className="glass">
+      <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3 space-y-0">
+        <div>
+          <p className="text-eyebrow text-muted-foreground">
+            Trust loop · projected vs actual
+          </p>
+          <CardTitle className="text-display mt-2 flex items-center gap-2 text-2xl font-bold">
+            <BadgeCheck className="h-5 w-5 text-primary" />
+            Did we earn the promise?
+          </CardTitle>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onNavigate("miners")}
+          className="rounded-lg border-border/60 bg-card/50"
+        >
+          My miners
+          <ArrowRight className="ml-2 h-3.5 w-3.5" />
+        </Button>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <div className="flex h-[92px] items-center justify-center text-sm text-muted-foreground">
+            Loading trust report…
+          </div>
+        ) : !hasStory ? (
+          <div className="flex h-[92px] flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-border/50 text-center">
+            <p className="text-sm font-medium">No miner has booked on-chain earnings yet</p>
+            <p className="max-w-[520px] text-xs text-muted-foreground">
+              Deploy a miner and its projection is snapshotted from the live chain at deploy time —
+              verdicts appear once the emission sampler books the first days.
+            </p>
+          </div>
+        ) : (
+          <div className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
+            <div className="flex flex-col justify-center gap-2">
+              <div className="flex flex-wrap items-end gap-x-6 gap-y-2">
+                <div>
+                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Projected (at deploy)</p>
+                  <p className="tabular text-2xl font-bold">
+                    {projected > 0 ? projected.toFixed(2) : "—"}
+                    <span className="ml-1 text-xs font-normal text-muted-foreground">TAO/mo</span>
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Actual pace</p>
+                  <p className="tabular text-2xl font-bold text-success">
+                    {actual > 0 ? actual.toFixed(2) : "—"}
+                    <span className="ml-1 text-xs font-normal text-muted-foreground">TAO/mo</span>
+                  </p>
+                </div>
+                {fleetRatio != null && (
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Fleet accuracy</p>
+                    <p
+                      className={cn(
+                        "tabular text-2xl font-bold",
+                        fleetRatio >= 85
+                          ? "text-success"
+                          : fleetRatio >= 60
+                            ? "text-warning"
+                            : "text-destructive"
+                      )}
+                    >
+                      {fleetRatio}%
+                    </p>
+                  </div>
+                )}
+              </div>
+              {p != null && p.netUsd !== 0 && (
+                <p className="text-xs text-muted-foreground">
+                  Earnings pace {formatCurrency(p.actualUsd)}/mo vs GPU spend pace {formatCurrency(p.actualUsd - p.netUsd)}/mo ·
+                  net <span className={p.netUsd >= 0 ? "text-success" : "text-destructive"}>{formatCurrency(p.netUsd)}/mo</span>
+                </p>
+              )}
+            </div>
+            <div className="flex flex-col justify-center gap-2">
+              <div className="flex flex-wrap gap-1.5">
+                {counts != null &&
+                  TRUST_VERDICT_ORDER.map((v) => {
+                    const n = counts[v] ?? 0;
+                    if (n === 0) return null;
+                    const s = trustVerdictStyle(v);
+                    return (
+                      <span key={v} className={cn("badge-status", s.className)}>
+                        {n} {s.label.toLowerCase()}
+                      </span>
+                    );
+                  })}
+              </div>
+              <p className="text-[11px] leading-relaxed text-muted-foreground">
+                {trust?.calibration.note}
+              </p>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 function OpportunityScoreCard({ onNavigate }: { onNavigate: (v: ViewKey) => void }) {
   const { data: snap, isFetching } = useNetwork();
   const { data: profConfig } = useProfitabilityConfig();
+  const { data: trust } = useTrustReport(120_000);
   const [capitalInput, setCapitalInput] = useState("10");
   const [capitalTao, setCapitalTao] = useState(10);
+  // TRUST-LOOP recalibration inputs (primitives so the memo stays stable).
+  const calMinerDays = trust?.calibration.minerDays ?? 0;
+  const calRatio = trust?.calibration.accuracyRatio ?? null;
 
   // Restore the capital assumption across visits. Deferred past the
   // hydration pass so SSR markup stays deterministic (same pattern as the
@@ -656,11 +790,18 @@ function OpportunityScoreCard({ onNavigate }: { onNavigate: (v: ViewKey) => void
   const score: OpportunityScoreResult | null = useMemo(() => {
     if (!snap || snap.subnets.length === 0) return null;
     try {
-      return computeOpportunityScore(snap, { capitalTao, profConfig: profConfig ?? undefined });
+      return computeOpportunityScore(snap, {
+        capitalTao,
+        profConfig: profConfig ?? undefined,
+        calibration:
+          calRatio != null && calMinerDays >= 7
+            ? { minerDays: calMinerDays, accuracyRatio: calRatio }
+            : null,
+      });
     } catch {
       return null;
     }
-  }, [snap, capitalTao, profConfig]);
+  }, [snap, capitalTao, profConfig, calMinerDays, calRatio]);
 
   const recommended = score ? score.recommended : null;
   const alternative = score ? score.alternative : null;
@@ -706,7 +847,7 @@ function OpportunityScoreCard({ onNavigate }: { onNavigate: (v: ViewKey) => void
                   {recommended.riskLevel} risk
                 </span>
                 <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
-                  {Math.round(recommended.confidence * 100)}% confidence
+                  {Math.round(score.confidence * 100)}% confidence
                 </span>
               </div>
               <p className="text-center text-[10px] leading-relaxed text-muted-foreground">

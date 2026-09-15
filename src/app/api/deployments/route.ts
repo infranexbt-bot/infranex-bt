@@ -6,6 +6,7 @@ import {
 import { subnets } from "@/lib/infranex/data";
 import { fetchLiveSnapshot } from "@/lib/infranex/chain";
 import { pullSubnetRequirements } from "@/lib/devops/subnet-requirements";
+import { computeDeploymentProjection } from "@/lib/infranex/trust";
 import type { SubnetProfileHint } from "@/lib/infranex/deployment/config";
 import { SESSION_COOKIE, verifySessionToken } from "@/lib/auth";
 import type { Subnet, GPUOffer } from "@/lib/infranex/types";
@@ -142,6 +143,14 @@ export async function POST(req: NextRequest) {
       profileHint = null;
     }
 
+    // TRUST-LOOP — snapshot the subnet's chain-measured earning rate NOW;
+    // this is the number the miner's actuals will be judged against for its
+    // whole life. Null (offline chain, zero-emission subnet) = honest
+    // no-projection, the miner just gets no trust verdict.
+    const projection = await computeDeploymentProjection(netuid).catch(
+      () => null
+    );
+
     // TIER4 — attribute the deployment to its creator (light tenancy).
     const session = await verifySessionToken(req.cookies.get(SESSION_COOKIE)?.value);
     const deployment = await createDeployment({
@@ -152,6 +161,7 @@ export async function POST(req: NextRequest) {
       walletName: walletName?.trim() || undefined,
       mode,
       profileHint,
+      projection,
       owner: session?.uid
         ? { userId: session.uid, label: session.label ?? undefined }
         : undefined,

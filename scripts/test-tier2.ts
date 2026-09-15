@@ -135,7 +135,7 @@ function baseConfig(command: string, envValue: string, image = "bittensor/subnet
       subtensorNetwork: "finney",
       extraArgs: [],
     },
-    cost: { hourlyUsd: 0.34, monthlyUsd: 248, estimatedMonthlyRevenueUsd: 1800, estimatedRoiPercent: 600 },
+    cost: { hourlyUsd: 0.34, monthlyUsd: 248, estimatedMonthlyRevenueUsd: 1800, estimatedRoiPercent: 600, revenueSource: "category-fallback" },
     requirements: { minVramGb: 24, pythonVersion: "3.10", cudaVersion: "12.1", dockerRequired: true, nvidiaRuntimeRequired: true },
   };
   // env names with spaces are unusual — keep it deterministic instead:

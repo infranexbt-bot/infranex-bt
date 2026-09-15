@@ -78,6 +78,18 @@ model Deployment {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
+  // TRUST-LOOP — the projection this deployment must be judged against.
+  // Snapshot at creation time from the live chain (per-earning-miner
+  // emission), never a category template. Null projectionSource = pre-trust
+  // deployment or no live data at creation (honest: no verdict).
+  projectedMonthlyTao      Float?
+  projectedGrossMonthlyUsd Float?
+  projectedNetMonthlyUsd   Float?
+  // "live-chain" | "category-fallback"
+  projectionSource         String?
+  projectionRampWeeks      Int?
+  projectedAt              DateTime?
+
   @@index([status])
   @@index([netuid])
   @@index([ownerUserId])

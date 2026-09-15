@@ -16,7 +16,7 @@ export interface DeploymentConfig {
   gpu: { model: string; vramGb: number; provider: string; hourlyPrice: number; monthlyPrice: number; region: string };
   docker: { imageName: string; imageSource?: "subnet-requirements" | "category-fallback"; repoDockerfileBase?: string | null; runtime: string; ports: string[]; volumes: { path: string; sizeGb: number }[]; envVars: { name: string; value: string; secret: boolean }[]; command: string; minMemoryGb: number; minVcpuCount: number; diskGb: number };
   miner: { network: string; netuid: number; walletName: string; hotkeyName: string; axonPort: number; prometheusPort: number; subtensorNetwork: string; extraArgs: string[] };
-  cost: { hourlyUsd: number; monthlyUsd: number; estimatedMonthlyRevenueUsd: number; estimatedRoiPercent: number };
+  cost: { hourlyUsd: number; monthlyUsd: number; estimatedMonthlyRevenueUsd: number; estimatedRoiPercent: number; revenueSource?: "live-chain" | "category-fallback" };
   requirements: { minVramGb: number; pythonVersion: string; cudaVersion: string; dockerRequired: boolean; nvidiaRuntimeRequired: boolean };
 }
 
@@ -48,6 +48,13 @@ export interface DeploymentRecord {
   /** TIER4 — creator attribution (null = team-shared / pre-tenancy row). */
   ownerUserId: string | null;
   createdByLabel: string | null;
+  /** TRUST-LOOP — the projection this miner is judged against (null = pre-trust row). */
+  projectedMonthlyTao?: number | null;
+  projectedGrossMonthlyUsd?: number | null;
+  projectedNetMonthlyUsd?: number | null;
+  projectionSource?: string | null;
+  projectionRampWeeks?: number | null;
+  projectedAt?: string | null;
   steps: DeploymentStep[];
   createdAt: string;
   updatedAt: string;

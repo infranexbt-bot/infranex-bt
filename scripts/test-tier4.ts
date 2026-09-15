@@ -107,7 +107,7 @@ function makeConfig(overrides?: Partial<DeploymentConfig>): DeploymentConfig {
       diskGb: 120,
     },
     miner: { network: "finney", netuid: 9, walletName: "w", hotkeyName: "default", axonPort: 8091, prometheusPort: 8092, subtensorNetwork: "finney", extraArgs: [] },
-    cost: { hourlyUsd: 0.4, monthlyUsd: 288, estimatedMonthlyRevenueUsd: 1800, estimatedRoiPercent: 500 },
+    cost: { hourlyUsd: 0.4, monthlyUsd: 288, estimatedMonthlyRevenueUsd: 1800, estimatedRoiPercent: 500, revenueSource: "category-fallback" },
     requirements: { minVramGb: 24, pythonVersion: "3.10", cudaVersion: "12.1", dockerRequired: true, nvidiaRuntimeRequired: true },
     ...overrides,
   };

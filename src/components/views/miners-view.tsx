@@ -19,6 +19,11 @@ import {
   useDeployments,
   type DeploymentRecord,
 } from "@/lib/infranex/use-deployments";
+import {
+  useTrustReport,
+  trustVerdictStyle,
+  type TrustRow,
+} from "@/lib/infranex/use-trust";
 import { cn, formatCurrency, formatRelativeTime, shortAddress } from "@/lib/utils";
 import type { ViewKey } from "@/lib/infranex/types";
 
@@ -42,13 +47,27 @@ function statusStyle(status: string): { dot: string; badge: string } {
   return { dot: "bg-primary", badge: "bg-primary/10 text-primary" };
 }
 
-function DeploymentCard({ d }: { d: DeploymentRecord }) {
+function TrustChip({ row }: { row: TrustRow | undefined }) {
+  if (!row) return null;
+  const style = trustVerdictStyle(row.verdict);
+  return (
+    <span
+      className={cn("badge-status", style.className)}
+      title={row.note}
+    >
+      {style.label}
+      {row.ratio != null ? ` ${Math.round(row.ratio * 100)}%` : ""}
+    </span>
+  );
+}
+
+function DeploymentCard({ d, trust }: { d: DeploymentRecord; trust?: TrustRow }) {
   const style = statusStyle(d.status);
   return (
     <div className="rounded-lg border border-border/40 bg-card/30 p-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <p className="font-medium">{d.minerName}</p>
             <Badge variant="outline" className="mono text-[10px]">
               α{d.netuid}
@@ -61,6 +80,7 @@ function DeploymentCard({ d }: { d: DeploymentRecord }) {
             >
               {d.status}
             </span>
+            <TrustChip row={trust} />
           </div>
           <p className="mt-1 text-xs text-muted-foreground">
             {d.subnetName} · {d.gpuModel} · {d.provider} ·{" "}
@@ -76,10 +96,37 @@ function DeploymentCard({ d }: { d: DeploymentRecord }) {
             </p>
           </div>
           <div className="text-right">
-            <p className="text-[10px] text-muted-foreground">Est. rev/mo</p>
-            <p className="tabular font-medium text-success">
-              {formatCurrency(d.estimatedRevenue)}
+            <p className="text-[10px] text-muted-foreground">
+              Proj. vs actual
             </p>
+            {d.projectedMonthlyTao ? (
+              <p
+                className="tabular font-medium text-success"
+                title={
+                  d.projectionSource === "live-chain"
+                    ? "Chain-measured projection at deploy time"
+                    : undefined
+                }
+              >
+                {d.projectedMonthlyTao.toFixed(3)} →{" "}
+                {trust?.actualMonthlyTao != null
+                  ? trust.actualMonthlyTao.toFixed(3)
+                  : "—"}{" "}
+                <span className="text-xs font-normal text-muted-foreground">
+                  TAO/mo
+                </span>
+              </p>
+            ) : (
+              <p className="tabular font-medium text-success">
+                {formatCurrency(d.estimatedRevenue)}
+                <span
+                  className="ml-1 text-[10px] font-normal text-muted-foreground"
+                  title="Category-based guess — pre-trust deployment"
+                >
+                  est
+                </span>
+              </p>
+            )}
           </div>
         </div>
       </div>
@@ -150,6 +197,10 @@ function DeploymentCard({ d }: { d: DeploymentRecord }) {
 
 export function MinersView({ onNavigate }: MinersViewProps) {
   const { data: deployments, isLoading } = useDeployments();
+  const { data: trust } = useTrustReport();
+  const trustById = new Map(
+    (trust?.rows ?? []).map((r) => [r.deploymentId, r])
+  );
   const rows = deployments ?? [];
 
   const active = rows.filter(
@@ -276,7 +327,9 @@ export function MinersView({ onNavigate }: MinersViewProps) {
               </div>
             </div>
           ) : (
-            rows.map((d) => <DeploymentCard key={d.id} d={d} />)
+            rows.map((d) => (
+              <DeploymentCard key={d.id} d={d} trust={trustById.get(d.id)} />
+            ))
           )}
         </CardContent>
       </Card>

@@ -43,6 +43,9 @@ export interface OpportunityScoreResult {
   usdInr: number;
   capitalTao: number;
   score: number; // 0–100 — conviction in the recommendation
+  /** Headline confidence 0–1 — model blend, or 70% model + 30% observed
+   *  accuracy when a real TRUST-LOOP calibration sample exists. */
+  confidence: number;
   recommended: ScoredStrategy;
   alternative: ScoredStrategy;
   closeCall: boolean;
@@ -128,6 +131,13 @@ function stakingStrategy(s: StakingStrategy, capitalTao: number, _usdInr: number
   };
 }
 
+export interface TrustCalibrationInput {
+  /** Total earning days behind the observed accuracy (≥ 7 to apply). */
+  minerDays: number;
+  /** Mean actual ÷ projected ratio across calibrated miners (0–1+). */
+  accuracyRatio: number;
+}
+
 export interface OpportunityScoreOptions {
   /** Capital assumed for the staking leg, in TAO (default 10). */
   capitalTao?: number;
@@ -137,6 +147,10 @@ export interface OpportunityScoreOptions {
   maxGpuVramGb?: number;
   /** Profitability config (electricity etc.) — forwarded to the miner ledger. */
   profConfig?: ProfitabilityConfig;
+  /** TRUST-LOOP — observed accuracy of our own past projections. When a real
+   *  sample exists (≥ 7 miner-days), the headline confidence becomes
+   *  70% model + 30% observed instead of asserted. */
+  calibration?: TrustCalibrationInput | null;
 }
 
 export function computeOpportunityScore(
@@ -207,10 +221,21 @@ export function computeOpportunityScore(
     98
   );
 
-  const confidence =
+  let confidence =
     Math.round(
       (recommended.confidence * 0.7 + alternative.confidence * 0.3) * 100
     ) / 100;
+
+  // TRUST-LOOP recalibration — the score's confidence stops being purely a
+  // model opinion once real miners have judged our projections.
+  const cal = opts?.calibration;
+  if (cal && cal.minerDays >= 7 && Number.isFinite(cal.accuracyRatio)) {
+    const observed = Math.min(Math.max(cal.accuracyRatio, 0), 1);
+    confidence = Math.round((confidence * 0.7 + observed * 100 * 0.3)) / 100;
+    notes.push(
+      `Confidence includes observed projection accuracy: ${Math.round(cal.accuracyRatio * 100)}% over ${cal.minerDays} miner-days of real earnings.`
+    );
+  }
 
   if (!liveData) {
     notes.push("Chain snapshot not live — figures run on the curated fallback until the scanner syncs.");
@@ -247,6 +272,7 @@ export function computeOpportunityScore(
     usdInr,
     capitalTao,
     score,
+    confidence,
     recommended,
     alternative,
     closeCall: recommended !== alternative && Math.abs(recommended.roiMonthlyPct - alternative.roiMonthlyPct) < 1,
