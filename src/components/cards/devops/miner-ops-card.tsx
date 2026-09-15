@@ -1,0 +1,780 @@
+"use client";
+
+import { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Thermometer,
+  Gauge,
+  MemoryStick,
+  Bot,
+  CircleAlert,
+  CircleX,
+  Radar,
+  Wallet,
+  Hexagon,
+  Activity,
+  RadioTower,
+  HeartPulse,
+  ServerCog,
+  Terminal,
+  ChevronDown,
+  ChevronRight,
+  Stethoscope,
+  TimerReset,
+} from "lucide-react";
+import { cn, formatRelativeTime } from "@/lib/utils";
+import { formatBlocksLeft } from "@/lib/infranex/immunity";
+import type {
+  DevopsMinerDTO,
+  DevopsThresholds,
+  MinerHealthDTO,
+  RunwayAssessmentDTO,
+} from "@/lib/infranex/use-devops-monitor";
+
+/**
+ * DEVOPS-1 — one live operations card per running miner: GPU vitals +
+ * sparkline history, daemon heartbeat, chain facts, registration state and
+ * risk coloring. Pure presentational; data comes from /api/devops/monitor.
+ */
+
+type Health = "healthy" | "warning" | "critical";
+
+// WINDUP-1: mirrors runway.ts's at_risk band (WARN_BLOCKS = 1800 = 6 h).
+// runway.ts is server-only (imports the DB), so the value is mirrored here
+// under the same name — update both together if the band is ever tuned.
+const RUNWAY_WARN_BLOCKS = 1800;
+
+export function MinerOpsCard({
+  miner,
+  thresholds,
+  onRunDoctor,
+  doctorBusyHostId,
+}: {
+  miner: DevopsMinerDTO;
+  thresholds: DevopsThresholds;
+  /** TIER1-1 — fires the 10-step Doctor pipeline for the linked GPU host. */
+  onRunDoctor?: (hostId: string) => void;
+  doctorBusyHostId?: string | null;
+}) {
+  // WINDUP-1: use the server's authoritative health (health-score.ts — it
+  // also weighs probe failures, PROBE_FAIL and critical RUNWAY events).
+  // The old local recompute missed those, so the card border could stay
+  // green while the HealthScoreChip on the same card showed critical.
+  const health: Health = miner.health?.status ?? "healthy";
+
+  return (
+    <Card
+      className={cn(
+        "overflow-hidden border-border/60 bg-card/60 transition-colors",
+        health === "critical" && "border-destructive/40",
+        health === "warning" && "border-amber-500/30"
+      )}
+    >
+      <div
+        className={cn(
+          "h-0.5 w-full",
+          health === "healthy" && "bg-success/70",
+          health === "warning" && "bg-amber-400/80",
+          health === "critical" && "bg-destructive"
+        )}
+        aria-hidden
+      />
+      <CardContent className="space-y-3 p-4">
+        {/* Header: miner + subnet + state */}
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <HealthDot health={health} />
+              <p className="truncate text-display text-sm font-semibold">{miner.minerName}</p>
+              {miner.health && <HealthScoreChip health={miner.health} />}
+            </div>
+            <p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Hexagon className="h-3 w-3 shrink-0 text-primary/70" aria-hidden />
+              <span className="mono tabular">α{miner.netuid}</span>
+              <span className="truncate">{miner.subnetName}</span>
+            </p>
+          </div>
+          <div className="shrink-0 text-right">
+            <p className="mono text-[10px] uppercase tracking-wider text-muted-foreground/70">{miner.gpuModel}</p>
+            <p className="mt-0.5 flex items-center justify-end gap-1 text-xs text-muted-foreground">
+              <Wallet className="h-3 w-3" aria-hidden />
+              <span className="mono tabular">${miner.monthlyCost.toFixed(0)}/mo</span>
+            </p>
+          </div>
+        </div>
+
+        {/* GPU vitals */}
+        <div className="grid grid-cols-2 gap-2">
+          <Vital
+            icon={<Thermometer className="h-3.5 w-3.5" aria-hidden />}
+            label="Temp"
+            value={miner.gpu?.tempC != null ? `${miner.gpu.tempC.toFixed(0)}°C` : "—"}
+            tone={
+              miner.gpu?.tempC == null
+                ? "muted"
+                : miner.gpu.tempC >= thresholds.tempCriticalC
+                  ? "critical"
+                  : miner.gpu.tempC >= thresholds.tempWarnC
+                    ? "warning"
+                    : "ok"
+            }
+          />
+          <Vital
+            icon={<Gauge className="h-3.5 w-3.5" aria-hidden />}
+            label="Util"
+            value={miner.gpu?.utilPct != null ? `${miner.gpu.utilPct.toFixed(0)}%` : "—"}
+            tone={
+              miner.gpu?.utilPct == null
+                ? "muted"
+                : miner.gpu.utilPct < thresholds.utilFloorPct
+                  ? "warning"
+                  : "ok"
+            }
+          />
+          <Vital
+            icon={<MemoryStick className="h-3.5 w-3.5" aria-hidden />}
+            label="VRAM"
+            value={
+              miner.gpu?.memUsedMb != null && miner.gpu?.memTotalMb
+                ? `${(miner.gpu.memUsedMb / 1024).toFixed(1)}/${(miner.gpu.memTotalMb / 1024).toFixed(0)}G`
+                : "—"
+            }
+            tone="muted"
+          />
+          <Vital
+            icon={<Bot className="h-3.5 w-3.5" aria-hidden />}
+            label="Miner"
+            value={
+              miner.gpu?.processAlive === true
+                ? "running"
+                : miner.gpu?.processAlive === false
+                  ? "DOWN"
+                  : "unknown"
+            }
+            tone={
+              miner.gpu?.processAlive === false ? "critical" : miner.gpu?.processAlive === true ? "ok" : "muted"
+            }
+          />
+        </div>
+
+        {/* Sparklines (history from the 90s pass) */}
+        {miner.gpuHistory.length > 1 && (
+          <div className="grid grid-cols-2 gap-2">
+            <Sparkline
+              label={`temp · ${miner.gpuHistory.length} samples`}
+              points={miner.gpuHistory.map((h) => h.tempC)}
+              warnLine={thresholds.tempWarnC}
+              critLine={thresholds.tempCriticalC}
+              stroke="stroke-sky-400/80"
+            />
+            <Sparkline
+              label="util"
+              points={miner.gpuHistory.map((h) => h.utilPct)}
+              warnLine={thresholds.utilFloorPct}
+              stroke="stroke-emerald-400/80"
+            />
+          </div>
+        )}
+
+        {/* Daemon heartbeat */}
+        <div className="flex items-center justify-between rounded-lg border border-border/50 bg-background/40 px-2.5 py-1.5">
+          <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+            <Radar className="h-3 w-3" aria-hidden />
+            daemon
+          </span>
+          <span className="flex items-center gap-2 text-[11px]">
+            <DaemonChip status={miner.daemon?.status ?? "missing"} />
+            {miner.daemon?.lastSeenAt && (
+              <span className="mono tabular text-muted-foreground/70">
+                {formatRelativeTime(miner.daemon.lastSeenAt)}
+              </span>
+            )}
+          </span>
+        </div>
+
+        {/* TIER1-1 — machine facts from the Doctor pipeline + one-click re-run */}
+        {miner.machine && (
+          <div className="flex items-center justify-between gap-2 rounded-lg border border-border/50 bg-background/40 px-2.5 py-1.5">
+            <span
+              className="flex min-w-0 items-center gap-1.5 text-[11px] text-muted-foreground"
+              title={`Host "${miner.machine.name}" · doctor status: ${miner.machine.status}${miner.machine.gpuName ? ` · ${miner.machine.gpuName}` : ""}`}
+            >
+              <ServerCog className="h-3 w-3 shrink-0" aria-hidden />
+              <span className="mono truncate text-[10px]">
+                {[
+                  miner.machine.os,
+                  miner.machine.driverCuda ? `CUDA ${miner.machine.driverCuda}` : null,
+                  miner.machine.dockerVersion ? `Docker ${miner.machine.dockerVersion}` : null,
+                ]
+                  .filter(Boolean)
+                  .join(" · ") || "no doctor facts yet"}
+              </span>
+            </span>
+            {onRunDoctor && (
+              <button
+                type="button"
+                disabled={doctorBusyHostId === miner.machine.hostId}
+                onClick={() => onRunDoctor(miner.machine!.hostId)}
+                className={cn(
+                  "flex shrink-0 items-center gap-1 rounded-md border border-border/70 px-1.5 py-0.5 text-[10px] text-muted-foreground transition-colors",
+                  "hover:border-primary/40 hover:bg-primary/10 hover:text-primary",
+                  doctorBusyHostId === miner.machine.hostId && "animate-pulse opacity-60"
+                )}
+              >
+                <Stethoscope className="h-3 w-3" aria-hidden />
+                {doctorBusyHostId === miner.machine.hostId ? "checking…" : "Doctor"}
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* DEVOPS-4 — Service & validator traffic: what validators experience */}
+        <div className="rounded-lg border border-border/50 bg-background/40 px-2.5 py-2">
+          <div className="flex items-center justify-between">
+            <span className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground/70">
+              <Activity className="h-3 w-3" aria-hidden />
+              service
+            </span>
+            <ProbeChip probe={miner.service?.probe ?? null} />
+          </div>
+          <div className="mt-1.5 grid grid-cols-3 gap-2 text-center">
+            <MiniFact
+              label="Latency"
+              value={
+                miner.service?.probe?.ok
+                  ? `${Math.round(miner.service.probe.totalMs ?? 0)}ms`
+                  : miner.service?.probe && !miner.service.probe.ok
+                    ? "FAIL"
+                    : "—"
+              }
+              tone={miner.service?.probe && !miner.service.probe.ok ? "critical" : undefined}
+            />
+            <MiniFact
+              label="p50 / p95"
+              value={
+                miner.service?.latencyP50Ms != null
+                  ? `${Math.round(miner.service.latencyP50Ms)}/${miner.service.latencyP95Ms != null ? Math.round(miner.service.latencyP95Ms) : "—"}`
+                  : "—"
+              }
+            />
+            <MiniFact
+              label="Probe OK"
+              value={
+                miner.service?.successRatePct != null
+                  ? `${miner.service.successRatePct}%`
+                  : "—"
+              }
+              tone={
+                miner.service?.successRatePct != null && miner.service.successRatePct < 100
+                  ? "warning"
+                  : undefined
+              }
+            />
+          </div>
+          {miner.service?.probe && miner.service.probeHistory.length > 1 && (
+            <div className="mt-1.5">
+              <Sparkline
+                label="axon latency · ms"
+                points={miner.service.probeHistory.map((p) => p.totalMs)}
+                stroke="stroke-violet-400/80"
+              />
+            </div>
+          )}
+          <div className="mt-1.5 flex items-center justify-between gap-2 border-t border-border/40 pt-1.5 text-[11px]">
+            <span className="flex items-center gap-1.5 text-muted-foreground">
+              <RadioTower className="h-3 w-3" aria-hidden />
+              validator queries
+            </span>
+            <TrafficSummary traffic={miner.service?.traffic ?? null} />
+          </div>
+        </div>
+
+        {/* Chain + UID facts */}
+        <div className="grid grid-cols-3 gap-2 text-center">
+          <MiniFact label="UID" value={miner.uid?.uid != null ? `#${miner.uid.uid}` : "—"} />
+          <MiniFact
+            label="Incentive"
+            value={miner.uid?.incentive != null ? `${(miner.uid.incentive * 100).toFixed(2)}%` : "—"}
+          />
+          <MiniFact
+            label="Net / mo"
+            value={
+              miner.chain.netProfitPerMonthUsd != null
+                ? `$${miner.chain.netProfitPerMonthUsd.toFixed(0)}`
+                : "—"
+            }
+            tone={
+              miner.chain.netProfitPerMonthUsd != null && miner.chain.netProfitPerMonthUsd < 0
+                ? "critical"
+                : undefined
+            }
+          />
+        </div>
+
+        {/* Registration + risk + ROI */}
+        <div className="flex flex-wrap items-center gap-1.5">
+          {miner.registration.state && (
+            <Badge
+              variant="outline"
+              className={cn(
+                "h-5 px-1.5 text-[10px]",
+                miner.registration.state === "registered"
+                  ? "border-success/40 bg-success/10 text-success"
+                  : "border-border text-muted-foreground"
+              )}
+            >
+              {miner.registration.state}
+              {miner.registration.registeredUid != null ? ` · uid ${miner.registration.registeredUid}` : ""}
+            </Badge>
+          )}
+          {miner.uid && miner.uid.riskLevel !== "healthy" && (
+            <Badge
+              variant="outline"
+              className={cn(
+                "h-5 px-1.5 text-[10px]",
+                miner.uid.riskLevel === "critical"
+                  ? "border-destructive/40 bg-destructive/10 text-destructive"
+                  : "border-amber-500/40 bg-amber-500/10 text-amber-300"
+              )}
+            >
+              {miner.uid.riskLevel}: {miner.uid.riskCodes.join(", ").toLowerCase()}
+            </Badge>
+          )}
+          {miner.chain.roiPercent != null && (
+            <Badge
+              variant="outline"
+              className={cn(
+                "h-5 px-1.5 text-[10px]",
+                miner.chain.roiPercent < 0
+                  ? "border-destructive/40 bg-destructive/10 text-destructive"
+                  : "border-border text-muted-foreground"
+              )}
+            >
+              ROI {miner.chain.roiPercent > 0 ? "+" : ""}
+              {miner.chain.roiPercent}%
+            </Badge>
+          )}
+        </div>
+
+        {/* TIER4 / RUNWAY-1 — immunity runway: verdict chip + margins + T-minus */}
+        {miner.runway && (
+          <div className="rounded-lg border border-border/50 bg-background/40 px-2.5 py-2">
+            <div className="flex items-center justify-between">
+              <span className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground/70">
+                <TimerReset className="h-3 w-3" aria-hidden />
+                immunity runway
+              </span>
+              <RunwayChip runway={miner.runway} />
+            </div>
+            <div className="mt-1.5 grid grid-cols-3 gap-2 text-center">
+              <MiniFact
+                label="Immunity left"
+                value={
+                  miner.runway.margins.immunityBlocksLeft != null
+                    ? formatBlocksLeft(miner.runway.margins.immunityBlocksLeft)
+                    : "unknown"
+                }
+                tone={
+                  miner.runway.margins.immunityBlocksLeft === 0
+                    ? "critical"
+                    : miner.runway.margins.immunityBlocksLeft != null &&
+                        miner.runway.margins.immunityBlocksLeft <= RUNWAY_WARN_BLOCKS
+                      ? "warning"
+                      : undefined
+                }
+              />
+              <MiniFact
+                label="Capacity"
+                value={
+                  miner.runway.margins.atCapacity
+                    ? "FULL"
+                    : miner.runway.margins.capacityFreeSlots != null
+                      ? `${miner.runway.margins.capacityFreeSlots} free`
+                      : "—"
+                }
+                tone={miner.runway.margins.atCapacity ? "warning" : undefined}
+              />
+              <MiniFact
+                label="T-minus"
+                value={miner.runway.tMinusLabel ?? "—"}
+                tone={
+                  miner.runway.verdict === "at_risk"
+                    ? "critical"
+                    : miner.runway.verdict === "watch"
+                      ? "warning"
+                      : undefined
+                }
+              />
+            </div>
+            <p className="mono mt-1.5 truncate text-[10px] text-muted-foreground/70">
+              trend {miner.runway.trajectory.direction}
+              {miner.runway.margins.incentive != null
+                ? ` · incentive ${(miner.runway.margins.incentive * 100).toFixed(2)}%`
+                : ""}
+            </p>
+          </div>
+        )}
+
+        {/* Alerts */}
+        {miner.alerts.length > 0 && (
+          <ul className="space-y-1">
+            {miner.alerts.map((a) => (
+              <li
+                key={a.code}
+                className={cn(
+                  "flex items-start gap-1.5 rounded-md px-2 py-1 text-[11px]",
+                  a.level === "critical"
+                    ? "bg-destructive/10 text-destructive"
+                    : a.level === "warning"
+                      ? "bg-amber-500/10 text-amber-300"
+                      : "bg-muted/40 text-muted-foreground"
+                )}
+              >
+                {a.level === "critical" ? (
+                  <CircleX className="mt-0.5 h-3 w-3 shrink-0" aria-hidden />
+                ) : (
+                  <CircleAlert className="mt-0.5 h-3 w-3 shrink-0" aria-hidden />
+                )}
+                {a.message}
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {/* TIER1-1 — live miner logs (spec §45): what the miner is saying */}
+        <LiveLogs logs={miner.logs ?? []} />
+      </CardContent>
+    </Card>
+  );
+}
+
+// ---------------------------------------------------------------------------
+
+function HealthDot({ health }: { health: Health }) {
+  return (
+    <span
+      className={cn(
+        "h-2 w-2 shrink-0 rounded-full",
+        health === "healthy" && "bg-success pulse-dot",
+        health === "warning" && "bg-amber-400",
+        health === "critical" && "bg-destructive"
+      )}
+      aria-hidden
+    />
+  );
+}
+
+function Vital({
+  icon,
+  label,
+  value,
+  tone = "muted",
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  tone?: "ok" | "warning" | "critical" | "muted";
+}) {
+  return (
+    <div className="rounded-lg border border-border/50 bg-background/40 px-2.5 py-1.5">
+      <p className="flex items-center gap-1 text-[10px] uppercase tracking-wider text-muted-foreground/70">
+        {icon}
+        {label}
+      </p>
+      <p
+        className={cn(
+          "mono mt-0.5 text-sm font-semibold tabular",
+          tone === "ok" && "text-success",
+          tone === "warning" && "text-amber-300",
+          tone === "critical" && "text-destructive",
+          tone === "muted" && "text-foreground/80"
+        )}
+      >
+        {value}
+      </p>
+    </div>
+  );
+}
+
+function RunwayChip({ runway }: { runway: RunwayAssessmentDTO }) {
+  const label =
+    runway.verdict === "at_risk"
+      ? "AT RISK"
+      : runway.verdict === "expired"
+        ? "EVICTABLE"
+        : runway.verdict.toUpperCase();
+  return (
+    <Badge
+      variant="outline"
+      className={cn(
+        "h-5 px-1.5 text-[10px]",
+        runway.verdict === "at_risk" || runway.verdict === "expired"
+          ? "border-destructive/40 bg-destructive/10 text-destructive"
+          : runway.verdict === "watch"
+            ? "border-amber-500/40 bg-amber-500/10 text-amber-300"
+            : "border-success/40 bg-success/10 text-success"
+      )}
+    >
+      {label}
+    </Badge>
+  );
+}
+
+function MiniFact({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: string;
+  tone?: "ok" | "warning" | "critical";
+}) {
+  return (
+    <div className="rounded-lg border border-border/50 bg-background/40 px-1.5 py-1">
+      <p className="text-[9px] uppercase tracking-wider text-muted-foreground/60">{label}</p>
+      <p
+        className={cn(
+          "mono text-xs font-semibold tabular",
+          tone === "ok" && "text-success",
+          tone === "warning" && "text-amber-300",
+          tone === "critical" && "text-destructive",
+          !tone && "text-foreground/85"
+        )}
+      >
+        {value}
+      </p>
+    </div>
+  );
+}
+
+function DaemonChip({ status }: { status: string }) {
+  const map: Record<string, string> = {
+    online: "border-success/40 bg-success/10 text-success",
+    unreachable: "border-amber-500/40 bg-amber-500/10 text-amber-300",
+    missing: "border-border text-muted-foreground",
+    pending: "border-border text-muted-foreground",
+  };
+  return (
+    <Badge variant="outline" className={cn("h-4 px-1.5 text-[10px]", map[status] ?? map.missing)}>
+      {status}
+    </Badge>
+  );
+}
+
+/** DEVOPS-4 — probe verdict chip: alive + latency or dead. */
+function ProbeChip({
+  probe,
+}: {
+  probe: { ok: boolean; totalMs: number | null; httpStatus: number | null; mode: string } | null;
+}) {
+  if (!probe) {
+    return (
+      <Badge variant="outline" className="h-4 px-1.5 text-[10px] border-border text-muted-foreground">
+        no probe
+      </Badge>
+    );
+  }
+  if (!probe.ok) {
+    return (
+      <Badge variant="outline" className="h-4 px-1.5 text-[10px] border-destructive/40 bg-destructive/10 text-destructive">
+        dead
+      </Badge>
+    );
+  }
+  return (
+    <Badge variant="outline" className="h-4 px-1.5 text-[10px] border-success/40 bg-success/10 text-success">
+      {`HTTP ${probe.httpStatus ?? "?"}`}
+    </Badge>
+  );
+}
+
+/** DEVOPS-4 — validator traffic summary: queries/hour + distinct validators. */
+function TrafficSummary({
+  traffic,
+}: {
+  traffic: {
+    requests: number | null;
+    distinctValidators: number | null;
+    topValidatorHotkey: string | null;
+  } | null;
+}) {
+  if (!traffic) {
+    return <span className="mono tabular text-muted-foreground/60">no data</span>;
+  }
+  if (traffic.requests === null) {
+    return <span className="mono tabular text-muted-foreground/60">unknown — no parsable query log</span>;
+  }
+  return (
+    <span className="flex items-center gap-1.5 text-[11px]">
+      <span className="mono tabular text-foreground/90">{traffic.requests}/hr</span>
+      {traffic.distinctValidators != null && (
+        <span className="mono tabular text-muted-foreground/70">
+          · {traffic.distinctValidators} validator{traffic.distinctValidators === 1 ? "" : "s"}
+        </span>
+      )}
+    </span>
+  );
+}
+
+/** TIER1-1 — composite health score chip; tooltip lists the factor breakdown. */
+function HealthScoreChip({ health }: { health: MinerHealthDTO }) {
+  const tone =
+    health.status === "healthy"
+      ? "border-success/40 bg-success/10 text-success"
+      : health.status === "warning"
+        ? "border-amber-500/40 bg-amber-500/10 text-amber-300"
+        : "border-destructive/40 bg-destructive/10 text-destructive";
+  const title = health.factors
+    .map((f) => `${f.label}: ${f.score}/${f.max} — ${f.detail}`)
+    .join("\n");
+  return (
+    <Badge
+      variant="outline"
+      className={cn("mono h-4 gap-0.5 px-1.5 text-[10px] tabular", tone)}
+      title={title}
+    >
+      <HeartPulse className="h-2.5 w-2.5" aria-hidden />
+      {health.score}
+    </Badge>
+  );
+}
+
+/** TIER1-1 — collapsible live log tail (spec §45): timestamp/severity/message. */
+function LiveLogs({
+  logs,
+}: {
+  logs: { at: string; severity: string; source: string; message: string }[];
+}) {
+  const [open, setOpen] = useState(false);
+  const shown = open ? logs.slice(0, 40) : logs.slice(0, 2);
+  const sevTone = (s: string) =>
+    s === "error"
+      ? "text-destructive"
+      : s === "warning"
+        ? "text-amber-300"
+        : s === "success"
+          ? "text-success"
+          : "text-sky-300/80";
+  const sevTag = (s: string) =>
+    s === "error" ? "ERR" : s === "warning" ? "WRN" : s === "success" ? "OK " : "INF";
+
+  return (
+    <div className="rounded-lg border border-border/50 bg-background/40 px-2.5 py-2">
+      <button
+        type="button"
+        className="flex w-full items-center justify-between text-left"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+      >
+        <span className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground/70">
+          <Terminal className="h-3 w-3" aria-hidden />
+          live logs
+          {logs.length > 0 && (
+            <span className="mono normal-case tracking-normal text-[9px] text-muted-foreground/50">
+              {logs.length} lines
+            </span>
+          )}
+        </span>
+        {open ? (
+          <ChevronDown className="h-3 w-3 text-muted-foreground" aria-hidden />
+        ) : (
+          <ChevronRight className="h-3 w-3 text-muted-foreground" aria-hidden />
+        )}
+      </button>
+      {shown.length > 0 ? (
+        <ul
+          className={cn(
+            "mono mt-1.5 space-y-0.5 text-[10px] leading-relaxed",
+            open && "max-h-44 overflow-auto custom-scroll"
+          )}
+        >
+          {shown.map((l, i) => (
+            <li key={`${l.at}-${i}`} className="flex gap-1.5">
+              <span className="shrink-0 tabular text-muted-foreground/50">
+                {new Date(l.at).toLocaleTimeString("en-GB", { hour12: false })}
+              </span>
+              <span className={cn("shrink-0 font-semibold", sevTone(l.severity))}>{sevTag(l.severity)}</span>
+              <span className="min-w-0 break-all text-foreground/80">{l.message}</span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="mt-1 text-[10px] text-muted-foreground/60">
+          no lines yet — the daemon tails the miner log every 60s
+        </p>
+      )}
+    </div>
+  );
+}
+
+/** Hand-rolled sparkline — no chart lib; thresholds render as dashed lines. */
+function Sparkline({
+  label,
+  points,
+  warnLine,
+  critLine,
+  stroke,
+}: {
+  label: string;
+  points: (number | null)[];
+  warnLine?: number;
+  critLine?: number;
+  stroke: string;
+}) {
+  const clean = points.map((p) => p ?? 0);
+  const W = 100;
+  const H = 28;
+  const max = Math.max(...clean, critLine ?? 0, warnLine ?? 0, 1);
+  const min = Math.min(...clean, 0);
+  const span = Math.max(max - min, 1);
+  const toXY = (v: number, i: number) => {
+    const x = clean.length > 1 ? (i / (clean.length - 1)) * W : W / 2;
+    const y = H - ((v - min) / span) * (H - 4) - 2;
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  };
+  const line = clean.map((v, i) => toXY(v, i)).join(" ");
+  const hasData = clean.some((v) => v > 0);
+
+  return (
+    <div className="rounded-lg border border-border/50 bg-background/40 px-2 pt-1 pb-0.5">
+      <p className="text-[9px] uppercase tracking-wider text-muted-foreground/60">{label}</p>
+      <svg viewBox={`0 0 ${W} ${H}`} className="h-7 w-full" preserveAspectRatio="none" aria-hidden>
+        {hasData && warnLine != null && warnLine >= min && warnLine <= max && (
+          <line
+            x1="0"
+            x2={W}
+            y1={H - ((warnLine - min) / span) * (H - 4) - 2}
+            y2={H - ((warnLine - min) / span) * (H - 4) - 2}
+            className="stroke-amber-400/40"
+            strokeDasharray="3 3"
+            strokeWidth="0.6"
+          />
+        )}
+        {hasData && critLine != null && critLine >= min && critLine <= max && (
+          <line
+            x1="0"
+            x2={W}
+            y1={H - ((critLine - min) / span) * (H - 4) - 2}
+            y2={H - ((critLine - min) / span) * (H - 4) - 2}
+            className="stroke-destructive/50"
+            strokeDasharray="2 3"
+            strokeWidth="0.6"
+          />
+        )}
+        {hasData ? (
+          <polyline
+            points={line}
+            fill="none"
+            className={stroke}
+            strokeWidth="1.4"
+            strokeLinejoin="round"
+            strokeLinecap="round"
+          />
+        ) : (
+          <line x1="0" x2={W} y1={H - 2} y2={H - 2} className="stroke-muted-foreground/30" strokeWidth="1" />
+        )}
+      </svg>
+    </div>
+  );
+}

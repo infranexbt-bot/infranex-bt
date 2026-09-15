@@ -1,0 +1,63 @@
+"use client";
+
+import {
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
+} from "recharts";
+import type { EmissionShare } from "@/lib/infranex/types";
+
+interface EmissionDonutProps {
+  data: EmissionShare[];
+  height?: number;
+}
+
+function DonutTooltip({
+  active,
+  payload,
+}: {
+  active?: boolean;
+  payload?: Array<{ payload: EmissionShare }>;
+}) {
+  if (!active || !payload?.length) return null;
+  const p = payload[0].payload;
+  return (
+    <div className="glass-strong rounded-xl p-3 shadow-xl">
+      <p className="text-sm font-semibold">
+        {p.name}{" "}
+        <span className="mono text-xs font-normal text-muted-foreground">{p.symbol}</span>
+      </p>
+      <p className="mt-1 tabular text-xs text-muted-foreground">
+        {p.emission.toFixed(2)} TAO/block
+      </p>
+    </div>
+  );
+}
+
+export function EmissionDonut({ data, height = 260 }: EmissionDonutProps) {
+  return (
+    <ResponsiveContainer width="100%" height={height}>
+      <PieChart>
+        <Pie
+          data={data}
+          dataKey="emission"
+          nameKey="name"
+          cx="50%"
+          cy="50%"
+          innerRadius={62}
+          outerRadius={92}
+          paddingAngle={2}
+          stroke="hsl(var(--background))"
+          strokeWidth={2}
+        >
+          {data.map((entry) => (
+            <Cell key={entry.netuid} fill={entry.color} />
+          ))}
+        </Pie>
+        <Tooltip content={<DonutTooltip />} />
+      </PieChart>
+    </ResponsiveContainer>
+  );
+}
