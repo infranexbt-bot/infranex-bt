@@ -418,3 +418,37 @@ Stage Summary:
 - Both gaps fixed and verified e2e. Deployment configs now carry
   imageSource="subnet-requirements" + repoDockerfileBase; profiler honors team
   overrides with cache invalidation. Local commit cb62b1a awaits push.
+
+---
+Task ID: tao-opportunity-score-1
+Agent: main (Super Z)
+Task: Research TAO staking/delegation and build the "TAO Opportunity Score"
+home-screen feature (mine vs stake, in numbers — the user's killer feature).
+
+Work Log:
+- Research (web search, Sept 2026): root staking = TAO-denominated, ~5.25-5.65%
+  APY market estimates, validator take 9-20% (chain default 18%); dTAO subnet
+  staking = alpha-denominated, dividends lane ≈42% of subnet emission, alpha
+  price risk + pool slippage; root yield decays over time. TAO spot ≈ $225.
+- staking.ts (new): root strategy from market baseline (chain proxy as note —
+  live run showed the naive emission/stake proxy reads 1.39% vs observed 4-5%,
+  so baseline is authoritative); subnet pool strategies = emission×365/stake ×
+  0.42 × (1−take) × (1−2% fee), thin pools skipped, deep+calm → medium risk.
+- opportunity-score.ts (new): best mining runner (Miner's Ledger full P&L,
+  meetsMinimum, optional GPU cap) vs best staking lane, compared on monthly
+  net ROI %; score = 50+50·tanh(edge/8); confidence weighted; ₹ projections.
+- dashboard-view.tsx: OpportunityScoreCard hero — score ring, recommended
+  strategy block (mine X: ₹/mo, TAO/mo, GPU, risk, confidence), alternative
+  block (stake: net APY, ₹/mo on capital), capital input (localStorage),
+  notes, Open opportunities link.
+- Verified e2e: 21 synthetic checks PASS; live Finney scan (129 subnets,
+  TAO $221): score 98 → mine Chutes SN64 (₹1,35,625/mo net, 8.571 TAO/mo,
+  RTX 4090, low risk, 62% conf) vs stake rec4ll 67.5% net APY (high risk);
+  browser-verified rendering via agent-browser screenshots; tier2 58 PASS;
+  lint + tsc clean.
+- Committed 7702586. Push to platform-live still pending user token (both
+  this and cb62b1a — overlay fixes — are local).
+
+Stage Summary:
+- Feature LIVE on the dashboard. Phase 2 candidates: live FX rate, validator
+  take picker (9-18%), staking execution via wallet integration, auto-rebalance.

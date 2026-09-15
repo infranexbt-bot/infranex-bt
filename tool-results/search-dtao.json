@@ -1,0 +1,56 @@
+[
+  {
+    "url": "https://docs.taostats.io",
+    "name": "Staking Options - Getting Started with Bittensor - Taostats",
+    "snippet": "Alpha (subnet) staking buys a subnet's token , which can appreciate or depreciate against TAO — higher potential return, higher risk, and it incurs price impact. Read more",
+    "host_name": "docs.taostats.io",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.bittensor.com",
+    "name": "Staking — Bittensor Docs",
+    "snippet": "Stake on the root network earns dividends from across subnets through baskets: each root validator runs an escrowed index fund of subnet alpha , allocated per ... Read more",
+    "host_name": "www.bittensor.com",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.stakingrewards.com",
+    "name": "Bittensor (TAO) Staking — Live 5.65% APY",
+    "snippet": "Compare Bittensor staking providers at a live 5.65% APY. See TAO reward rates, fees and lock-up periods side by side, and calculate your earnings.",
+    "host_name": "www.stakingrewards.com",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://docs.subwallet.app",
+    "name": "Subnet staking (dTAO staking)",
+    "snippet": "Mar 20, 2026 — When you stake on the root subnet , you stake TAO for TAO . Any TAO staked before the launch of dTAO staking is now staked to root ( Root staking ) ...",
+    "host_name": "docs.subwallet.app",
+    "rank": 3,
+    "date": "Mar 20, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://subnetalpha.ai",
+    "name": "DTAO",
+    "snippet": "The trade-off is that root staking's yield will diminish over time , as discussed, whereas subnet staking can be more lucrative if the chosen subnet attracts ... Read more",
+    "host_name": "subnetalpha.ai",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://stakao.com",
+    "name": "TAO Staking Rewards & APY 2026: Current Rates Explained",
+    "snippet": "When you stake TAO to a validator, you receive a pro-rata share of that validator's emissions. On the root subnet , your share is paid in TAO . On dynamic subnets ... Read more",
+    "host_name": "stakao.com",
+    "rank": 5,
+    "date": "",
+    "favicon": ""
+  }
+]

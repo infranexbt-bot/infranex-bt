@@ -2,9 +2,8 @@
 import {
   buildDeploymentConfig,
   resolvePodImage,
-  type Subnet,
-  type GPUOffer,
 } from "../src/lib/infranex/deployment/config";
+import type { Subnet, GPUOffer } from "../src/lib/infranex/types";
 
 let failures = 0;
 function check(name: string, cond: boolean, detail?: string) {
