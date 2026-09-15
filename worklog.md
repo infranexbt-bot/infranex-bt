@@ -160,3 +160,19 @@ Work Log:
 
 Stage Summary:
 - Product identified as: Bittensor intelligence + mining operations platform; core loop = research subnets → deploy miner → install daemon → judge → apply fixes → monitor/optimize.
+
+---
+Task ID: handbook-pdf-1
+Agent: main (Super Z)
+Task: Produce the Infranex BT Operator Handbook as a PDF (user: "save this and provide me pdf")
+
+Work Log:
+- Loaded pdf skill chain in full: SKILL.md, fonts.md, briefs/report.md (complete), typesetting/cover.md, overflow.md, palette.md, typography.md, pagination.md.
+- Routed Report (English A4, no emoji). Cover: Template 07 Crystal Blue (fixed palette per cover.md) via html2poster.js at 794px; passed poster_validate check-html + cover_validate.js (no overlaps).
+- Body: ReportLab TocDocTemplate + multiBuild, clickable TOC, FreeSerif + install_font_fallback, Template 07 body palette, dual page numbering (hidden cover / roman TOC / arabic body reset), CondPageBreak 25% before H1s, Paragraph-wrapped proportional tables with repeatRows, stat band + callout flowables.
+- Fixed env issues: chinese/ has no static NotoSansSC (variable TTF unreadable by ReportLab -> pointed fallback names at NotoSerifSC statics); cover page 595.9pt vs A4 595.3pt -> tightened normalize tolerance to 0.4pt.
+- QA chain: code.sanitize, meta.brand, pages.clean (0 blank), font.check (0 issues), toc.check (0 errors), pdf_qa.py PASS (12 checks).
+
+Stage Summary:
+- Deliverables: download/infranex-bt-operator-handbook.pdf (14 pages, ~197KB, vector, clickable TOC) + download/infranex-bt-handbook-cover.html (cover source).
+- Scripts persisted: scripts/handbook_content.py (content), scripts/gen_handbook_pdf.py (builder), scripts/handbook_cover.html.
