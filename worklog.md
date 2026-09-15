@@ -176,3 +176,21 @@ Work Log:
 Stage Summary:
 - Deliverables: download/infranex-bt-operator-handbook.pdf (14 pages, ~197KB, vector, clickable TOC) + download/infranex-bt-handbook-cover.html (cover source).
 - Scripts persisted: scripts/handbook_content.py (content), scripts/gen_handbook_pdf.py (builder), scripts/handbook_cover.html.
+
+---
+Task ID: operator-handbook-pdf-1
+Agent: main (Super Z)
+Task: Complete step-by-step workflow guide as PDF (user: "yes provide complete step by step guide of the workflow")
+
+Work Log:
+- Loaded pdf skill; routed to Creative Flow brief (handbook/guide); read creative-flow.md + fonts.md + overflow/pagination/typography/palette/cover/cover-backgrounds/charts typesetting files
+- Verified exact UI workflow from source: deploy-wizard 5 steps (Subnet/Requirements/GPU/Install/Hotkey & run), daemon-install-dialog (SSH->paste->60s->Online, systemd vs watchdog, idempotent, provider start-script automation), judge-view (Re-mine profile -> Run simulation -> Verdict -> ApplyFixButton deployment picker -> apply_config push ladder), /api/judge/apply takes deploymentId
+- Built 886-line HTML handbook (download/infranex-operator-handbook.html): Crystal Blue design (Template 07 dark cover #0a1628 + light-blue body #f5f8fc, one hue family ~215), 11 sections: cover, golden path (6-phase flow), Phase 0 setup, Phase 1 subnet, Phase 2 deploy wizard, Phase 3 daemon, Phase 4 judge+when-to-judge table, Phase 5 operate (14 triggers), troubleshooting, rhythms+quick reference, ending page
+- poster_validate: fixed divider text-line collisions (pseudo-element ::after instead of DOM line), moved cover glows into cover background (no bleed), aligned screen bg; cover page itself 0 overlaps; remaining validator flags = body table cells (cover_validate is documented cover-ONLY, out of scope for flowing docs)
+- Rendered via html2pdf-next.js (installed pagedjs via bun): 11 pages vector; bound 65 em-dashes to preceding words (nbsp) to fix line-start punctuation
+- Post-process (scripts/postprocess_handbook.py): stamped Arabic page numbers 1-9 on body pages (cover+ending skipped), set metadata Title/Author Z.ai/Subject/Creator; pypdf extract_text KeyError(bbox) bug -> corruption scan via pymupdf instead: 0 U+FFFD
+- pdf_qa final: all critical checks PASS (no overflow, no blank pages, fill ratio ok, full-bleed cover, symmetric margins, fonts embedded); 2 benign warnings = English opening quotes at line start (legitimate)
+
+Stage Summary:
+- DELIVERED: download/infranex-operator-handbook.pdf (11 pages, 450.6 KB, vector, page-numbered) + download/infranex-operator-handbook.html (editable source)
+- Content: golden path one-liner (Subnet->GPU->Daemon online->Judge->Apply->Operate), daemon-before-judge timing rule, every button name verified against source

@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Infranex BT — Operator Handbook: The Complete Mining Workflow</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+SC:wght@400;700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+<style>
+@page { size: 794px 1123px; margin: 0; }
+:root {
+  --cover-bg: #0a1628;
+  --cover-accent: #4da8da;
+  --cover-text: #e8f0f8;
+  --cover-muted: #7a9bb8;
+  --cover-glow: #2d7ab3;
+  --bg: #f5f8fc;
+  --section-bg: #edf2f9;
+  --card: #e4ecf5;
+  --stripe: #eef3fa;
+  --header-fill: #1a4a7a;
+  --border: #c0d0e2;
+  --accent: #2d7ab3;
+  --text: #142840;
+  --muted: #5a7a96;
+}
+html, body {
+  margin: 0; padding: 0; width: 794px;
+  background: #f5f8fc;
+  color: var(--text);
+  font-family: 'Inter', 'Noto Sans SC', sans-serif;
+  line-break: strict; word-break: normal; overflow-wrap: break-word;
+}
+.pagedjs_page { background: #f5f8fc; }
+@media screen {
+  html { height: auto; display: flex; justify-content: center; background: #f5f8fc; }
+  body { transform-origin: top center; scale: min(1, calc(100vw / 794)); margin: 0 auto; box-shadow: 0 0 40px rgba(20,40,64,.18); }
+}
+p, td, li { line-break: strict; }
+
+/* ============ COVER ============ */
+.cover {
+  width: 794px; height: 1123px; position: relative; box-sizing: border-box;
+  background:
+    radial-gradient(circle 520px at 60px 60px, rgba(45,122,179,0.09), rgba(45,122,179,0) 70%),
+    radial-gradient(circle 620px at 760px 1080px, rgba(77,168,218,0.08), rgba(77,168,218,0) 70%),
+    var(--cover-bg);
+  break-after: page; overflow: hidden;
+  border: none; outline: none; box-shadow: none;
+}
+.cover-frame {
+  position: absolute; top: 80px; bottom: 80px; left: 60px; right: 60px;
+  border: 2px solid rgba(77,168,218,0.85);
+}
+.cover-kicker {
+  position: absolute; left: 104px; top: 138px;
+  font-size: 11pt; color: var(--cover-accent); letter-spacing: 5px;
+  text-transform: uppercase; font-weight: 300;
+}
+.cover-hero {
+  position: absolute; left: 104px; top: 226px; max-width: 580px;
+  font-family: 'Playfair Display', 'Noto Sans SC', serif;
+  font-size: 52pt; font-weight: 900; line-height: 1.12; color: var(--cover-text);
+  text-shadow: 0 0 24px rgba(77,168,218,0.25);
+}
+.cover-subtitle {
+  position: absolute; left: 104px; top: 400px; max-width: 560px;
+  font-size: 16pt; font-weight: 300; color: var(--cover-accent); letter-spacing: 1px;
+}
+.cover-summary {
+  position: absolute; left: 104px; top: 505px; max-width: 520px;
+  font-size: 11.5pt; line-height: 1.7; color: var(--cover-muted); font-weight: 400;
+}
+.cover-path {
+  position: absolute; left: 104px; top: 682px; max-width: 560px;
+  display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+}
+.cover-chip {
+  font-size: 8.5pt; letter-spacing: 2px; text-transform: uppercase; font-weight: 500;
+  color: var(--cover-text); border: 1px solid rgba(77,168,218,0.45);
+  padding: 6px 12px; border-radius: 3px; background: rgba(45,122,179,0.14);
+}
+.cover-arrow { color: var(--cover-accent); font-size: 10pt; }
+.cover-meta {
+  position: absolute; left: 104px; top: 905px;
+  font-size: 12pt; color: var(--cover-text); font-weight: 500;
+}
+.cover-meta-sub {
+  position: absolute; left: 104px; top: 934px;
+  font-size: 10pt; color: var(--cover-muted);
+}
+.cover-date {
+  position: absolute; left: 104px; bottom: 126px;
+  font-size: 9pt; color: var(--cover-muted); letter-spacing: 3px; text-transform: uppercase;
+}
+.cover-edition {
+  position: absolute; right: 104px; bottom: 126px; text-align: right;
+  font-size: 9pt; color: var(--cover-muted); letter-spacing: 3px; text-transform: uppercase;
+}
+
+/* ============ FLOW CONTENT ============ */
+.main-content { padding: 54px 64px 46px 64px; }
+.chapter-header { break-after: avoid; break-inside: avoid; margin-top: 28px; }
+.chapter-header::after {
+  content: ''; display: block; height: 1.5px; margin: 13px 0 16px 0;
+  background: linear-gradient(90deg, var(--accent) 0 56px, var(--border) 56px 100%);
+}
+.divider { display: none; }
+.chapter-header.first { margin-top: 0; }
+.section-tag {
+  font-size: 10.5px; letter-spacing: 3px; text-transform: uppercase;
+  color: var(--accent); font-weight: 700; margin-bottom: 7px;
+}
+.section-title { font-size: 24px; font-weight: 800; line-height: 1.25; color: var(--text); }
+.body-text {
+  font-size: 15px; line-height: 1.66; text-align: justify; hyphens: auto;
+  margin: 0 0 12px 0; color: var(--text);
+}
+.body-text b, .step-body b { font-weight: 700; }
+.lead { font-size: 15.5px; }
+.mono {
+  font-family: 'Liberation Mono', 'DejaVu Sans Mono', monospace;
+  font-size: 0.88em; background: var(--section-bg); border: 1px solid var(--border);
+  padding: 1px 5px; border-radius: 3px; color: var(--header-fill);
+}
+
+/* Numbered steps */
+.step { display: flex; gap: 14px; break-inside: avoid; margin-bottom: 13px; }
+.step-num {
+  width: 27px; height: 27px; border-radius: 50%; background: var(--header-fill);
+  color: #ffffff; font-size: 13px; font-weight: 700; display: flex;
+  align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px;
+}
+.step-body { flex: 1 1 auto; min-width: 0; text-align: left; }
+.step-title { font-size: 14.5px; font-weight: 700; margin-bottom: 3px; color: var(--text); }
+.step-detail { font-size: 13.5px; line-height: 1.6; color: var(--muted); text-align: left; }
+.step-detail b { color: var(--text); font-weight: 600; }
+
+/* Callouts */
+.checkpoint {
+  break-inside: avoid; background: var(--card); border-left: 3px solid var(--accent);
+  padding: 12px 16px; margin: 4px 0 14px 0; border-radius: 0 4px 4px 0;
+}
+.checkpoint-tag {
+  font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase;
+  color: var(--accent); font-weight: 700; margin-bottom: 5px;
+}
+.checkpoint p { font-size: 13px; line-height: 1.6; margin: 0; text-align: left; }
+.note {
+  break-inside: avoid; background: var(--stripe); border: 1px solid var(--border);
+  padding: 12px 16px; margin: 4px 0 14px 0; border-radius: 4px;
+}
+.note p { font-size: 13px; line-height: 1.6; margin: 0; text-align: left; }
+.note b { color: var(--header-fill); }
+
+/* Golden path flow */
+.flow-node {
+  display: flex; gap: 14px; break-inside: avoid; background: #ffffff;
+  border: 1px solid var(--border); border-radius: 5px; padding: 13px 16px; margin-bottom: 0;
+}
+.flow-num {
+  width: 30px; height: 30px; border-radius: 50%; background: var(--header-fill); color: #fff;
+  font-size: 14px; font-weight: 800; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-top: 1px;
+}
+.flow-body { flex: 1 1 auto; min-width: 0; text-align: left; }
+.flow-title { font-size: 14.5px; font-weight: 700; }
+.flow-where {
+  font-size: 10.5px; letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--accent); font-weight: 600; margin: 1px 0 4px 0;
+}
+.flow-desc { font-size: 13px; line-height: 1.55; color: var(--muted); }
+.flow-connector {
+  width: 2px; height: 16px; background: var(--border); margin-left: 30px; break-inside: avoid;
+}
+.flow-output {
+  display: inline-block; font-size: 11px; font-weight: 600; color: var(--header-fill);
+  background: var(--stripe); border: 1px solid var(--border); border-radius: 3px;
+  padding: 2px 8px; margin-top: 6px;
+}
+
+/* Tables */
+table { width: 100%; border-collapse: collapse; margin: 6px 0 14px 0; font-size: 12.5px; }
+thead { display: table-header-group; }
+tr { break-inside: avoid; }
+th {
+  background: var(--header-fill); color: #ffffff; font-weight: 600; text-align: left;
+  padding: 8px 10px; font-size: 12px; letter-spacing: 0.3px;
+}
+td { padding: 7px 10px; border-bottom: 1px solid var(--border); vertical-align: top; text-align: left; line-height: 1.5; }
+tbody tr:nth-child(odd) { background: var(--stripe); }
+tbody tr:nth-child(even) { background: #ffffff; }
+td b { color: var(--header-fill); }
+
+/* Two-column helper */
+.cols { display: flex; flex-wrap: wrap; gap: 14px; max-width: 100%; margin-bottom: 14px; }
+.col { flex: 1 1 320px; min-width: 280px; max-width: 100%; break-inside: avoid; background: #ffffff; border: 1px solid var(--border); border-radius: 5px; padding: 14px 16px; }
+.col-title { font-size: 13px; font-weight: 700; color: var(--header-fill); letter-spacing: 0.5px; margin-bottom: 7px; }
+.col p { font-size: 12.5px; line-height: 1.6; color: var(--muted); margin: 0 0 8px 0; text-align: left; }
+.col ul { margin: 0; padding-left: 16px; }
+.col li { font-size: 12.5px; line-height: 1.6; color: var(--muted); margin-bottom: 5px; text-align: left; }
+
+/* ============ ENDING ============ */
+.ending {
+  width: 794px; height: 1123px; box-sizing: border-box; break-before: page;
+  background: var(--cover-bg); overflow: hidden; position: relative;
+}
+.ending-frame { position: absolute; top: 80px; bottom: 80px; left: 60px; right: 60px; border: 2px solid rgba(77,168,218,0.6); }
+.ending-center { position: absolute; left: 104px; right: 104px; top: 0; bottom: 0; display: flex; flex-direction: column; justify-content: center; }
+.ending-kicker { font-size: 10pt; letter-spacing: 4px; text-transform: uppercase; color: var(--cover-accent); margin-bottom: 26px; font-weight: 300; }
+.ending-big {
+  font-family: 'Playfair Display', 'Noto Sans SC', serif; font-size: 40pt; font-weight: 900;
+  color: var(--cover-text); line-height: 1.2; margin-bottom: 30px; max-width: 540px;
+}
+.ending-text { font-size: 12pt; line-height: 1.75; color: var(--cover-muted); max-width: 500px; margin-bottom: 40px; }
+.ending-path { font-size: 10pt; letter-spacing: 2px; text-transform: uppercase; color: var(--cover-accent); line-height: 2.1; }
+.ending-footer { position: absolute; left: 104px; right: 104px; bottom: 126px; display: flex; justify-content: space-between; font-size: 9pt; color: var(--cover-muted); letter-spacing: 2px; text-transform: uppercase; }
+</style>
+</head>
+<body>
+
+<!-- ================= COVER ================= -->
+<div class="cover">
+  <div class="cover-frame"></div>
+  <div class="cover-kicker">Operator Handbook · Step by Step</div>
+  <div class="cover-hero">Infranex&nbsp;BT</div>
+  <div class="cover-subtitle">The Complete Mining Workflow</div>
+  <div class="cover-summary">
+    A field manual for running Bittensor miners on the Infranex&nbsp;BT platform.
+    It walks the full path in exact order — researching subnets, renting GPU
+    capacity, connecting the node daemon, testing against the Judge Lab, and
+    applying fixes to live machines — with every click, every checkpoint, and
+    the recovery steps for when something goes wrong.
+  </div>
+  <div class="cover-path">
+    <span class="cover-chip">Pick subnet</span><span class="cover-arrow">&#8594;</span>
+    <span class="cover-chip">Deploy GPU</span><span class="cover-arrow">&#8594;</span>
+    <span class="cover-chip">Daemon online</span><span class="cover-arrow">&#8594;</span>
+    <span class="cover-chip">Judge</span><span class="cover-arrow">&#8594;</span>
+    <span class="cover-chip">Apply</span><span class="cover-arrow">&#8594;</span>
+    <span class="cover-chip">Operate</span>
+  </div>
+  <div class="cover-meta">Infranex BT Mining Operations</div>
+  <div class="cover-meta-sub">Platform guide · 15 views · Judge Lab closed loop · DevOps Engine</div>
+  <div class="cover-date">September 2026</div>
+  <div class="cover-edition">Edition 1</div>
+</div>
+
+<!-- ================= BODY ================= -->
+<div class="main-content">
+
+  <!-- Chapter 1: Golden path -->
+  <div class="chapter-header first">
+    <div class="section-tag">Read this first</div>
+    <div class="section-title">The Golden Path — Workflow at a Glance</div>
+    <div class="divider"></div>
+  </div>
+  <p class="body-text lead">
+    Infranex&nbsp;BT is a Bittensor mining operations platform: it watches the TAO chain,
+    rents GPU capacity from providers, drives your miners through a node daemon, and
+    continuously tests each miner against a simulated judge to tell you exactly what to fix.
+    The whole product is built around one repeating loop, and every view in the sidebar
+    exists to serve one step of that loop. This chapter gives you the map; the rest of the
+    handbook walks each step in full detail, in the exact order you should perform them.
+  </p>
+  <p class="body-text">
+    The single most important ordering rule in this handbook is this: <b>the daemon must be
+    online before you run the Judge Lab&#8217;s Apply step.</b> Mining a judge profile runs on the
+    platform server, so it works even with no GPU attached — but the moment you click
+    <b>Apply</b>, the platform pushes a config change to a real machine through that machine&#8217;s
+    daemon. No daemon, no push. Follow the phases in order and this can never bite you.
+  </p>
+
+  <div class="flow-node">
+    <div class="flow-num">1</div>
+    <div class="flow-body">
+      <div class="flow-title">Pick your subnet</div>
+      <div class="flow-where">Subnets · Opportunities</div>
+      <div class="flow-desc">Sync live chain data, compare ROI, deregistration risk and free seats, and choose the netuid you want to mine.</div>
+      <span class="flow-output">Output: a chosen subnet (netuid)</span>
+    </div>
+  </div>
+  <div class="flow-connector"></div>
+  <div class="flow-node">
+    <div class="flow-num">2</div>
+    <div class="flow-body">
+      <div class="flow-title">Deploy the GPU</div>
+      <div class="flow-where">GPU Catalog &#8594; Deploy Wizard</div>
+      <div class="flow-desc">One guided wizard: choose subnet &#8594; check requirements &#8599; pick a GPU offer &#8599; rent and auto-install &#8599; register the hotkey.</div>
+      <span class="flow-output">Output: a deployment card in state &#8220;started&#8221;</span>
+    </div>
+  </div>
+  <div class="flow-connector"></div>
+  <div class="flow-node">
+    <div class="flow-num">3</div>
+    <div class="flow-body">
+      <div class="flow-title">Connect the node daemon</div>
+      <div class="flow-where">Deployments &#8594; Install daemon</div>
+      <div class="flow-desc">Paste one setup command on the GPU pod (SSH, or fully automated via the provider start script). The daemon is the platform&#8217;s hands on your machine.</div>
+      <span class="flow-output">Output: daemon chip shows Online</span>
+    </div>
+  </div>
+  <div class="flow-connector"></div>
+  <div class="flow-node">
+    <div class="flow-num">4</div>
+    <div class="flow-body">
+      <div class="flow-title">Run the Judge Lab</div>
+      <div class="flow-where">Judge Lab</div>
+      <div class="flow-desc">Select the same subnet, re-mine the profile once, then run the simulation. You get a verdict, a composite score, and per-dimension recommendations.</div>
+      <span class="flow-output">Output: verdict + ranked fix list</span>
+    </div>
+  </div>
+  <div class="flow-connector"></div>
+  <div class="flow-node">
+    <div class="flow-num">5</div>
+    <div class="flow-body">
+      <div class="flow-title">Apply the fixes</div>
+      <div class="flow-where">Judge Lab &#8594; Apply</div>
+      <div class="flow-desc">One click per fix: the platform maps the recommendation to a config change, snapshots the current revision, and pushes it to your miner via the daemon.</div>
+      <span class="flow-output">Output: tuned miner + rollback snapshot</span>
+    </div>
+  </div>
+  <div class="flow-connector"></div>
+  <div class="flow-node">
+    <div class="flow-num">6</div>
+    <div class="flow-body">
+      <div class="flow-title">Operate — then leave it alone</div>
+      <div class="flow-where">Monitoring · DevOps Engine</div>
+      <div class="flow-desc">Monitoring and the 14 DevOps triggers watch the fleet for you. You touch Judge Lab again only when an alert fires, the subnet changes upstream, or the weekly review comes around.</div>
+      <span class="flow-output">Output: sustained earnings, early warnings</span>
+    </div>
+  </div>
+
+  <div class="note" style="margin-top:16px;">
+    <p><b>The one-liner to remember:</b> Subnet &#8594; GPU &#8594; daemon online &#8594; Judge &#8594; Apply
+    &#8594; then it is hands-off until an alert tells you to re-judge. If you ever wonder
+    &#8220;when do I run the Judge Lab?&#8221; — the answer is <b>after</b> the daemon chip turns
+    green, and <b>again</b> whenever Monitoring or the DevOps Engine says something drifted.</p>
+  </div>
+
+  <!-- Chapter 2: Phase 0 -->
+  <div class="chapter-header">
+    <div class="section-tag">Phase 0 · One-time setup</div>
+    <div class="section-title">Before You Touch Any Subnet</div>
+    <div class="divider"></div>
+  </div>
+  <p class="body-text">
+    Three things must be in place before the mining loop can run: an account on the platform,
+    a provider API key so the platform can rent GPUs on your behalf, and a Bittensor wallet
+    for on-chain registration. Each is a five-minute job, and you only do them once. If you
+    inherited a working install, skim this chapter anyway — it tells you which keys the later
+    phases depend on, so you know what breaks if one is missing.
+  </p>
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body">
+      <div class="step-title">Log in to the platform</div>
+      <div class="step-detail">Open the web app and enter your <b>User ID</b> and <b>Access Code</b>.
+      The code is stored hashed and encrypted; there is no recovery flow, so keep the original
+      from your operator. Successful login lands you on the Dashboard with live chain data
+      (block height, TAO price, subnet count) already streaming.</div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-body">
+      <div class="step-title">Connect a provider key</div>
+      <div class="step-detail">Go to <b>GPU Catalog</b> and click <b>Connect provider key</b>.
+      Paste a RunPod API key (and a Vast.ai key if you plan to compare both). Until a key is
+      configured the offers list is empty — the header will say
+      <span class="mono">no live offers yet</span> as a hint. With a key present you get live
+      pricing: roughly 45 GPU types with real-time hourly rates.</div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-body">
+      <div class="step-title">Have your wallet ready</div>
+      <div class="step-detail">The Deploy Wizard&#8217;s last step registers a hotkey on-chain, which
+      needs your <b>coldkey mnemonic / seed</b> (or an existing hotkey pair). The platform walks
+      you through registration in Phase&nbsp;2 step&nbsp;5 — you only need the seed phrase
+      available, funded with a small TAO balance for the registration fee if the subnet charges one.</div>
+    </div>
+  </div>
+  <div class="checkpoint">
+    <div class="checkpoint-tag">Checkpoint — you are ready when</div>
+    <p>The Dashboard renders live chain numbers, GPU Catalog shows live offers from your
+    provider, and your wallet seed is at hand. Nothing here involves a GPU machine yet.</p>
+  </div>
+
+  <!-- Chapter 3: Phase 1 -->
+  <div class="chapter-header">
+    <div class="section-tag">Phase 1 · Research</div>
+    <div class="section-title">Pick Your Subnet</div>
+    <div class="divider"></div>
+  </div>
+  <p class="body-text">
+    A subnet is a market: it defines what kind of miner you must run, how seats are priced,
+    and how brutal the competition is. Choosing well matters more than any later tuning — a
+    good miner on a bad subnet loses money on electricity it never earns back. The
+    <b>Subnets</b> view (with <b>Opportunities</b> as its aggressive cousin) gives you the
+    live ranking; your job here is to shortlist one netuid and note its requirements.
+  </p>
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body">
+      <div class="step-title">Sync the chain data</div>
+      <div class="step-detail">Open <b>Subnets</b> and click <b>Sync all</b>. The table refreshes
+      from the chain RPC every ~30 seconds on its own, but an explicit sync guarantees the
+      seat counts and emission numbers you are about to judge are current, not cached.</div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-body">
+      <div class="step-title">Filter to active subnets</div>
+      <div class="step-detail">Use the <b>active-only</b> filter chips to hide dead or
+      speculative subnets. There is no point evaluating a subnet whose emission is zero or
+      whose registration is effectively closed — the filter does that pre-work for you.</div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-body">
+      <div class="step-title">Compare the three decision numbers</div>
+      <div class="step-detail">For each candidate read: <b>ROI score</b> (estimated earnings
+      against current cost), <b>dereg risk</b> (how likely underperformers are purged — high
+      risk means high churn and high skill floor), and <b>free seats</b> (whether registration
+      can even succeed). The Opportunities view adds cross-subnet arbitrage if several
+      subnets look close.</div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">4</div>
+    <div class="step-body">
+      <div class="step-title">Choose and write it down</div>
+      <div class="step-detail">Pick one <b>netuid</b> and note it together with the subnet&#8217;s
+      minimum VRAM from the requirements shown later — you will type the netuid into the
+      Judge Lab and the Deploy Wizard, so having it in front of you avoids mistakes.</div>
+    </div>
+  </div>
+  <div class="checkpoint">
+    <div class="checkpoint-tag">Checkpoint — you are done when</div>
+    <p>You have one netuid chosen and a rough expectation of its VRAM floor. Do not over-research:
+    the Judge Lab in Phase&nbsp;4 will verify the economics against your actual machine anyway.</p>
+  </div>
+
+  <!-- Chapter 4: Phase 2 -->
+  <div class="chapter-header">
+    <div class="section-tag">Phase 2 · Deploy</div>
+    <div class="section-title">Deploy the GPU — the Five-Step Wizard</div>
+    <div class="divider"></div>
+  </div>
+  <p class="body-text">
+    Everything in this phase happens inside one dialog: the <b>Deploy Wizard</b>. It replaces
+    what used to be scattered across three screens — nothing is out of order or missing,
+    because rent, install, and registration flow end-to-end. You can enter it two ways:
+    from <b>GPU Catalog</b>, press <b>Provision</b> on the offer you like (the GPU arrives
+    preselected), or from <b>Subnets / Opportunities</b>, press start-mining on the card
+    (the subnet arrives preselected and the wizard opens directly on the requirements step).
+    Either way, the five steps below run in the same order.
+  </p>
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body">
+      <div class="step-title">Step 1 — Choose the subnet</div>
+      <div class="step-detail">A live chain list with seat verdicts per subnet. Pick the netuid
+      you chose in Phase&nbsp;1, or let a preselection stand. The wizard shows whether
+      registration is realistic before it lets you spend money.</div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-body">
+      <div class="step-title">Step 2 — Check the requirements</div>
+      <div class="step-detail">The wizard fetches the subnet&#8217;s real requirements profile and
+      displays the minimum VRAM and model expectations. <b>Do not skip this check</b> — renting
+      a GPU below the VRAM floor is the single most common wasted-rent mistake, and the
+      recommendation card on GPU Catalog repeats the same warning for H100s.</div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-body">
+      <div class="step-title">Step 3 — Pick the GPU offer</div>
+      <div class="step-detail">Live offers from your configured providers, filterable by
+      provider and max price, sortable by hourly price or VRAM. Match or exceed the VRAM
+      floor from step&nbsp;2, sanity-check the hourly rate against the subnet&#8217;s expected
+      emission, and select the offer.</div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">4</div>
+    <div class="step-body">
+      <div class="step-title">Step 4 — Rent and auto-install</div>
+      <div class="step-detail">Confirming the rent creates the deployment and starts a real
+      ten-step install runner with a live log. You can literally watch each step complete;
+      the lifecycle auto-advances while you watch, and when the deployment status flips to
+      <span class="mono">started</span> the wizard moves itself to the final step.</div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">5</div>
+    <div class="step-body">
+      <div class="step-title">Step 5 — Hotkey &amp; run</div>
+      <div class="step-detail">The wallet registration hand-off. Follow the registration wizard
+      (coldkey seed &#8594; hotkey creation &#8594; on-chain register) to put a live key on the
+      subnet. When it completes, close the dialog — a <b>deployment card</b> now exists in
+      Deployments with monthly cost, estimated revenue, and lifecycle progress.</div>
+    </div>
+  </div>
+  <div class="checkpoint">
+    <div class="checkpoint-tag">Checkpoint — you are done when</div>
+    <p>Deployments lists your new card in state <b>started</b> with cost/revenue figures
+    populated. The machine exists and the miner stack is installed — but the platform still
+    cannot reach inside it. That is the daemon&#8217;s job, next.</p>
+  </div>
+  <div class="note">
+    <p><b>Note on mock deployments:</b> if you were experimenting without a real provider key,
+    the platform can create a simulated deployment that ticks through the same lifecycle.
+    Mocks are clearly labeled, but remember they cannot serve real traffic and should not
+    be mixed into a production fleet&#8217;s dashboards.</p>
+  </div>
+
+  <!-- Chapter 5: Phase 3 -->
+  <div class="chapter-header">
+    <div class="section-tag">Phase 3 · Connect</div>
+    <div class="section-title">Connect the Node Daemon</div>
+    <div class="divider"></div>
+  </div>
+  <p class="body-text">
+    The daemon is a tiny agent that runs on your GPU pod and polls the platform for work.
+    Everything downstream — Judge Lab&#8217;s <b>Apply</b>, DevOps automated responses, config
+    edits from the deployment card — travels through it. Installing it is the one genuinely
+    manual moment in the whole workflow, and even that is a single copy-paste. The dialog
+    itself summarizes the contract: <i>SSH as root &#8594; paste one command &#8594; wait about
+    60 seconds &#8594; the chip turns Online</i>.
+  </p>
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body">
+      <div class="step-title">Open the install dialog</div>
+      <div class="step-detail">In <b>Deployments</b>, find your deployment card and click
+      <b>Install daemon</b>. The dialog shows the pre-built setup command with the daemon
+      identity and secret already embedded for <i>this specific deployment</i> — never reuse
+      one deployment&#8217;s command on another machine.</div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-body">
+      <div class="step-title">Copy the setup command</div>
+      <div class="step-detail">Click <b>Copy setup command (auto-start service)</b>. The command
+      is self-contained and idempotent: it writes the daemon, installs an auto-start service,
+      and cleans up any older install. On a VM or bare metal it registers a
+      <span class="mono">systemd</span> unit (survives reboots, restarts on crash); inside
+      containers like RunPod or Vast it falls back to a <span class="mono">watchdog</span>
+      loop that relaunches the daemon every 15 seconds.</div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-body">
+      <div class="step-title">Run it on the GPU pod</div>
+      <div class="step-detail">SSH into the pod as <b>root</b> and paste the command into the
+      shell. The pod prints which launcher it chose — <span class="mono">launcher=systemd</span>
+      or <span class="mono">launcher=watchdog</span> — so you always know what is keeping it alive.</div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">4</div>
+    <div class="step-body">
+      <div class="step-title">Watch for Online</div>
+      <div class="step-detail">Within about a minute the deployment card&#8217;s daemon chip flips
+      to <b>Online</b> (the platform shows a &#8220;last seen&#8221; age in seconds once heartbeats
+      arrive). If it stays offline after several minutes, jump to the troubleshooting chapter — the usual causes are a wrong platform URL inside the pod or an egress firewall.</div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">5</div>
+    <div class="step-body">
+      <div class="step-title">Optional — automate it away</div>
+      <div class="step-detail">To never SSH again: paste the same setup command into your
+      provider&#8217;s start script instead (<b>RunPod</b>: template &#8594; Start script;
+      <b>Vast.ai</b>: on-start script; any cloud: cloud-init user-data). Every fresh boot then
+      installs or refreshes the daemon automatically. Use <b>one template per deployment</b> — the embedded identity and secret are deployment-bound, so sharing a template across
+      machines would give them one identity.</div>
+    </div>
+  </div>
+  <div class="checkpoint">
+    <div class="checkpoint-tag">Checkpoint — you are done when</div>
+    <p>The daemon chip on the deployment card is green <b>Online</b> with a fresh
+    &#8220;last seen&#8221;. From this moment, Judge Lab Apply has somewhere real to push to.</p>
+  </div>
+  <div class="note">
+    <p><b>Updating later:</b> re-paste the setup command any time — it is idempotent, so
+    re-running it upgrades the daemon in place (systemd restarts the service; the watchdog
+    replaces the old process). The dialog also carries an uninstall command if you ever
+    decommission the pod.</p>
+  </div>
+
+  <!-- Chapter 6: Phase 4 -->
+  <div class="chapter-header">
+    <div class="section-tag">Phase 4 · Verify</div>
+    <div class="section-title">Judge Lab — Test, Read the Verdict, Apply</div>
+    <div class="divider"></div>
+  </div>
+  <p class="body-text">
+    The Judge Lab is the platform&#8217;s dress rehearsal: it mines a profile of what your target
+    subnet&#8217;s validator actually rewards, simulates your miner against it, and returns a
+    verdict with per-dimension scores — quality, resource fit, throughput, speed, price,
+    availability. Each weak dimension comes with a concrete recommendation, and each
+    recommendation carries an <b>Apply</b> button that pushes the fix to your live machine.
+    This is the loop you will re-enter many times over the miner&#8217;s life, so learn it once here.
+  </p>
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body">
+      <div class="step-title">Select the subnet</div>
+      <div class="step-detail">Open <b>Judge Lab</b> and pick the <b>same netuid</b> your
+      deployment mines. The judge&#8217;s recommendations are subnet-specific — a fix computed
+      for one subnet&#8217;s judge may be wrong for another.</div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-body">
+      <div class="step-title">Mine the profile (first time only)</div>
+      <div class="step-detail">If no profile exists yet the panel says so — press
+      <b>Re-mine profile</b> and wait while the platform extracts the subnet&#8217;s reward rules.
+      This runs server-side and does not need your GPU. Re-mine again later whenever the
+      subnet&#8217;s upstream code changes.</div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-body">
+      <div class="step-title">Run the simulation</div>
+      <div class="step-detail">Press <b>Run simulation</b>. While it scores, the button reads
+      <span class="mono">Scoring against judge…</span>. When it finishes you get a
+      <b>Verdict</b> panel: overall verdict badge, composite score, per-dimension scores,
+      and a ranked list of the highest-leverage fixes.</div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">4</div>
+    <div class="step-body">
+      <div class="step-title">Apply the fixes you accept</div>
+      <div class="step-detail">Click <b>Apply</b> on a recommendation. A picker lists your
+      deployments — same-subnet ones sorted first — with a preview of the computed change
+      (for price fixes, the exact target USD per M-token). Confirm, and the platform maps the
+      fix to a recipe (for example: quality &#8594; fp8 weights plus self-verify; throughput
+      &#8594; vLLM; price &#8594; the computed ask price), snapshots the current revision,
+      then pushes <span class="mono">apply_config</span> to the daemon. A result note confirms
+      the push; mock deployments receive a simulated tick instead.</div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">5</div>
+    <div class="step-body">
+      <div class="step-title">Know that verdicts survive</div>
+      <div class="step-detail">The <b>Recent runs</b> list keeps every simulation. Click any
+      row to restore that verdict and its Apply buttons — nothing is lost by navigating away
+      or by the page reloading. Availability fixes are deliberately manual; the judge will
+      say so instead of pretending to automate them.</div>
+    </div>
+  </div>
+  <div class="checkpoint">
+    <div class="checkpoint-tag">Checkpoint — you are done when</div>
+    <p>At least one fix is applied, the deployment card&#8217;s config tab shows the changed
+    environment, and a new revision snapshot exists for rollback. The miner now runs the
+    judge-approved configuration.</p>
+  </div>
+
+  <p class="body-text" style="margin-top:6px;"><b>When should you run the Judge Lab?</b>
+  The table below is the complete answer — first time is immediately after the daemon comes
+  online, and every later run is triggered by one of four events. If none of these happened,
+  there is nothing to re-judge; spend the time on Monitoring instead.</p>
+  <table>
+    <thead>
+      <tr><th style="width:30%;">Moment</th><th>Why</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><b>Right after the daemon turns Online</b></td><td>First configuration pass. Apply needs a live deployment, so this is the earliest useful moment — profile mining alone can run earlier, but it produces nothing actionable without a connected miner.</td></tr>
+      <tr><td><b>A DevOps Engine alert fires</b></td><td>GPU HEALTH, SUBNET DRIFT, BENCH REGRESS and friends tell you reality moved; re-run the simulation and apply fresh fixes.</td></tr>
+      <tr><td><b>The subnet changes upstream</b></td><td>After an upstream release or rule change, re-mine the profile first, then re-run — the old profile is judging an outdated rulebook.</td></tr>
+      <tr><td><b>Weekly review</b></td><td>A fixed weekly slot catches slow drift that alerts missed. Fifteen minutes: re-run, compare composite to last week, apply if it dropped.</td></tr>
+    </tbody>
+  </table>
+
+  <!-- Chapter 7: Phase 5 -->
+  <div class="chapter-header">
+    <div class="section-tag">Phase 5 · Operate</div>
+    <div class="section-title">Operate — Monitor, Automate, Re-Judge</div>
+    <div class="divider"></div>
+  </div>
+  <p class="body-text">
+    Once a fix is applied, the system is designed to run without you. <b>Monitoring</b> is
+    the health picture: inference scores, service latency, GPU health, query volume, and
+    earnings against cost, all updating continuously. <b>The DevOps Engine</b> is the action
+    layer on top: fourteen trigger types watch the same telemetry and respond automatically — restarting a sick miner, re-syncing after an upstream change, scaling capacity, or
+    escalating to you when a decision is genuinely yours. Your daily job shrinks to reading
+    one screen and letting the engine do the rest.
+  </p>
+  <div class="cols">
+    <div class="col">
+      <div class="col-title">Monitoring — what to glance at daily</div>
+      <ul>
+        <li><b>Composite / inference score</b> — the miner&#8217;s actual standing; a slow slide means the judge profile aged.</li>
+        <li><b>Daemon heartbeats</b> — &#8220;last seen&#8221; age should stay in seconds, never minutes.</li>
+        <li><b>Cost vs estimated revenue</b> — the deployment card&#8217;s two headline numbers must stay in healthy proportion.</li>
+        <li><b>Alert stream</b> — anything the DevOps Engine escalated to a human.</li>
+      </ul>
+    </div>
+    <div class="col">
+      <div class="col-title">DevOps Engine — the 14 triggers</div>
+      <p>GPU HEALTH · SUBNET DRIFT · DEREG-RISK · ARBITRAGE · RUNTIME OPT · PROBE FAIL ·
+      SERVICE LATENCY · QUERY DROUGHT · ESCALATION · UPSTREAM · BENCH REGRESS · RE-SYNC ·
+      SCALE · KILL. Each trigger documents what it watches and what it does; treat UPSTREAM
+      and BENCH REGRESS as your &#8220;go re-judge&#8221; signals, and KILL as the engine&#8217;s
+      last-resort circuit breaker for a runaway deployment.</p>
+    </div>
+  </div>
+  <div class="note">
+    <p><b>Reading alerts correctly:</b> an alert names a symptom, not a culprit. A data-source
+    hiccup (chain RPC, price feed) can look identical to a broken miner in a dashboard — before touching the machine, check the System &amp; Errors view to confirm the platform&#8217;s
+    own feeds are healthy. This one habit prevents the most common false-alarm fire drills.</p>
+  </div>
+
+  <!-- Chapter 8: Troubleshooting -->
+  <div class="chapter-header">
+    <div class="section-tag">Recovery</div>
+    <div class="section-title">If Something Goes Wrong</div>
+    <div class="divider"></div>
+  </div>
+  <p class="body-text">
+    Failures have a natural diagnosis order: rule out the platform itself first, then the
+    pipeline, then the machine, then the config. Work top to bottom — each step either finds
+    the problem or definitively excludes a layer, which is exactly what you want when an
+    alert is screaming and TAO is burning. The single most valuable habit is resisting the
+    urge to redeploy from scratch; almost nothing in this stack needs that.
+  </p>
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body">
+      <div class="step-title">Check the platform&#8217;s own health</div>
+      <div class="step-detail">Open <b>System &amp; Errors</b>. If chain RPC, price feeds, or
+      provider APIs show failures there, the &#8220;miner problem&#8221; in Monitoring may be a
+      data-source outage wearing a costume. Wait it out or re-sync before deeper digging.</div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-body">
+      <div class="step-title">Read Monitoring for scope</div>
+      <div class="step-detail">One miner sick or the whole fleet? One subnet or all? Scope
+      tells you where to look next: a single deployment points at the machine or its config;
+      everything-at-once points at the platform or a global data source.</div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-body">
+      <div class="step-title">Inspect the deployment card</div>
+      <div class="step-detail">Open the card&#8217;s <b>logs</b> and <b>config</b> tabs. The logs
+      show the install runner and daemon activity; the config tab shows the exact environment
+      the miner is running — compare it against what the last Judge apply claimed to set.</div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">4</div>
+    <div class="step-body">
+      <div class="step-title">Roll back with Revisions</div>
+      <div class="step-detail">If the card got sick right after an apply, open the
+      <b>Revisions</b> dialog and restore the previous snapshot. Every apply creates one
+      precisely so this step is one click, never archaeology.</div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">5</div>
+    <div class="step-body">
+      <div class="step-title">Re-install the daemon if it vanished</div>
+      <div class="step-detail">Daemon chip gray? Re-paste the same setup command from
+      <b>Install daemon</b> — it is idempotent and will cleanly reinstall or upgrade the agent.
+      On spot/ephemeral machines the pod may have been evicted entirely; redeploy from Phase&nbsp;2.</div>
+    </div>
+  </div>
+  <table>
+    <thead>
+      <tr><th style="width:32%;">Symptom</th><th style="width:38%;">Likely cause</th><th>First move</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Daemon chip gray / offline</td><td>Pod rebooted without auto-start, or spot eviction</td><td>Re-paste setup command; if SSH fails, the pod is gone — redeploy</td></tr>
+      <tr><td>Judge <b>Apply</b> errors</td><td>No live deployment selected, or daemon offline</td><td>Verify daemon Online, retry; check the result note for the push ladder&#8217;s message</td></tr>
+      <tr><td>GPU Catalog: no offers</td><td>Provider key missing, expired, or out of credit</td><td>Reconnect the provider key in GPU Catalog</td></tr>
+      <tr><td>Sudden composite drop</td><td>Upstream change or data-source outage</td><td>System &amp; Errors first, then Re-mine profile + re-run judge</td></tr>
+      <tr><td>Config change didn&#8217;t stick</td><td>Apply pushed but daemon applied an older revision</td><td>Check Revisions; re-apply the fix and confirm the note</td></tr>
+    </tbody>
+  </table>
+
+  <!-- Chapter 9: Rhythms -->
+  <div class="chapter-header">
+    <div class="section-tag">Cadence</div>
+    <div class="section-title">Operating Rhythms &amp; Quick Reference</div>
+    <div class="divider"></div>
+  </div>
+  <p class="body-text">
+    The platform rewards a calm operator more than a busy one. The rhythms below are the
+    entire ongoing workload once your first miner is tuned: a one-time setup measured in
+    minutes, a daily glance of roughly five, and a weekly fifteen-minute review. Everything
+    else is event-driven — the DevOps Engine pings you when reality changes and stays silent
+    when it hasn&#8217;t.
+  </p>
+  <table>
+    <thead>
+      <tr><th style="width:22%;">Rhythm</th><th style="width:26%;">Time</th><th>What you actually do</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><b>First-time setup</b></td><td>~30 minutes, once</td><td>Phase 0 keys &#8594; pick subnet &#8594; run the Deploy Wizard &#8594; daemon online &#8594; judge &#8594; apply the top fixes.</td></tr>
+      <tr><td><b>Daily</b></td><td>~5 minutes</td><td>Glance at Monitoring: composite, daemon ages, cost vs revenue, escalations. Touch nothing that is green.</td></tr>
+      <tr><td><b>Weekly</b></td><td>~15 minutes</td><td>Re-run Judge Lab, compare the composite with last week, re-mine the profile if upstream changed, apply drifts. Skim System &amp; Errors for recurring warnings.</td></tr>
+      <tr><td><b>On alert</b></td><td>as needed</td><td>Follow the recovery order: System &amp; Errors &#8594; Monitoring scope &#8594; card logs/config &#8594; Revisions rollback &#8594; daemon re-paste.</td></tr>
+    </tbody>
+  </table>
+
+  <p class="body-text"><b>Quick reference — the whole loop, with exact button names:</b></p>
+  <table>
+    <thead>
+      <tr><th style="width:14%;">Step</th><th style="width:30%;">Where</th><th>Action</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Pick</td><td>Subnets</td><td>Sync all &#8594; active-only filter &#8594; choose netuid (ROI, dereg risk, seats)</td></tr>
+      <tr><td>Deploy</td><td>GPU Catalog</td><td>Connect provider key (once) &#8594; Provision &#8594; wizard: Subnet &#8594; Requirements &#8594; GPU &#8594; Install &#8594; Hotkey &amp; run</td></tr>
+      <tr><td>Connect</td><td>Deployments</td><td>Install daemon &#8594; Copy setup command &#8594; paste on pod (SSH or provider start script) &#8594; chip Online</td></tr>
+      <tr><td>Judge</td><td>Judge Lab</td><td>Select subnet &#8594; Re-mine profile (first time / upstream change) &#8594; Run simulation &#8594; read verdict</td></tr>
+      <tr><td>Apply</td><td>Judge Lab</td><td>Apply on a recommendation &#8594; pick deployment &#8594; confirm &#8594; snapshot + push</td></tr>
+      <tr><td>Operate</td><td>Monitoring · DevOps</td><td>Daily glance; let the 14 triggers act; re-judge on UPSTREAM / BENCH REGRESS / weekly</td></tr>
+      <tr><td>Recover</td><td>System &amp; Errors</td><td>Platform health first, then card logs, then Revisions rollback</td></tr>
+    </tbody>
+  </table>
+
+  <div class="note">
+    <p><b>Strengths and cautions, honestly stated:</b> the platform&#8217;s strongest assets are
+    the honest transmission labeling (mock vs live is never blurred), the revision snapshots
+    behind every apply, and the closed Judge&#8594;Apply loop. Its sharp edges: preview URLs can
+    leak into copied configs, mock deployments can pollute fleet views if you experiment in
+    the same workspace, spot instances can be evicted mid-run (prefer persistent pods for
+    long-lived miners), and a data-source outage can masquerade as a miner failure — always
+    check System &amp; Errors before surgery.</p>
+  </div>
+
+</div>
+
+<!-- ================= ENDING ================= -->
+<div class="ending">
+  <div class="ending-frame"></div>
+  <div class="ending-center">
+    <div class="ending-kicker">The Whole Handbook in One Line</div>
+    <div class="ending-big">Mine. Judge. Apply.<br>Repeat.</div>
+    <div class="ending-text">
+      The golden path never changes: pick a subnet worth mining, put a real GPU under it,
+      connect the daemon so the platform has hands on the machine, let the Judge Lab find
+      the gap between your miner and the validator&#8217;s expectations, and apply the fixes
+      with one click. After that, Monitoring and the DevOps Engine keep watch — and you
+      only return when an alert, an upstream change, or the weekly review calls you back.
+    </div>
+    <div class="ending-path">
+      Subnet &#8594; GPU &#8594; Daemon online &#8594; Judge &#8594; Apply &#8594; Operate
+    </div>
+  </div>
+  <div class="ending-footer">
+    <span>Infranex BT · Operator Handbook</span>
+    <span>Edition 1 · September 2026</span>
+  </div>
+</div>
+
+</body>
+</html>
