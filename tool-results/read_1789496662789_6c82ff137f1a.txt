@@ -1,0 +1,732 @@
+     1→     1→// This is your Prisma schema file,
+     2→     2→// learn more about it in the docs: https://pris.ly/d/prisma-schema
+     3→     3→
+     4→     4→generator client {
+     5→     5→  provider = "prisma-client-js"
+     6→     6→}
+     7→     7→
+     8→     8→datasource db {
+     9→     9→  // Local development uses SQLite. For Vercel/Neon deployment, change this
+    10→    10→  // to "postgresql" and set DATABASE_URL to your Neon connection string.
+    11→    11→  // See README.md "Deployment" section.
+    12→    12→  provider = "sqlite"
+    13→    13→  url      = env("DATABASE_URL")
+    14→    14→}
+    15→    15→
+    16→    16→model Deployment {
+    17→    17→  id              String   @id @default(cuid())
+    18→    18→  minerName       String
+    19→    19→  netuid          Int
+    20→    20→  subnetName      String
+    21→    21→  gpuModel        String
+    22→    22→  provider        String
+    23→    23→  status          String   @default("requested")
+    24→    24→  progress        Int      @default(0)
+    25→    25→  mode            String   @default("mock") // "mock" | "runpod" | "vast"
+    26→    26→  // TIER4 — ownership attribution (light tenancy). Null = team-shared
+    27→    27→  // (legacy/pre-existing deployments stay visible and operable for everyone);
+    28→    28→  // new deployments created by a signed-in operator record their creator.
+    29→    29→  ownerUserId     String?
+    30→    30→  createdByLabel  String?
+    31→    31→  hourlyCost      Float
+    32→    32→  monthlyCost     Float
+    33→    33→  estimatedRevenue Float   @default(0)
+    34→    34→  // Deployment config (JSON string for SQLite): docker image, miner command, ports, env vars
+    35→    35→  config          String
+    36→    36→  // Provider-side pod/server ID (RunPod pod id, etc.)
+    37→    37→  providerPodId   String?
+    38→    38→  // Hotkey for the miner
+    39→    39→  hotkey          String?
+    40→    40→  // Ephemeral per-pod ed25519 SSH key (private side AES-256-GCM encrypted;
+    41→    41→  // public key was injected into the pod at deploy time).
+    42→    42→  sshPublicKey    String?
+    43→    43→  sshPrivKeyEnc   String?
+    44→    44→  sshPort         Int?
+    45→    45→  // Pod public IP — captured when the provisioning poller sees RUNNING;
+    46→    46→  // the real-setup runner SSHes here to install the subnet's requirements.
+    47→    47→  sshHost         String?
+    48→    48→  // Real-setup install runner state on this deployment:
+    49→    49→  //   "running" | "awaiting_wallet" | "installed" | "failed" | null (not started)
+    50→    50→  installStatus   String?
+    51→    51→  // InstallStep[] JSON — the real install plan + per-step progress/output.
+    52→    52→  installStepsJson String?
+    53→    53→  // Snapshot of the SubnetRequirementsProfile the plan was built from.
+    54→    54→  requirementsJsonSnapshot String?
+    55→    55→  // WALLET-ECON-1 — optional reference to the wallet profile this deployment
+    56→    56→  // mines with (public metadata only; no wallet secrets live in the platform).
+    57→    57→  walletProfileId String?
+    58→    58→  // Registration burn (TAO) recorded when the hotkey's registration confirmed
+    59→    59→  // — the subnet burnCostTao at that block.
+    60→    60→  registrationBurnTao Float?
+    61→    61→  // Registration lifecycle (Phase 2) — the miner runs BEFORE its hotkey is
+    62→    62→  // registered; the platform tracks the on-chain transition.
+    63→    63→  //   "unregistered" | "registered"   (null = nothing to check yet: not
+    64→    64→  //   started, or no valid SS58 hotkey attached)
+    65→    65→  registrationState  String?
+    66→    66→  // UID the hotkey occupies on the subnet's metagraph (when registered).
+    67→    67→  registeredUid      Int?
+    68→    68→  // Chain block at which the registration tx confirmed — the origin of the
+    69→    69→  // immunity window (registrationBlock + immunityPeriod − current block).
+    70→    70→  registrationBlock  Int?
+    71→    71→  // Last chain check (throttle: one check per 30 s per deployment).
+    72→    72→  registrationCheckedAt DateTime?
+    73→    73→  // One-shot flag: the approval-gated miner restart after registration
+    74→    74→  // (the axon re-announces on-chain so validators find the new UID).
+    75→    75→  restartedAfterRegistration Boolean @default(false)
+    76→    76→  // Step log: JSON array of { name, label, status, startedAt, completedAt, output }
+    77→    77→  steps           String   @default("[]")
+    78→    78→  createdAt       DateTime @default(now())
+    79→    79→  updatedAt       DateTime @updatedAt
+    80→    80→
+    81→    81→  @@index([status])
+    82→    82→  @@index([netuid])
+    83→    83→  @@index([ownerUserId])
+    84→    84→}
+    85→    85→
+    86→    86→model SubnetOverride {
+    87→    87→  netuid        Int      @id
+    88→    88→  name           String?
+    89→    89→  description    String?
+    90→    90→  category       String?
+    91→    91→  minVramGb      Int?
+    92→    92→  recommendedGpu String?
+    93→    93→  githubUrl      String?
+    94→    94→  website        String?
+    95→    95→  tags           String?  // JSON array
+    96→    96→  createdAt      DateTime @default(now())
+    97→    97→  updatedAt      DateTime @updatedAt
+    98→    98→}
+    99→    99→
+   100→   100→model ChainSnapshot {
+   101→   101→  id              Int      @id @default(autoincrement())
+   102→   102→  blockNumber     Int
+   103→   103→  totalSubnets    Int
+   104→   104→  scannedSubnets  Int
+   105→   105→  neuronCount     Int
+   106→   106→  taoPriceUsd     Float
+   107→   107→  taoMarketCapUsd Float
+   108→   108→  taoChange24h    Float
+   109→   109→  subnetsJson     String   // JSON array of LiveSubnetMetrics
+   110→   110→  neuronsJson     String   @default("[]") // JSON array of NeuronMetrics
+   111→   111→  source          String
+   112→   112→  createdAt       DateTime @default(now())
+   113→   113→
+   114→   114→  @@index([createdAt])
+   115→   115→}
+   116→   116→
+   117→   117→model WorkerStatus {
+   118→   118→  id              Int      @id @default(autoincrement())
+   119→   119→  workerName      String
+   120→   120→  status          String   // "running" | "completed" | "failed"
+   121→   121→  lastRun         DateTime
+   122→   122→  durationMs      Int
+   123→   123→  tasksProcessed  Int
+   124→   124→  error           String?
+   125→   125→  createdAt       DateTime @default(now())
+   126→   126→
+   127→   127→  @@index([workerName])
+   128→   128→  @@index([createdAt])
+   129→   129→}
+   130→   130→
+   131→   131→// Singleton row (id = 1) — Profitability Engine settings, editable from the UI.
+   132→   132→// The minimum entry rule lives here, NOT buried in code:
+   133→   133→//   net profit < minNetProfitTargetUsd  →  AVOID
+   134→   134→model ProfitabilitySettings {
+   135→   135→  id                      Int      @id @default(1)
+   136→   136→  minNetProfitTargetUsd   Float    @default(300)
+   137→   137→  storageMonthlyUsd       Float    @default(15)
+   138→   138→  infraMonthlyUsd         Float    @default(0) // 0 = auto by work type
+   139→   139→  otherOpexMonthlyUsd     Float    @default(25)
+   140→   140→  hardwareMode            String   @default("rent") // "rent" | "owned"
+   141→   141→  electricityUsdPerKwh    Float    @default(0.12)
+   142→   142→  includeRegistrationBurn Boolean  @default(true)
+   143→   143→  amortizeBurnMonths      Int      @default(3)
+   144→   144→  riskAdjustment          Boolean  @default(true)
+   145→   145→  updatedAt               DateTime @updatedAt
+   146→   146→}
+   147→   147→
+   148→   148→// ---------------------------------------------------------------------------
+   149→   149→// DevOps Engine — GPU host inventory + the 10-step validation pipeline.
+   150→   150→// ---------------------------------------------------------------------------
+   151→   151→
+   152→   152→// A GPU machine the engine controls over SSH (BYO box, colo rig, RunPod pod).
+   153→   153→// transport: "ssh" (real machine) | "mock" (simulated host for safe demos)
+   154→   154→model GpuHost {
+   155→   155→  id              String   @id @default(cuid())
+   156→   156→  name            String
+   157→   157→  transport       String   @default("ssh") // "ssh" | "mock"
+   158→   158→  host            String   // hostname / IP
+   159→   159→  port            Int      @default(22)
+   160→   160→  user            String   @default("root")
+   161→   161→  // Auth secret (password or PEM key), AES-256-GCM encrypted at rest.
+   162→   162→  secretEnc       String
+   163→   163→  // "password" | "key"
+   164→   164→  authMethod      String   @default("password")
+   165→   165→  provider        String   @default("byo") // "byo" | "runpod"
+   166→   166→  providerPodId   String?
+   167→   167→  // Overall pipeline status: "pending" | "validating" | "ready" | "needs_fix" | "failed"
+   168→   168→  status          String   @default("pending")
+   169→   169→  // Auto-fix safe items (docker/toolkit installs) without per-step approval.
+   170→   170→  autoFixSafe     Boolean  @default(false)
+   171→   171→  // Last successful inspection summary (gpu model, vram, driver, cuda, os)
+   172→   172→  hostInfo        String?  // JSON
+   173→   173→  createdAt       DateTime @default(now())
+   174→   174→  updatedAt       DateTime @updatedAt
+   175→   175→
+   176→   176→  @@index([status])
+   177→   177→}
+   178→   178→
+   179→   179→// One row per pipeline step per validation run.
+   180→   180→// status: "pending" | "running" | "pass" | "fail" | "fixed" | "skipped"
+   181→   181→model HostCheck {
+   182→   182→  id          String   @id @default(cuid())
+   183→   183→  hostId      String
+   184→   184→  runId       String   // groups the steps of one validation run
+   185→   185→  step        Int      // 1-10
+   186→   186→  name        String
+   187→   187→  status      String   @default("pending")
+   188→   188→  output      String   @default("") // command output / findings
+   189→   189→  remediation String?  // suggested fix (human text) when failed
+   190→   190→  durationMs  Int      @default(0)
+   191→   191→  createdAt   DateTime @default(now())
+   192→   192→
+   193→   193→  @@index([hostId, runId])
+   194→   194→  @@index([hostId, step])
+   195→   195→}
+   196→   196→
+   197→   197→// ---------------------------------------------------------------------------
+   198→   198→// Subnet Requirements Profiler — what a subnet NEEDS, pulled from the subnet
+   199→   199→// itself: chain identity + its GitHub repo (README, requirements.txt,
+   200→   200→// pyproject.toml, Dockerfile, repo tree → miner entrypoint). Cached per netuid.
+   201→   201→// ---------------------------------------------------------------------------
+   202→   202→model SubnetRequirements {
+   203→   203→  netuid      Int      @id
+   204→   204→  subnetName  String
+   205→   205→  profileJson String   // SubnetRequirementsProfile JSON
+   206→   206→  confidence  String   @default("medium") // "high" | "medium" | "low"
+   207→   207→  sources     String   @default("[]")     // JSON array: "chain" | "github" | "curated"
+   208→   208→  fetchedAt   DateTime
+   209→   209→  updatedAt   DateTime @updatedAt
+   210→   210→}
+   211→   211→
+   212→   212→// One subnet installation on one host — the requirement installer's job record.
+   213→   213→// status: "staged" | "running" | "waiting_approval" | "deployed" | "failed" | "stopped"
+   214→   214→model HostInstall {
+   215→   215→  id               String   @id @default(cuid())
+   216→   216→  hostId           String
+   217→   217→  netuid           Int
+   218→   218→  subnetName       String
+   219→   219→  walletName       String
+   220→   220→  hotkeyName       String
+   221→   221→  status           String   @default("staged")
+   222→   222→  requirementsJson String   // snapshot of the profile used to build the plan
+   223→   223→  stepsJson        String   @default("[]") // InstallStep[] JSON
+   224→   224→  createdAt        DateTime @default(now())
+   225→   225→  updatedAt        DateTime @updatedAt
+   226→   226→
+   227→   227→  @@index([hostId])
+   228→   228→  @@index([netuid])
+   229→   229→}
+   230→   230→
+   231→   231→// ---------------------------------------------------------------------------
+   232→   232→// Judge Intelligence — per-subnet validator ("judge") scoring profiles + the
+   233→   233→// mock-validator simulation runs. One profile per netuid; runs are persisted
+   234→   234→// simulations of "how would MY miner score against this judge".
+   235→   235→// ---------------------------------------------------------------------------
+   236→   236→
+   237→   237→model JudgeProfile {
+   238→   238→  id             String   @id @default(cuid())
+   239→   239→  netuid         Int      @unique
+   240→   240→  subnetName     String
+   241→   241→  // Archetype: "latency_race" | "quality_judge" | "market_clearing" |
+   242→   242→  //            "uptime_sla" | "resource_fit" | "unknown"
+   243→   243→  judgeKind      String
+   244→   244→  summary        String
+   245→   245→  // Dimension weights JSON: { key, label, weight, evidence[] }[]
+   246→   246→  dimensionsJson String
+   247→   247→  // Cohort telemetry JSON: { registeredUids, earningUids, earningRatio,
+   248→   248→  //   medianIncentive, meanIncentive, top10Take, brutality, band }
+   249→   249→  cohortJson     String
+   250→   250→  confidence     Float    @default(0)
+   251→   251→  // Sources JSON: [{ kind: "validator_code" | "readme" | "tree" | "chain", url?, note }]
+   252→   252→  sourcesJson    String   @default("[]")
+   253→   253→  fetchedAt      DateTime @default(now())
+   254→   254→  updatedAt      DateTime @updatedAt
+   255→   255→
+   256→   256→  @@index([netuid])
+   257→   257→}
+   258→   258→
+   259→   259→model JudgeRun {
+   260→   260→  id         String   @id @default(cuid())
+   261→   261→  netuid     Int
+   262→   262→  subnetName String
+   263→   263→  // MinerSpec JSON: { latencyMs, uptimePct, qualityPct, throughputTps, pricePerMTokUsd }
+   264→   264→  specJson   String
+   265→   265→  // SimulationResult JSON: { composite, verdict, percentileEstimate,
+   266→   266→  //   medianMultiple, dimensionScores[], recommendations[] }
+   267→   267→  resultJson String
+   268→   268→  composite  Float
+   269→   269→  verdict    String
+   270→   270→  createdAt  DateTime @default(now())
+   271→   271→
+   272→   272→  @@index([netuid])
+   273→   273→  @@index([createdAt])
+   274→   274→}
+   275→   275→
+   276→   276→// ---------------------------------------------------------------------------
+   277→   277→// Trigger Engine — scheduled evaluations that can propose actions (resync,
+   278→   278→// scale, kill, deregistration defense). Every action is APPROVAL-GATED:
+   279→   279→// the engine creates events, humans approve, then the action executes.
+   280→   280→// ---------------------------------------------------------------------------
+   281→   281→
+   282→   282→model TriggerEvent {
+   283→   283→  id            String   @id @default(cuid())
+   284→   284→  // "RE_SYNC" | "SCALE" | "KILL" | "DEREG_RISK"
+   285→   285→  kind          String
+   286→   286→  severity      String   @default("info") // "info" | "warning" | "critical"
+   287→   287→  // "open" | "approved" | "acted" | "dismissed" | "resolved"
+   288→   288→  status        String   @default("open")
+   289→   289→  title         String
+   290→   290→  detail        String   @default("")
+   291→   291→  // Evidence JSON (arbitrary per-kind payload)
+   292→   292→  evidenceJson  String   @default("{}")
+   293→   293→  deploymentId  String?
+   294→   294→  netuid        Int?
+   295→   295→  // Dedupe key — one open event per (kind, key)
+   296→   296→  dedupeKey     String
+   297→   297→  // Runbook steps JSON: string[] shown to the operator when approving
+   298→   298→  runbookJson   String   @default("[]")
+   299→   299→  createdAt     DateTime @default(now())
+   300→   300→  resolvedAt    DateTime?
+   301→   301→  updatedAt     DateTime @updatedAt
+   302→   302→
+   303→   303→  // TIER3 FIX — the old @@unique([kind, dedupeKey, status]) silently capped
+   304→   304→  // every condition at ONE acted event for the platform's lifetime: the
+   305→   305→  // second approve→act cycle of the same (kind, dedupeKey) hit P2002 (e.g.
+   306→   306→  // a pod that cycles down twice). Open-event dedupe is enforced in code by
+   307→   307→  // commitFinding (findFirst among status:"open"), which is the semantics
+   308→   308→  // we actually want; history rows must be allowed to repeat.
+   309→   309→  @@index([status])
+   310→   310→  @@index([kind])
+   311→   311→  @@index([deploymentId])
+   312→   312→}
+   313→   313→
+   314→   314→// ---------------------------------------------------------------------------
+   315→   315→// UID Defense — per-deployment metagraph samples of the miner's own UID.
+   316→   316→// ~120-row retention; feeds the DEREG-RISK trigger evaluator.
+   317→   317→// ---------------------------------------------------------------------------
+   318→   318→
+   319→   319→model UidSnapshot {
+   320→   320→  id            String   @id @default(cuid())
+   321→   321→  deploymentId  String
+   322→   322→  netuid        Int
+   323→   323→  uid           Int?
+   324→   324→  hotkey        String
+   325→   325→  // 0-1 normalized u16 chain values
+   326→   326→  active        Boolean?
+   327→   327→  incentive     Float?
+   328→   328→  consensus     Float?
+   329→   329→  emission      Float?
+   330→   330→  validatorTrust Float?
+   331→   331→  lastUpdate    Int?
+   332→   332→  // "healthy" | "warning" | "critical"
+   333→   333→  riskLevel     String   @default("healthy")
+   334→   334→  riskCodesJson String   @default("[]")
+   335→   335→  createdAt     DateTime @default(now())
+   336→   336→
+   337→   337→  @@index([deploymentId, createdAt])
+   338→   338→  @@index([netuid, uid])
+   339→   339→}
+   340→   340→
+   341→   341→// ---------------------------------------------------------------------------
+   342→   342→// Node Daemon — the tiny agent installed on each GPU host that POSTs HMAC-
+   343→   343→// signed telemetry and polls for approved commands (restart_miner etc.).
+   344→   344→// ---------------------------------------------------------------------------
+   345→   345→
+   346→   346→model DaemonState {
+   347→   347→  id           String   @id @default(cuid())
+   348→   348→  deploymentId String   @unique
+   349→   349→  // "pending" | "online" | "unreachable"
+   350→   350→  status       String   @default("pending")
+   351→   351→  // HMAC-SHA256 secret for telemetry auth (shown once at install).
+   352→   352→  secretEnc    String
+   353→   353→  version      String?
+   354→   354→  // Latest telemetry payload JSON (cpu/mem/gpu/process/latency).
+   355→   355→  telemetryJson String?
+   356→   356→  // Command queue JSON: [{ id, command, args, createdAt, deliveredAt? }]
+   357→   357→  commandsJson String   @default("[]")
+   358→   358→  lastSeenAt   DateTime?
+   359→   359→  createdAt    DateTime @default(now())
+   360→   360→  updatedAt    DateTime @updatedAt
+   361→   361→
+   362→   362→  @@index([status])
+   363→   363→}
+   364→   364→
+   365→   365→// ---------------------------------------------------------------------------
+   366→   366→// Provider API Keys — user-supplied credentials for GPU marketplace APIs
+   367→   367→// (RunPod, Vast.ai, Lambda Labs). Managed from the GPU catalog UI. Encrypted
+   368→   368→// at rest with the same AES-256-GCM scheme as DevOps host secrets; the
+   369→   369→// plaintext key NEVER leaves the server (API responses carry a masked hint
+   370→   370→// only). Used to pull live offer data and to power real rentals/monitoring.
+   371→   371→// ---------------------------------------------------------------------------
+   372→   372→
+   373→   373→model ProviderKey {
+   374→   374→  id            String   @id @default(cuid())
+   375→   375→  // "runpod" | "vast" | "lambda" (see PROVIDER_META in src/lib/infranex/providers.ts)
+   376→   376→  provider      String   @unique
+   377→   377→  keyEnc        String
+   378→   378→  // "unverified" | "valid" | "invalid" | "error"
+   379→   379→  status        String   @default("unverified")
+   380→   380→  // Human-readable result of the last validation attempt.
+   381→   381→  statusMessage String?
+   382→   382→  lastCheckedAt DateTime?
+   383→   383→  createdAt     DateTime @default(now())
+   384→   384→  updatedAt     DateTime @updatedAt
+   385→   385→}
+   386→   386→
+   387→   387→// ---------------------------------------------------------------------------
+   388→   388→// DevOps Monitor (DEVOPS-1) — GPU telemetry history. The scheduled DevOps
+   389→   389→// pass snapshots each started deployment's latest daemon telemetry into this
+   390→   390→// table every pass, enabling sparklines + trend detection (rising temp,
+   391→   391→// decaying util) instead of single-alarm snapshots. ~240 rows per deployment.
+   392→   392→// ---------------------------------------------------------------------------
+   393→   393→
+   394→   394→model GpuSample {
+   395→   395→  id           String   @id @default(cuid())
+   396→   396→  deploymentId String
+   397→   397→  // "online" | "unreachable" | "missing" | "mock" — daemon state at sample time
+   398→   398→  daemonStatus String
+   399→   399→  gpuUtilPct   Float?
+   400→   400→  memUsedMb    Float?
+   401→   401→  memTotalMb   Float?
+   402→   402→  tempC        Float?
+   403→   403→  // Miner process alive per daemon (null = unknown / no telemetry)
+   404→   404→  processAlive Boolean?
+   405→   405→  createdAt    DateTime @default(now())
+   406→   406→
+   407→   407→  @@index([deploymentId, createdAt])
+   408→   408→}
+   409→   409→
+   410→   410→// ---------------------------------------------------------------------------
+   411→   411→// DEVOPS-4 — Service Health & Validator Traffic.
+   412→   412→//
+   413→   413→// ProbeSample: one synthetic probe per devops pass against the miner's axon
+   414→   414→// endpoint (HTTP POST with timing). ok=false means the endpoint refused,
+   415→   415→// timed out or answered 5xx — the endpoint validators would fail against.
+   416→   416→// TrafficSample: validator-side query stats parsed from the host's miner log
+   417→   417→// by the Node Daemon (requests per window, distinct validator hotkeys).
+   418→   418→// ~240 rows per deployment each (≈6h at 90s cadence).
+   419→   419→// ---------------------------------------------------------------------------
+   420→   420→
+   421→   421→model ProbeSample {
+   422→   422→  id           String   @id @default(cuid())
+   423→   423→  deploymentId String
+   424→   424→  // host:port that was probed (null when no endpoint could be resolved)
+   425→   425→  endpoint     String?
+   426→   426→  // "mock" | "real"
+   427→   427→  mode         String
+   428→   428→  ok           Boolean
+   429→   429→  httpStatus   Int?
+   430→   430→  // ms to first byte (headers) / ms full round trip
+   431→   431→  ttfbMs       Float?
+   432→   432→  totalMs      Float?
+   433→   433→  // "timeout" | "connect" | "dns" | "http-5xx" | null (ok probes)
+   434→   434→  errorKind    String?
+   435→   435→  errorDetail  String?
+   436→   436→  createdAt    DateTime @default(now())
+   437→   437→
+   438→   438→  @@index([deploymentId, createdAt])
+   439→   439→}
+   440→   440→
+   441→   441→model TrafficSample {
+   442→   442→  id                 String  @id @default(cuid())
+   443→   443→  deploymentId       String
+   444→   444→  // Daemon reporting window in minutes (usually ~60)
+   445→   445→  windowMinutes      Int?
+   446→   446→  // Requests seen in the window; null = unknown (logs not parsable)
+   447→   447→  requests           Int?
+   448→   448→  distinctValidators Int?
+   449→   449→  // Most frequent validator hotkey in the window (SS58)
+   450→   450→  topValidatorHotkey String?
+   451→   451→  topValidatorCount  Int?
+   452→   452→  // Whether the daemon actually found a parsable miner log
+   453→   453→  logFound           Boolean @default(false)
+   454→   454→  createdAt          DateTime @default(now())
+   455→   455→
+   456→   456→  @@index([deploymentId, createdAt])
+   457→   457→}
+   458→   458→
+   459→   459→// ---------------------------------------------------------------------------
+   460→   460→// TIER1-1 — Live miner logs (spec §45). The Node Daemon tails the miner log
+   461→   461→// incrementally each telemetry POST (severity parsed per line: info / success
+   462→   462→// / warning / error); the platform stores a rolling window per deployment so
+   463→   463→// the DevOps board can show WHAT the miner is actually saying, not just its
+   464→   464→// vitals. lineKey dedupes daemon retries reporting the same lines.
+   465→   465→// ~200 rows per deployment.
+   466→   466→// ---------------------------------------------------------------------------
+   467→   467→
+   468→   468→model MinerLog {
+   469→   469→  id           String   @id @default(cuid())
+   470→   470→  deploymentId String
+   471→   471→  at           DateTime
+   472→   472→  // "info" | "success" | "warning" | "error"
+   473→   473→  severity     String   @default("info")
+   474→   474→  // "miner" | "daemon" | "system"
+   475→   475→  source       String   @default("miner")
+   476→   476→  message      String
+   477→   477→  // sha1(deploymentId|at|message) — duplicate lines from daemon restarts are skipped
+   478→   478→  lineKey      String
+   479→   479→  createdAt    DateTime @default(now())
+   480→   480→
+   481→   481→  @@index([deploymentId, at])
+   482→   482→  @@index([deploymentId, lineKey])
+   483→   483→}
+   484→   484→
+   485→   485→// ---------------------------------------------------------------------------
+   486→   486→// TIER2 — Deployment config revisions (spec §20/§25 rollback). Every config-
+   487→   487→// mutating action snapshots the PREVIOUS config here before writing, so any
+   488→   488→// change (initial deploy, drift remediation, runtime optimization, a rollback
+   489→   489→// itself) can be undone: restore the JSON, push apply_config via the daemon.
+   490→   490→// The escalation ladder points at the newest revision that differs from the
+   491→   491→// current config as the "last known-good" rollback target.
+   492→   492→// ~20 rows per deployment (pruned oldest-first).
+   493→   493→// ---------------------------------------------------------------------------
+   494→   494→
+   495→   495→model DeploymentRevision {
+   496→   496→  id           String   @id @default(cuid())
+   497→   497→  deploymentId String
+   498→   498→  // Monotonic per-deployment revision number (r1 = initial deploy config).
+   499→   499→  rev          Int
+   500→   500→  // "deploy" | "drift" | "runtime-opt" | "rollback-backup"
+   501→   501→  cause        String
+   502→   502→  // Full DeploymentConfig JSON that was active BEFORE the next change.
+   503→   503→  configJson   String
+   504→   504→  // Requirements profile snapshot at that time (when one existed).
+   505→   505→  requirementsJson String?
+   506→   506→  // Human note: what changed, or which rollback this backup was taken for.
+   507→   507→  note         String   @default("")
+   508→   508→  // "engine" (automation) or the operator userId for manual changes.
+   509→   509→  actor        String   @default("engine")
+   510→   510→  createdAt    DateTime @default(now())
+   511→   511→
+   512→   512→  @@unique([deploymentId, rev])
+   513→   513→  @@index([deploymentId, createdAt])
+   514→   514→}
+   515→   515→
+   516→   516→// Gated-access user base (AUTH-1). Only rows here can sign in on /login with
+   517→   517→// userId + access code. Codes are stored ONE-WAY hashed (scrypt salt:hash)
+   518→   518→// for verification, plus AES-256-GCM encrypted (codeEnc) so the admin panel
+   519→   519→// can display them. Plaintext mirror lives in scripts/users.local.json
+   520→   520→// (gitignored) and /tmp/my-project/infranex-users.local.json (wipe-proof).
+   521→   521→model AppUser {
+   522→   522→  userId      String    @id
+   523→   523→  codeHash    String
+   524→   524→  codeEnc     String?
+   525→   525→  label       String?
+   526→   526→  // "admin" | "member" — admin unlocks the Admin Panel view + APIs.
+   527→   527→  role        String    @default("member")
+   528→   528→  active      Boolean   @default(true)
+   529→   529→  lastLoginAt DateTime?
+   530→   530→  createdAt   DateTime  @default(now())
+   531→   531→  updatedAt   DateTime  @updatedAt
+   532→   532→}
+   533→   533→
+   534→   534→// TIER3 — Autopilot policy engine. Operator-defined rules that let the
+   535→   535→// engine auto-approve + execute trigger events without waiting for a human.
+   536→   536→// Every execution still goes through actOnTrigger (the ONLY deployment-
+   537→   537→// mutating path), so the change feed remains the full audit trail.
+   538→   538→model AutopilotRule {
+   539→   539→  id        String   @id @default(cuid())
+   540→   540→  name      String
+   541→   541→  // TriggerKind to match, or "ANY" for all kinds. Destructive kinds
+   542→   542→  // (KILL / ESCALATION / recycle suggestions) are denylisted in code and
+   543→   543→  // can never be auto-acted regardless of rules.
+   544→   544→  kind      String   @default("ANY")
+   545→   545→  // Minimum severity this rule acts on: info < warning < critical.
+   546→   546→  minSeverity String @default("warning")
+   547→   547→  // Max auto-executions per rolling hour (rate limit).
+   548→   548→  maxPerHour Int     @default(3)
+   549→   549→  enabled   Boolean  @default(true)
+   550→   550→  createdAt DateTime @default(now())
+   551→   551→  updatedAt DateTime @updatedAt
+   552→   552→}
+   553→   553→
+   554→   554→// TIER3 — Git intelligence: upstream repo state per netuid. The first
+   555→   555→// check adopts the current release/commit as the baseline (no event);
+   556→   556→// later checks commit UPSTREAM_DRIFT trigger events when the repo moves.
+   557→   557→model UpstreamState {
+   558→   558→  id        String   @id @default(cuid())
+   559→   559→  netuid    Int      @unique
+   560→   560→  repoUrl   String
+   561→   561→  lastTag   String?
+   562→   562→  lastTagAt DateTime?
+   563→   563→  lastSha   String?
+   564→   564→  lastShaAt DateTime?
+   565→   565→  checkedAt DateTime @default(now())
+   566→   566→  updatedAt DateTime @updatedAt
+   567→   567→}
+   568→   568→
+   569→   569→// TIER3 — Benchmark harness history: periodic synthetic axon-latency runs
+   570→   570→// per deployment. Regressions vs the rolling baseline commit BENCH_REGRESS
+   571→   571→// trigger events; mocks are recorded but never alarm.
+   572→   572→model BenchmarkRun {
+   573→   573→  id           String   @id @default(cuid())
+   574→   574→  deploymentId String
+   575→   575→  at           DateTime @default(now())
+   576→   576→  // Benchmark kind, e.g. "axon-latency".
+   577→   577→  bench        String   @default("axon-latency")
+   578→   578→  samples      Int
+   579→   579→  okCount      Int
+   580→   580→  p50Ms        Float?
+   581→   581→  p95Ms        Float?
+   582→   582→  successPct   Float
+   583→   583→  // "mock" | "real" — mock runs are simulated numbers, never alarm.
+   584→   584→  mode         String   @default("real")
+   585→   585→  errorKind    String?
+   586→   586→  detailJson   String   @default("{}")
+   587→   587→
+   588→   588→  @@index([deploymentId, at])
+   589→   589→}
+   590→   590→
+   591→   591→// TIER4 — External alerting: operator-configured webhook channels that
+   592→   592→// receive trigger events as they are committed (Slack / Discord / generic).
+   593→   593→// URLs are stored AES-256-GCM encrypted (same scheme as provider keys) and
+   594→   594→// never returned to the client.
+   595→   595→model AlertChannel {
+   596→   596→  id          String   @id @default(cuid())
+   597→   597→  name        String
+   598→   598→  // "generic" (POST {text,event}) | "slack" ({text}) | "discord" ({content}).
+   599→   599→  kind        String   @default("generic")
+   600→   600→  // Webhook URL, encrypted at rest.
+   601→   601→  urlEnc      String
+   602→   602→  // Forward events at this severity or above: "warning" | "critical".
+   603→   603→  minSeverity String   @default("critical")
+   604→   604→  // Also receive the hourly fleet digest (open events + economics).
+   605→   605→  digest      Boolean  @default(false)
+   606→   606→  enabled     Boolean  @default(true)
+   607→   607→  // Delivery bookkeeping (updated by the dispatcher).
+   608→   608→  lastStatus  String?
+   609→   609→  lastError   String?
+   610→   610→  lastSentAt  DateTime?
+   611→   611→  sentCount   Int      @default(0)
+   612→   612→  failCount   Int      @default(0)
+   613→   613→  createdAt   DateTime @default(now())
+   614→   614→  updatedAt   DateTime @updatedAt
+   615→   615→}
+   616→   616→
+   617→   617→// TIER4 — AI Ops Agent: persisted fleet analyses. Each note is one LLM run
+   618→   618→// over the live monitor payload (optional operator question included).
+   619→   619→model AgentNote {
+   620→   620→  id        String   @id @default(cuid())
+   621→   621→  // The operator's question, when the analysis was asked something specific.
+   622→   622→  question  String?
+   623→   623→  // The agent's full answer (markdown-ish text).
+   624→   624→  content   String
+   625→   625→  // { model, latencyMs, miners, openEvents, netUsdPerDay, ... } context stats.
+   626→   626→  metaJson  String   @default("{}")
+   627→   627→  createdAt DateTime @default(now())
+   628→   628→
+   629→   629→  @@index([createdAt])
+   630→   630→}
+   631→   631→
+   632→   632→// ---------------------------------------------------------------------------
+   633→   633→// WALLET-ECON-1 — live-mining persistence layer. Public wallet metadata,
+   634→   634→// platform settings, real spend/earnings rollups, and the security audit
+   635→   635→// trail. By design NO wallet secrets are stored anywhere: the coldkey
+   636→   636→// mnemonic stays offline (paper/laptop) and the hotkey private file lives
+   637→   637→// only on the mining host (hotkey-only policy).
+   638→   638→// ---------------------------------------------------------------------------
+   639→   639→
+   640→   640→// Named registry of PUBLIC bittensor wallet metadata — reusable across
+   641→   641→// deployments and displayed as "which wallet mines where".
+   642→   642→model WalletProfile {
+   643→   643→  id          String   @id @default(cuid())
+   644→   644→  label       String
+   645→   645→  walletName  String   // btcli wallet name (dir under ~/.bittensor/wallets/)
+   646→   646→  hotkeyName  String   // btcli hotkey name (dir under .../hotkeys/)
+   647→   647→  coldAddress String?  // SS58 public coldkey address (public info)
+   648→   648→  hotAddress  String?  // SS58 public hotkey address (public info)
+   649→   649→  notes       String   @default("")
+   650→   650→  isDefault   Boolean  @default(false)
+   651→   651→  createdAt   DateTime @default(now())
+   652→   652→  updatedAt   DateTime @updatedAt
+   653→   653→
+   654→   654→  @@unique([walletName, hotkeyName])
+   655→   655→}
+   656→   656→
+   657→   657→// Singleton row (id = 1) — platform-level live-mining settings.
+   658→   658→model PlatformSettings {
+   659→   659→  id                     Int      @id @default(1)
+   660→   660→  // Bittensor network the platform targets: "finney" (mainnet) | "test".
+   661→   661→  chainNetwork           String   @default("finney")
+   662→   662→  defaultWalletProfileId String?
+   663→   663→  // Funding buffer the wallet-registration dialog recommends keeping on the
+   664→   664→  // coldkey (covers the registration burn + a safety margin).
+   665→   665→  registrationBufferTao  Float    @default(1)
+   666→   666→  // Master-key backup acknowledgment — every stored secret (provider keys,
+   667→   667→  // host credentials, webhook URLs) is encrypted under .devops-secret; if
+   668→   668→  // that file is lost the ciphertext is unreadable rubble. Operators mark
+   669→   669→  // the moment they've backed it up.
+   670→   670→  masterKeyBackedUpAt    DateTime?
+   671→   671→  updatedAt              DateTime @updatedAt
+   672→   672→}
+   673→   673→
+   674→   674→// Daily provider-spend accrual per deployment (UTC day). Written by the 90s
+   675→   675→// DevOps worker pass (worker-scheduled runs only — manual trigger runs do
+   676→   676→// not accrue). source: "estimate" (hourlyCost × uptime); a provider-billing
+   677→   677→// integration can upgrade rows later without touching consumers.
+   678→   678→model SpendLedger {
+   679→   679→  id           String   @id @default(cuid())
+   680→   680→  deploymentId String
+   681→   681→  day          String   // "2026-09-14" (UTC)
+   682→   682→  provider     String
+   683→   683→  gpuModel     String
+   684→   684→  hoursRun     Float    @default(0)
+   685→   685→  costUsd      Float    @default(0)
+   686→   686→  source       String   @default("estimate")
+   687→   687→  createdAt    DateTime @default(now())
+   688→   688→  updatedAt    DateTime @updatedAt
+   689→   689→
+   690→   690→  @@unique([deploymentId, day])
+   691→   691→  @@index([day])
+   692→   692→}
+   693→   693→
+   694→   694→// Daily earnings rollup per deployment (UTC day), fed by the UID-defense
+   695→   695→// chain samples (raw per-UID emission in rAO → TAO). Deltas accumulate into
+   696→   696→// this durable table so P&L history survives the ~6h UidSnapshot retention
+   697→   697→// window — this is what makes multi-day revenue charts real.
+   698→   698→model EarningsDaily {
+   699→   699→  id              String   @id @default(cuid())
+   700→   700→  deploymentId    String
+   701→   701→  hotkey          String
+   702→   702→  netuid          Int
+   703→   703→  day             String   // "2026-09-14" (UTC)
+   704→   704→  earnedTao       Float    @default(0)
+   705→   705→  earnedUsd       Float    @default(0)
+   706→   706→  taoPriceUsd     Float?
+   707→   707→  lastEmissionTao Float?
+   708→   708→  samples         Int      @default(0)
+   709→   709→  createdAt       DateTime @default(now())
+   710→   710→  updatedAt       DateTime @updatedAt
+   711→   711→
+   712→   712→  @@unique([deploymentId, day])
+   713→   713→  @@index([day])
+   714→   714→}
+   715→   715→
+   716→   716→// Append-only audit trail: credential lifecycle, human approvals, sign-ins.
+   717→   717→// Never stores secrets — detail strings are hand-built sentences.
+   718→   718→model AuditLog {
+   719→   719→  id        String   @id @default(cuid())
+   720→   720→  // "provider-key.saved" | "provider-key.removed" | "host.saved" |
+   721→   721→  // "trigger.approved" | "trigger.acted" | "login.success" | "login.failed" | ...
+   722→   722→  action    String
+   723→   723→  actor     String   @default("system") // userId or "system"
+   724→   724→  target    String?
+   725→   725→  detail    String   @default("")
+   726→   726→  metaJson  String   @default("{}")
+   727→   727→  createdAt DateTime @default(now())
+   728→   728→
+   729→   729→  @@index([createdAt])
+   730→   730→  @@index([action])
+   731→   731→}
+   732→   732→
