@@ -119,3 +119,16 @@ Work Log:
 Stage Summary:
 - Auto-start installer verified real-world: paste once as root on the GPU pod → daemon supervised (systemd on VMs/bare metal, watchdog in containers) → survives crashes and pod reboots.
 - src typecheck clean. Dialog text/button already matched the new behavior.
+
+---
+Task ID: daemon-install-automation-tip
+Agent: main (Super Z)
+Task: Answer "can daemon install be automated?" and surface the provider start-script path in the dialog
+
+Work Log:
+- Explained the chicken-and-egg boundary: before an agent exists on the pod, the platform has no channel to execute anything there, so first contact is necessarily out-of-band (SSH paste or provider start script).
+- Added an "Automating across pods?" tip to DaemonInstallDialog: the setup command is self-contained + idempotent, so it can be pasted into RunPod template Start script / Vast.ai on-start script / Oracle-Hetzner cloud-init user-data; pods then self-install on first boot and refresh on every restart. Notes one-template-per-deployment (identity/secret is per-deployment).
+- src typecheck clean.
+
+Stage Summary:
+- Manual paste remains the one-time bootstrap per pod; provider start scripts are the zero-code automation path; SSH auto-install and enrollment-token bootstrap one-liner identified as opt-in future work.

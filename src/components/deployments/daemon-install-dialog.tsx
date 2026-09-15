@@ -23,7 +23,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { CheckCircle2, Copy, Loader2, RefreshCw, ShieldCheck, TriangleAlert } from "lucide-react";
+import { Bot, CheckCircle2, Copy, Loader2, RefreshCw, ShieldCheck, TriangleAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { buildDaemonSetupCommand, DAEMON_UNINSTALL_COMMAND } from "@/lib/infranex/daemon-setup";
 
@@ -193,6 +193,18 @@ export function DaemonInstallDialog({
                   &quot;Apply&quot; fixes and DevOps actions reach the real miner on-host.
                 </li>
               </ol>
+
+              <p className="flex items-start gap-1.5 rounded-lg border border-primary/30 bg-primary/5 p-2 text-[11px] text-muted-foreground">
+                <Bot className="mt-0.5 h-3 w-3 shrink-0 text-primary" />
+                <span>
+                  <span className="font-medium text-foreground">Automating across pods?</span> The
+                  setup command is self-contained and idempotent — paste it into your provider&apos;s
+                  start script instead (RunPod: template → Start script; Vast.ai: on-start script;
+                  Oracle/Hetzner: cloud-init user-data). Pods born from that template install the
+                  daemon on first boot and refresh it on every restart — no SSH. Use one template
+                  per deployment (the embedded identity is per-deployment).
+                </span>
+              </p>
 
               <div className="flex flex-wrap items-center gap-2">
                 <Button size="sm" className="h-7 gap-1.5 text-[11px]" onClick={() => void copy("setup")}>
