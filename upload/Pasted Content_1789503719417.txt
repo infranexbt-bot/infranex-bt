@@ -1,0 +1,508 @@
+## Error Type
+Console Error
+
+## Error Message
+A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <SegmentViewNode type="page" pagePath="page.tsx">
+      <SegmentTrieNode>
+      <ClientPageRoot Component={function Home} serverProvidedParams={{...}}>
+        <Home params={Promise} searchParams={Promise}>
+          <DashboardLayout current="dashboard" onNavigate={function bound dispatchSetState} title="Network In..." ...>
+            <div className="relative f...">
+              <div>
+              <div className="relative z...">
+                ...
+                  <div dir="ltr" data-slot="scroll-area" className="relative f..." style={{position:"...", ...}} ...>
+                    <ScrollAreaViewport data-slot="scroll-are..." className="focus-visi...">
+                      <style>
+                      <Primitive.div data-radix-scroll-area-viewport="" data-slot="scroll-are..." ...>
+                        <div data-radix-scroll-area-viewport="" data-slot="scroll-are..." className="focus-visi..." ...>
+                          <div ref={function bound dispatchSetState} style={{minWidth:"...", ...}}>
+                            <nav className="flex flex-..." aria-label="Primary">
+                              <div>
+                                <p>
+                                <div className="flex flex-...">
+                                  <button
+                                    onClick={function onClick}
+                                    className="sidebar-link group active"
+                                    aria-current="page"
+-                                   fdprocessedid="otcd1f"
+                                  >
+                                  <button
+                                    onClick={function onClick}
+                                    className="sidebar-link group"
+                                    aria-current={undefined}
+-                                   fdprocessedid="rnfbnk"
+                                  >
+                                  <button
+                                    onClick={function onClick}
+                                    className="sidebar-link group"
+                                    aria-current={undefined}
+-                                   fdprocessedid="3j2jzd"
+                                  >
+                                  <button
+                                    onClick={function onClick}
+                                    className="sidebar-link group"
+                                    aria-current={undefined}
+-                                   fdprocessedid="ghorwo"
+                                  >
+                                  <button
+                                    onClick={function onClick}
+                                    className="sidebar-link group"
+                                    aria-current={undefined}
+-                                   fdprocessedid="u9wjqr"
+                                  >
+                              <div>
+                                <p>
+                                <div className="flex flex-...">
+                                  <button
+                                    onClick={function onClick}
+                                    className="sidebar-link group"
+                                    aria-current={undefined}
+-                                   fdprocessedid="gnjv8k"
+                                  >
+                                  <button
+                                    onClick={function onClick}
+                                    className="sidebar-link group"
+                                    aria-current={undefined}
+-                                   fdprocessedid="yl5b3"
+                                  >
+                                  <button
+                                    onClick={function onClick}
+                                    className="sidebar-link group"
+                                    aria-current={undefined}
+-                                   fdprocessedid="vgmkm"
+                                  >
+                                  <button
+                                    onClick={function onClick}
+                                    className="sidebar-link group"
+                                    aria-current={undefined}
+-                                   fdprocessedid="lemzp4"
+                                  >
+                                  <button
+                                    onClick={function onClick}
+                                    className="sidebar-link group"
+                                    aria-current={undefined}
+-                                   fdprocessedid="crrnn8"
+                                  >
+                                  <button
+                                    onClick={function onClick}
+                                    className="sidebar-link group"
+                                    aria-current={undefined}
+-                                   fdprocessedid="4h9nz"
+                                  >
+                              <div>
+                                <p>
+                                <div className="flex flex-...">
+                                  <button
+                                    onClick={function onClick}
+                                    className="sidebar-link group"
+                                    aria-current={undefined}
+-                                   fdprocessedid="fsfwlr"
+                                  >
+                                  <button
+                                    onClick={function onClick}
+                                    className="sidebar-link group"
+                                    aria-current={undefined}
+-                                   fdprocessedid="04bzfk"
+                                  >
+                                  <button
+                                    onClick={function onClick}
+                                    className="sidebar-link group"
+                                    aria-current={undefined}
+-                                   fdprocessedid="0w2z0n"
+                                  >
+                            ...
+                    ...
+                <div className="flex min-w...">
+                  <Header onMenuClick={function onMenuClick} title="Network In..." eyebrow="Section · ...">
+                    <header className="sticky top...">
+                      <div className="flex h-ful...">
+                        <div>
+                        <div className="hidden ite...">
+                          <div className="group rela...">
+                            <Search>
+                            <Input placeholder="Search sub..." className="h-9 rounde..." aria-label="Search">
+                              <input
+                                type={undefined}
+                                data-slot="input"
+                                className="file:text-foreground selection:bg-primary selection:text-primary-foreground..."
+                                placeholder="Search subnets, netuid, miners…"
+                                aria-label="Search"
+-                               fdprocessedid="jne199"
+                              >
+                            ...
+                        <div className="flex items...">
+                          ...
+                            <Primitive.button.Slot aria-describedby={undefined} data-state="closed" ...>
+                              <Primitive.button.SlotClone aria-describedby={undefined} data-state="closed" ...>
+                                <Button variant="ghost" size="icon" className="h-9 w-9" aria-label="Network st..." ...>
+                                  <button
+                                    data-slot="tooltip-trigger"
+                                    className={"inline-flex items-center justify-center gap-2 whitespace-nowrap round..."}
+                                    aria-label="Network status"
+                                    aria-describedby={undefined}
+                                    data-state="closed"
+                                    onPointerMove={function handleEvent}
+                                    onPointerLeave={function handleEvent}
+                                    onPointerDown={function handleEvent}
+                                    onFocus={function handleEvent}
+                                    onBlur={function handleEvent}
+                                    onClick={function handleEvent}
+                                    ref={function}
+-                                   fdprocessedid="swlhzt"
+                                  >
+                          ...
+                            <Primitive.button.Slot aria-describedby={undefined} data-state="closed" ...>
+                              <Primitive.button.SlotClone aria-describedby={undefined} data-state="closed" ...>
+                                <Button variant="ghost" size="icon" className="h-9 w-9" onClick={function} ...>
+                                  <button
+                                    data-slot="tooltip-trigger"
+                                    className={"inline-flex items-center justify-center gap-2 whitespace-nowrap round..."}
+                                    onClick={function}
+                                    aria-label="Toggle theme"
+                                    aria-describedby={undefined}
+                                    data-state="closed"
+                                    onPointerMove={function handleEvent}
+                                    onPointerLeave={function handleEvent}
+                                    onPointerDown={function handleEvent}
+                                    onFocus={function handleEvent}
+                                    onBlur={function handleEvent}
+                                    ref={function}
+-                                   fdprocessedid="w8y8to"
+                                  >
+                          ...
+                            <Primitive.button.Slot type="button" id="radix-_R_3..." aria-haspopup="menu" ...>
+                              <Primitive.button.SlotClone type="button" id="radix-_R_3..." aria-haspopup="menu" ...>
+                                <Button variant="ghost" size="icon" className="relative h..." aria-label="Notifications" ...>
+                                  <button
+                                    data-slot="dropdown-menu-trigger"
+                                    className={"inline-flex items-center justify-center gap-2 whitespace-nowrap round..."}
+                                    aria-label="Notifications"
+                                    type="button"
+                                    id="radix-_R_3raatmlb_"
+                                    aria-haspopup="menu"
+                                    aria-expanded={false}
+                                    aria-controls={undefined}
+                                    data-state="closed"
+                                    data-disabled={undefined}
+                                    disabled={false}
+                                    onPointerDown={function handleEvent}
+                                    onKeyDown={function handleEvent}
+                                    ref={function}
+-                                   fdprocessedid="kd7sgp"
+                                  >
+                          <Separator>
+                          ...
+                            <Primitive.button.Slot type="button" id="radix-_R_5..." aria-haspopup="menu" ...>
+                              <Primitive.button.SlotClone type="button" id="radix-_R_5..." aria-haspopup="menu" ...>
+                                <Button variant="ghost" className="relative h..." type="button" id="radix-_R_5..." ...>
+                                  <button
+                                    data-slot="dropdown-menu-trigger"
+                                    className={"inline-flex items-center justify-center gap-2 whitespace-nowrap text-..."}
+                                    type="button"
+                                    id="radix-_R_5raatmlb_"
+                                    aria-haspopup="menu"
+                                    aria-expanded={false}
+                                    aria-controls={undefined}
+                                    data-state="closed"
+                                    data-disabled={undefined}
+                                    disabled={false}
+                                    onPointerDown={function handleEvent}
+                                    onKeyDown={function handleEvent}
+                                    ref={function}
+-                                   fdprocessedid="wz6og"
+                                  >
+                          ...
+                  <main className="mx-auto w-..." role="main">
+                    <DashboardView onSelectOpportunity={function handleSelect} onStartMining={function handleStartMining} ...>
+                      <div className="space-y-10">
+                        <header className="aurora ani...">
+                          <div>
+                            <div>
+                            <h1>
+                            <p>
+                            <div className="mt-6 flex ...">
+                              <Button onClick={function onClick} className="gap-2 roun...">
+                                <button
+                                  data-slot="button"
+                                  className={"inline-flex items-center justify-center whitespace-nowrap text-sm font-..."}
+                                  onClick={function onClick}
+-                                 fdprocessedid="9tmdl9"
+                                >
+                              ...
+                          ...
+                        ...
+                          <CardHeader className="flex flex-...">
+                            <div data-slot="card-header" className="@container...">
+                              <div>
+                              <div className="flex items...">
+                                <span>
+                                <Input value="10" onChange={function onChange} inputMode="decimal" ...>
+                                  <input
+                                    type={undefined}
+                                    data-slot="input"
+                                    className="file:text-foreground placeholder:text-muted-foreground selection:bg-pri..."
+                                    value="10"
+                                    onChange={function onChange}
+                                    inputMode="decimal"
+                                    aria-label="Capital in TAO"
+-                                   fdprocessedid="c79tm"
+                                  >
+                                ...
+                        ...
+                          <div data-slot="card" className="bg-card te...">
+                            <CardHeader className="flex flex-...">
+                              <div data-slot="card-header" className="@container...">
+                                <div>
+                                <Button variant="outline" size="sm" onClick={function onClick} className="rounded-lg...">
+                                  <button
+                                    data-slot="button"
+                                    className={"inline-flex items-center justify-center whitespace-nowrap text-sm fon..."}
+                                    onClick={function onClick}
+-                                   fdprocessedid="gyjnvh"
+                                  >
+                            ...
+                        <section>
+                        ...
+                          <div data-slot="card" className="bg-card te...">
+                            <CardHeader className="flex flex-...">
+                              <div data-slot="card-header" className="@container...">
+                                <div>
+                                <Button variant="outline" size="sm" onClick={function onClick} className="rounded-lg...">
+                                  <button
+                                    data-slot="button"
+                                    className={"inline-flex items-center justify-center whitespace-nowrap text-sm fon..."}
+                                    onClick={function onClick}
+-                                   fdprocessedid="g1kjt"
+                                  >
+                            ...
+                              <div className="space-y-4">
+                                <div className="flex flex-...">
+                                  <div className="relative w...">
+                                    <Search>
+                                    <Input placeholder="Search sub..." value="" onChange={function onChange} ...>
+                                      <input
+                                        type={undefined}
+                                        data-slot="input"
+                                        className="file:text-foreground placeholder:text-muted-foreground selection:bg..."
+                                        placeholder="Search subnets…"
+                                        value=""
+                                        onChange={function onChange}
+                                        aria-label="Search opportunities"
+-                                       fdprocessedid="n5xfg"
+                                      >
+                                  ...
+                                ...
+                                  <table data-slot="table" className="w-full cap...">
+                                    ...
+                                      <tr data-slot="table-row" className="data-[stat...">
+                                        <SortableTh k="rank" sortKey="rank" dir="asc" onSort={function handleSort}>
+                                          <TableHead className="">
+                                            <th data-slot="table-head" className={"text-for..."}>
+                                              <button
+                                                onClick={function onClick}
+                                                className="inline-flex items-center gap-1 select-none hover:text-foreg..."
+-                                               fdprocessedid="2y4o6"
+                                              >
+                                        <SortableTh k="subnetName" sortKey="rank" dir="asc" onSort={function handleSort}>
+                                          <TableHead className="">
+                                            <th data-slot="table-head" className={"text-for..."}>
+                                              <button
+                                                onClick={function onClick}
+                                                className="inline-flex items-center gap-1 select-none hover:text-foreg..."
+-                                               fdprocessedid="64edr9"
+                                              >
+                                        <SortableTh k="netMonthlyUsd" align="right" sortKey="rank" dir="asc" ...>
+                                          <TableHead className="text-right">
+                                            <th data-slot="table-head" className={"text-for..."}>
+                                              <button
+                                                onClick={function onClick}
+                                                className="inline-flex items-center gap-1 select-none hover:text-foreg..."
+-                                               fdprocessedid="utrk2"
+                                              >
+                                        ...
+                                    <TableBody>
+                                      <tbody data-slot="table-body" className={"[&_tr:la..."}>
+                                        ...
+                                          <Primitive.button.Slot type="button" id="radix-_R_2..." aria-haspopup="menu" ...>
+                                            <Primitive.button.SlotClone type="button" id="radix-_R_2..." ...>
+                                              <Button variant="ghost" size="icon" className="h-8 w-8" type="button" ...>
+                                                <button
+                                                  data-slot="dropdown-menu-trigger"
+                                                  className={"inline-flex items-center justify-center gap-2 whitespac..."}
+                                                  type="button"
+                                                  id="radix-_R_2oqj8daatmlb_"
+                                                  aria-haspopup="menu"
+                                                  aria-expanded={false}
+                                                  aria-controls={undefined}
+                                                  data-state="closed"
+                                                  data-disabled={undefined}
+                                                  disabled={false}
+                                                  onPointerDown={function handleEvent}
+                                                  onKeyDown={function handleEvent}
+                                                  ref={function}
+-                                                 fdprocessedid="59csnr"
+                                                >
+                                        ...
+                                          <Primitive.button.Slot type="button" id="radix-_R_2..." aria-haspopup="menu" ...>
+                                            <Primitive.button.SlotClone type="button" id="radix-_R_2..." ...>
+                                              <Button variant="ghost" size="icon" className="h-8 w-8" type="button" ...>
+                                                <button
+                                                  data-slot="dropdown-menu-trigger"
+                                                  className={"inline-flex items-center justify-center gap-2 whitespac..."}
+                                                  type="button"
+                                                  id="radix-_R_2paj8daatmlb_"
+                                                  aria-haspopup="menu"
+                                                  aria-expanded={false}
+                                                  aria-controls={undefined}
+                                                  data-state="closed"
+                                                  data-disabled={undefined}
+                                                  disabled={false}
+                                                  onPointerDown={function handleEvent}
+                                                  onKeyDown={function handleEvent}
+                                                  ref={function}
+-                                                 fdprocessedid="e0ifzl"
+                                                >
+                                        ...
+                                          <Primitive.button.Slot type="button" id="radix-_R_2..." aria-haspopup="menu" ...>
+                                            <Primitive.button.SlotClone type="button" id="radix-_R_2..." ...>
+                                              <Button variant="ghost" size="icon" className="h-8 w-8" type="button" ...>
+                                                <button
+                                                  data-slot="dropdown-menu-trigger"
+                                                  className={"inline-flex items-center justify-center gap-2 whitespac..."}
+                                                  type="button"
+                                                  id="radix-_R_2pqj8daatmlb_"
+                                                  aria-haspopup="menu"
+                                                  aria-expanded={false}
+                                                  aria-controls={undefined}
+                                                  data-state="closed"
+                                                  data-disabled={undefined}
+                                                  disabled={false}
+                                                  onPointerDown={function handleEvent}
+                                                  onKeyDown={function handleEvent}
+                                                  ref={function}
+-                                                 fdprocessedid="su3xle"
+                                                >
+                                        ...
+                                          <Primitive.button.Slot type="button" id="radix-_R_2..." aria-haspopup="menu" ...>
+                                            <Primitive.button.SlotClone type="button" id="radix-_R_2..." ...>
+                                              <Button variant="ghost" size="icon" className="h-8 w-8" type="button" ...>
+                                                <button
+                                                  data-slot="dropdown-menu-trigger"
+                                                  className={"inline-flex items-center justify-center gap-2 whitespac..."}
+                                                  type="button"
+                                                  id="radix-_R_2qaj8daatmlb_"
+                                                  aria-haspopup="menu"
+                                                  aria-expanded={false}
+                                                  aria-controls={undefined}
+                                                  data-state="closed"
+                                                  data-disabled={undefined}
+                                                  disabled={false}
+                                                  onPointerDown={function handleEvent}
+                                                  onKeyDown={function handleEvent}
+                                                  ref={function}
+-                                                 fdprocessedid="2fi7c"
+                                                >
+                                        ...
+                                          <Primitive.button.Slot type="button" id="radix-_R_2..." aria-haspopup="menu" ...>
+                                            <Primitive.button.SlotClone type="button" id="radix-_R_2..." ...>
+                                              <Button variant="ghost" size="icon" className="h-8 w-8" type="button" ...>
+                                                <button
+                                                  data-slot="dropdown-menu-trigger"
+                                                  className={"inline-flex items-center justify-center gap-2 whitespac..."}
+                                                  type="button"
+                                                  id="radix-_R_2qqj8daatmlb_"
+                                                  aria-haspopup="menu"
+                                                  aria-expanded={false}
+                                                  aria-controls={undefined}
+                                                  data-state="closed"
+                                                  data-disabled={undefined}
+                                                  disabled={false}
+                                                  onPointerDown={function handleEvent}
+                                                  onKeyDown={function handleEvent}
+                                                  ref={function}
+-                                                 fdprocessedid="s5pge"
+                                                >
+                                        ...
+                                          <Primitive.button.Slot type="button" id="radix-_R_2..." aria-haspopup="menu" ...>
+                                            <Primitive.button.SlotClone type="button" id="radix-_R_2..." ...>
+                                              <Button variant="ghost" size="icon" className="h-8 w-8" type="button" ...>
+                                                <button
+                                                  data-slot="dropdown-menu-trigger"
+                                                  className={"inline-flex items-center justify-center gap-2 whitespac..."}
+                                                  type="button"
+                                                  id="radix-_R_2raj8daatmlb_"
+                                                  aria-haspopup="menu"
+                                                  aria-expanded={false}
+                                                  aria-controls={undefined}
+                                                  data-state="closed"
+                                                  data-disabled={undefined}
+                                                  disabled={false}
+                                                  onPointerDown={function handleEvent}
+                                                  onKeyDown={function handleEvent}
+                                                  ref={function}
+-                                                 fdprocessedid="tt33ha"
+                                                >
+                                        ...
+                                          <Primitive.button.Slot type="button" id="radix-_R_2..." aria-haspopup="menu" ...>
+                                            <Primitive.button.SlotClone type="button" id="radix-_R_2..." ...>
+                                              <Button variant="ghost" size="icon" className="h-8 w-8" type="button" ...>
+                                                <button
+                                                  data-slot="dropdown-menu-trigger"
+                                                  className={"inline-flex items-center justify-center gap-2 whitespac..."}
+                                                  type="button"
+                                                  id="radix-_R_2rqj8daatmlb_"
+                                                  aria-haspopup="menu"
+                                                  aria-expanded={false}
+                                                  aria-controls={undefined}
+                                                  data-state="closed"
+                                                  data-disabled={undefined}
+                                                  disabled={false}
+                                                  onPointerDown={function handleEvent}
+                                                  onKeyDown={function handleEvent}
+                                                  ref={function}
+-                                                 fdprocessedid="6z4ho"
+                                                >
+                                        ...
+                                          <Primitive.button.Slot type="button" id="radix-_R_2..." aria-haspopup="menu" ...>
+                                            <Primitive.button.SlotClone type="button" id="radix-_R_2..." ...>
+                                              <Button variant="ghost" size="icon" className="h-8 w-8" type="button" ...>
+                                                <button
+                                                  data-slot="dropdown-menu-trigger"
+                                                  className={"inline-flex items-center justify-center gap-2 whitespac..."}
+                                                  type="button"
+                                                  id="radix-_R_2saj8daatmlb_"
+                                                  aria-haspopup="menu"
+                                                  aria-expanded={false}
+                                                  aria-controls={undefined}
+                                                  data-state="closed"
+                                                  data-disabled={undefined}
+                                                  disabled={false}
+                                                  onPointerDown={function handleEvent}
+                                                  onKeyDown={function handleEvent}
+                                                  ref={function}
+-                                                 fdprocessedid="752xvw"
+                                                >
+                        ...
+                    ...
+                  ...
+    ...
+
+
+
+    at button (<anonymous>:null:null)
+
+Next.js version: 16.1.3 (Turbopack)

@@ -534,3 +534,34 @@ Stage Summary:
 - The card no longer looks Chutes-only: runner-ups are visible with their
   ROI/APY, and the note + footer explain the pool size. Chutes still wins
   on live data — that is the honest verdict, now transparently justified.
+
+---
+Task ID: hydration-guard-1
+Agent: main (Super Z)
+Task: Review uploaded console error (hydration mismatch) from Pasted Content_1789503719417.txt.
+
+Work Log:
+- Read the full 508-line React 19 error capture. Cataloged every diff node:
+  ALL were the same attribute `fdprocessedid="<random id>"` on buttons and
+  inputs (13 sidebar links, header search, theme toggle, notifications and
+  avatar dropdowns, hero buttons, capital input, table sort buttons, every
+  row action trigger). Zero content/prop/structure mismatches.
+- Verified `fdprocessedid` appears nowhere in the codebase; web search
+  confirms the source: McAfee WebAdvisor extension (also FDM/form-filler
+  tools) stamps it onto every interactive element before React hydrates.
+- Verdict: NOT an app bug — external DOM mutation; React leaves the
+  attribute, app unaffected. But console noise buries real errors.
+- Hardening (layout.tsx EXTENSION-GUARD-1): pre-hydration inline script
+  strips [fdprocessedid] and a 20s attribute-filtered MutationObserver
+  catches late stamps; disconnects after hydration window.
+- Verified in browser: guard script served; manually stamped attribute
+  auto-removed in <1s; login → dashboard hydrates with 0 console errors;
+  tsc + eslint clean.
+- Committed 10f0601. Push queue: cb62b1a, 7702586, 75eaba5, 8b17e97,
+  10f0601 (all awaiting user's fine-grained PAT).
+
+Stage Summary:
+- Console error diagnosed as extension interference (McAfee WebAdvisor /
+  similar), with app-side guard shipped so every user's console stays clean
+  regardless of extensions. User-side option: test in incognito or disable
+  the extension — error vanishes either way.
