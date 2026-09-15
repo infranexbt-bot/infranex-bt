@@ -13,11 +13,12 @@ import { runUpstreamPass } from "./upstream";
 import { runBenchmarkPass } from "./benchmarks";
 import { runRunwayPass } from "./runway";
 import { runAlertsDigestPass } from "./alerts";
+import { runDeploymentTickerPass } from "./deployment/ticker";
 
 /**
  * Background worker system.
  *
- * Four workers run on intervals to keep data fresh independently of
+ * Workers run on intervals to keep data fresh independently of
  * user requests:
  *
  *   1. Chain scanner worker  — polls the Finney chain every 2 min
@@ -28,6 +29,11 @@ import { runAlertsDigestPass } from "./alerts";
  *      + subnet drift) + the Miner Mindset strategy pass (arbitrage,
  *      runtime optimization) every 90s, so deployed miners are watched
  *      continuously — no UI needs to be open.
+ *   5. Deployment ticker worker — DEPLOY-2: ticks every active deployment
+ *      every 5s so the deploy pipeline (request → approve → provision →
+ *      setup → deploy → health) advances on the server even when no
+ *      browser is open. Fixes deployments freezing at "Pending" when the
+ *      deploy dialog was closed mid-flight.
  *
  * Each worker persists its results to the DB (ChainSnapshot, WorkerStatus,
  * TriggerEvent, GpuSample) so the frontend can read historical data and
@@ -54,6 +60,9 @@ const INTERVALS = {
   // TIER4 — external alerting digest: hourly fleet summary to digest-enabled
   // webhook channels (event alerts themselves are dispatched at commit time).
   digest: 60 * 60 * 1000, // 60 minutes
+  // DEPLOY-2 — deployment lifecycle auto-ticker: same cadence as the old
+  // UI poller so pipeline steps keep their pace without any browser open.
+  deployTick: 5 * 1000, // 5 seconds
 };
 
 // Track whether workers are running (singleton)
@@ -73,6 +82,7 @@ export function startWorkers() {
   void runUpstreamWorker();
   void runBenchmarkWorker();
   void runDigestWorker();
+  void runDeployTickerWorker();
 
   workerTimers.push(setInterval(() => void runChainWorker(), INTERVALS.chain));
   workerTimers.push(setInterval(() => void runMarketWorker(), INTERVALS.market));
@@ -81,6 +91,7 @@ export function startWorkers() {
   workerTimers.push(setInterval(() => void runUpstreamWorker(), INTERVALS.upstream));
   workerTimers.push(setInterval(() => void runBenchmarkWorker(), INTERVALS.benchmarks));
   workerTimers.push(setInterval(() => void runDigestWorker(), INTERVALS.digest));
+  workerTimers.push(setInterval(() => void runDeployTickerWorker(), INTERVALS.deployTick));
 }
 
 /** Get the status of all workers from the DB. */
@@ -181,6 +192,39 @@ async function runDevopsWorker(): Promise<WorkerRunResult> {
       status: "failed",
       durationMs: Date.now() - start,
       tasksProcessed,
+      error: e instanceof Error ? e.message : String(e),
+    };
+    await logWorkerRun(result);
+    return result;
+  }
+}
+
+/**
+ * DEPLOY-2 — deployment lifecycle ticker. Ticks every active deployment so
+ * the pipeline advances server-side; a deployment can no longer freeze at
+ * "Pending" because a dialog closed or the tab went idle. Failed ticks
+ * (e.g. provider rejected the request) surface as deployment status
+ * "failed" with the real error — never as a silent hang.
+ */
+async function runDeployTickerWorker(): Promise<WorkerRunResult> {
+  const start = Date.now();
+  const workerName = "deploy-ticker";
+  try {
+    const r = await runDeploymentTickerPass();
+    const result: WorkerRunResult = {
+      workerName,
+      status: "completed",
+      durationMs: Date.now() - start,
+      tasksProcessed: r.ticked,
+    };
+    await logWorkerRun(result);
+    return result;
+  } catch (e) {
+    const result: WorkerRunResult = {
+      workerName,
+      status: "failed",
+      durationMs: Date.now() - start,
+      tasksProcessed: 0,
       error: e instanceof Error ? e.message : String(e),
     };
     await logWorkerRun(result);

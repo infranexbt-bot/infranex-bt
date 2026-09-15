@@ -229,3 +229,38 @@ Stage Summary:
 - GitHub platform-live now current: single-page 4-step deploy stepper, preselect entry points,
   old wizard removed, price-history snapshot. 10 commits delivered this push.
 - Standing reminder: revoke the shared token (plaintext in chat); .env still tracked in repo.
+
+---
+Task ID: deploy-pending-fix-1
+Agent: main (Super Z)
+Task: Diagnose "why is deployment showing Pending" (user screenshot: targon-01 frozen at Approve=Running) and fix the root cause
+
+Work Log:
+- Root cause: the deploy pipeline advances ONE state per tick, and ticks came ONLY from the
+  browser (deploy-stepper.tsx / deployments-view.tsx pollers via POST /api/deployments/[id]/tick).
+  No server worker called tickDeployment — so closing the dialog, backgrounding the tab, or a
+  dev-server restart froze the deployment mid-pipeline forever (state "approved" renders as
+  Approve=Running + all later steps Pending).
+- Extra finding: DB was fresh (0 deployments) — the user's targon-01 was from a previous DB
+  generation; and port 3000 was DOWN during the session: run-dev.sh / run-dev-keepalive.sh
+  pointed at nonexistent /home/z/my-project/infranex-bt with a bogus DATABASE_URL (stale clone
+  path from an earlier restore), and ad-hoc nohup/setsid server starts were killed when tool
+  calls ended. Fixed both scripts to PROJECT_DIR=/home/z/my-project; now start the server via
+  the platform's own .zscripts/dev.sh (bun install + db:push + next dev & + disown) — survives
+  tool-call teardown.
+- FIX (DEPLOY-2): new src/lib/infranex/deployment/ticker.ts — runDeploymentTickerPass() ticks
+  every deployment in active states (requested/approved/provisioning/provisioned/setup/ready/
+  deploying) every 5s. Terminal states excluded; "stopped" never auto-restarts; on-chain
+  registration stays a manual action; provider failures land in "failed" with the real error
+  (honest, no silent hang). Wired as worker #5 "deploy-ticker" in workers.ts (INTERVALS.deployTick).
+- Verified: tsc clean on touched files, eslint 0 errors.
+- E2E (scripts/test-deploy-ticker.ts): created mock deployment, NO browser, NO script-side
+  ticks — server ticker advanced requested→approved→provisioning→provisioned→setup→ready→
+  started in ~32s, all 6 steps done, then auto-cleanup deleted the row. PASS.
+
+Stage Summary:
+- Deployments can no longer freeze at "Pending": the pipeline self-advances server-side even
+  with the browser closed; real provider errors surface as "failed" with the actual message.
+- Dev server restored via platform dev.sh (pid changes across restarts; port 3000 confirmed).
+- User guidance: targon-01 no longer exists (fresh DB) — redeploy from Deployments; if a deploy
+  is ever interrupted, the ticker resumes it automatically within seconds.

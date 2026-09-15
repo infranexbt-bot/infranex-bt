@@ -1,7 +1,7 @@
 #!/bin/bash
 # Resilient dev-server keepalive for infranex-bt.
 # Restarts the Next.js dev server automatically if it dies (OOM, signals, etc.)
-PROJECT_DIR="/home/z/my-project/infranex-bt"
+PROJECT_DIR="/home/z/my-project"
 cd "$PROJECT_DIR"
 export DATABASE_URL="file:$PROJECT_DIR/db/custom.db"
 
