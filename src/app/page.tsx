@@ -18,11 +18,7 @@ import { SystemView } from "@/components/views/system-view";
 import { RunbookView } from "@/components/views/runbook-view";
 import { AdminView } from "@/components/views/admin-view";
 import { OpportunityDetailDialog } from "@/components/cards/opportunity-detail";
-import {
-  DeployWizard,
-  type OpenDeployWizardOptions,
-} from "@/components/deployments/deploy-wizard";
-import { loadJourney } from "@/components/devops/mining-journey";
+import { setDeployPreselect } from "@/components/deployments/deploy-preselect";
 import type { Opportunity, ViewKey } from "@/lib/infranex/types";
 
 const VIEW_META: Record<
@@ -51,37 +47,19 @@ export default function Home() {
   const [selected, setSelected] = useState<Opportunity | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  // FLOW-1 — ONE guided deploy wizard at the app root. Every entry point
-  // (opportunity "Start mining", GPU catalog "Provision", deployments view,
-  // mining journey "Rent a GPU") opens THIS instance with its context
-  // preselected, so the whole platform follows one linear flow:
-  //   choose subnet → check required GPU → buy the GPU → install (auto)
-  //   → add hotkey & run (registration LAST).
-  const [wizardOpen, setWizardOpen] = useState(false);
-  const [wizardNetuid, setWizardNetuid] = useState<number | null>(null);
-  const [wizardOfferId, setWizardOfferId] = useState<string | null>(null);
-  const [createdDepId, setCreatedDepId] = useState<string | null>(null);
-
-  const openDeployWizard = (opts?: OpenDeployWizardOptions) => {
-    // No explicit subnet → fall back to the mining journey's pick so the
-    // GPU catalog and journey CTAs continue the already-started story.
-    const journeyNetuid = opts?.netuid === undefined ? loadJourney()?.netuid ?? null : opts.netuid;
-    setWizardNetuid(journeyNetuid);
-    setWizardOfferId(opts?.offerId ?? null);
-    setWizardOpen(true);
+  // FLOW-1 — ONE deploy flow: the inline 4-step stepper on the Deployments
+  // page. Every entry point (opportunity "Start mining", GPU catalog
+  // "Provision") lands on Deployments and preseeds the stepper with its
+  // context, so the whole platform follows one linear flow:
+  //   choose subnet → pick GPU → rent & auto-install → register & connect.
+  const handleStartMining = (o: Opportunity) => {
+    setView("deployments");
+    setDeployPreselect({ netuid: o.netuid });
   };
 
   const handleSelect = (o: Opportunity) => {
     setSelected(o);
     setDialogOpen(true);
-  };
-
-  // "Start mining" on an opportunity: land on Deployments AND open the
-  // wizard with that subnet preselected — the user continues at step 2
-  // (check required GPU) instead of re-picking the subnet.
-  const handleStartMining = (o: Opportunity) => {
-    setView("deployments");
-    openDeployWizard({ netuid: o.netuid });
   };
 
   const meta = VIEW_META[view];
@@ -111,16 +89,14 @@ export default function Home() {
       {view === "cpu-guide" && <CpuGuideView onNavigate={setView} />}
       {view === "gpus" && (
         <GpusView
-          onProvision={(offerId) => openDeployWizard({ offerId })}
+          onProvision={(offerId) => {
+            setView("deployments");
+            setDeployPreselect({ offerId });
+          }}
         />
       )}
       {view === "miners" && <MinersView onNavigate={setView} />}
-      {view === "deployments" && (
-        <DeploymentsView
-          onOpenWizard={openDeployWizard}
-          focusDeploymentId={createdDepId}
-        />
-      )}
+      {view === "deployments" && <DeploymentsView />}
       {view === "devops" && <DevopsView onNavigate={setView} />}
       {view === "monitoring" && <MonitoringView onNavigate={setView} />}
       {view === "optimization" && <OptimizationView onNavigate={setView} />}
@@ -133,15 +109,6 @@ export default function Home() {
         opportunity={selected}
         open={dialogOpen}
         onOpenChange={setDialogOpen}
-      />
-
-      {/* The single guided deploy flow — shared by every entry point. */}
-      <DeployWizard
-        open={wizardOpen}
-        onOpenChange={setWizardOpen}
-        initialNetuid={wizardNetuid}
-        initialOfferId={wizardOfferId}
-        onCreated={setCreatedDepId}
       />
     </DashboardLayout>
   );

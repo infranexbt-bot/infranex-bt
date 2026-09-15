@@ -59,10 +59,9 @@ export function AnalyticsView() {
   const m = getLiveDashboardMetrics(snap, profConfig);
 
   const liveSubnets = useMemo(() => mergeSubnets(snap), [snap]);
-  const liveOpps = useMemo(
-    () => mergeOpportunities(snap, profConfig),
-    [snap, profConfig]
-  );
+  // React Compiler auto-memoizes this call — a manual useMemo here made the
+  // compiler skip optimizing the component (preserve-manual-memoization).
+  const liveOpps = mergeOpportunities(snap, profConfig);
 
   const scoreBars = useMemo(
     () =>

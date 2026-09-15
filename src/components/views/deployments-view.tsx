@@ -40,7 +40,7 @@ import {
   type DeploymentRecord,
   type RegistrationWizardContext,
 } from "@/lib/infranex/use-deployments";
-import type { OpenDeployWizardOptions } from "@/components/deployments/deploy-wizard";
+import { DeployStepper } from "@/components/deployments/deploy-stepper";
 import { RevisionsDialog } from "@/components/deployments/revisions-dialog";
 import { MigrateDialog } from "@/components/deployments/migrate-dialog";
 import { DaemonInstallDialog } from "@/components/deployments/daemon-install-dialog";
@@ -49,22 +49,19 @@ import { WalletRegistrationDialog } from "@/components/devops/wallet-registratio
 
 const SS58_RE = /^5[1-9A-HJ-NP-Za-km-z]{47}$/;
 
-interface DeploymentsViewProps {
-  /** Open the ONE guided deploy wizard (app-root singleton) — FLOW-1. */
-  onOpenWizard: (opts?: OpenDeployWizardOptions) => void;
-  /** A deployment created by the wizard — auto-select its card. */
-  focusDeploymentId?: string | null;
-}
-
-export function DeploymentsView({ onOpenWizard, focusDeploymentId }: DeploymentsViewProps) {
+/**
+ * Deployments — the whole mining onboarding on ONE page:
+ * the 4-step deploy panel leads, your deployments live as cards below it,
+ * and the DevOps Engine (bring-your-own hosts) is tucked into a collapsed
+ * Advanced section at the bottom.
+ */
+export function DeploymentsView() {
   const { data: deployments, isLoading } = useDeployments();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [wizardCtx, setWizardCtx] = useState<RegistrationWizardContext | null>(null);
 
-  // The wizard (app root) created a deployment — focus its card here.
-  useEffect(() => {
-    if (focusDeploymentId) setSelectedId(focusDeploymentId);
-  }, [focusDeploymentId]);
+  const scrollToStepper = () =>
+    document.getElementById("deploy-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
 
   const active = deployments?.filter(
     (d) => d.status !== "terminated" && d.status !== "failed"
@@ -77,28 +74,21 @@ export function DeploymentsView({ onOpenWizard, focusDeploymentId }: Deployments
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="text-eyebrow text-muted-foreground">
-            Section · 07 · <span className="text-primary">Step 3 — onboard, validate &amp; deploy</span>
-          </p>
-          <h1 className="animate-rise text-display text-3xl font-bold tracking-tight md:text-4xl">
-            Deployments
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            One guided flow: choose a subnet → check its required GPU → rent from a provider →
-            requirements install automatically → add the hotkey &amp; register last. The DevOps
-            Engine below manages YOUR OWN GPU hosts; rental deployments appear as cards here.
-          </p>
-        </div>
-        <Button className="gap-2 self-start sm:self-end" onClick={() => onOpenWizard()}>
-          <Plus className="h-4 w-4" />
-          Deploy a miner
-        </Button>
+      <header>
+        <p className="text-eyebrow text-muted-foreground">
+          Section · 07 · <span className="text-primary">Deploy &amp; manage miners</span>
+        </p>
+        <h1 className="animate-rise text-display text-3xl font-bold tracking-tight md:text-4xl">
+          Deployments
+        </h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Deploy a new miner with the 4-step panel below — everything happens on this page. Your
+          miners are managed from the cards underneath it.
+        </p>
       </header>
 
-      {/* --- DevOps Engine: real GPU host onboarding + 10-step pipeline --- */}
-      <DevOpsEngineSection onRent={() => onOpenWizard()} />
+      {/* --- THE deploy flow: 4 steps, one page, no dialog --- */}
+      <DeployStepper />
 
       <Separator />
 
@@ -116,12 +106,12 @@ export function DeploymentsView({ onOpenWizard, focusDeploymentId }: Deployments
             <div>
               <p className="text-display text-lg font-medium">No deployments yet</p>
               <p className="mt-1 text-sm text-muted-foreground">
-                Create your first deployment to provision a GPU and launch a miner.
+                Use the 4-step panel above to rent a GPU and launch your first miner.
               </p>
             </div>
-            <Button className="mt-2 gap-2" onClick={() => onOpenWizard()}>
+            <Button className="mt-2 gap-2" onClick={scrollToStepper}>
               <Plus className="h-4 w-4" />
-              Deploy a miner
+              Start at step 1
             </Button>
           </CardContent>
         </Card>
@@ -131,7 +121,7 @@ export function DeploymentsView({ onOpenWizard, focusDeploymentId }: Deployments
           {active.length > 0 && (
             <section className="space-y-3">
               <p className="text-eyebrow text-muted-foreground">
-                Active · {active.length}
+                Your deployments · {active.length} active
               </p>
               <div className="grid gap-3">
                 {active.map((d) => (
@@ -173,6 +163,27 @@ export function DeploymentsView({ onOpenWizard, focusDeploymentId }: Deployments
           )}
         </>
       )}
+
+      {/* --- Advanced: bring-your-own GPU hosts (DevOps Engine) ---
+          Rental miners deploy via the stepper above; the DevOps Engine is
+          for onboarding machines YOU already own, so it stays collapsed. */}
+      <details className="group rounded-lg border border-border/60 bg-card/20">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-2 p-4 [&::-webkit-details-marker]:hidden">
+          <div>
+            <p className="text-sm font-medium">
+              Advanced — deploy on your own GPU hosts (DevOps Engine)
+            </p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Onboard machines you already own, run the 10-step validation pipeline and manage
+              them alongside rentals.
+            </p>
+          </div>
+          <Wrench className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-90" />
+        </summary>
+        <div className="px-4 pb-4">
+          <DevOpsEngineSection onRent={scrollToStepper} />
+        </div>
+      </details>
 
       {/* Phase 2 hand-off: the registration wizard bound to a running deployment */}
       <WalletRegistrationDialog
