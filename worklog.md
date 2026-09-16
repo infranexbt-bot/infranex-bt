@@ -749,3 +749,40 @@ Stage Summary:
 - Dashboard decision card now covers BOTH halves of the mine decision: ROI
   (score ring + strategy rows) and seat risk (WATCH/AVOID badge + Seat Safety
   panel). Push queue: +1ebdb28 (awaiting user's fresh fine-grained PAT).
+
+---
+Task ID: score-clarity-1
+Agent: main (Super Z)
+Task: Check why Dashboard ring shows 98 for Epago while Opportunities shows 64.7 (user report)
+
+Work Log:
+- Verified on fresh live snapshot (block 9,078,382, TAO $217.2) via
+  scripts/research-epago-mismatch.ts: ring = 98, Ledger = 64.7 (rank #1, RUN,
+  pillars net_roi 97 / seat 47.9 / alpha 52.2 / earning 27.3 / fit 76.3)
+- CONFIRMED BY DESIGN, no engine bug:
+  * Ring 98 = 50 + 50*tanh((mine ROI - stake ROI)/8) clamped [3,98] — the
+    conviction in the MINE-vs-STAKE verdict on monthly net ROI. Epago
+    572.8%/mo vs staking 5.63%/mo → edge ~567 → tanh saturates → ring pegged
+    at its 98 ceiling. Any runaway ROI subnet lands here.
+  * Ledger 64.7 = 5-pillar composite of Epago AS A SEAT (weighted: 29.1 ROI +
+    9.58 seat + 10.44 alpha + 4.1 earning + 11.44 fit). Dragged by Earning
+    Reality 27.3 (11% seats earning, top-10% take 100%, ~11.4wk ramp) and
+    Seat Safety 47.9 — the jackpot-seat profile.
+- UX gap fixed (engines untouched): dashboard hid the Ledger composite for
+  RUN picks → the two numbers could never be reconciled on-screen.
+  * Ledger chip now always renders for mining picks: "RUN · Ledger 64.7"
+    (band-colored; hover title explains both scores + why they differ)
+  * Ring inner label "score" → "mine vs stake"
+  * Caption under ring: "Ring = mine-vs-stake ROI edge · Ledger = subnet
+    seat quality (Opportunities)"
+- Typecheck clean; browser-verified (screenshot download/dashboard-score-
+  clarity.png): ring "98 MINE VS STAKE", chip "RUN · LEDGER 64.7", caption
+  live; 0 console/page errors. Committed (see git log).
+
+Stage Summary:
+- 98 vs 64.7 is two questions, not a bug: ring = how decisively mining beats
+  staking (ROI edge, ceiling 98); Ledger = how good the subnet is as a mining
+  seat (5 pillars). Dashboard now shows BOTH, so the split is self-evident.
+- Watch item: ring pegged at 98 for ANY runaway ROI pick — if the user wants
+  the ring to reflect seat risk too, that's an engine design change (blend
+  band into score), NOT a data fix; needs explicit user decision.
