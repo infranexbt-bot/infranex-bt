@@ -155,7 +155,23 @@ async function fetchRaw(
 // the repo's DEFAULT branch (current docs) — "main" can be a stale branch.
 async function fetchReadme(info: RepoInfo): Promise<{ content: string; url: string } | null> {
   const branches = ["HEAD", info.branch, "main", "master"];
-  const paths = ["README.md", "readme.md", "README.rst", "README.txt", "README", "Readme.md"];
+  // README variants first, then the doc conventions that agent-era subnets
+  // use INSTEAD of a root README: AGENTS.md / CLAUDE.md (repo context docs)
+  // and docs/MINING.md / docs/README.md (Bittensor mining-doc convention —
+  // e.g. SN120 Affine has no root README but a substantive AGENTS.md;
+  // SN97 albedo keeps its mining rules in docs/MINING.md).
+  const paths = [
+    "README.md",
+    "readme.md",
+    "README.rst",
+    "README.txt",
+    "README",
+    "Readme.md",
+    "AGENTS.md",
+    "CLAUDE.md",
+    "docs/README.md",
+    "docs/MINING.md",
+  ];
   for (const branch of branches) {
     for (const path of paths) {
       const content = await fetchRaw(info.owner, info.repo, branch, path);
@@ -401,12 +417,25 @@ function parseDescription(readme: string): string | null {
       continue;
     }
     if (foundTitle && trimmed && !trimmed.startsWith("!") && !trimmed.startsWith("[") && !trimmed.startsWith("<")) {
+      // Skip broken inline-link lines (e.g. Albedo's MINING.md literally
+      // contains "in iner/](../miner/).") — the next prose line describes
+      // the subnet better than a dangling markdown fragment.
+      if (/\]\(/.test(trimmed)) continue;
       descLines.push(trimmed);
       if (descLines.length >= 3) break;
     }
   }
   if (descLines.length === 0) return null;
-  const desc = descLines.join(" ").replace(/[#*`]/g, "").trim();
+  const joined = descLines.join(" ").replace(/[#*`]/g, "").trim();
+  // Prefer complete sentence(s): list intros ("As a miner you:") and bullet
+  // markers ("1.") would otherwise run into their lists and produce a run-on.
+  // Split on period+whitespace so version strings (Qwen3.6-35B) survive.
+  const parts = joined
+    .split(/(?<=[.!?])\s+/)
+    .map((s) => s.trim())
+    .map((s) => s.replace(/\s+\d+[.)]\s*$/, "").replace(/[:;,]\s*$/, ""))
+    .filter((s) => s.length > 0 && !/^\d+[.)]/.test(s));
+  const desc = (parts[0] && parts[0].length < 60 && parts[1] ? `${parts[0]} ${parts[1]}` : parts[0] ?? joined).trim();
   return desc.length > 10 && desc.length < 300 ? desc : null;
 }
 

@@ -1101,3 +1101,21 @@ Stage Summary:
 - The mechanics layer now covers the whole network in two honest tiers: hand-verified curated entries (SN64) always win; every subnet's README is mined at sync time by a high-precision extractor into sparse derived mechanics stored in SubnetOverride.mechanicsJson and surfaced with an explicit "auto-extracted / not human-verified" label. Ramp math, hosting ops and bounty flags now flow for all subnets; nothing is invented where READMEs are silent.
 - Screenshots: download/runbook-mechanics-coverage.png, tool-results/opp-sn66-derived-mechanics.png, tool-results/opp-sn64-curated-final.png.
 - Extending curated coverage: add to CURATED_MECHANICS with verbatim quotes; re-derive any subnet after extractor changes via scripts/rederive-mechanics.ts <netuid...>.
+
+---
+Task ID: scrape-gap-1
+Agent: main (Super Z)
+Task: "ok work on it" — close the 18-subnet scrape gap (subnets that errored during the mechanics-all full sync).
+
+Work Log:
+- scripts/find-failed-scrapes.ts: rebuilt the sync universe (122) vs SubnetOverride rows (104) → 18 missing, grouped by cause.
+- Root-caused each via direct GitHub probing (HTML pages, raw, API): 12 subnets have literal "0x" as their on-chain identity URL (SN16/30/31/42/73/87/99/109/110/112/116 + SN39 deprecated/deprecated 404, SN47 feval 404, SN95 actual-subnet-95 404, SN126 attelierai_subnet 404 = repo deleted) → NO source exists, unfixable honestly. SN122 CookingTao is a user page with zero public repos. SN120 AffineFoundation/affine ALIVE but has NO root README (docs in AGENTS.md / START_HERE.txt). SN97 unarbos/albedo ALIVE, mining rules in docs/MINING.md (docs/README.md convention).
+- github-scraper.ts fetchReadme: path list extended with AGENTS.md, CLAUDE.md, docs/README.md, docs/MINING.md (agent-era + Bittensor doc conventions).
+- github-scraper.ts parseDescription hardened: skips lines containing broken inline-link fragments (](...) — Albedo's own MINING.md contains a literal "in iner/](../miner/)." typo), splits on period+whitespace (version strings like Qwen3.6-35B survive), drops list-marker run-ons ("As a miner you: 1."), prefers the first complete sentence(s).
+- scripts/retry-failed-scrapes.ts: targeted retry w/ 3 attempts + backoff, verbose errors, stores via same upsert path as sync.
+- Result: SN97 + SN120 scraped OK (descriptions verified clean: "Albedo is a king-of-the-hill subnet for Qwen3.6-35B-A3B language models." / Affine teacher-anchored distillation score). Names set from chain snapshot (Albedo, Affine). Extractor correctly found NO mechanics in either (their docs have no reward-window/hosting/bounty content in probe scope) — precision held, nothing invented.
+- Verification: test-mechanics 56/56; tsc app src/ 0 errors; eslint clean on scraper; overrides now 106/122.
+
+Stage Summary:
+- The scrape gap is closed as far as reality allows: every subnet with a live, reachable source is now scraped (106); the remaining 16 have no honest source (12 "0x" placeholders, 4 deleted repos, 1 user page with no repos — note SN39 counted in the 4). The extractor found nothing mechanic-worthy in SN97/SN120 docs, so mechanics coverage stays 9 — correct per the no-invention standard.
+- fetchReadme now also catches AGENTS.md/CLAUDE.md/docs conventions for FUTURE syncs — new subnets adopting agent-doc style will scrape automatically.
