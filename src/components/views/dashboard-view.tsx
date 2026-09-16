@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { RefreshCw, Network, TrendingUp, Coins, Activity, ArrowRight, Pickaxe, Landmark, ShieldQuestion, BadgeCheck } from "lucide-react";
+import { RefreshCw, Network, TrendingUp, Coins, Activity, ArrowRight, Pickaxe, Landmark, ShieldQuestion, BadgeCheck, Armchair } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";import { computeOpportunityScore, type OpportunityScoreResult, type ScoredStrategy } from "@/lib/infranex/opportunity-score";
+import { formatBurnTao } from "@/lib/infranex/miner-score";
 import { MetricCard } from "@/components/cards/metric-card";
 import { DataSourceBanner } from "@/components/cards/data-source-banner";
 import { OpportunityTable } from "@/components/tables/opportunity-table";
@@ -826,6 +827,12 @@ function OpportunityScoreCard({ onNavigate }: { onNavigate: (v: ViewKey) => void
       ? ledgerCheck?.get(recommended.netuid) ?? null
       : null;
   const recBand = recLedger ? opportunityBand(recLedger) : null;
+  // Seat safety readout for the recommended pick — the Ledger pillar that
+  // answers "can I get in, and can I KEEP the seat once I'm in?". Raw pillar
+  // score comes from the factor list; the concrete facts (free slots, burn,
+  // immunity runway, reward spread) come off the merged row.
+  const recSeatFactor =
+    recLedger?.factors.find((f) => f.name === "Seat Safety") ?? null;
   const showAlternative = alternative && recommended && alternative !== recommended;
   // Runner-ups — the subnets the score evaluated and did NOT pick. Rendered
   // so the verdict is transparent: the card pits the best mining subnet
@@ -926,6 +933,88 @@ function OpportunityScoreCard({ onNavigate }: { onNavigate: (v: ViewKey) => void
                       Review the breakdown
                     </button>
                   </p>
+                )}
+                {recLedger && (
+                  <div className="mt-3 rounded-xl border border-border/50 bg-background/40 p-3">
+                    <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-eyebrow flex items-center gap-1.5 text-muted-foreground">
+                        <Armchair className="h-3.5 w-3.5" />
+                        Seat safety · can you get in — and keep the seat?
+                      </p>
+                      {recSeatFactor && (
+                        <span
+                          className={cn(
+                            "mono text-[11px] font-semibold tabular",
+                            recSeatFactor.raw >= 60
+                              ? "text-success"
+                              : recSeatFactor.raw >= 40
+                                ? "text-warning"
+                                : "text-destructive"
+                          )}
+                          title="Miner's Ledger pillar — free UID slots, reward spread, burn level, immunity runway (weighted 20% of the composite)"
+                        >
+                          {recSeatFactor.raw.toFixed(0)}/100
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {recLedger.freeSlots != null && recLedger.totalSlots != null && (
+                        <span
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-border/50 bg-background/60 px-2.5 py-1 text-[11px]"
+                          title="Open seats register directly (burn or PoW); a FULL subnet still accepts burn registrations — the chain replaces the worst-performing non-immune UID"
+                        >
+                          <Pickaxe className="h-3 w-3 text-primary/70" />
+                          <span className="font-semibold">Seats</span>
+                          <span className="mono tabular text-muted-foreground">
+                            {recLedger.freeSlots > 0
+                              ? `${recLedger.freeSlots} of ${recLedger.totalSlots} free`
+                              : `full (${recLedger.totalSlots}) — burn entry`}
+                          </span>
+                        </span>
+                      )}
+                      {recLedger.burnCostTao != null && (
+                        <span
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-border/50 bg-background/60 px-2.5 py-1 text-[11px]"
+                          title="Current registration burn (recycle cost) quoted by the chain — what displacing a seat costs today"
+                        >
+                          <span className="font-semibold">Burn</span>
+                          <span className="mono tabular text-muted-foreground">~{formatBurnTao(recLedger.burnCostTao)} TAO</span>
+                        </span>
+                      )}
+                      {recLedger.immunityBlocks != null && (
+                        <span
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-border/50 bg-background/60 px-2.5 py-1 text-[11px]"
+                          title="A NEWLY registered seat is immune from deregistration for this window — your runway to start earning before you become replaceable"
+                        >
+                          <span className="font-semibold">Immunity</span>
+                          <span className="mono tabular text-muted-foreground">
+                            ~{Math.round(((recLedger.immunityBlocks * 12) / 3600) * 10) / 10}h
+                          </span>
+                        </span>
+                      )}
+                      {recLedger.top10IncentiveShare != null && (
+                        <span
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-border/50 bg-background/60 px-2.5 py-1 text-[11px]"
+                          title="Share of last epoch's miner rewards taken by the top-10% of UIDs — high concentration means mid-pack seats earn little"
+                        >
+                          <span className="font-semibold">Top-10% take</span>
+                          <span className="mono tabular text-muted-foreground">{Math.round(recLedger.top10IncentiveShare * 100)}%</span>
+                        </span>
+                      )}
+                      {recLedger.rewardedRatio != null && (
+                        <span
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-border/50 bg-background/60 px-2.5 py-1 text-[11px]"
+                          title="Share of registered seats that earned ANY reward last epoch — the complement is the replaceable bottom a newcomer displaces from"
+                        >
+                          <span className="font-semibold">Seats earning</span>
+                          <span className="mono tabular text-muted-foreground">{Math.round(recLedger.rewardedRatio * 100)}%</span>
+                        </span>
+                      )}
+                    </div>
+                    <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">
+                      Weighed 20% of the Ledger composite. Open slots register directly; on a full subnet a burn registration replaces the worst non-immune UID — immunity is your runway to start earning first.
+                    </p>
+                  </div>
                 )}
               </div>
               {showAlternative && (
