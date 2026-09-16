@@ -24,6 +24,7 @@ import { formatNumber } from "@/lib/utils";
 import { assessSeatChance } from "@/lib/infranex/miner-score";
 import { SeatChanceBadge } from "@/components/subnets/seat-chance-badge";
 import { RegisterOddsInline } from "@/components/cards/register-odds";
+import { HostingChips } from "@/components/cards/hosting-requirements";
 import { useOddsTrends } from "@/lib/infranex/use-odds";
 import type { Opportunity } from "@/lib/infranex/types";
 
@@ -459,6 +460,9 @@ export function OpportunityTable({
                           <span className="text-[10px] text-muted-foreground">
                             {o.recommendedGpu.replace("NVIDIA ", "").replace(" 80GB", "").replace(" 40GB", "")}
                           </span>
+                          {o.hosting && (
+                            <HostingChips hosting={o.hosting} source={o.requirementsSource} className="justify-end" />
+                          )}
                         </div>
                       </TableCell>
                     )}

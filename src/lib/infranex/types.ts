@@ -134,6 +134,18 @@ export interface Opportunity {
   // --- Miner's Ledger v2 (all optional so legacy rows stay valid) ---
   /** Work type the classifier detected (drives the GPU requirement). */
   workType?: string;
+  /** GitHub-scraped GPU count (e.g. 8 for "8x H200"). */
+  gpuCount?: number | null;
+  /** Hosting constraints scraped from the subnet's repo README
+   *  (bare metal/VM only, TEE/TDX, static IP + 1:1 ports). */
+  hosting?: {
+    bareMetalOnly: boolean;
+    teeRequired: boolean;
+    staticIpRequired: boolean;
+    notes: string[];
+  } | null;
+  /** Repo URL the hosting/GPU requirements came from. */
+  requirementsSource?: string | null;
   /** Gross per-EARNING-miner monthly USD (before GPU + infra costs). */
   grossMonthlyUsd?: number;
   /** Net monthly USD after GPU rental + infra — the miner's bottom line. */

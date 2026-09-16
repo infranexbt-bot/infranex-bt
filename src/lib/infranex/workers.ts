@@ -418,25 +418,55 @@ async function runGithubWorker(): Promise<WorkerRunResult> {
   const workerName = "github-analyzer";
   let tasksProcessed = 0;
   try {
-    const toScrape = subnets.filter((s) => s.githubUrl);
-    for (const subnet of toScrape) {
+    // Universe: curated catalog ∪ existing overrides ∪ live chain identity
+    // repos — so requirements coverage spans ALL subnets, not just the 16
+    // curated ones (raw.githubusercontent has no API quota; hourly is safe).
+    const seen = new Map<number, string>();
+    for (const s of subnets) {
+      if (s.githubUrl) seen.set(s.netuid, s.githubUrl);
+    }
+    const existing = await db.subnetOverride.findMany();
+    for (const o of existing) {
+      if (o.githubUrl && !seen.has(o.netuid)) seen.set(o.netuid, o.githubUrl);
+    }
+    const snapRow = await db.chainSnapshot.findFirst({ orderBy: { id: "desc" } });
+    if (snapRow?.subnetsJson) {
       try {
-        const scraped = await scrapeGithubMetadata(subnet.githubUrl!);
+        const live = JSON.parse(snapRow.subnetsJson) as Array<{ netuid: number; identityGithub?: string | null }>;
+        for (const s of live) {
+          if (s.identityGithub && !seen.has(s.netuid)) seen.set(s.netuid, s.identityGithub);
+        }
+      } catch {
+        // corrupt snapshot JSON — curated + overrides still covered
+      }
+    }
+
+    for (const [netuid, githubUrl] of seen) {
+      try {
+        const scraped = await scrapeGithubMetadata(githubUrl, { netuid });
         if (scraped.source === "github") {
           await db.subnetOverride.upsert({
-            where: { netuid: subnet.netuid },
+            where: { netuid },
             create: {
-              netuid: subnet.netuid,
+              netuid,
               description: scraped.description,
               minVramGb: scraped.minVramGb,
               recommendedGpu: scraped.recommendedGpu,
-              githubUrl: subnet.githubUrl,
+              gpuCount: scraped.gpuCount,
+              hostingRequirements: scraped.hosting ? JSON.stringify(scraped.hosting) : null,
+              requirementsSource: scraped.requirementsSource,
+              requirementsScrapedAt: new Date(),
+              githubUrl,
             },
             update: {
               description: scraped.description ?? undefined,
               minVramGb: scraped.minVramGb ?? undefined,
               recommendedGpu: scraped.recommendedGpu ?? undefined,
-              githubUrl: subnet.githubUrl,
+              gpuCount: scraped.gpuCount ?? undefined,
+              hostingRequirements: scraped.hosting ? JSON.stringify(scraped.hosting) : undefined,
+              requirementsSource: scraped.requirementsSource ?? undefined,
+              requirementsScrapedAt: new Date(),
+              githubUrl,
             },
           });
           tasksProcessed++;

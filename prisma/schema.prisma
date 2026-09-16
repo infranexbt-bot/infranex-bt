@@ -102,6 +102,11 @@ model SubnetOverride {
   category       String?
   minVramGb      Int?
   recommendedGpu String?
+  // GitHub-scraped requirements (from the subnet's README / miner repo).
+  gpuCount             Int?      // e.g. 8 for "8x H200"
+  hostingRequirements  String?   // JSON: {bareMetalOnly, teeRequired, staticIpRequired, notes[]}
+  requirementsSource   String?   // repo URL whose README supplied the requirements
+  requirementsScrapedAt DateTime?
   githubUrl      String?
   website        String?
   tags           String?  // JSON array

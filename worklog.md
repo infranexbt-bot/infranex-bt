@@ -978,3 +978,25 @@ Stage Summary:
 - Claim TRUE, confirmed word-for-word from primary source today (2026-09-16).
 - Reality is STRICTER than the claim: bare metal alone is insufficient — TDX confidential VMs + validated 8-GPU datacenter topologies. Our SN64 profile (RTX 4090, $260/mo container rent) is triply obsolete: wrong GPU class, wrong hosting class, wrong cost.
 - Practical entry ticket is now datacenter-class: TDX-capable 8xH200/B200/RTX Pro 6000 server + separate control-plane box + PCCS attestation. App should reflect this in Fit pillar + odds copy (odds for small operators effectively nil, app says ~3% LOW).
+
+---
+Task ID: requirements-rescrape-1
+Agent: main (Super Z)
+Task: "why our Opportunities page displaying wrong GPU, please correct it. make changes to app and make sure it pulls correct requirements from the correct subnets readme git. Make sure this changes applied to all the subnets."
+
+Work Log:
+- Root cause: Opportunities hardware came from keyword classifier + curated catalog (SN64 → consumer24/RTX 4090); SubnetOverride scraped data was (a) only 8 curated subnets, (b) parsed almost nothing (7/8 null), (c) NEVER fed into mergeOpportunities.
+- Rewrote github-scraper.ts: GPU_MODEL_PATTERNS (19 models incl. H200/B200/B300/RTX Pro 6000/multi-GPU counts "8x"), hosting-constraint parsers (bareMetalOnly / teeRequired / staticIpRequired + evidence notes), miner-repo discovery (one-hop README link, same owner, /miner|validator/), CURATED_MINER_REPOS {64: chutesai/chutes-miner}.
+- Prisma SubnetOverride += gpuCount, hostingRequirements (JSON), requirementsSource, requirementsScrapedAt; db push.
+- miner-score.ts: GPU_TIERS += b200/pro6000; resolveGpuTierFromModel(); classifySubnetHardware restructured — keyword classifier is base, scraped layer overrides ONLY what it knows (GPU model → tier × gpuCount cost scaling; hosting attaches regardless); ledger diag += gpuCount/hosting/requirementsSource; gpuCost & powerWatts × gpuCount.
+- use-network.ts: mergeOpportunities(snap, cfg, overrides) + getLiveDashboardMetrics pass-through; LiveOpportunity/Opportunity += gpuCount/hosting/requirementsSource; opportunities-view passes useSubnetOverrides().
+- UI: new hosting-requirements.tsx (HostingChips + HostingWarningBlock with quoted evidence + source link); chips in table GPU cell, grid card, full block in detail dialog.
+- workers.ts runGithubWorker: universe = curated ∪ overrides ∪ chain identity repos (all subnets, hourly); sync-all route persists new fields.
+- scripts/rescrape-requirements.ts: one-off pass — 122 subnets, 101 scraped OK; SN64 → H200 + all 3 hosting flags from chutes-miner README; SN108 → RTX 5090; SN71 → TEE hosting.
+- Fixed runtime TypeError (hosting-only row, recommendedGpu null) and double-count-prefix bug; unit-verified layered classifier (scripts/test-classifier-layers.ts).
+
+Stage Summary:
+- SN64 Opportunities row now: 141 GB / H200 / chips "Bare metal/VM only · TEE (Intel TDX) · Static IP + 1:1 ports" / score 39.7 AVOID / net −$314/mo (was 24GB RTX 4090, 62.4 WATCH, +$1,958).
+- Detail dialog shows hosting block quoting chutes-miner README verbatim + source link.
+- All 122 chain subnets now rescraped hourly; classifier unchanged where READMEs are silent (96 subnets).
+- Screenshots: download/opportunities-sn64-corrected.png, opportunities-sn64-dialog-hosting.png.

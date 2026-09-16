@@ -14,18 +14,43 @@ export interface SubnetOverride {
   tags: string | null;
 }
 
+/** Row shape returned by GET /api/subnet-overrides (Prisma SubnetOverride). */
+interface OverrideRow {
+  netuid: number;
+  name: string | null;
+  description: string | null;
+  category: string | null;
+  minVramGb: number | null;
+  recommendedGpu: string | null;
+  gpuCount: number | null;
+  hostingRequirements: string | null;
+  requirementsSource: string | null;
+  githubUrl: string | null;
+  website: string | null;
+  tags: string | null;
+}
+
 async function fetchOverrides(): Promise<Map<number, Record<string, unknown>>> {
   const res = await fetch("/api/subnet-overrides", { cache: "no-store" });
   if (!res.ok) return new Map();
   const j = await res.json();
   const map = new Map<number, Record<string, unknown>>();
-  for (const o of j.overrides as SubnetOverride[]) {
+  for (const o of j.overrides as OverrideRow[]) {
     const entry: Record<string, unknown> = {};
     if (o.name) entry.name = o.name;
     if (o.description) entry.description = o.description;
     if (o.category) entry.category = o.category;
     if (o.minVramGb != null) entry.minVramGb = o.minVramGb;
     if (o.recommendedGpu) entry.recommendedGpu = o.recommendedGpu;
+    if (o.gpuCount != null) entry.gpuCount = o.gpuCount;
+    if (o.hostingRequirements) {
+      try {
+        entry.hosting = JSON.parse(o.hostingRequirements);
+      } catch {
+        // corrupt JSON — ignore, classifier fallback applies
+      }
+    }
+    if (o.requirementsSource) entry.requirementsSource = o.requirementsSource;
     if (o.githubUrl) entry.githubUrl = o.githubUrl;
     if (o.website) entry.website = o.website;
     map.set(o.netuid, entry);

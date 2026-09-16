@@ -23,6 +23,7 @@ import type {
   NeuronMetrics,
 } from "./chain";
 import type { Subnet, Opportunity, EmissionShare } from "./types";
+import type { HostingRequirements } from "./github-scraper";
 
 export type { LiveNetworkSnapshot, LiveSubnetMetrics, NeuronMetrics };
 
@@ -62,6 +63,12 @@ export interface LiveOpportunity extends Opportunity {
   liveMiners?: number;
   liveStake?: number;
   livePrice?: number;
+  /** GitHub-scraped GPU count (e.g. 8 for "8x H200"). */
+  gpuCount?: number | null;
+  /** Hosting constraints scraped from the subnet's repo README. */
+  hosting?: HostingRequirements | null;
+  /** Repo URL the requirements came from. */
+  requirementsSource?: string | null;
 }
 
 /** Merge live chain metrics + user overrides into the curated subnet list.
@@ -208,7 +215,8 @@ export function mergeSubnets(
 
 export function mergeOpportunities(
   snap: LiveNetworkSnapshot | undefined,
-  profConfig?: ProfitabilityConfig
+  profConfig?: ProfitabilityConfig,
+  overrides?: Map<number, Record<string, unknown>>
 ): LiveOpportunity[] {
   if (!snap || snap.subnets.length === 0) return curatedOpportunities;
   const curatedByNetuid = new Map(
@@ -239,11 +247,25 @@ export function mergeOpportunities(
     // --- Hardware: work type → GPU requirement + cost ---
     const name =
       live.name ?? curated?.subnetName ?? `Subnet ${live.netuid}`;
+    // GitHub-scraped requirements (SubnetOverride) are GROUND TRUTH — when a
+    // repo README documents the GPU/hosting rules, they beat the classifier.
+    const ovr = overrides?.get(live.netuid);
+    const scraped =
+      ovr && (ovr.recommendedGpu || ovr.hosting)
+        ? {
+            recommendedGpu: (ovr.recommendedGpu as string | null) ?? null,
+            gpuCount: (ovr.gpuCount as number | null) ?? null,
+            minVramGb: (ovr.minVramGb as number | null) ?? null,
+            hosting: (ovr.hosting as HostingRequirements | null) ?? null,
+            requirementsSource: (ovr.requirementsSource as string | null) ?? null,
+          }
+        : null;
     const hardware = classifySubnetHardware(name, live.identityDescription, {
       fallbackCategory: curated?.category,
       fallbackVramGb: curated?.minVramGb,
       fallbackGpu: curated?.recommendedGpu,
       fallbackMonthlyUsd: grossMonthlyUsd,
+      scraped,
     });
 
     const liveAgeBlocks =
@@ -339,6 +361,9 @@ export function mergeOpportunities(
       updatedAt,
       minVramGb: diag.minVramGb,
       recommendedGpu: diag.recommendedGpu,
+      gpuCount: diag.gpuCount ?? null,
+      hosting: diag.hosting ?? null,
+      requirementsSource: diag.requirementsSource ?? null,
       workType: diag.category,
       grossMonthlyUsd: diag.grossMonthlyUsd,
       netMonthlyUsd: profitability.netMonthlyUsd,
@@ -381,10 +406,11 @@ export function mergeOpportunities(
 /** Aggregated dashboard metrics using live values where available. */
 export function getLiveDashboardMetrics(
   snap: LiveNetworkSnapshot | undefined,
-  profConfig?: ProfitabilityConfig
+  profConfig?: ProfitabilityConfig,
+  overrides?: Map<number, Record<string, unknown>>
 ) {
   const liveSubnets = mergeSubnets(snap);
-  const liveOpps = mergeOpportunities(snap, profConfig);
+  const liveOpps = mergeOpportunities(snap, profConfig, overrides);
   const trackedSubnets = curatedSubnets.length;
   const activeSubnets = liveSubnets.filter((s) => s.status === "active").length;
   const totalMiners = liveSubnets.reduce((a, s) => a + s.minersCount, 0);

@@ -16,6 +16,7 @@ import { OpportunityCard } from "@/components/cards/opportunity-detail";
 import { ProfitabilitySettingsDialog } from "@/components/cards/profitability-settings";
 import { useNetwork, mergeOpportunities } from "@/lib/infranex/use-network";
 import { useProfitabilityConfig } from "@/lib/infranex/use-profitability";
+import { useSubnetOverrides } from "@/lib/infranex/use-subnet-overrides";
 import { cn, opportunityBand } from "@/lib/utils";
 import { TrendingUp, LayoutGrid, List, Cpu, Settings2 } from "lucide-react";
 import type { Opportunity } from "@/lib/infranex/types";
@@ -48,7 +49,11 @@ export function OpportunitiesView({ onSelectOpportunity, onStartMining }: Opport
   const [settingsOpen, setSettingsOpen] = useState(false);
   const { data: snap } = useNetwork();
   const { data: profConfig } = useProfitabilityConfig();
-  const opportunities = mergeOpportunities(snap, profConfig);
+  const { data: overrides } = useSubnetOverrides();
+  const opportunities = useMemo(
+    () => mergeOpportunities(snap, profConfig, overrides),
+    [snap, profConfig, overrides]
+  );
   const target = profConfig?.minNetProfitTargetUsd ?? 300;
   const passCount = opportunities.filter((o) => o.meetsMinimum !== false).length;
 

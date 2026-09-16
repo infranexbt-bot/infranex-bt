@@ -53,31 +53,23 @@ export async function POST(req: Request) {
     }
 
     try {
-      const scraped = await scrapeGithubMetadata(subnet.githubUrl!);
+      const scraped = await scrapeGithubMetadata(subnet.githubUrl!, { netuid: subnet.netuid });
       if (scraped.source === "github") {
+        const scrapedFields = {
+          description: scraped.description,
+          minVramGb: scraped.minVramGb,
+          recommendedGpu: scraped.recommendedGpu,
+          gpuCount: scraped.gpuCount,
+          hostingRequirements: scraped.hosting ? JSON.stringify(scraped.hosting) : null,
+          requirementsSource: scraped.requirementsSource,
+          requirementsScrapedAt: new Date(),
+          githubUrl: subnet.githubUrl,
+        };
         // Save as override
         await db.subnetOverride.upsert({
           where: { netuid: subnet.netuid },
-          create: {
-            netuid: subnet.netuid,
-            description: scraped.description,
-            minVramGb: scraped.minVramGb,
-            recommendedGpu: scraped.recommendedGpu,
-            githubUrl: subnet.githubUrl,
-          },
-          update: force
-            ? {
-                description: scraped.description,
-                minVramGb: scraped.minVramGb,
-                recommendedGpu: scraped.recommendedGpu,
-                githubUrl: subnet.githubUrl,
-              }
-            : {
-                githubUrl: subnet.githubUrl,
-                description: scraped.description,
-                minVramGb: scraped.minVramGb,
-                recommendedGpu: scraped.recommendedGpu,
-              },
+          create: { netuid: subnet.netuid, ...scrapedFields },
+          update: scrapedFields,
         });
         results.push({
           netuid: subnet.netuid,

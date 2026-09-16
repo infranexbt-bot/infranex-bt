@@ -16,6 +16,7 @@ import { TrendingUp, AlertTriangle, Cpu, Wallet, Calculator } from "lucide-react
 import { formatNumber } from "@/lib/utils";
 import { assessSeatChance, formatBurnTao } from "@/lib/infranex/miner-score";
 import { RegisterOddsBlock, RegisterOddsInline } from "@/components/cards/register-odds";
+import { HostingWarningBlock, HostingChips } from "@/components/cards/hosting-requirements";
 import { useOddsTrends } from "@/lib/infranex/use-odds";
 import type { Opportunity } from "@/lib/infranex/types";
 
@@ -517,6 +518,11 @@ export function OpportunityDetailDialog({
               </p>
             </div>
           </div>
+          {o.hosting && (
+            <div className="mt-3">
+              <HostingWarningBlock hosting={o.hosting} source={o.requirementsSource} />
+            </div>
+          )}
         </div>
 
         <Separator />
@@ -682,6 +688,9 @@ export function OpportunityCard({ opportunity: o }: { opportunity: Opportunity }
             <p className="mono truncate text-xs text-muted-foreground">
               {o.recommendedGpu.replace("NVIDIA ", "")}
             </p>
+            {o.hosting && (
+              <HostingChips hosting={o.hosting} source={o.requirementsSource} className="mt-1" />
+            )}
           </div>
           <div>
             <p className="text-xs text-muted-foreground">Risk</p>

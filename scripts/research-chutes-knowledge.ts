@@ -65,13 +65,40 @@ async function main() {
   const { scoreMinersLedger, classifySubnetHardware, totalScore, computeEarnChance } =
     await import("../src/lib/infranex/miner-score");
 
+  // Overrides via the same API the client hook uses (scraped requirements).
+  const ovRes = await fetch("http://localhost:3000/api/subnet-overrides", {
+    headers: COOKIE ? { cookie: COOKIE } : {},
+  });
+  const ovJson = ovRes.ok ? ((await ovRes.json()) as { overrides: Array<Record<string, unknown>> }) : { overrides: [] };
+  const ov64 = ovJson.overrides.find((o) => o.netuid === 64);
+  const scraped =
+    ov64 && (ov64.recommendedGpu || ov64.hostingRequirements)
+      ? {
+          recommendedGpu: (ov64.recommendedGpu as string | null) ?? null,
+          gpuCount: (ov64.gpuCount as number | null) ?? null,
+          hosting: ov64.hostingRequirements ? JSON.parse(ov64.hostingRequirements as string) : null,
+          requirementsSource: (ov64.requirementsSource as string | null) ?? null,
+        }
+      : null;
+  console.log("\n=== Scraped requirements (SubnetOverride SN64) ===");
+  console.log(`  recommendedGpu = ${scraped?.recommendedGpu ?? "-"}`);
+  console.log(`  gpuCount       = ${scraped?.gpuCount ?? "-"}`);
+  console.log(`  hosting        = ${scraped?.hosting ? JSON.stringify({ bm: scraped.hosting.bareMetalOnly, tee: scraped.hosting.teeRequired, ip: scraped.hosting.staticIpRequired }) : "-"}`);
+  console.log(`  source         = ${scraped?.requirementsSource ?? "-"}`);
+
   const usd = snap.taoPriceUsd || 0;
   const name = (live.name as string) ?? "Subnet 64";
   const hardware = classifySubnetHardware(
     name,
     live.identityDescription as string | null,
-    {}
+    { scraped }
   );
+  console.log(`\n=== Hardware profile (classifier + scraped) ===`);
+  console.log(`  tier          = ${hardware.tier.label}`);
+  console.log(`  recommendedGpu= ${hardware.recommendedGpu}`);
+  console.log(`  gpuCount      = ${hardware.gpuCount}`);
+  console.log(`  monthlyCostUsd= ${hardware.monthlyCostUsd}`);
+  console.log(`  sourceScraped = ${hardware.sourceScraped}`);
   const liveAgeBlocks =
     live.registeredAt != null && snap.blockNumber > (live.registeredAt as number)
       ? snap.blockNumber - (live.registeredAt as number)

@@ -21,6 +21,7 @@
 import type { LiveSubnetMetrics } from "./chain";
 import type { OpportunityFactor } from "./types";
 import { electricityMonthlyUsd } from "./profitability";
+import type { HostingRequirements } from "./github-scraper";
 
 const clampScore = (v: number, lo: number, hi: number) =>
   Math.min(hi, Math.max(lo, v));
@@ -118,8 +119,10 @@ export interface GpuTier {
 }
 
 export const GPU_TIERS = {
+  b200: { label: "B200-class", recommendedGpu: "B200 180GB", minVramGb: 180, monthlyRentUsd: 3200, powerWatts: 1000 },
   h200: { label: "H200-class", recommendedGpu: "H200 141GB", minVramGb: 141, monthlyRentUsd: 2500, powerWatts: 700 },
   h100: { label: "H100-class", recommendedGpu: "H100 80GB", minVramGb: 80, monthlyRentUsd: 1700, powerWatts: 700 },
+  pro6000: { label: "RTX Pro 6000", recommendedGpu: "RTX Pro 6000 96GB", minVramGb: 96, monthlyRentUsd: 1100, powerWatts: 600 },
   a100: { label: "A100-class", recommendedGpu: "A100 80GB", minVramGb: 80, monthlyRentUsd: 950, powerWatts: 400 },
   a6000: { label: "A6000-class", recommendedGpu: "RTX A6000 48GB", minVramGb: 48, monthlyRentUsd: 320, powerWatts: 300 },
   consumer24: { label: "Consumer 24GB", recommendedGpu: "RTX 4090 24GB", minVramGb: 24, monthlyRentUsd: 260, powerWatts: 450 },
@@ -127,6 +130,30 @@ export const GPU_TIERS = {
   entry: { label: "Entry GPU", recommendedGpu: "Entry GPU 8GB", minVramGb: 8, monthlyRentUsd: 80, powerWatts: 100 },
   cpu: { label: "CPU-only", recommendedGpu: "CPU VPS", minVramGb: 0, monthlyRentUsd: 50, powerWatts: 20 },
 } as const satisfies Record<string, GpuTier>;
+
+/**
+ * Resolve a GPU tier from a model string found in a repo README
+ * (github-scraper parseGpuRequirement output). Ground truth from the
+ * subnet's own docs beats keyword classification.
+ */
+export function resolveGpuTierFromModel(model: string): GpuTier | null {
+  const m = model.toLowerCase();
+  if (/\bb300\b/.test(m)) return GPU_TIERS.b200; // same Blackwell HGX class
+  if (/\bb200\b/.test(m)) return GPU_TIERS.b200;
+  if (/\bh200\b/.test(m)) return GPU_TIERS.h200;
+  if (/\bh100\b/.test(m)) return GPU_TIERS.h100;
+  if (/\b(?:rtx\s*)?pro\s*6000\b/.test(m) || /\brtx\s*6000\s*ada\b/.test(m)) return GPU_TIERS.pro6000;
+  if (/\ba100\b/.test(m)) return GPU_TIERS.a100;
+  if (/\bl40s?\b/.test(m)) return GPU_TIERS.a6000; // 48GB Ada-class
+  if (/\ba40\b/.test(m)) return GPU_TIERS.a6000;
+  if (/\ba6000\b/.test(m)) return GPU_TIERS.a6000;
+  if (/\ba5000\b/.test(m)) return GPU_TIERS.vram16; // 24GB but older — mid tier
+  if (/\ba10\b/.test(m)) return GPU_TIERS.vram16;
+  if (/\bt4\b/.test(m)) return GPU_TIERS.entry;
+  if (/\b(?:rtx\s*)?(?:4090|3090|5090)\b/.test(m)) return GPU_TIERS.consumer24;
+  if (/\bmi300x\b/.test(m)) return GPU_TIERS.h200; // 192GB HBM3 accelerator class
+  return null;
+}
 
 /** Infra cost on top of the GPU: VPS, monitoring, alerting. Scraping adds proxies. */
 const INFRA_BASE_USD = 40;
@@ -147,6 +174,14 @@ export interface SubnetHardwareProfile {
   isGpuWorkload: boolean;
   /** True when keywords matched a known work type (vs revenue fallback). */
   classified: boolean;
+  /** Number of GPUs required (scraped, e.g. 8 for "8x H200"). */
+  gpuCount?: number | null;
+  /** Hosting constraints scraped from the subnet's repo README. */
+  hosting?: HostingRequirements | null;
+  /** Repo URL the requirements came from. */
+  requirementsSource?: string | null;
+  /** True when the profile came from the repo README (vs classifier). */
+  sourceScraped?: boolean;
 }
 
 /** Deterministic GPU tier from the reward stream — fallback for subnets
@@ -197,46 +232,93 @@ export function classifySubnetHardware(
     fallbackGpu?: string;
     /** Per-earning-miner monthly USD — revenue-based fallback tier. */
     fallbackMonthlyUsd?: number;
+    /** GitHub-scraped requirements — GROUND TRUTH, wins over everything. */
+    scraped?: {
+      recommendedGpu?: string | null;
+      gpuCount?: number | null;
+      minVramGb?: number | null;
+      hosting?: HostingRequirements | null;
+      requirementsSource?: string | null;
+    } | null;
   }
 ): SubnetHardwareProfile {
-  const text = `${name ?? ""} ${description ?? ""} ${fallbacks?.fallbackCategory ?? ""}`;
-  for (const rule of CATEGORY_RULES) {
-    if (rule.keywords.test(text)) {
+  // --- Base classification: work-type keywords → tier (existing logic) ----
+  const base = (() => {
+    const text = `${name ?? ""} ${description ?? ""} ${fallbacks?.fallbackCategory ?? ""}`;
+    for (const rule of CATEGORY_RULES) {
+      if (rule.keywords.test(text)) {
+        return {
+          profile: {
+            category: rule.category,
+            tier: rule.tier,
+            minVramGb: rule.tier.minVramGb,
+            recommendedGpu: rule.tier.recommendedGpu,
+            monthlyCostUsd: rule.tier.monthlyRentUsd + (rule.infra ?? INFRA_BASE_USD),
+            isGpuWorkload: rule.tier.minVramGb > 0,
+            classified: true,
+          } as SubnetHardwareProfile,
+          infraUsd: rule.infra ?? INFRA_BASE_USD,
+        };
+      }
+    }
+    // No keyword match — fall back to curated VRAM data, else revenue tier.
+    if (fallbacks?.fallbackVramGb && fallbacks.fallbackVramGb > 0) {
+      const tier = Object.values(GPU_TIERS).find(
+        (t) => t.minVramGb === fallbacks.fallbackVramGb
+      ) ?? GPU_TIERS.consumer24;
       return {
-        category: rule.category,
-        tier: rule.tier,
-        minVramGb: rule.tier.minVramGb,
-        recommendedGpu: rule.tier.recommendedGpu,
-        monthlyCostUsd: rule.tier.monthlyRentUsd + (rule.infra ?? INFRA_BASE_USD),
-        isGpuWorkload: rule.tier.minVramGb > 0,
-        classified: true,
+        profile: {
+          category: fallbacks.fallbackCategory || "Unclassified workload",
+          tier,
+          minVramGb: tier.minVramGb,
+          recommendedGpu: fallbacks.fallbackGpu ?? tier.recommendedGpu,
+          monthlyCostUsd: tier.monthlyRentUsd + INFRA_BASE_USD,
+          isGpuWorkload: true,
+          classified: false,
+        } as SubnetHardwareProfile,
+        infraUsd: INFRA_BASE_USD,
       };
     }
-  }
-  // No keyword match — fall back to curated VRAM data, else revenue tier.
-  if (fallbacks?.fallbackVramGb && fallbacks.fallbackVramGb > 0) {
-    const tier = Object.values(GPU_TIERS).find(
-      (t) => t.minVramGb === fallbacks.fallbackVramGb
-    ) ?? GPU_TIERS.consumer24;
+    const tier = estimateGpuTierFromRevenue(fallbacks?.fallbackMonthlyUsd ?? 0);
     return {
-      category: fallbacks.fallbackCategory || "Unclassified workload",
-      tier,
-      minVramGb: tier.minVramGb,
-      recommendedGpu: fallbacks.fallbackGpu ?? tier.recommendedGpu,
-      monthlyCostUsd: tier.monthlyRentUsd + INFRA_BASE_USD,
-      isGpuWorkload: true,
-      classified: false,
+      profile: {
+        category: fallbacks?.fallbackCategory || "Unclassified workload",
+        tier,
+        minVramGb: tier.minVramGb,
+        recommendedGpu: tier.recommendedGpu,
+        monthlyCostUsd: tier.monthlyRentUsd + INFRA_BASE_USD,
+        isGpuWorkload: tier.minVramGb > 0,
+        classified: false,
+      } as SubnetHardwareProfile,
+      infraUsd: INFRA_BASE_USD,
     };
-  }
-  const tier = estimateGpuTierFromRevenue(fallbacks?.fallbackMonthlyUsd ?? 0);
+  })();
+
+  // --- Scraped repo requirements layer on top: the subnet's own README ----
+  // (or its miner repo) is ground truth for GPU model + hosting rules.
+  // It overrides ONLY what it actually knows — a hosting-only README keeps
+  // the work-type GPU tier; a GPU-only README keeps the classifier category.
+  const scraped = fallbacks?.scraped;
+  const scrapedTier = scraped?.recommendedGpu
+    ? resolveGpuTierFromModel(scraped.recommendedGpu)
+    : null;
+  if (!scraped || (!scrapedTier && !scraped.hosting)) return base.profile;
+
+  const count = scraped.gpuCount && scraped.gpuCount > 1 ? scraped.gpuCount : 1;
+  const tier = scrapedTier ?? base.profile.tier;
+  // The scraper's raw string already carries the count prefix ("8x H200").
+  const gpuLabel = scraped.recommendedGpu?.trim() ?? base.profile.recommendedGpu;
   return {
-    category: fallbacks?.fallbackCategory || "Unclassified workload",
+    ...base.profile,
     tier,
     minVramGb: tier.minVramGb,
-    recommendedGpu: tier.recommendedGpu,
-    monthlyCostUsd: tier.monthlyRentUsd + INFRA_BASE_USD,
+    recommendedGpu: gpuLabel,
+    monthlyCostUsd: tier.monthlyRentUsd * count + base.infraUsd,
     isGpuWorkload: tier.minVramGb > 0,
-    classified: false,
+    gpuCount: count,
+    hosting: scraped.hosting ?? null,
+    requirementsSource: scraped.requirementsSource ?? null,
+    sourceScraped: true,
   };
 }
 
@@ -267,6 +349,12 @@ export interface MinerLedgerDiagnostics {
   minVramGb: number;
   gpuPowerWatts: number;
   gpuCostMonthlyUsd: number;
+  /** Number of GPUs required (scraped from repo README; 1 = unknown/single). */
+  gpuCount?: number | null;
+  /** Hosting constraints scraped from the repo README (null = unknown). */
+  hosting?: HostingRequirements | null;
+  /** Repo URL the requirements came from (when scraped). */
+  requirementsSource?: string | null;
   infraCostMonthlyUsd: number;
   storageCostMonthlyUsd: number;
   otherOpexMonthlyUsd: number;
@@ -363,18 +451,21 @@ export function scoreMinersLedger(inputs: {
       fallbackMonthlyUsd: fallbackMonthly,
     });
   // --- Cost stack (Profitability Engine lines) ----------------------------
+  // gpuCount > 1 (scraped, e.g. "8x H200") scales the GPU line: the requirement
+  // is a multi-GPU server, not one card. Owned mode scales the power draw.
   const costs = inputs.costs ?? {};
+  const gpuCount = hardware.gpuCount && hardware.gpuCount > 1 ? hardware.gpuCount : 1;
   const gpuCost =
     costs.hardwareMode === "owned"
       ? electricityMonthlyUsd(
-          hardware.tier.powerWatts,
+          hardware.tier.powerWatts * gpuCount,
           costs.electricityUsdPerKwh ?? 0.12
         )
-      : hardware.tier.monthlyRentUsd;
+      : hardware.tier.monthlyRentUsd * gpuCount;
   const infraCost =
     costs.infraMonthlyUsd != null && costs.infraMonthlyUsd > 0
       ? costs.infraMonthlyUsd
-      : Math.max(hardware.monthlyCostUsd - hardware.tier.monthlyRentUsd, INFRA_BASE_USD);
+      : Math.max(hardware.monthlyCostUsd - hardware.tier.monthlyRentUsd * gpuCount, INFRA_BASE_USD);
   const storageCost = costs.storageMonthlyUsd ?? 0;
   const otherOpex = costs.otherOpexMonthlyUsd ?? 0;
   const burnUsd =
@@ -507,12 +598,15 @@ export function scoreMinersLedger(inputs: {
     recommendedGpu: hardware.recommendedGpu,
     minVramGb: hardware.minVramGb,
     gpuCostMonthlyUsd: Math.round(gpuCost),
+    gpuCount: hardware.gpuCount ?? null,
+    hosting: hardware.hosting ?? null,
+    requirementsSource: hardware.requirementsSource ?? null,
     infraCostMonthlyUsd: Math.round(infraCost),
     storageCostMonthlyUsd: Math.round(storageCost),
     otherOpexMonthlyUsd: Math.round(otherOpex),
     amortizedBurnUsd: Math.round(amortizedBurn),
     totalCostMonthlyUsd: Math.round(totalCosts),
-    gpuPowerWatts: hardware.tier.powerWatts,
+    gpuPowerWatts: hardware.tier.powerWatts * gpuCount,
     netMonthlyUsd,
     netDailyTao:
       usd > 0 ? Math.round((netMonthlyUsd / 30 / usd) * 10000) / 10000 : 0,
