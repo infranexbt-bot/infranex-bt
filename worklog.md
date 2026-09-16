@@ -1000,3 +1000,42 @@ Stage Summary:
 - Detail dialog shows hosting block quoting chutes-miner README verbatim + source link.
 - All 122 chain subnets now rescraped hourly; classifier unchanged where READMEs are silent (96 subnets).
 - Screenshots: download/opportunities-sn64-corrected.png, opportunities-sn64-dialog-hosting.png.
+
+---
+Task ID: subnet-hosting-audit-1
+Agent: main (Super Z)
+Task: Check ALL subnets' GitHub READMEs for bare-metal/VM-only hosting constraints (user: "what about all other subnets? did you check the git readme of all subnets...")
+
+Work Log:
+- Built scripts/research-subnet-hosting-audit.ts — scanned all 129 subnets (122 with identityGithub) through both the app's real pipeline (scrapeGithubMetadata) and a verbatim sentence-level scan with line numbers; results in /tmp/subnet-hosting-audit.json
+- Deep-verified candidates with context dumps (scripts/research-subnet-verify.ts, -verify2.ts): section headers, roadmap vs current-implementation, miner-vs-validator side, RunPod allowed/prohibited direction
+- Repo existence checks: SN14 cacheon 404, SN47 feval 404, SN95 actual-subnet-95 404 (dead); SN16/30/31/42/73/87/99/109/110/112 have placeholder "0x" identities (parked subnets); SN122 CookingTao org repos have no root README
+
+AUDIT VERDICT (bare metal / VM or TEE-class hosting required, VERBATIM evidence):
+- SN64 Chutes: "ALL servers must be bare metal/VM... will not work on Runpod, Vast... IPs must be unique, static, and provide a 1:1 port mapping" (chutes-miner L161) + TEE-exclusive Intel TDX; validated topologies 8x H200/B200/RTX Pro 6000 (sek8s host-tools table) — CONFIRMED
+- SN4 Targon: NVIDIA Confidential Compute OR PPCIE required (Current Implementation); "Bare metal access" is Future Roadmap only — TEE yes, bare-metal NO
+- SN28 SayGM: miner deploys as Phala Cloud Intel TDX CVM — TEE CVM required
+- SN51 lium.io: executor runs inside Intel TDX confidential VM with attestation (dstacktee; TDX+SGX host prereqs) — TEE required
+- SN58 greevils: deploys Confidential Space TDX VM on own infra — TEE required
+- SN90 KubeTEE: whole mechanism = TEE-attested K8s clusters (Intel TDX + NVIDIA CC, 8-GPU passthrough, Kata+CoCo) — strongest TEE requirement
+- NOT restricted: SN33 ReadyAI (RunPod explicitly allowed), SN38 ChronoLLM (TEE is validator-side), SN71 Leadpoet ("No Nitro enclave" negation), SN82 Compelle ("sudo tee" false positive), SN94 BitSota ("dedicated hardware" is a recommendation)
+- No other subnet README states bare-metal/VM-only hosting
+
+Parser fixes in src/lib/infranex/github-scraper.ts (all guard-verified on 15-case validation):
+- parseHosting: roadmap-section guard, negation guard, validator-only exclusion, requirement-context for TEE/static-IP; removed break so one line can evidence multiple constraints (Chutes line = BARE + IP)
+- Identity README now included as last-resort hosting source (KubeTEE/Targon/SayGM/lium/greevils had hosting only there)
+- parseGpuRequirementSmart: strongest-evidence tiers (validated table row > count-qualified > bare), nearest-Nx count ("32x H100 + 24x H200" -> 24, not 56), table-cell counts ("| H200 | 8 |"), GPU_LINE_EXCLUDE for incentive prose ("variety... 8x h100"), OTHER_SUBNET_MENTION exclusion
+- parseGithubUrl: org-only + /orgs/X/repositories URLs; resolveOrgRepos via org page HTML
+- fetchReadme/fetchRequirements: HEAD branch first (default branch always = current docs)
+- CURATED_EXTRA_REPOS: SN64 -> chutesai/sek8s (+host-tools/README.md) for validated topologies
+- Verified: SN64 -> BARE+TEE+IP + 8x H200; KubeTEE -> TEE + 24x H200; all 15 cases match expectations
+
+Integration fixes:
+- opportunity-score.ts: bestMiningCandidates now gates out hosting-restricted subnets (bareMetalOnly || teeRequired) from the consumer/cloud mining ranking + returns restrictedCount; computeOpportunityScore accepts overrides and surfaces a "6 hosting-restricted subnets excluded" note
+- dashboard-view.tsx: useSubnetOverrides wired into mergeOpportunities (x2) and computeOpportunityScore — dashboard previously scored WITHOUT scraped ground truth (root cause of stale RTX 4090 on the dashboard)
+- scripts/sync-overrides-standalone.ts: standalone sync (bun + prisma, no next-server) — DB now has 104 overrides, 8 with hosting flags; used because next-server kept getting OOM-killed (dmesg: next-server killed at 2.1GB RSS on 4GB box)
+
+Stage Summary:
+- Browser-verified end to end: dashboard runner-ups no longer include SN64, exclusion note renders, SN64 Opportunities row shows 8x H200 / 141GB / Bare metal+TEE+Static IP chips / AVOID 38.3 / -$17,804/mo
+- Answer to user: ONLY SN64 mandates bare metal/VM verbatim; SN4/28/51/58/90 mandate TEE-class hosting; everything else allows conventional hosting; 6 restricted subnets now auto-excluded from generic mining recommendations
+- Known follow-ups: rampWeeks 13.6wk for SN64 still overstated (7-day compute-sum window => 1-2wk real, from chutes audit); Targon GPU label falls back to work-type tier (4090) since its README names no model — TEE chip + evidence shown instead

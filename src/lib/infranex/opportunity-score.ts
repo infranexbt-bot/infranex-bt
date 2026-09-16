@@ -78,17 +78,30 @@ function inr(usd: number, usdInr: number): number {
 }
 
 /** Mining candidates: real net-positive runners, optionally capped to the
- *  user's GPU. Ranked by the profitability engine's monthly ROI %. */
+ *  user's GPU. Ranked by the profitability engine's monthly ROI %.
+ *  HOSTING GATE (all-subnet README audit): subnets whose own docs require
+ *  bare metal/VM or TEE (Chutes SN64, Targon SN4, KubeTEE SN90, ...) cannot
+ *  be run on a consumer GPU or a rented container — they are excluded from
+ *  the generic mining ranking and surfaced via a note instead. The
+ *  Opportunities table still lists them with the full hosting evidence. */
 function bestMiningCandidates(
   snap: LiveNetworkSnapshot,
   profConfig: ProfitabilityConfig | undefined,
-  maxGpuVramGb?: number
-): LiveOpportunity[] {
-  const rows = mergeOpportunities(snap, profConfig).filter((o) => {
+  maxGpuVramGb?: number,
+  overrides?: Map<number, Record<string, unknown>>
+): { miners: LiveOpportunity[]; restrictedCount: number } {
+  const all = mergeOpportunities(snap, profConfig, overrides);
+  const restricted = new Set(
+    all
+      .filter((o) => o.hosting && (o.hosting.bareMetalOnly || o.hosting.teeRequired))
+      .map((o) => o.netuid)
+  );
+  const rows = all.filter((o) => {
     if (o.netuid === 0) return false;
     if (o.meetsMinimum === false) return false;
     if (!(o.netMonthlyUsd != null && o.netMonthlyUsd > 0)) return false;
     if (maxGpuVramGb != null && o.minVramGb > maxGpuVramGb) return false;
+    if (restricted.has(o.netuid)) return false;
     return true;
   });
   const roi = (o: LiveOpportunity): number =>
@@ -96,7 +109,7 @@ function bestMiningCandidates(
     (o.netMonthlyUsd && o.gpuCostMonthlyUsd
       ? (o.netMonthlyUsd / Math.max(o.gpuCostMonthlyUsd, 100)) * 100
       : 0);
-  return rows.sort((a, b) => roi(b) - roi(a));
+  return { miners: rows.sort((a, b) => roi(b) - roi(a)), restrictedCount: restricted.size };
 }
 
 function miningStrategy(o: LiveOpportunity, usdInr: number): ScoredStrategy {
@@ -150,6 +163,9 @@ export interface OpportunityScoreOptions {
   capitalTao?: number;
   /** USD→INR (default: model constant). */
   usdInr?: number;
+  /** GitHub-scraped subnet overrides (GPU/hosting ground truth) — required
+   *  for the hosting gate and correct GPU economics in the mining ranking. */
+  overrides?: Map<number, Record<string, unknown>>;
   /** Cap mining candidates to GPUs up to this VRAM (undefined = any). */
   maxGpuVramGb?: number;
   /** Profitability config (electricity etc.) — forwarded to the miner ledger. */
@@ -179,9 +195,9 @@ export function computeOpportunityScore(
       ? stakingTopSubnet
       : stakingRoot;
 
-  const miners = opts?.profConfig
-    ? bestMiningCandidates(snap, opts.profConfig, opts?.maxGpuVramGb)
-    : bestMiningCandidates(snap, undefined, opts?.maxGpuVramGb);
+  const { miners, restrictedCount } = opts?.profConfig
+    ? bestMiningCandidates(snap, opts.profConfig, opts?.maxGpuVramGb, opts?.overrides)
+    : bestMiningCandidates(snap, undefined, opts?.maxGpuVramGb, opts?.overrides);
   const bestMiner = miners[0] ?? null;
 
   const miningStrategyRow = bestMiner ? miningStrategy(bestMiner, usdInr) : null;
@@ -193,6 +209,11 @@ export function computeOpportunityScore(
   const notes: string[] = [];
   const liveData = Boolean(snap && snap.source === "live" && snap.subnets.length > 1);
   const miningEvaluated = Math.max((snap?.subnets.length ?? 1) - 1, 0);
+  if (restrictedCount > 0) {
+    notes.push(
+      `${restrictedCount} hosting-restricted subnet${restrictedCount === 1 ? "" : "s"} (bare-metal/TEE-only per the subnet's own repo docs) excluded from the mining ranking — they need datacenter confidential-compute infrastructure, not consumer GPUs or rented containers.`
+    );
+  }
 
   let recommended: ScoredStrategy;
   let alternative: ScoredStrategy;

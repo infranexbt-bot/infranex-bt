@@ -51,6 +51,17 @@ export const CURATED_MINER_REPOS: Record<number, string> = {
   64: "https://github.com/chutesai/chutes-miner",
 };
 
+// Additional requirement repos per subnet — hardware/hosting rules that live
+// OUTSIDE the miner repo. SN64: the sek8s repo documents the TEE host stack
+// ("8× H200: NVSwitch required for the validated stack", validated host
+// topologies in host-tools/README.md).
+export const CURATED_EXTRA_REPOS: Record<number, string[]> = {
+  64: ["https://github.com/chutesai/sek8s"],
+};
+
+// Doc paths probed inside each extra repo (in addition to its README).
+const EXTRA_DOC_PATHS = ["host-tools/README.md", "docs/e2e.md", "e2e.md"];
+
 interface RepoInfo {
   owner: string;
   repo: string;
@@ -61,11 +72,53 @@ function parseGithubUrl(url: string): RepoInfo | null {
   try {
     const u = new URL(url);
     if (!u.hostname.includes("github.com")) return null;
-    const parts = u.pathname.split("/").filter(Boolean);
-    if (parts.length < 2) return null;
-    return { owner: parts[0], repo: parts[1], branch: parts[3] || "main" };
+    let parts = u.pathname.split("/").filter(Boolean);
+    // github.com/orgs/X/repositories -> org repo listing
+    if (parts[0] === "orgs" && parts.length >= 2) parts = [parts[1], "repositories"];
+    // strip /tree/<branch>, /blob/<branch>/... suffixes
+    if (parts.length >= 3 && ["tree", "blob"].includes(parts[2])) parts = parts.slice(0, 2);
+    if (parts.length === 0) return null;
+    if (parts.length === 1 || parts[1] === "repositories") {
+      // org-only URL — repo resolved later via the org's repositories page
+      return { owner: parts[0], repo: "", branch: "main" };
+    }
+    return { owner: parts[0], repo: parts[1].replace(/\.git$/i, ""), branch: parts[3] || "main" };
   } catch {
     return null;
+  }
+}
+
+/**
+ * Resolve an org-only identity (identityGithub = "github.com/Org" or
+ * "/orgs/Org/repositories") to the org's most likely subnet repos by
+ * scraping the repositories page HTML. Ordered: miner/subnet-ish names,
+ * then program/mechanism names, then everything else. Callers try each
+ * until a README is found (some org repos have no root README).
+ */
+async function resolveOrgRepos(owner: string): Promise<RepoInfo[]> {
+  try {
+    const res = await fetch(`https://github.com/orgs/${owner}/repositories?q=&type=all`, {
+      headers: { "User-Agent": "infranex-bt/1.0" },
+      cache: "no-store",
+    });
+    if (!res.ok) return [];
+    const html = await res.text();
+    const re = new RegExp(`href="/${owner}/([A-Za-z0-9_.-]+)"`, "gi");
+    const found: string[] = [];
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(html)) !== null) {
+      const slug = m[1];
+      if (!found.includes(slug)) found.push(slug);
+    }
+    if (!found.length) return [];
+    const score = (r: string) =>
+      /miner|subnet|sn[-_]?\d+/i.test(r) ? 0 : /incentive|mechanism|program|partner/i.test(r) ? 1 : 2;
+    return found
+      .sort((a, b) => score(a) - score(b))
+      .slice(0, 3)
+      .map((repo) => ({ owner, repo, branch: "main" }));
+  } catch {
+    return [];
   }
 }
 
@@ -88,10 +141,11 @@ async function fetchRaw(
   }
 }
 
-// Try multiple README filenames + branches
+// Try multiple README filenames + branches. HEAD first: it always resolves
+// the repo's DEFAULT branch (current docs) — "main" can be a stale branch.
 async function fetchReadme(info: RepoInfo): Promise<{ content: string; url: string } | null> {
-  const branches = [info.branch, "main", "master"];
-  const paths = ["README.md", "readme.md", "README.rst", "README.txt", "README"];
+  const branches = ["HEAD", info.branch, "main", "master"];
+  const paths = ["README.md", "readme.md", "README.rst", "README.txt", "README", "Readme.md"];
   for (const branch of branches) {
     for (const path of paths) {
       const content = await fetchRaw(info.owner, info.repo, branch, path);
@@ -104,7 +158,7 @@ async function fetchReadme(info: RepoInfo): Promise<{ content: string; url: stri
 }
 
 async function fetchRequirements(info: RepoInfo): Promise<{ content: string; url: string } | null> {
-  const branches = [info.branch, "main", "master"];
+  const branches = ["HEAD", info.branch, "main", "master"];
   const paths = [
     "requirements.txt",
     "requirements-min.txt",
@@ -164,11 +218,18 @@ function parseGpuRequirement(text: string): GpuMatch | null {
     // Window around the match to catch "8x H200" / "4 × H100" / "8 GPUs (H200)".
     const start = Math.max(0, idx - 24);
     const window = text.slice(start, idx + m[0].length + 8);
+    // Chars after the model — table-cell counts: "| H200 | 8 | Validated |".
+    const after = text.slice(idx + m[0].length, idx + m[0].length + 24);
     let count = 1;
+    // Nearest "N×" BEFORE the model wins: "32× H100 + 24× H200" → 24 (the
+    // H200 count), not 56 (the mixed-fleet total). Then table cells, then
+    // "8 GPUs (...)" prefixes.
+    const xAll = [...window.matchAll(/(\d{1,2})\s*[x×]\s*(?:NVIDIA\s*)?/gi)];
     const countM =
-      window.match(/(\d{1,2})\s*[x×]\s*(?:NVIDIA\s*)?$/i) ??
-      window.match(/(\d{1,2})\s*[x×]\s*[^,;)]{0,12}$/i) ??
-      window.match(/^(\d{1,2})\s*(?:GPUs?|gpu workers?)/i);
+      xAll.length > 0
+        ? xAll[xAll.length - 1]
+        : after.match(/\|\s*(\d{1,2})\s*\|/) ??
+          window.match(/^(\d{1,2})\s*(?:GPUs?|gpu workers?)/i);
     if (countM) {
       const n = parseInt(countM[1], 10);
       if (n >= 2 && n <= 64) count = n;
@@ -180,6 +241,31 @@ function parseGpuRequirement(text: string): GpuMatch | null {
     };
   }
   return null;
+}
+
+/**
+ * GPU requirement across a WHOLE document, strongest evidence first:
+ *   1. a line declaring validated/required hardware ("| H200 | 8 | Validated |")
+ *   2. a count-qualified mention ("8x H200")
+ *   3. a bare model mention (feature lists — weakest)
+ * Incentive prose ("run a wide VARIETY of GPUs ... to very powerful (8x h100)")
+ * is excluded — it describes the reward spread, not a hosting requirement.
+ */
+const GPU_LINE_EXCLUDE = /variety|from .* to |cheap|etc\.|such as|e\.g\.|can be found/i;
+const GPU_STRONG_CONTEXT = /validated|required|minimum spec|officially supported/i;
+
+function parseGpuRequirementSmart(text: string): GpuMatch | null {
+  let firstCounted: GpuMatch | null = null;
+  let firstBare: GpuMatch | null = null;
+  for (const line of text.split("\n")) {
+    if (GPU_LINE_EXCLUDE.test(line)) continue;
+    const m = parseGpuRequirement(line);
+    if (!m) continue;
+    if (GPU_STRONG_CONTEXT.test(line)) return m;
+    if (m.count > 1 && !firstCounted) firstCounted = m;
+    if (!firstBare) firstBare = m;
+  }
+  return firstCounted ?? firstBare;
 }
 
 // ---------------------------------------------------------------------------
@@ -201,24 +287,73 @@ const HOSTING_PATTERNS: Array<[keyof Omit<HostingRequirements, "notes">, RegExp]
   ["staticIpRequired", /shared or dynamic IPs?/i],
 ];
 
+/**
+ * Hosting-constraint parsing — the rules that decide WHERE a miner may run.
+ * Evidence lines are quoted so the UI can show WHY.
+ *
+ * Guards (audit of all 129 subnets, 2026-09):
+ *  - Roadmap sections ("Future Roadmap", "planned") are NOT current
+ *    requirements — SN4 Targon lists "bare metal access" as roadmap.
+ *  - Negated mentions ("No Nitro enclave or KMS" — SN71) never set flags.
+ *  - Validator-only lines ("Validators run inside Phala Cloud" — SN38) do
+ *    not constrain the MINER's hosting.
+ *  - TEE/static-IP mentions must read as requirements ("must", "runs
+ *    inside", "deploy") or sit under a requirements-style heading — a bare
+ *    feature-list mention ("TEE Attestation Verification") is not a rule.
+ */
+const SECTION_HEADING_OK =
+  /current implementation|requirement|hardware|deployment|deploy|setup|installation|hosting|infrastructure/;
+const LINE_REQUIREMENTISH =
+  /(must(?: be| run)?|required to|runs?\s+(?:inside|in|on|within|as)|\b(?:inside|within)\b|deploy|provision|exclusiv|mandatory|enforc|gated?\b|launch(?:es|ed)?|hardware|bare[ -]?metal)/i;
+const NEGATION_BEFORE =
+  /\b(no|not|without|skip|avoid|neither|nor|don'?t|doesn'?t|can'?t|cannot|never)\s+(?:longer\s+|be\s+)?$/i;
+const ROADMAP_HEADING = /roadmap|future|planned|coming soon|not yet|backlog|vision|design/;
+
 function parseHosting(text: string): HostingRequirements | null {
+  const lines = text.split("\n");
   const notes = new Set<string>();
   const flags = { bareMetalOnly: false, teeRequired: false, staticIpRequired: false };
   let any = false;
-  for (const [flag, pattern] of HOSTING_PATTERNS) {
-    const m = text.match(pattern);
-    if (m) {
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    // Nearest markdown heading above (≤30 lines) — section context.
+    let heading = "";
+    for (let h = i - 1; h >= Math.max(0, i - 30); h--) {
+      const t = lines[h].trim();
+      if (/^#{1,6} /.test(t)) {
+        heading = t.toLowerCase();
+        break;
+      }
+    }
+    if (ROADMAP_HEADING.test(heading)) continue; // roadmap ≠ current rule
+    for (const [flag, pattern] of HOSTING_PATTERNS) {
+      if (flags[flag]) continue;
+      const m = line.match(pattern);
+      if (!m) continue;
+      const idx = m.index ?? 0;
+      // Negation guard: "No Nitro enclave or KMS", "without TEE".
+      if (NEGATION_BEFORE.test(line.slice(Math.max(0, idx - 48), idx))) continue;
+      // Validator-only lines describe the VALIDATOR's hosting, not the miner's.
+      if (/\bvalidators?\b/i.test(line) && !/\bminers?\b/i.test(line)) continue;
+      // TEE / static-IP need requirement semantics; bare-metal patterns are
+      // already requirement-phrased ("must be", "will not work on").
+      if (flag !== "bareMetalOnly") {
+        const requirementish =
+          LINE_REQUIREMENTISH.test(line) || SECTION_HEADING_OK.test(heading);
+        if (!requirementish) continue;
+      }
       flags[flag] = true;
       any = true;
       // Quote the line containing the evidence (trimmed).
-      const lineStart = text.lastIndexOf("\n", m.index);
-      const lineEnd = text.indexOf("\n", m.index);
-      const line = text
-        .slice(lineStart + 1, lineEnd === -1 ? undefined : lineEnd)
+      const cleaned = line
         .trim()
         .replace(/[#*`>]/g, "")
         .slice(0, 220);
-      if (line) notes.add(line);
+      if (cleaned) notes.add(cleaned);
+      // NO break — one line can evidence several constraints
+      // (e.g. Chutes: "ALL servers must be bare metal/VM ... the IPs must
+      // be unique, static, and provide a 1:1 port mapping" sets BOTH
+      // bareMetalOnly and staticIpRequired on the same line).
     }
   }
   if (!any) return null;
@@ -308,17 +443,73 @@ async function scrapeRepo(info: RepoInfo): Promise<RepoScrape> {
   };
 }
 
+/**
+ * GPU parsing for IDENTITY READMEs only — every candidate line must carry
+ * requirement semantics (require/minimum/supported/validated/hardware/node),
+ * so a passing mention of an H100 in a blog-style paragraph never becomes a
+ * fake GPU requirement. Strict context wins over loose; lines about OTHER
+ * subnets ("helped Chutes onboard B200/B300 nodes") are excluded so a
+ * subnet's own fleet is described, not its neighbours'.
+ */
+const GPU_STRICT_CONTEXT =
+  /(require|minimum|supported|validated|must|need|provision|fleet|runs? on|topolog)/i;
+const GPU_LOOSE_CONTEXT =
+  /(require|minimum|supported|validated|must|need|provision|hardware|cluster|node|topolog|fleet|gpu)/i;
+const OTHER_SUBNET_MENTION =
+  /\b(subnet\s?\d{1,3}|chutes|targon|lium|gradients|compute.?horde)\b/i;
+
+function parseGpuWithContext(readme: string): GpuMatch | null {
+  for (const strict of [true, false]) {
+    const ctx = strict ? GPU_STRICT_CONTEXT : GPU_LOOSE_CONTEXT;
+    for (const line of readme.split("\n")) {
+      if (!ctx.test(line)) continue;
+      if (OTHER_SUBNET_MENTION.test(line)) continue;
+      const m = parseGpuRequirement(line);
+      if (m) return m;
+    }
+  }
+  return null;
+}
+
 export async function scrapeGithubMetadata(
   githubUrl: string,
   opts?: { netuid?: number }
 ): Promise<ScrapedMetadata> {
-  const info = parseGithubUrl(githubUrl);
-  if (!info) {
-    return { description: null, minVramGb: null, recommendedGpu: null, gpuCount: null, gpuModelRaw: null, hosting: null, requirementsSource: null, readmeUrl: null, requirementsUrl: null, rawReadmeSnippet: null, source: "error", error: "Invalid GitHub URL" };
-  }
-
   try {
-    const identity = await scrapeRepo(info);
+    let info = parseGithubUrl(githubUrl);
+    if (!info) {
+      return { description: null, minVramGb: null, recommendedGpu: null, gpuCount: null, gpuModelRaw: null, hosting: null, requirementsSource: null, readmeUrl: null, requirementsUrl: null, rawReadmeSnippet: null, source: "error", error: "Invalid GitHub URL" };
+    }
+    // Org-only identity ("github.com/Org") — resolve to the org's most
+    // likely subnet/miner repo via the repositories page; try candidates
+    // in order until one has a README.
+    let identityRepos: RepoScrape;
+    if (!info.repo) {
+      const candidates = await resolveOrgRepos(info.owner);
+      let resolvedInfo: RepoInfo | null = null;
+      let identityScrape: RepoScrape | null = null;
+      for (const cand of candidates) {
+        const sc = await scrapeRepo(cand);
+        if (sc.readme) {
+          resolvedInfo = cand;
+          identityScrape = sc;
+          break;
+        }
+        if (!identityScrape) {
+          resolvedInfo = cand;
+          identityScrape = sc;
+        }
+      }
+      if (!resolvedInfo || !identityScrape) {
+        return { description: null, minVramGb: null, recommendedGpu: null, gpuCount: null, gpuModelRaw: null, hosting: null, requirementsSource: null, readmeUrl: null, requirementsUrl: null, rawReadmeSnippet: null, source: "error", error: `No repo resolvable for org ${info.owner}` };
+      }
+      info = resolvedInfo;
+      identityRepos = identityScrape;
+    } else {
+      identityRepos = await scrapeRepo(info);
+    }
+
+    const identity = identityRepos;
 
     // --- Second repo: the miner repo (curated override > README discovery) --
     let minerUrl = opts?.netuid != null ? CURATED_MINER_REPOS[opts.netuid] ?? null : null;
@@ -335,21 +526,53 @@ export async function scrapeGithubMetadata(
       }
     }
 
+    // --- Extra curated requirement repos (sek8s-style host docs) ----------
+    const extraTexts: string[] = [];
+    const extraUrls = opts?.netuid != null ? CURATED_EXTRA_REPOS[opts.netuid] ?? [] : [];
+    for (const extraUrl of extraUrls) {
+      const ei = parseGithubUrl(extraUrl);
+      if (!ei) continue;
+      const er = await fetchReadme(ei);
+      if (er) extraTexts.push(er.content);
+      for (const docPath of EXTRA_DOC_PATHS) {
+        const [do_, dp] = [ei.owner, ei.repo];
+        const branchDoc = await fetchRaw(do_, dp, "HEAD", docPath);
+        if (branchDoc) extraTexts.push(branchDoc);
+      }
+    }
+
     if (!identity.readme && !miner?.readme) {
       return { description: null, minVramGb: null, recommendedGpu: null, gpuCount: null, gpuModelRaw: null, hosting: null, requirementsSource: null, readmeUrl: null, requirementsUrl: null, rawReadmeSnippet: null, source: "error", error: "No README or requirements found" };
     }
 
     // Mining requirements prefer the MINER repo text (that's where operators
     // document hardware + hosting rules); description prefers the identity repo.
+    // The IDENTITY README is the last-resort hosting source: many subnets
+    // document TEE/hosting rules only there (SN90 KubeTEE, SN4 Targon,
+    // SN28 SayGM, SN51 lium, SN58 greevils) — but GPU models are parsed
+    // from it only with requirement-context, to avoid feature-prose
+    // false positives (the SN64 class of bug).
+    const hostingTexts = [
+      miner?.readme,
+      ...extraTexts,
+      miner?.requirements,
+      identity.requirements,
+      identity.readme,
+    ].filter(Boolean) as string[];
+    const hostingCombined = hostingTexts.join("\n\n") || null;
     const reqTexts = [
       miner?.readme,
+      ...extraTexts,
       miner?.requirements,
       identity.requirements,
     ].filter(Boolean) as string[];
     const reqCombined = reqTexts.join("\n\n") || null;
 
-    const gpu = reqCombined ? parseGpuRequirement(reqCombined) : null;
-    const hosting = reqCombined ? parseHosting(reqCombined) : null;
+    const gpu = reqCombined ? parseGpuRequirementSmart(reqCombined) : null;
+    // Identity-README GPU fallback — only lines with requirement context.
+    const gpuFromIdentity = !gpu && identity.readme ? parseGpuWithContext(identity.readme) : null;
+    const gpuFinal = gpu ?? gpuFromIdentity;
+    const hosting = hostingCombined ? parseHosting(hostingCombined) : null;
     const vram = reqCombined ? parseVram(reqCombined) : null;
 
     const requirementsSource = miner?.readme && minerRepoInfo
@@ -359,11 +582,11 @@ export async function scrapeGithubMetadata(
     return {
       description: identity.readme ? parseDescription(identity.readme) : null,
       minVramGb: vram,
-      recommendedGpu: gpu ? gpu.raw : null,
-      gpuCount: gpu ? gpu.count : null,
-      gpuModelRaw: gpu ? gpu.raw : null,
+      recommendedGpu: gpuFinal ? gpuFinal.raw : null,
+      gpuCount: gpuFinal ? gpuFinal.count : null,
+      gpuModelRaw: gpuFinal ? gpuFinal.raw : null,
       hosting,
-      requirementsSource: gpu || hosting ? requirementsSource : null,
+      requirementsSource: gpuFinal || hosting ? requirementsSource : null,
       readmeUrl: identity.readmeUrl,
       requirementsUrl: miner?.requirementsUrl ?? identity.requirementsUrl,
       rawReadmeSnippet: identity.readme?.slice(0, 500) ?? null,

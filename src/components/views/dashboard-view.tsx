@@ -23,6 +23,7 @@ import { useWorkerStatus } from "@/lib/infranex/use-worker-status";
 import { useEconomics } from "@/lib/infranex/use-platform";
 import { cn, formatNumber, formatCurrency, formatTao, formatRelativeTime, opportunityBand } from "@/lib/utils";
 import { useProfitabilityConfig } from "@/lib/infranex/use-profitability";
+import { useSubnetOverrides } from "@/lib/infranex/use-subnet-overrides";
 import { useTrustReport, trustVerdictStyle } from "@/lib/infranex/use-trust";
 import type { Opportunity, ViewKey } from "@/lib/infranex/types";
 
@@ -34,9 +35,10 @@ interface DashboardViewProps {
 
 export function DashboardView({ onSelectOpportunity, onStartMining, onNavigate }: DashboardViewProps) {
   const { data: snap, isFetching, refetch } = useNetwork();
+  const { data: overrides } = useSubnetOverrides();
   const { data: profConfig } = useProfitabilityConfig();
   const m = getLiveDashboardMetrics(snap, profConfig);
-  const liveOpps = mergeOpportunities(snap, profConfig);
+  const liveOpps = mergeOpportunities(snap, profConfig, overrides);
   const top = liveOpps.slice(0, 8);
 
   // MOCK-PURGE-2 — emission distribution derives from the LIVE chain snapshot
@@ -758,6 +760,7 @@ function TrustLoopCard({ onNavigate }: { onNavigate: (v: ViewKey) => void }) {
 function OpportunityScoreCard({ onNavigate }: { onNavigate: (v: ViewKey) => void }) {
   const { data: snap, isFetching } = useNetwork();
   const { data: profConfig } = useProfitabilityConfig();
+  const { data: overrides } = useSubnetOverrides();
   const { data: trust } = useTrustReport(120_000);
   const [capitalInput, setCapitalInput] = useState("10");
   const [capitalTao, setCapitalTao] = useState(10);
@@ -795,6 +798,7 @@ function OpportunityScoreCard({ onNavigate }: { onNavigate: (v: ViewKey) => void
       return computeOpportunityScore(snap, {
         capitalTao,
         profConfig: profConfig ?? undefined,
+        overrides: overrides ?? undefined,
         calibration:
           calRatio != null && calMinerDays >= 7
             ? { minerDays: calMinerDays, accuracyRatio: calRatio }
@@ -803,7 +807,7 @@ function OpportunityScoreCard({ onNavigate }: { onNavigate: (v: ViewKey) => void
     } catch {
       return null;
     }
-  }, [snap, capitalTao, profConfig, calMinerDays, calRatio]);
+  }, [snap, capitalTao, profConfig, calMinerDays, calRatio, overrides]);
 
   // Cross-check the pick against the Miner's Ledger (the Opportunities page's
   // scoring). The dashboard ranks mining candidates by net ROI only, so a
@@ -814,12 +818,12 @@ function OpportunityScoreCard({ onNavigate }: { onNavigate: (v: ViewKey) => void
     if (!snap || snap.subnets.length === 0) return null;
     try {
       return new Map(
-        mergeOpportunities(snap, profConfig).map((o) => [o.netuid, o])
+        mergeOpportunities(snap, profConfig, overrides).map((o) => [o.netuid, o])
       );
     } catch {
       return null;
     }
-  }, [snap, profConfig]);
+  }, [snap, profConfig, overrides]);
 
   const recommended = score ? score.recommended : null;
   const alternative = score ? score.alternative : null;
