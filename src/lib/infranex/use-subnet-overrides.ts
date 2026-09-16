@@ -24,6 +24,7 @@ interface OverrideRow {
   recommendedGpu: string | null;
   gpuCount: number | null;
   hostingRequirements: string | null;
+  mechanicsJson: string | null;
   requirementsSource: string | null;
   githubUrl: string | null;
   website: string | null;
@@ -48,6 +49,16 @@ async function fetchOverrides(): Promise<Map<number, Record<string, unknown>>> {
         entry.hosting = JSON.parse(o.hostingRequirements);
       } catch {
         // corrupt JSON — ignore, classifier fallback applies
+      }
+    }
+    if (o.mechanicsJson) {
+      try {
+        // MECHANICS-ALL: derived mechanics (provenance "derived") scraped
+        // from the subnet README. Curated entries (mechanics.ts) win at
+        // merge time — this is the fallback tier.
+        entry.mechanics = JSON.parse(o.mechanicsJson);
+      } catch {
+        // corrupt JSON — ignore, scoring falls back to the heuristic
       }
     }
     if (o.requirementsSource) entry.requirementsSource = o.requirementsSource;

@@ -146,7 +146,7 @@ check(
 );
 check(
   "without mechanics: heuristic ramp (~13.6 wk for these vecs)",
-  noM.diag.rampWeeksSource === "bond-ema-heuristic" && noM.diag.rampWeeks > 8,
+  noM.diag.rampWeeksSource === "bond-ema-heuristic" && (noM.diag.rampWeeks ?? 0) > 8,
   `${noM.diag.rampWeeks} wk`
 );
 check(
@@ -227,6 +227,136 @@ check(
   "AVOID verdict preserved (seat safety still low)",
   withM.components.seat_safety < 40,
   `seat ${withM.components.seat_safety}`
+);
+
+// ---------------------------------------------------------------------------
+// MECHANICS-ALL — derived mechanics tier (README-extracted, provenance tag)
+// ---------------------------------------------------------------------------
+
+import { buildDerivedMechanics } from "../src/lib/infranex/mechanics";
+
+console.log("\n== 7. Extractor — new window phrasings ==");
+const winVariants: [string, number][] = [
+  ["Weights are computed over a 10-day window.", 10],
+  ["The scoring window of 14 days keeps churn low.", 14],
+  ["Rewards use a 5 day rolling window of inference.", 5],
+  ["Scores consider the past 21 days lookback of serving.", 21],
+];
+for (const [txt, expected] of winVariants) {
+  const r = extractMechanicsFromText(txt);
+  check(`window "${txt.slice(0, 38)}…" → ${expected}d`, r.rewardWindowDays === expected, `${r.rewardWindowDays}`);
+}
+// 30+ days must be rejected as out-of-band (d>30 guard).
+const tooLong = extractMechanicsFromText("Weights consider a 90 day window of compute.");
+check("90-day window rejected (guard 1-30)", tooLong.rewardWindowDays === null);
+
+// Decay-family phrasing (EMA/half-life) = same class the generic bond-EMA
+// heuristic models, and payout-cadence phrasing (installments/persistence)
+// is release timing, not weight buildup — neither may become a fixed window.
+const ema = extractMechanicsFromText(
+  "Scores enter a 12-day half-life moving average (your standing), weighted by miner rank."
+);
+check("half-life moving average → NO fixed window", ema.rewardWindowDays === null);
+const ema2 = extractMechanicsFromText("Incentives are an exponential moving average over 21 days of serving.");
+check("exponential moving average → NO fixed window", ema2.rewardWindowDays === null);
+const payout = extractMechanicsFromText(
+  "Each reward releases in installments over a 30-day persistence window before full liquidity."
+);
+check("payout-cadence installments → NO fixed window", payout.rewardWindowDays === null);
+const stillFixed = extractMechanicsFromText("Weights are computed over a 10-day window.");
+check("plain fixed window still extracted after guards", stillFixed.rewardWindowDays === 10);
+
+console.log("\n== 8. Extractor — one-UID policy ==");
+const oneUidA = extractMechanicsFromText(
+  "Never register more than one UID, since it will just reduce your total compute time."
+);
+check("detects 'never register more than one UID'", oneUidA.oneUidRule);
+check("UID evidence line captured", oneUidA.evidence.some((e) => /UID/i.test(e)));
+const oneUidB = extractMechanicsFromText("Run exactly one UID per miner hotkey for best results.");
+check("detects 'one UID per hotkey'", oneUidB.oneUidRule);
+const uidBenign = extractMechanicsFromText(
+  "Each UID is assigned a slot by the metagraph. UID ordering is deterministic."
+);
+check("prose 'UID' mentions → no false positive", !uidBenign.oneUidRule);
+
+console.log("\n== 9. Derived builder — sparse entry + null gating ==");
+const nothing = buildDerivedMechanics({
+  netuid: 42,
+  subnetName: "Generic",
+  sourceUrl: "https://github.com/example/repo",
+  extracted: { rewardWindowDays: null, bountyProgram: false, gpuVarietyGuidance: false, oneUidRule: false, evidence: [] },
+  hosting: null,
+});
+check("nothing detected → null (no empty blocks)", nothing === null);
+
+const hostingOnly = buildDerivedMechanics({
+  netuid: 7,
+  subnetName: "BareSub",
+  sourceUrl: "https://github.com/example/baresub",
+  extracted: { rewardWindowDays: null, bountyProgram: false, gpuVarietyGuidance: false, oneUidRule: false, evidence: [] },
+  hosting: { bareMetalOnly: true, teeRequired: false, staticIpRequired: true, notes: ["Nodes must run on dedicated hardware with a static IP."] },
+});
+check("hosting-only → entry with ops, no window", hostingOnly !== null && hostingOnly.rewardWindowDays == null);
+check(
+  "hosting ops = bare-metal + static IP",
+  (hostingOnly?.operations.some((o) => o.title.includes("Bare-metal")) ?? false) &&
+    (hostingOnly?.operations.some((o) => o.title.includes("Static IP")) ?? false)
+);
+check("provenance = derived", hostingOnly?.provenance === "derived");
+
+const full = buildDerivedMechanics({
+  netuid: 99,
+  subnetName: "FullSpec",
+  sourceUrl: "https://github.com/example/fullspec",
+  extracted: extractMechanicsFromText(
+    "Weights are computed over a 10-day window. Bounties are paid for first-to-serve. " +
+      "Run a variety of GPUs for coverage. Never register more than one UID."
+  ),
+  hosting: { bareMetalOnly: false, teeRequired: true, staticIpRequired: false, notes: ["Workers must run inside a TEE with attestation."] },
+});
+check("full text → 10-day window", full?.rewardWindowDays === 10);
+check("window quote is verbatim evidence", /10-day window/i.test(full?.rewardWindowQuote ?? ""));
+check("bounty + variety captured", full?.bountyQuote != null && full?.gpuVariety != null);
+check(
+  "ops = one-UID + TEE",
+  (full?.operations.some((o) => o.title.includes("One UID")) ?? false) &&
+    (full?.operations.some((o) => o.title.includes("TEE")) ?? false)
+);
+check("no catalog for derived variety", full?.gpuVariety?.catalog.length === 0);
+check("no control-plane cost on derived (curated-only)", full?.controlPlaneMonthlyUsd == null);
+
+console.log("\n== 10. Ledger — derived mechanics drive ramp + label ==");
+const derivedM = buildDerivedMechanics({
+  netuid: 99,
+  subnetName: "FullSpec",
+  sourceUrl: "https://github.com/example/fullspec",
+  extracted: extractMechanicsFromText("Weights are computed over a 10-day window of compute."),
+  hosting: null,
+});
+const derivedLedger = scoreMinersLedger({
+  live: { ...live, netuid: 99, name: "FullSpec" },
+  taoUsd: 215,
+  hardware: hwContainer,
+  mechanics: derivedM,
+});
+check(
+  "derived 10-day window → ramp ≈ 1.4 wk",
+  derivedLedger.diag.rampWeeks != null &&
+    Math.abs(derivedLedger.diag.rampWeeks - 10 / 7) < 0.05,
+  `${derivedLedger.diag.rampWeeks} wk`
+);
+check(
+  "rampWeeksSource = readme-derived (NOT official)",
+  derivedLedger.diag.rampWeeksSource === "readme-derived"
+);
+check(
+  "curated path unchanged: SN64 still official-reward-window",
+  withM.diag.rampWeeksSource === "official-reward-window"
+);
+check(
+  "derived no control plane → infra stays base",
+  derivedLedger.diag.infraCostMonthlyUsd === withM.diag.infraCostMonthlyUsd - 120,
+  `infra $${derivedLedger.diag.infraCostMonthlyUsd} (no $120 control plane)`
 );
 
 console.log(`\n${pass} passed, ${fail} failed`);

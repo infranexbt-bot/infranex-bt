@@ -1080,3 +1080,24 @@ Stage Summary:
 - The app now KNOWS the official Chutes mechanics: ramp corrected 13.6wk → 1wk (official 7-day compute-sum window), costs priced for the only compliant hosting class (bare-metal dedicated 8×$7,000 + $120 control plane), and the deploy flow refuses to wave container rentals through for SN64.
 - Score honesty preserved: SN64 38.3 → 41.1 (ramp relief only), still AVOID — seat safety (17/256 rewarded, top-10% take 100%) dominates, exactly as the audit predicted.
 - Mechanics layer is extensible: add entries to CURATED_MECHANICS per verified subnet; extractor exists for future scraper integration (deliberately NOT auto-wired).
+
+---
+Task ID: mechanics-all-1
+Agent: main (Super Z)
+Task: "apply this to all subnets" — extend the mechanics knowledge layer from SN64-only to the whole network (derived tier + provenance UI).
+
+Work Log:
+- mechanics.ts: SubnetMechanics += provenance ("curated" | "derived", absent = curated for old stored JSON); SN64 marked curated. Extractor upgraded: 5 window phrasings (was 2), one-UID policy patterns, evidence lines extended to full sentences (capped 220). New buildDerivedMechanics() — extractor + hosting flags → sparse derived entry (window/bounty/variety quotes + ops); returns null when nothing detected (no empty blocks for ~100 quiet subnets); never sets controlPlaneMonthlyUsd (curated-only).
+- Precision guards (added after live findings): WINDOW_POSITIVE (computation terms) + WINDOW_NEGATIVE (EMA-decay "half-life moving average" — same family as the generic heuristic — and payout-cadence "installments/persistence/vesting"). SN21's "12-day half-life MA" and SN69's "30-day persistence window (installments)" correctly REJECTED — guardrails proved themselves on the first live pass.
+- github-scraper.ts: ScrapedMetadata += mechanics (built in success path from the same combined README text as hosting/GPU); opts += subnetName; all error returns via NO_MECHANICS const. sync-all route + sync-overrides-standalone.ts store mechanicsJson (+ name map for labels, richer per-subnet log line).
+- prisma: SubnetOverride.mechanicsJson column pushed; client regenerated.
+- Pipeline: use-subnet-overrides.ts parses mechanicsJson → entry.mechanics; use-network.ts mergeOpportunities resolves mechanics = getMechanics(netuid) ?? overrides-derived (curated wins); miner-score.ts rampWeeksSource += "readme-derived".
+- UI: mechanics-block.tsx provenance-aware (derived header "AUTO-EXTRACTED … NOT HUMAN-VERIFIED", "Scraped {date}" footer, catalog-guard for empty arrays, README-derived ramp note); runbook-view DerivedCoverageNote counts override rows carrying derived mechanics.
+- scripts/rederive-mechanics.ts: re-derive specific netuids without a full re-sync.
+- Verification: 56/56 test-mechanics (new: window variants, one-UID positives/negatives, builder null-gating, readme-derived ramp 10/7→1.4wk, curated label unchanged); tsc src clean; eslint clean. Full sync: 104 scraped / 18 errored (rate limits, same as before) → 9 subnets carry derived mechanics (5 TEE ops + 2 bounty + SN64 full + 1 hosting-ops), 1 real curated window (SN64). SN21 score honestly corrected 41.8 → 39.1 when its EMA-class window was rejected.
+- Browser-verified: SN66 dialog "MECHANICS — AUTO-EXTRACTED FROM SUBNET 66'S README (NOT HUMAN-VERIFIED)" + bounty quote; SN21 no longer shows a mechanics block; SN64 still "OFFICIAL MECHANICS — VERIFIED AGAINST CHUTES'S OWN REPOS" (curated wins); runbook coverage note renders. NOTE: a stale .next bundle made me chase a phantom missing mechanicsJson — the /api/subnet-overrides curl was actually just Unauthorized; rm -rf .next + respawn fixed nothing because nothing was broken. Test API responses WITH the session cookie.
+
+Stage Summary:
+- The mechanics layer now covers the whole network in two honest tiers: hand-verified curated entries (SN64) always win; every subnet's README is mined at sync time by a high-precision extractor into sparse derived mechanics stored in SubnetOverride.mechanicsJson and surfaced with an explicit "auto-extracted / not human-verified" label. Ramp math, hosting ops and bounty flags now flow for all subnets; nothing is invented where READMEs are silent.
+- Screenshots: download/runbook-mechanics-coverage.png, tool-results/opp-sn66-derived-mechanics.png, tool-results/opp-sn64-curated-final.png.
+- Extending curated coverage: add to CURATED_MECHANICS with verbatim quotes; re-derive any subnet after extractor changes via scripts/rederive-mechanics.ts <netuid...>.

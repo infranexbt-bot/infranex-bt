@@ -407,8 +407,10 @@ export interface MinerLedgerDiagnostics {
   burnCostTao: number | null;
   immunityBlocks: number | null;
   rampWeeks: number | null;
-  /** Where the ramp figure came from: official docs window vs heuristic. */
-  rampWeeksSource: "official-reward-window" | "bond-ema-heuristic";
+  /** Newcomer ramp label. "official-reward-window" = curated mechanics (mechanics.ts);
+   *  "readme-derived" = auto-extracted from the scraped README (SubnetOverride.mechanicsJson);
+   *  "bond-ema-heuristic" = generic fallback. */
+  rampWeeksSource: "official-reward-window" | "readme-derived" | "bond-ema-heuristic";
   /** Curated mechanics applied (source labels) when present. */
   mechanicsApplied?: string[] | null;
   // Meta
@@ -565,7 +567,11 @@ export function scoreMinersLedger(inputs: {
       (top10 != null && top10 > 0.7 ? 3 : 0) +
       (freeSlots != null && freeSlots === 0 ? 2 : 0));
   const rampWeeksSource: MinerLedgerDiagnostics["rampWeeksSource"] =
-    mechanicsRampWeeks != null ? "official-reward-window" : "bond-ema-heuristic";
+    mechanicsRampWeeks != null
+      ? mechanics?.provenance === "derived"
+        ? "readme-derived"
+        : "official-reward-window"
+      : "bond-ema-heuristic";
 
   // --- Pillar 1: Net ROI --------------------------------------------------
   // $0 → 10, +$100 → 54, +$500 → 69, +$1k → 76, +$5k → 92; losses slide to 2.

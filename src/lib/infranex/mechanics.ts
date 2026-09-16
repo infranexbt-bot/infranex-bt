@@ -9,11 +9,16 @@
 // window) and priced SN64 off container rent when the subnet rejects
 // containers outright.
 //
-// This layer is CURATED (hand-verified against the official repos, with
-// verbatim quotes), not scraped: mechanics prose is sparse and easy to
-// false-positive on, so a human-verified map beats a keyword guess. The
-// keyword extractor below (extractMechanicsFromText) exists for future
-// auto-discovery, but curated entries ALWAYS win.
+// This layer has TWO provenance tiers:
+//
+//   1. CURATED — hand-verified against the official repos, with verbatim
+//      quotes (SN64 Chutes). Human-checked, richest content.
+//   2. DERIVED — auto-extracted from the scraped README text by the
+//      conservative keyword extractor at sync time and stored in
+//      SubnetOverride.mechanicsJson. High-precision patterns only; entries
+//      are sparse by design and UI labels them as NOT human-verified.
+//
+// Curated entries ALWAYS win over derived ones for the same subnet.
 //
 // Consumers:
 //   miner-score.ts        → rampWeeks override + control-plane infra line
@@ -31,6 +36,12 @@ export interface MechanicsSource {
 export interface SubnetMechanics {
   netuid: number;
   subnetName: string;
+  /**
+   * Where this entry came from. "curated" = hand-verified (default when
+   * absent, for backward compatibility with stored JSON); "derived" =
+   * auto-extracted from the scraped README by the conservative extractor.
+   */
+  provenance?: "curated" | "derived";
   /** Official repos these mechanics were verified against. */
   sources: MechanicsSource[];
   /**
@@ -83,6 +94,7 @@ const CHUTES_SOURCES: MechanicsSource[] = [
 ];
 
 const chutesMechanics: SubnetMechanics = {
+  provenance: "curated",
   netuid: 64,
   subnetName: "Chutes",
   sources: CHUTES_SOURCES,
@@ -161,7 +173,8 @@ export function mechanicsOverridesRamp(m: SubnetMechanics | null): boolean {
 }
 
 // ---------------------------------------------------------------------------
-// Keyword extractor — future auto-discovery scaffolding. Deliberately
+// Keyword extractor — now WIRED into the sync pipeline (github-scraper.ts →
+// SubnetOverride.mechanicsJson), not just scaffolding. Deliberately
 // conservative: high-precision patterns only, so scraped mechanics never
 // poison scoring on a prose coincidence. Curated entries always win.
 // ---------------------------------------------------------------------------
@@ -170,40 +183,210 @@ export interface ExtractedMechanics {
   rewardWindowDays: number | null;
   bountyProgram: boolean;
   gpuVarietyGuidance: boolean;
+  /** "Never register more than one UID"-style single-UID policy detected. */
+  oneUidRule: boolean;
+  /** Verbatim evidence lines for every detected mechanic. */
   evidence: string[];
 }
 
-const WINDOW_PATTERNS: { re: RegExp; days: number }[] = [
-  { re: /\b(\d{1,2})[\s-]*day\s+(?:rolling\s+)?(?:sum|total|window)\s+of\s+compute\b/i, days: 0 },
-  { re: /\b(?:weights?|incentives?|rewards?)\b[^.\n]{0,80}\b(\d{1,2})[\s-]*day\b/i, days: 0 },
+const WINDOW_PATTERNS: RegExp[] = [
+  // "7 day sum of compute", "7-day rolling total of inference"
+  /\b(\d{1,2})[\s-]*day\s+(?:rolling\s+)?(?:sum|total|window)\s+of\s+(?:compute|inference|work)\b/i,
+  // "weights/incentives/rewards … 7 day(s) …" within one sentence fragment
+  /\b(?:weights?|incentives?|rewards?|scores?)\b[^.\n]{0,80}\b(\d{1,2})[\s-]*days?\b/i,
+  // "7-day window", "7 day rolling window", "7-day reward window"
+  /\b(\d{1,2})[\s-]*days?\s+(?:rolling\s+|reward\s+|scoring\s+|evaluation\s+)?window\b/i,
+  // "window of 10 days", "over a 14 day lookback"
+  /\bwindow\s+of\s+(\d{1,2})[\s-]*days?\b/i,
+  /\b(?:over|past|last)\s+(?:a\s+)?(\d{1,2})[\s-]*days?\s+(?:lookback|window)\b/i,
 ];
+
+/** Single-UID policy — the SN64-style "never register more than one UID". */
+const ONE_UID_PATTERNS: RegExp[] = [
+  /\b(?:never|don'?t|do not)\s+register\s+(?:more\s+than\s+(?:one|2|two|multiple)|a\s+second|multiple)\s+UIDs?\b[^.\n]{0,160}/i,
+  /\b(?:one|single|exactly\s+one)\s+UID\s+(?:only|per\s+(?:miner|account|hotkey|wallet))\b[^.\n]{0,120}/i,
+];
+
+/**
+ * Window-sentence filters — a fixed reward window only OVERRIDES the ramp
+ * when the sentence describes HOW WEIGHTS/SCORES ARE COMPUTED. Two gates:
+ *
+ *   POSITIVE — a computation term (computed/calculated/weights/sum/window…)
+ *   NEGATIVE — decay-family phrasing (EMA/half-life — the generic bond-EMA
+ *              heuristic already models that class) and payout-cadence
+ *              phrasing (installments/persistence/vesting — release timing,
+ *              not weight buildup). Detected → match discarded.
+ */
+const WINDOW_POSITIVE =
+  /\b(?:comput|calculat|measur|weight|scored|scoring|evaluat|incentiv|lookback|rolling|sum|total|window|period)\b/i;
+const WINDOW_NEGATIVE =
+  /\b(?:moving\s+average|half.?life|\bema\b|exponential(?:ly)?\s+(?:weighted|decaying)|ewma|installment|persistence|vest(?:ing|ed|s)?|payout|releases?|withdraw)/i;
+
+function firstMatch(text: string, patterns: RegExp[]): RegExpMatchArray | null {
+  for (const re of patterns) {
+    const m = text.match(re);
+    if (m) return m;
+  }
+  return null;
+}
+
+/**
+ * Extend a regex match to its full sentence (no periods/newlines crossed,
+ * capped) so evidence quotes read as complete sentences in the UI instead
+ * of fragments ending mid-clause.
+ */
+function extendToSentence(text: string, m: RegExpMatchArray): string {
+  const start = m.index ?? 0;
+  const rest = text.slice(start);
+  const end = rest.search(/[.\n]/);
+  const sentence = end === -1 ? rest : rest.slice(0, end);
+  return sentence.trim().slice(0, 220);
+}
 
 export function extractMechanicsFromText(text: string): ExtractedMechanics {
   const evidence: string[] = [];
   let rewardWindowDays: number | null = null;
 
-  for (const { re } of WINDOW_PATTERNS) {
-    const m = text.match(re);
-    if (m) {
-      const d = parseInt(m[1], 10);
-      if (d >= 1 && d <= 30) {
-        rewardWindowDays = d;
-        evidence.push(m[0].trim());
-        break;
-      }
+  const windowMatch = firstMatch(text, WINDOW_PATTERNS);
+  if (windowMatch) {
+    const d = parseInt(windowMatch[1], 10);
+    const sentence = extendToSentence(text, windowMatch);
+    // Keep only sentences that describe weight COMPUTATION, and drop
+    // EMA-decay / payout-cadence phrasings — overriding the ramp with
+    // those would overstate newcomer speed or misread payout timing.
+    if (
+      d >= 1 &&
+      d <= 30 &&
+      WINDOW_POSITIVE.test(sentence) &&
+      !WINDOW_NEGATIVE.test(sentence)
+    ) {
+      rewardWindowDays = d;
+      evidence.push(sentence);
     }
   }
 
-  const bountyRe = /\bbount(?:y|ies)\b[^.\n]{0,120}/i;
-  const bountyMatch = text.match(bountyRe);
+  const bountyMatch = text.match(/\bbount(?:y|ies)\b[^.\n]{0,120}/i);
   const bountyProgram = Boolean(bountyMatch);
-  if (bountyMatch) evidence.push(bountyMatch[0].trim());
+  if (bountyMatch) evidence.push(extendToSentence(text, bountyMatch));
 
-  const varietyRe =
-    /\b(?:variety|mix|range)\s+of\s+(?:gpus?|hardware|cards?)\b[^.\n]{0,120}/i;
-  const varietyMatch = text.match(varietyRe);
+  const varietyMatch = text.match(
+    /\b(?:variety|mix|range)\s+of\s+(?:gpus?|hardware|cards?)\b[^.\n]{0,120}/i
+  );
   const gpuVarietyGuidance = Boolean(varietyMatch);
-  if (varietyMatch) evidence.push(varietyMatch[0].trim());
+  if (varietyMatch) evidence.push(extendToSentence(text, varietyMatch));
 
-  return { rewardWindowDays, bountyProgram, gpuVarietyGuidance, evidence };
+  const oneUidMatch = firstMatch(text, ONE_UID_PATTERNS);
+  const oneUidRule = Boolean(oneUidMatch);
+  if (oneUidMatch) evidence.push(extendToSentence(text, oneUidMatch));
+
+  return { rewardWindowDays, bountyProgram, gpuVarietyGuidance, oneUidRule, evidence };
+}
+
+// ---------------------------------------------------------------------------
+// Derived-mechanics builder — turns extractor output + scraped hosting flags
+// into a sparse SubnetMechanics with provenance "derived". Returns null when
+// NOTHING was detected: an all-empty block would be noise for ~100 subnets.
+// ---------------------------------------------------------------------------
+
+/** Shape of the hosting flags the scraper produces (avoids an import cycle). */
+interface DerivedHostingFlags {
+  bareMetalOnly: boolean;
+  teeRequired: boolean;
+  staticIpRequired: boolean;
+  notes: string[];
+}
+
+export interface DerivedMechanicsInput {
+  netuid: number | null;
+  subnetName: string | null;
+  /** Repo URL the README text came from (requirementsSource when set). */
+  sourceUrl: string | null;
+  extracted: ExtractedMechanics;
+  hosting?: DerivedHostingFlags | null;
+}
+
+export function buildDerivedMechanics(
+  input: DerivedMechanicsInput
+): SubnetMechanics | null {
+  const { extracted, hosting } = input;
+  const hasAnything =
+    extracted.rewardWindowDays != null ||
+    extracted.bountyProgram ||
+    extracted.gpuVarietyGuidance ||
+    extracted.oneUidRule ||
+    Boolean(hosting &&
+      (hosting.bareMetalOnly || hosting.teeRequired || hosting.staticIpRequired));
+  if (!hasAnything) return null;
+
+  const sourceUrl =
+    input.sourceUrl ??
+    (input.netuid != null ? `https://github.com/subnets?netuid=${input.netuid}` : null);
+
+  const operations: SubnetMechanics["operations"] = [];
+  if (extracted.oneUidRule) {
+    operations.push({
+      title: "One UID policy (auto-detected)",
+      detail:
+        "The README warns against registering multiple UIDs — extra UIDs split your own reward metric instead of adding capacity.",
+      quote: extracted.evidence.find((e) => /UID/i.test(e)),
+    });
+  }
+  const hostingNote = (n: string | undefined) =>
+    n ? n.slice(0, 220) : undefined;
+  if (hosting?.bareMetalOnly) {
+    operations.push({
+      title: "Bare-metal / VM hosting required (auto-detected)",
+      detail:
+        "Hosting flags scraped from the repo reject container clouds — only bare-metal or VM rentals are compliant. Pricing already uses the dedicated-market rate.",
+      quote: hostingNote(hosting.notes[0]),
+    });
+  }
+  if (hosting?.teeRequired) {
+    operations.push({
+      title: "TEE / attestation hosting required (auto-detected)",
+      detail:
+        "The repo documents trusted-execution or attestation requirements — hosts must support the documented TEE class.",
+      quote: hostingNote(hosting.notes.find((n) => /tee|attest|tdx|sgx|nitro/i.test(n)) ?? hosting.notes[0]),
+    });
+  }
+  if (hosting?.staticIpRequired) {
+    operations.push({
+      title: "Static IP / 1:1 port mapping required (auto-detected)",
+      detail:
+        "Shared or NATed IPs are rejected — the host needs a unique static IP with direct port reachability.",
+      quote: hostingNote(hosting.notes.find((n) => /ip|port|nat/i.test(n)) ?? hosting.notes[0]),
+    });
+  }
+
+  const mechanics: SubnetMechanics = {
+    provenance: "derived",
+    netuid: input.netuid ?? -1,
+    subnetName: input.subnetName ?? (input.netuid != null ? `Subnet ${input.netuid}` : "Unknown subnet"),
+    sources: sourceUrl
+      ? [{ label: "GitHub README (auto-scraped)", url: sourceUrl }]
+      : [],
+    optimizationTargets: [],
+    operations,
+    curatedAt: new Date().toISOString().slice(0, 10),
+  };
+
+  if (extracted.rewardWindowDays != null) {
+    mechanics.rewardWindowDays = extracted.rewardWindowDays;
+    mechanics.rewardWindowQuote = extracted.evidence.find((e) =>
+      new RegExp(`${extracted.rewardWindowDays}[\\s-]*day`, "i").test(e)
+    );
+  }
+  if (extracted.bountyProgram) {
+    mechanics.bountyQuote = extracted.evidence.find((e) => /bount/i.test(e));
+  }
+  if (extracted.gpuVarietyGuidance) {
+    mechanics.gpuVariety = {
+      quote:
+        extracted.evidence.find((e) => /variety|mix|range/i.test(e)) ??
+        "variety of GPUs advised",
+      catalog: [],
+    };
+  }
+
+  return mechanics;
 }

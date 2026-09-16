@@ -105,6 +105,7 @@ model SubnetOverride {
   // GitHub-scraped requirements (from the subnet's README / miner repo).
   gpuCount             Int?      // e.g. 8 for "8x H200"
   hostingRequirements  String?   // JSON: {bareMetalOnly, teeRequired, staticIpRequired, notes[]}
+  mechanicsJson        String?   // JSON: derived SubnetMechanics (provenance "derived") from the README
   requirementsSource   String?   // repo URL whose README supplied the requirements
   requirementsScrapedAt DateTime?
   githubUrl      String?

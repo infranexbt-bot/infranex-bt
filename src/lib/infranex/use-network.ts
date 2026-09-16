@@ -256,6 +256,11 @@ export function mergeOpportunities(
     // GitHub-scraped requirements (SubnetOverride) are GROUND TRUTH — when a
     // repo README documents the GPU/hosting rules, they beat the classifier.
     const ovr = overrides?.get(live.netuid);
+    // MECHANICS-ALL: curated mechanics win; derived (README-extracted) is the
+    // fallback tier. Both feed ramp math, ops rules and cost classification.
+    const mechanics =
+      getMechanics(live.netuid) ??
+      ((ovr?.mechanics as SubnetMechanics | undefined) ?? null);
     const scraped =
       ovr && (ovr.recommendedGpu || ovr.hosting)
         ? {
@@ -272,7 +277,7 @@ export function mergeOpportunities(
       fallbackGpu: curated?.recommendedGpu,
       fallbackMonthlyUsd: grossMonthlyUsd,
       scraped,
-      mechanics: getMechanics(live.netuid),
+      mechanics,
     });
     // MECHANICS-1: hosting-aware per-GPU rent (dedicated rate for
     // bare-metal-only subnets) — used by the Profitability Engine P&L.
@@ -292,7 +297,7 @@ export function mergeOpportunities(
       taoUsd: usd,
       hardware,
       liveAgeBlocks,
-      mechanics: getMechanics(live.netuid),
+      mechanics,
       costs: {
         hardwareMode: config.hardwareMode,
         electricityUsdPerKwh: config.electricityUsdPerKwh,
@@ -385,7 +390,7 @@ export function mergeOpportunities(
       gpuCount: diag.gpuCount ?? null,
       hosting: diag.hosting ?? null,
       requirementsSource: diag.requirementsSource ?? null,
-      mechanics: getMechanics(live.netuid),
+      mechanics,
       costClass: diag.costClass ?? null,
       workType: diag.category,
       grossMonthlyUsd: diag.grossMonthlyUsd,

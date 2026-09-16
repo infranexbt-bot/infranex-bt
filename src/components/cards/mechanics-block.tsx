@@ -14,11 +14,18 @@ import { Badge } from "@/components/ui/badge";
 import { BookOpen, Quote, Target, Zap } from "lucide-react";
 import type { SubnetMechanics } from "@/lib/infranex/mechanics";
 
+/** Provenance helper — stored JSON without the field (old rows) = curated. */
+function provenanceOf(m: SubnetMechanics): "curated" | "derived" {
+  return m.provenance ?? "curated";
+}
+
 /** Inline note for the ramp-up stat — explains WHY the ramp is short. */
 export function rampWeeksSourceNote(m: SubnetMechanics | null): string | null {
   if (m?.rewardWindowDays == null) return null;
   const w = Math.round((m.rewardWindowDays / 7) * 10) / 10;
-  return `official ${m.rewardWindowDays}-day reward window → ~${w} wk to full weight`;
+  return provenanceOf(m) === "derived"
+    ? `README-derived ${m.rewardWindowDays}-day reward window → ~${w} wk to full weight`
+    : `official ${m.rewardWindowDays}-day reward window → ~${w} wk to full weight`;
 }
 
 /** Compact chip row — for cards/tables. */
@@ -56,11 +63,14 @@ export function OfficialMechanicsBlock({
 }: {
   mechanics: SubnetMechanics;
 }) {
+  const derived = provenanceOf(mechanics) === "derived";
   return (
     <div className="rounded-lg border border-primary/25 bg-primary/[0.04] px-3 py-2.5">
       <p className="flex items-center gap-1.5 text-eyebrow text-[10px] text-primary">
         <BookOpen className="h-3.5 w-3.5" aria-hidden="true" />
-        Official mechanics — verified against {mechanics.subnetName}&apos;s own repos
+        {derived
+          ? `Mechanics — auto-extracted from ${mechanics.subnetName}'s README (not human-verified)`
+          : `Official mechanics — verified against ${mechanics.subnetName}'s own repos`}
       </p>
 
       {/* Reward window — the number that replaced the ramp heuristic */}
@@ -70,7 +80,9 @@ export function OfficialMechanicsBlock({
             Reward window: {mechanics.rewardWindowDays} days{" "}
             <span className="font-normal text-muted-foreground">
               → newcomer ramp ≈ {Math.round((mechanics.rewardWindowDays / 7) * 10) / 10} wk
-              (chain-window math, not the generic bond-EMA guess)
+              {derived
+                ? " (chain-window math from the README, not the generic bond-EMA guess)"
+                : " (chain-window math, not the generic bond-EMA guess)"}
             </span>
           </p>
           {mechanics.rewardWindowQuote && (
@@ -100,25 +112,27 @@ export function OfficialMechanicsBlock({
           <p className="mt-1 border-l-2 border-primary/30 pl-2 text-[11px] italic text-muted-foreground">
             &ldquo;{mechanics.gpuVariety.quote}&rdquo;
           </p>
-          <div className="mt-1.5 flex flex-wrap gap-1">
-            {mechanics.gpuVariety.catalog.slice(0, 10).map((g) => (
-              <Badge
-                key={g}
-                variant="outline"
-                className="border-border/60 bg-background/60 px-1.5 py-0 text-[9px] text-muted-foreground"
-              >
-                {g}
-              </Badge>
-            ))}
-            {mechanics.gpuVariety.catalog.length > 10 && (
-              <Badge
-                variant="outline"
-                className="border-border/60 bg-background/60 px-1.5 py-0 text-[9px] text-muted-foreground"
-              >
-                +{mechanics.gpuVariety.catalog.length - 10} more supported
-              </Badge>
-            )}
-          </div>
+          {mechanics.gpuVariety.catalog.length > 0 && (
+            <div className="mt-1.5 flex flex-wrap gap-1">
+              {mechanics.gpuVariety.catalog.slice(0, 10).map((g) => (
+                <Badge
+                  key={g}
+                  variant="outline"
+                  className="border-border/60 bg-background/60 px-1.5 py-0 text-[9px] text-muted-foreground"
+                >
+                  {g}
+                </Badge>
+              ))}
+              {mechanics.gpuVariety.catalog.length > 10 && (
+                <Badge
+                  variant="outline"
+                  className="border-border/60 bg-background/60 px-1.5 py-0 text-[9px] text-muted-foreground"
+                >
+                  +{mechanics.gpuVariety.catalog.length - 10} more supported
+                </Badge>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -178,7 +192,8 @@ export function OfficialMechanicsBlock({
       {/* Sources */}
       <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-primary/15 pt-1.5">
         <span className="flex items-center gap-1 text-[10px] text-muted-foreground/70">
-          <Quote className="h-3 w-3" aria-hidden="true" /> Verified {mechanics.curatedAt}
+          <Quote className="h-3 w-3" aria-hidden="true" />{" "}
+          {derived ? `Scraped ${mechanics.curatedAt}` : `Verified ${mechanics.curatedAt}`}
         </span>
         {mechanics.sources.map((s) => (
           <a

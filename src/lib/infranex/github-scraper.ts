@@ -13,6 +13,9 @@
  *      map for known cases (SN64 Chutes).
  */
 
+import { buildDerivedMechanics, extractMechanicsFromText } from "./mechanics";
+import type { SubnetMechanics } from "./mechanics";
+
 export interface HostingRequirements {
   /** Only bare metal / VM hosting works — container clouds rejected. */
   bareMetalOnly: boolean;
@@ -34,6 +37,13 @@ export interface ScrapedMetadata {
   gpuModelRaw: string | null;
   /** Hosting constraints detected in the README(s). Null flags = unknown. */
   hosting: HostingRequirements | null;
+  /**
+   * MECHANICS-ALL: derived mechanics (provenance "derived") built from the
+   * same README text via the conservative extractor in mechanics.ts.
+   * Null when nothing mechanic-worthy was detected. Curated entries
+   * (mechanics.ts CURATED_MECHANICS) always win at merge time.
+   */
+  mechanics: SubnetMechanics | null;
   /** Repo whose README supplied the GPU/hosting requirements. */
   requirementsSource: string | null;
   readmeUrl: string | null;
@@ -473,12 +483,13 @@ function parseGpuWithContext(readme: string): GpuMatch | null {
 
 export async function scrapeGithubMetadata(
   githubUrl: string,
-  opts?: { netuid?: number }
+  opts?: { netuid?: number; subnetName?: string | null }
 ): Promise<ScrapedMetadata> {
+  const NO_MECHANICS: ScrapedMetadata = { description: null, minVramGb: null, recommendedGpu: null, gpuCount: null, gpuModelRaw: null, hosting: null, mechanics: null, requirementsSource: null, readmeUrl: null, requirementsUrl: null, rawReadmeSnippet: null, source: "error" };
   try {
     let info = parseGithubUrl(githubUrl);
     if (!info) {
-      return { description: null, minVramGb: null, recommendedGpu: null, gpuCount: null, gpuModelRaw: null, hosting: null, requirementsSource: null, readmeUrl: null, requirementsUrl: null, rawReadmeSnippet: null, source: "error", error: "Invalid GitHub URL" };
+      return { ...NO_MECHANICS, error: "Invalid GitHub URL" };
     }
     // Org-only identity ("github.com/Org") — resolve to the org's most
     // likely subnet/miner repo via the repositories page; try candidates
@@ -501,7 +512,7 @@ export async function scrapeGithubMetadata(
         }
       }
       if (!resolvedInfo || !identityScrape) {
-        return { description: null, minVramGb: null, recommendedGpu: null, gpuCount: null, gpuModelRaw: null, hosting: null, requirementsSource: null, readmeUrl: null, requirementsUrl: null, rawReadmeSnippet: null, source: "error", error: `No repo resolvable for org ${info.owner}` };
+        return { ...NO_MECHANICS, error: `No repo resolvable for org ${info.owner}` };
       }
       info = resolvedInfo;
       identityRepos = identityScrape;
@@ -542,7 +553,7 @@ export async function scrapeGithubMetadata(
     }
 
     if (!identity.readme && !miner?.readme) {
-      return { description: null, minVramGb: null, recommendedGpu: null, gpuCount: null, gpuModelRaw: null, hosting: null, requirementsSource: null, readmeUrl: null, requirementsUrl: null, rawReadmeSnippet: null, source: "error", error: "No README or requirements found" };
+      return { ...NO_MECHANICS, error: "No README or requirements found" };
     }
 
     // Mining requirements prefer the MINER repo text (that's where operators
@@ -575,6 +586,23 @@ export async function scrapeGithubMetadata(
     const hosting = hostingCombined ? parseHosting(hostingCombined) : null;
     const vram = reqCombined ? parseVram(reqCombined) : null;
 
+    // MECHANICS-ALL: derive mechanics from the same combined README text the
+    // hosting/GPU parsers read. Sparse by design — null when nothing hit.
+    const extractedMechanics = hostingCombined
+      ? extractMechanicsFromText(hostingCombined)
+      : null;
+    const mechanics = extractedMechanics
+      ? buildDerivedMechanics({
+          netuid: opts?.netuid ?? null,
+          subnetName: opts?.subnetName ?? null,
+          sourceUrl: miner?.readme && minerRepoInfo
+            ? `https://github.com/${minerRepoInfo.owner}/${minerRepoInfo.repo}`
+            : `https://github.com/${info.owner}/${info.repo}`,
+          extracted: extractedMechanics,
+          hosting,
+        })
+      : null;
+
     const requirementsSource = miner?.readme && minerRepoInfo
       ? `https://github.com/${minerRepoInfo.owner}/${minerRepoInfo.repo}`
       : `https://github.com/${info.owner}/${info.repo}`;
@@ -586,6 +614,7 @@ export async function scrapeGithubMetadata(
       gpuCount: gpuFinal ? gpuFinal.count : null,
       gpuModelRaw: gpuFinal ? gpuFinal.raw : null,
       hosting,
+      mechanics,
       requirementsSource: gpuFinal || hosting ? requirementsSource : null,
       readmeUrl: identity.readmeUrl,
       requirementsUrl: miner?.requirementsUrl ?? identity.requirementsUrl,
@@ -593,6 +622,6 @@ export async function scrapeGithubMetadata(
       source: "github",
     };
   } catch (e) {
-    return { description: null, minVramGb: null, recommendedGpu: null, gpuCount: null, gpuModelRaw: null, hosting: null, requirementsSource: null, readmeUrl: null, requirementsUrl: null, rawReadmeSnippet: null, source: "error", error: e instanceof Error ? e.message : String(e) };
+    return { ...NO_MECHANICS, error: e instanceof Error ? e.message : String(e) };
   }
 }

@@ -23,7 +23,7 @@ for (const o of existing) {
 const snapRow = await db.chainSnapshot.findFirst({ orderBy: { id: "desc" } });
 if (snapRow?.subnetsJson) {
   try {
-    const live = JSON.parse(snapRow.subnetsJson) as Array<{ netuid: number; identityGithub?: string | null }>;
+    const live = JSON.parse(snapRow.subnetsJson) as Array<{ netuid: number; identityGithub?: string | null; name?: string | null }>;
     for (const s of live) {
       if (s.identityGithub && !seen.has(s.netuid)) seen.set(s.netuid, s.identityGithub);
     }
@@ -32,6 +32,14 @@ if (snapRow?.subnetsJson) {
   }
 }
 const toSync = [...seen.entries()].map(([netuid, githubUrl]) => ({ netuid, githubUrl }));
+// Best-effort name map for derived-mechanics labels (curated > override > snapshot).
+const nameByNetuid = new Map<number, string>();
+for (const s of subnets) {
+  if (s.name) nameByNetuid.set(s.netuid, s.name);
+}
+for (const o of existing) {
+  if (o.name && !nameByNetuid.has(o.netuid)) nameByNetuid.set(o.netuid, o.name);
+}
 console.log(`subnets to sync: ${toSync.length}`);
 
 let scraped = 0;
@@ -39,7 +47,10 @@ let errored = 0;
 for (const subnet of toSync) {
   const s = { netuid: subnet.netuid, githubUrl: subnet.githubUrl };
   try {
-    const meta = await scrapeGithubMetadata(s.githubUrl, { netuid: s.netuid });
+    const meta = await scrapeGithubMetadata(s.githubUrl, {
+      netuid: s.netuid,
+      subnetName: nameByNetuid.get(s.netuid) ?? null,
+    });
     if (meta.source === "github") {
       const fields = {
         description: meta.description,
@@ -47,6 +58,7 @@ for (const subnet of toSync) {
         recommendedGpu: meta.recommendedGpu,
         gpuCount: meta.gpuCount,
         hostingRequirements: meta.hosting ? JSON.stringify(meta.hosting) : null,
+        mechanicsJson: meta.mechanics ? JSON.stringify(meta.mechanics) : null,
         requirementsSource: meta.requirementsSource,
         requirementsScrapedAt: new Date(),
         githubUrl: s.githubUrl,
@@ -57,13 +69,23 @@ for (const subnet of toSync) {
         update: fields,
       });
       scraped++;
-      if (meta.recommendedGpu || meta.hosting) {
+      if (meta.recommendedGpu || meta.hosting || meta.mechanics) {
         const f = meta.hosting
           ? [meta.hosting.bareMetalOnly && "BARE", meta.hosting.teeRequired && "TEE", meta.hosting.staticIpRequired && "IP"]
               .filter(Boolean)
               .join("+") || "none-true"
           : "-";
-        console.log(`#${String(s.netuid).padStart(3)} gpu=${meta.recommendedGpu ?? "-"}  hosting=[${f}]`);
+        const m = meta.mechanics
+          ? [
+              meta.mechanics.rewardWindowDays != null && `${meta.mechanics.rewardWindowDays}d-window`,
+              meta.mechanics.bountyQuote && "bounty",
+              meta.mechanics.gpuVariety && "variety",
+              meta.mechanics.operations.some((o) => /UID/i.test(o.title)) && "one-uid",
+            ]
+              .filter(Boolean)
+              .join(",") || "ops-only"
+          : "-";
+        console.log(`#${String(s.netuid).padStart(3)} gpu=${meta.recommendedGpu ?? "-"}  hosting=[${f}]  mechanics=[${m}]`);
       }
     } else {
       errored++;

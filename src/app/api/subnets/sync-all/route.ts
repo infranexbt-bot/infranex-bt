@@ -53,7 +53,10 @@ export async function POST(req: Request) {
     }
 
     try {
-      const scraped = await scrapeGithubMetadata(subnet.githubUrl!, { netuid: subnet.netuid });
+      const scraped = await scrapeGithubMetadata(subnet.githubUrl!, {
+        netuid: subnet.netuid,
+        subnetName: subnet.name,
+      });
       if (scraped.source === "github") {
         const scrapedFields = {
           description: scraped.description,
@@ -61,6 +64,7 @@ export async function POST(req: Request) {
           recommendedGpu: scraped.recommendedGpu,
           gpuCount: scraped.gpuCount,
           hostingRequirements: scraped.hosting ? JSON.stringify(scraped.hosting) : null,
+          mechanicsJson: scraped.mechanics ? JSON.stringify(scraped.mechanics) : null,
           requirementsSource: scraped.requirementsSource,
           requirementsScrapedAt: new Date(),
           githubUrl: subnet.githubUrl,

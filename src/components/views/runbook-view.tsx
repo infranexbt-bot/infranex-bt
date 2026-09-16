@@ -24,12 +24,52 @@ import {
 import type { ViewKey } from "@/lib/infranex/types";
 import { listCuratedMechanics } from "@/lib/infranex/mechanics";
 import { OfficialMechanicsBlock } from "@/components/cards/mechanics-block";
+import { useSubnetOverrides } from "@/lib/infranex/use-subnet-overrides";
+import { useMemo } from "react";
 
 interface RunbookViewProps {
   onNavigate: (v: ViewKey) => void;
 }
 
 const CURATED_MECHANICS = listCuratedMechanics();
+
+/**
+ * MECHANICS-ALL coverage line — counts subnets whose overrides carry
+ * README-derived mechanics (SubnetOverride.mechanicsJson) so operators can
+ * see how far the mechanics layer reaches beyond the hand-verified entries.
+ */
+function DerivedCoverageNote() {
+  const { data: overrides } = useSubnetOverrides();
+  const stats = useMemo(() => {
+    if (!overrides) return null;
+    let withMechanics = 0;
+    let withWindow = 0;
+    for (const [, entry] of overrides) {
+      const m = entry.mechanics as
+        | { rewardWindowDays?: number | null; provenance?: string }
+        | undefined;
+      if (m && m.provenance !== "curated") {
+        withMechanics++;
+        if (m.rewardWindowDays != null) withWindow++;
+      }
+    }
+    return { withMechanics, withWindow };
+  }, [overrides]);
+
+  if (!stats || stats.withMechanics === 0) return null;
+  return (
+    <p className="text-xs text-muted-foreground">
+      <span className="font-medium text-foreground">Beyond hand-verified entries: </span>
+      {stats.withMechanics} more subnet{stats.withMechanics === 1 ? "" : "s"} carry
+      auto-derived mechanics from their READMEs
+      {stats.withWindow > 0
+        ? ` (${stats.withWindow} with a detected reward window)`
+        : ""}
+      — shown in each opportunity&apos;s detail dialog, labelled
+      &ldquo;auto-extracted&rdquo; so curated and scraped knowledge stay distinguishable.
+    </p>
+  );
+}
 
 /**
  * RUNBOOK-1 — the operator's reference for "a GPU miner just started — now what?"
@@ -263,27 +303,30 @@ export function RunbookView({ onNavigate }: RunbookViewProps) {
         </CardContent>
       </Card>
 
-      {/* MECHANICS-1 — official reward rules for curated subnets */}
+      {/* MECHANICS-ALL — curated + README-derived reward rules */}
       {CURATED_MECHANICS.length > 0 && (
-        <div className="grid gap-6 lg:grid-cols-2">
-          {CURATED_MECHANICS.map((m) => (
-            <Card key={m.netuid} className="border-border/60">
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <BookOpen className="h-4 w-4 text-primary" aria-hidden="true" />
-                  Subnet mechanics · {m.subnetName} (α{m.netuid})
-                </CardTitle>
-                <p className="text-xs text-muted-foreground">
-                  The official reward rules the scoring engine now uses — ramp windows,
-                  bounties and optimization targets come from the subnet&apos;s own repos,
-                  not the generic bond-EMA heuristic.
-                </p>
-              </CardHeader>
-              <CardContent>
-                <OfficialMechanicsBlock mechanics={m} />
-              </CardContent>
-            </Card>
-          ))}
+        <div className="space-y-3">
+          <DerivedCoverageNote />
+          <div className="grid gap-6 lg:grid-cols-2">
+            {CURATED_MECHANICS.map((m) => (
+              <Card key={m.netuid} className="border-border/60">
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <BookOpen className="h-4 w-4 text-primary" aria-hidden="true" />
+                    Subnet mechanics · {m.subnetName} (α{m.netuid})
+                  </CardTitle>
+                  <p className="text-xs text-muted-foreground">
+                    The official reward rules the scoring engine now uses — ramp windows,
+                    bounties and optimization targets come from the subnet&apos;s own repos,
+                    not the generic bond-EMA heuristic.
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <OfficialMechanicsBlock mechanics={m} />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
       )}
 
