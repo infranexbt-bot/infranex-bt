@@ -1,0 +1,655 @@
+     1→// ---------------------------------------------------------------------------
+     2→// DevOps Engine — Requirement Installer.
+     3→//
+     4→// Takes a SubnetRequirementsProfile (pulled from the subnet) + a validated
+     5→// GPU host and INSTALLS everything the subnet needs on that machine:
+     6→//
+     7→//   1 Compatibility  host GPU/VRAM/CUDA vs the subnet's requirements
+     8→//   2 OS packages    apt: git, python3-venv, build-essential, + repo hints
+     9→//   3 Python venv    /opt/infranex/sn<netuid>/venv (version-checked)
+    10→//   4 Clone repo     the subnet's actual GitHub repo
+    11→//   5 Python deps    pip install -r requirements.txt (or bittensor baseline)
+    12→//   6 Miner env      BT_* environment file for this subnet
+    13→//   7 Wallet files   ~/.bittensor/wallets/... — MANUAL GATE (your keys, your copy)
+    14→//   8 Launch miner   systemd unit → venv python <entrypoint> --netuid … (APPROVAL)
+    15→//   9 Verify         service active + axon port listening + log tail
+    16→//
+    17→// Steps execute one at a time via the Transport (SSH or mock) and persist to
+    18→// the HostInstall row so the wizard UI is resumable and auditable.
+    19→// ---------------------------------------------------------------------------
+    20→
+    21→import { db } from "@/lib/db";
+    22→import type { GpuHost } from "@prisma/client";
+    23→import type { Transport } from "./transport";
+    24→import type { SubnetRequirementsProfile } from "./subnet-requirements";
+    25→import type { HostFacts } from "./inspector";
+    26→
+    27→export type InstallStepStatus = "pending" | "running" | "pass" | "fail" | "skipped";
+    28→export type InstallGate = "auto" | "approval" | "manual";
+    29→
+    30→export interface InstallStep {
+    31→  id: string;
+    32→  idx: number;
+    33→  title: string;
+    34→  description: string;
+    35→  gate: InstallGate;
+    36→  /** Commands shown to the user + executed on the host. */
+    37→  commands: string[];
+    38→  /** When true the step checks state instead of executing commands. */
+    39→  virtual?: boolean;
+    40→  status: InstallStepStatus;
+    41→  output: string;
+    42→  remediation: string | null;
+    43→  durationMs: number;
+    44→}
+    45→
+    46→export interface InstallPlanInput {
+    47→  profile: SubnetRequirementsProfile;
+    48→  walletName: string;
+    49→  hotkeyName: string;
+    50→  hostFacts: HostFacts | null;
+    51→}
+    52→
+    53→const APP_ROOT = (netuid: number) => `/opt/infranex/sn${netuid}`;
+    54→const UNIT_NAME = (netuid: number) => `infranex-miner-sn${netuid}`;
+    55→export { UNIT_NAME };
+    56→
+    57→/** Command timeout by shape — pip/CUDA wheels and docker builds are heavy. */
+    58→export function timeoutForCmd(cmd: string): number {
+    59→  if (cmd.includes("docker build")) return 1_200_000;
+    60→  if (cmd.includes("pip install") || cmd.includes("uv sync")) return 900_000;
+    61→  if (cmd.includes("apt-get install") || cmd.includes("get.docker.com")) return 600_000;
+    62→  return 120_000;
+    63→}
+    64→
+    65→// --- Plan builder -----------------------------------------------------------
+    66→
+    67→export function buildInstallPlan(input: InstallPlanInput): InstallStep[] {
+    68→  const { profile, walletName, hotkeyName, hostFacts } = input;
+    69→  const netuid = profile.netuid;
+    70→  const root = APP_ROOT(netuid);
+    71→  const unit = UNIT_NAME(netuid);
+    72→  const steps: InstallStep[] = [];
+    73→  let idx = 1;
+    74→  const push = (s: Omit<InstallStep, "idx" | "status" | "output" | "remediation" | "durationMs" | "id">) =>
+    75→    steps.push({
+    76→      ...s,
+    77→      id: `s${idx}`,
+    78→      idx: idx++,
+    79→      status: "pending",
+    80→      output: "",
+    81→      remediation: null,
+    82→      durationMs: 0,
+    83→    });
+    84→
+    85→  // Docker path? The repo ships a Dockerfile — run the miner as a container
+    86→  // (CUDA comes from the image's nvidia/cuda base) instead of a host venv.
+    87→  const dockerPath = Boolean(profile.dockerfileFound && profile.dockerImage);
+    88→  // Cluster path? The subnet's docs require the miner to run INSIDE Kubernetes
+    89→  // (Chutes-class: control plane + TEE workers). The honest plan provisions
+    90→  // via the subnet's own tooling — no fake one-click venv/container miner.
+    91→  const infra = profile.infraStack;
+    92→  const clusterPath = infra?.orchestration === "kubernetes";
+    93→
+    94→  // 1 — Compatibility (virtual check against the last inspection facts)
+    95→  push({
+    96→    title: "Match subnet requirements to host",
+    97→    description: profile.minVramGb > 0
+    98→      ? `Subnet needs ≥ ${profile.minVramGb} GB VRAM (${profile.recommendedGpu}); host reports ${hostFacts?.gpuName ?? "?"}${hostFacts?.gpuVramMb ? ` ${Math.round(hostFacts.gpuVramMb / 1024)} GB` : ""}.`
+    99→      : "Subnet workload is CPU-friendly; no GPU constraint.",
+   100→    gate: "auto",
+   101→    commands: [],
+   102→    virtual: true,
+   103→  });
+   104→
+   105→  // 2 — OS packages (cluster path adds ansible — provisioning playbooks for
+   106→  //      Chutes-class stacks are driven from the host)
+   107→  const pkgs = [...new Set(clusterPath ? [...profile.osPackages, "ansible"] : profile.osPackages)].join(" ");
+   108→  push({
+   109→    title: "Install OS packages",
+   110→    description: `apt-get install: ${[...new Set(clusterPath ? [...profile.osPackages, "ansible"] : profile.osPackages)].slice(0, 8).join(", ")}${profile.osPackages.length > 8 ? "…" : ""}`,
+   111→    gate: "auto",
+   112→    commands: [
+   113→      `export DEBIAN_FRONTEND=noninteractive; apt-get update -qq && apt-get install -y -qq ${pkgs}`,
+   114→    ],
+   115→  });
+   116→
+   117→  // 3 — Runtime: cluster subnets skip host runtimes entirely (the miner lives
+   118→  //      in the cluster). Docker path installs Docker + NVIDIA toolkit; venv
+   119→  //      path creates a Python virtual environment (version-checked when the
+   120→  //      repo declares one; uv workspace repos manage their own venv).
+   121→  if (clusterPath) {
+   122→    // skipped — nothing host-level to create; the cluster owns the runtime
+   123→  } else if (dockerPath) {
+   124→    push({
+   125→      title: "Install Docker Engine + NVIDIA container runtime",
+   126→      description: `Repo ships a Dockerfile (${profile.dockerImage}) — the miner runs as a GPU container. Installs docker-ce, nvidia-container-toolkit, configures the nvidia runtime.`,
+   127→      gate: "auto",
+   128→      commands: [
+   129→        "curl -fsSL https://get.docker.com | sh",
+   130→        // Same commands as the DevOps inspector's fix flow — the mock host
+   131→        // recognizes these prefixes.
+   132→        "curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg && " +
+   133→          "curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | " +
+   134→          "sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | " +
+   135→          "tee /etc/apt/sources.list.d/nvidia-container-toolkit.list && " +
+   136→          "apt-get update -qq && apt-get install -y -qq nvidia-container-toolkit",
+   137→        "nvidia-ctk runtime configure --runtime=docker && (systemctl restart docker || service docker restart)",
+   138→        "docker info 2>/dev/null | grep -i nvidia || { echo 'nvidia runtime NOT active — GPU containers will fail'; exit 1; }",
+   139→      ],
+   140→    });
+   141→  } else {
+   142→    const pyCheck = profile.pythonVersion
+   143→      ? `python3 --version | grep -q "Python ${profile.pythonVersion}" || { echo "python ${profile.pythonVersion} required — install via deadsnakes"; exit 1; } && `
+   144→      : "";
+   145→    if (profile.packageManager === "uv") {
+   146→      push({
+   147→        title: "Python environment",
+   148→        description: `uv workspace repo — uv creates and manages the venv (${root}/app/.venv). Python ${profile.pythonVersion ?? "3"} must still be present.`,
+   149→        gate: "auto",
+   150→        commands: [],
+   151→        virtual: true,
+   152→      });
+   153→    } else {
+   154→      push({
+   155→        title: "Create Python virtual environment",
+   156→        description: profile.pythonVersion
+   157→          ? `Repo declares Python ${profile.pythonVersion}; venv at ${root}/venv`
+   158→          : `Distro Python; venv at ${root}/venv`,
+   159→        gate: "auto",
+   160→        commands: [`${pyCheck}mkdir -p ${root} && python3 -m venv ${root}/venv && ${root}/venv/bin/pip --version`],
+   161→      });
+   162→    }
+   163→  }
+   164→
+   165→  // 4 — Clone the subnet repo
+   166→  if (profile.repoUrl) {
+   167→    push({
+   168→      title: "Clone the subnet repository",
+   169→      description: `${profile.repoUrl} → ${root}/app`,
+   170→      gate: "auto",
+   171→      commands: [`rm -rf ${root}/app && git clone --depth 1 ${profile.repoUrl} ${root}/app`],
+   172→    });
+   173→  } else {
+   174→    push({
+   175→      title: "Clone the subnet repository",
+   176→      description: "No repo linked on-chain — skipped (bittensor baseline install only).",
+   177→      gate: "auto",
+   178→      commands: [],
+   179→      virtual: true,
+   180→    });
+   181→  }
+   182→
+   183→  // 5 — Dependencies: cluster subnets have NO host pip stack (everything is
+   184→  //      provisioned in-cluster). Docker path builds the image (deps live in
+   185→  //      the image); venv path pip-installs (or uv syncs) on the host.
+   186→  const pythonBin = profile.packageManager === "uv" ? `${root}/app/.venv/bin/python` : `${root}/venv/bin/python`;
+   187→  if (clusterPath) {
+   188→    // skipped — the subnet's manifests/playbooks own the dependencies
+   189→  } else if (dockerPath) {
+   190→    push({
+   191→      title: "Build the subnet's Docker image",
+   192→      description: `docker build → infranex/sn${netuid}:miner (base ${profile.dockerImage}; the repo's Dockerfile pins CUDA/deps).`,
+   193→      gate: "auto",
+   194→      commands: [`cd ${root}/app && docker build -t infranex/sn${netuid}:miner .`],
+   195→    });
+   196→  } else if (profile.packageManager === "uv") {
+   197→    push({
+   198→      title: "Install the subnet's Python dependencies",
+   199→      description: "pip installs uv, then the repo's own uv workspace resolves + installs everything into app/.venv",
+   200→      gate: "auto",
+   201→      commands: [
+   202→        `pip3 install --user uv 2>/dev/null || pip3 install uv || { curl -LsSf https://astral.sh/uv/install.sh | sh; }`,
+   203→        `cd ${root}/app && uv sync --frozen || uv sync`,
+   204→      ],
+   205→    });
+   206→  } else {
+   207→    const pipReq = profile.repoUrl
+   208→      ? `${root}/venv/bin/pip install -r ${root}/app/requirements.txt 2>/dev/null || ${root}/venv/bin/pip install bittensor`
+   209→      : `${root}/venv/bin/pip install bittensor`;
+   210→    push({
+   211→      title: "Install the subnet's Python dependencies",
+   212→      description:
+   213→        profile.pipPackageCount > 0
+   214→          ? `${profile.pipPackageCount} packages from the repo's requirements (${profile.bittensorStack.length ? `stack: ${profile.bittensorStack.join(", ")}` : "see plan commands"})`
+   215→          : "bittensor baseline stack",
+   216→      gate: "auto",
+   217→      commands: [
+   218→        `${root}/venv/bin/pip install --upgrade pip wheel setuptools`,
+   219→        pipReq,
+   220→      ],
+   221→    });
+   222→  }
+   223→
+   224→  // 5b — INFRA-STACK services: the subnet documents more than a pip stack.
+   225→  //      Cluster-shaped subnets (orchestration=kubernetes) get the honest
+   226→  //      provisioning path: host prerequisites + control-plane gate, verified
+   227→  //      with kubectl. Everything else: apt-able services (postgres, redis)
+   228→  //      install automatically.
+   229→  if (clusterPath && infra) {
+   230→    const evidence = [
+   231→      infra.ramRule ? `RAM rule: “${infra.ramRule.quote.slice(0, 150)}”` : null,
+   232→      infra.networkRule ? `Networking: “${infra.networkRule.quote.slice(0, 150)}”` : null,
+   233→      infra.storageRule ? `Storage: “${infra.storageRule.quote.slice(0, 150)}”` : null,
+   234→      infra.hostClass ? `Host class: “${infra.hostClass.quote.slice(0, 150)}”` : null,
+   235→    ].filter(Boolean) as string[];
+   236→    const svcNames = infra.services.map((s) => s.name).join(", ");
+   237→
+   238→    if (evidence.length) {
+   239→      push({
+   240→        title: "Host prerequisites — networking, storage, host class",
+   241→        description:
+   242→          `The subnet's docs impose host-level prerequisites${svcNames ? ` (stack: ${svcNames})` : ""}: ` +
+   243→          evidence.join(" ") +
+   244→          " Confirm the firewall/port rules, storage layout and host class before provisioning — the engine cannot configure upstream firewalls for you.",
+   245→        gate: "manual",
+   246→        commands: [
+   247→          infra.storageRule
+   248→            ? `df -h /var/snap 2>/dev/null | tail -1 || { echo "No /var/snap mount — apply the docs' storage note (bind mount) before provisioning."; }`
+   249→            : `echo "No documented storage prep — verify disk layout manually if the subnet docs mention one."`,
+   250→        ],
+   251→      });
+   252→    }
+   253→
+   254→    push({
+   255→      title: "Provision the subnet's Kubernetes control plane — manual gate",
+   256→      description:
+   257→        `The subnet's own documentation requires its miner to run INSIDE Kubernetes (components: ${svcNames || "per subnet docs"}). ` +
+   258→        `Provision it with the subnet's official tooling (ansible playbooks / host-tools in the cloned repo) — a one-click plan cannot build this honestly. ` +
+   259→        (infra.services.find((s) => s.quote)?.quote
+   260→          ? `README evidence: “${infra.services.find((s) => s.quote)!.quote.slice(0, 150)}” `
+   261→          : "") +
+   262→        "Continue once the cluster is up and the subnet's manifests/playbooks have been applied.",
+   263→      gate: "manual",
+   264→      commands: [
+   265→        `kubectl version --client 2>/dev/null || k3s --version 2>/dev/null || { echo "No kubectl/k3s found on this host — provision the subnet's Kubernetes stack per its official docs before continuing."; exit 1; }`,
+   266→        `kubectl get nodes 2>/dev/null | head -6 || { echo "kubectl present but no cluster reachable — finish provisioning first."; exit 1; }`,
+   267→      ],
+   268→    });
+   269→  } else if (infra?.services.length) {
+   270→    const aptServices = infra.services.filter((s) => s.name === "postgres" || s.name === "redis");
+   271→    if (aptServices.length) {
+   272→      const aptNames = aptServices.flatMap((s) => (s.name === "postgres" ? ["postgresql"] : ["redis-server"]));
+   273→      push({
+   274→        title: "Install subnet service stack (apt)",
+   275→        description: `Documented services: ${aptServices.map((s) => s.name).join(", ")} — installed as system services (${aptNames.join(", ")}). ${aptServices.map((s) => `“${(s.quote || "").slice(0, 90)}”`).join(" ")}`,
+   276→        gate: "auto",
+   277→        commands: [
+   278→          `export DEBIAN_FRONTEND=noninteractive; apt-get update -qq && apt-get install -y -qq ${[...new Set(aptNames)].join(" ")} && (systemctl is-active postgresql redis-server 2>/dev/null || service postgresql start && service redis-server start)`,
+   279→        ],
+   280→      });
+   281→    }
+   282→    const k8s = infra.services.find((s) => s.name === "kubernetes") ?? (infra.orchestration === "kubernetes" ? infra.services[0] : null);
+   283→    if (k8s || infra.orchestration === "kubernetes") {
+   284→      push({
+   285→        title: "Subnet requires a Kubernetes stack — manual provisioning gate",
+   286→        description:
+   287→          `The subnet's own documentation requires its miner to run INSIDE Kubernetes${infra.orchestration === "kubernetes" ? " (k3s-class)" : ""}. ` +
+   288→          `A one-click venv/container plan cannot build this honestly: the cluster, its CNI/TEE tooling and the subnet's operators must be provisioned via the subnet's official tooling (ansible/helm/host-tools). ` +
+   289→          (k8s?.quote ? `README evidence: “${k8s.quote.slice(0, 160)}” ` : "") +
+   290→          `Confirm you have followed the subnet's official cluster provisioning docs before continuing.`,
+   291→        gate: "manual",
+   292→        commands: [
+   293→          `kubectl version --client 2>/dev/null || k3s --version 2>/dev/null || { echo "No kubectl/k3s found on this host — provision the subnet's Kubernetes stack per its official docs before launching."; exit 1; }`,
+   294→        ],
+   295→      });
+   296→    }
+   297→    if (infra.ramRule) {
+   298→      const ramKnown = hostFacts?.totalRamMb != null && hostFacts?.gpuVramMb != null;
+   299→      const ramOk = ramKnown ? hostFacts!.totalRamMb! >= hostFacts!.gpuVramMb! : null;
+   300→      push({
+   301→        title: "RAM-per-GPU sizing rule",
+   302→        description:
+   303→          `Documented sizing rule: “${infra.ramRule.quote.slice(0, 160)}” ` +
+   304→          (ramOk != null
+   305→            ? `Host: ${Math.round(hostFacts!.totalRamMb! / 1024)} GB RAM vs ${Math.round(hostFacts!.gpuVramMb! / 1024)} GB per-GPU VRAM — ${ramOk ? "satisfied for the single-GPU case (multiply for multi-GPU hosts)" : "VIOLATED — deployments will fail; pick a host with more RAM"}.`
+   306→            : "Host RAM was not reported by the inspection pass — confirm manually that RAM ≥ VRAM per GPU."),
+   307→        gate: ramOk === false ? "manual" : "auto",
+   308→        virtual: true,
+   309→        commands: [],
+   310→      });
+   311→    }
+   312→  } else if (infra && !infra.services.length) {
+   313→    // Rules-only stack (no apt-able services, no cluster): surface the
+   314→    // documented host constraints as a real plan step so they can't be
+   315→    // silently dropped — a miner on the wrong host class never validates.
+   316→    const evidence = [
+   317→      infra.ramRule ? `RAM rule: “${infra.ramRule.quote.slice(0, 150)}”` : null,
+   318→      infra.networkRule ? `Networking: “${infra.networkRule.quote.slice(0, 150)}”` : null,
+   319→      infra.storageRule ? `Storage: “${infra.storageRule.quote.slice(0, 150)}”` : null,
+   320→      infra.hostClass ? `Host class: “${infra.hostClass.quote.slice(0, 150)}”` : null,
+   321→    ].filter(Boolean) as string[];
+   322→    if (evidence.length) {
+   323→      push({
+   324→        title: "Host constraints from the subnet's docs",
+   325→        description:
+   326→          evidence.join(" ") +
+   327→          " — the engine cannot re-provision the machine; confirm the host satisfies these before launch.",
+   328→        gate: "auto",
+   329→        commands: [`echo "Documented host constraints on record — review the plan description and confirm the host complies."`],
+   330→      });
+   331→    }
+   332→  }
+   333→
+   334→  // 6 — Miner environment file (cluster subnets get their env from the
+   335→  //      subnet's own manifests — a host env file would be dead config)
+   336→  if (!clusterPath) {
+   337→    const envLines = [
+   338→      `BT_NETWORK=finney`,
+   339→      `BT_NETUID=${netuid}`,
+   340→      `BT_WALLET_NAME=${walletName}`,
+   341→      `BT_HOTKEY_NAME=${hotkeyName}`,
+   342→      `CUDA_VISIBLE_DEVICES=0`,
+   343→      `INFRANEX_MINER_CMD=${profile.minerCommandTemplate.replace(/</g, "").replace(/>/g, "")}`,
+   344→    ];
+   345→    push({
+   346→      title: "Write the miner environment",
+   347→      description: `${root}/env — network, netuid, wallet, GPU device`,
+   348→      gate: "auto",
+   349→      commands: [
+   350→        `mkdir -p ${root} && printf '%s\\n' ${envLines.map((l) => `'${l}'`).join(" ")} > ${root}/env && cat ${root}/env`,
+   351→      ],
+   352→    });
+   353→  }
+   354→
+   355→  // 7 — Wallet files (manual gate: private keys never leave the user)
+   356→  const walletDir = `$HOME/.bittensor/wallets/${walletName}`;
+   357→  push({
+   358→    title: "Wallet files present on the host",
+   359→    description: `${walletDir}/coldkey + hotkeys/${hotkeyName} — the engine never creates or transfers your keys.`,
+   360→    gate: "manual",
+   361→    commands: [
+   362→      `test -f "${walletDir}/coldkey" && test -f "${walletDir}/hotkeys/${hotkeyName}" && echo "wallet ${walletName}/${hotkeyName} found" || { echo "MISSING: copy your coldkey + hotkey into ${walletDir}/ on the host (scp from your local machine), then continue"; exit 1; }`,
+   363→    ],
+   364→  });
+   365→
+   366→  // 8 — Launch miner (approval-gated: this starts burning compute).
+   367→  //      Cluster path: the miner was already launched BY the provisioning —
+   368→  //      faking a systemd unit outside the cluster would never validate.
+   369→  //      Docker path: a GPU container with the wallet dir bind-mounted and
+   370→  //      the env file injected; restart policy survives pod reboots.
+   371→  //      Venv path: a systemd unit wrapping the venv python entrypoint.
+   372→  if (clusterPath) {
+   373→    // launch happened inside the control-plane gate
+   374→  } else if (dockerPath) {
+   375→    push({
+   376→      title: "Launch the miner (Docker container)",
+   377→      description: `docker run --gpus all infranex/sn${netuid}:miner — auto-restarts, axon ${profile.ports.axon} published, wallet dir mounted read-only. This starts the real workload.`,
+   378→      gate: "approval",
+   379→      commands: [
+   380→        `docker rm -f ${unit} 2>/dev/null || true; docker run -d --restart unless-stopped --name ${unit} --gpus all ` +
+   381→          `--env-file ${root}/env ` +
+   382→          `-v $HOME/.bittensor/wallets:/root/.bittensor:ro ` +
+   383→          `-p ${profile.ports.axon}:${profile.ports.axon} -p ${profile.ports.prometheus}:${profile.ports.prometheus} ` +
+   384→          `infranex/sn${netuid}:miner`,
+   385→      ],
+   386→    });
+   387→  } else {
+   388→  const unitLines = [
+   389→    "[Unit]",
+   390→    `Description=Infranex miner — subnet ${netuid} (${profile.subnetName})`,
+   391→    "After=network-online.target",
+   392→    "Wants=network-online.target",
+   393→    "",
+   394→    "[Service]",
+   395→    "Type=simple",
+   396→    `User=root`,
+   397→    `WorkingDirectory=${root}/app`,
+   398→    `EnvironmentFile=${root}/env`,
+   399→    `ExecStart=${pythonBin} ${profile.entrypoint ?? "neurons/miner.py"} --netuid ${netuid} --subtensor.network finney --wallet.name ${walletName} --wallet.hotkey ${hotkeyName} --axon.port ${profile.ports.axon}`,
+   400→    "Restart=always",
+   401→    "RestartSec=10",
+   402→    "StandardOutput=append:/var/log/infranex-miner-sn" + netuid + ".log",
+   403→    "StandardError=append:/var/log/infranex-miner-sn" + netuid + ".log",
+   404→    "",
+   405→    "[Install]",
+   406→    "WantedBy=multi-user.target",
+   407→  ];
+   408→  push({
+   409→    title: "Launch the miner (systemd service)",
+   410→    description: `Creates + starts ${unit}.service — auto-restarts on crash. This starts the real workload.`,
+   411→    gate: "approval",
+   412→    commands: [
+   413→      `mkdir -p ${root}/app /var/log && printf '%s\\n' ${unitLines
+   414→        .map((l) => `'${l.replace(/'/g, "'\\''")}'`)
+   415→        .join(" ")} > /etc/systemd/system/${unit}.service`,
+   416→      `systemctl daemon-reload && systemctl enable --now ${unit}`,
+   417→    ],
+   418→    });
+   419→  }
+   420→
+   421→  // 9 — Verify
+   422→  if (clusterPath) {
+   423→    push({
+   424→      title: "Verify the cluster + miner workload",
+   425→      description:
+   426→        "kubectl node census + pod count — the miner lives INSIDE the cluster; a systemd/docker check would be dishonest here.",
+   427→      gate: "auto",
+   428→      commands: [
+   429→        `kubectl get nodes -o wide 2>/dev/null | head -6 || { echo "cluster not reachable — finish the provisioning gate first"; exit 1; }`,
+   430→        `kubectl get pods -A --no-headers 2>/dev/null | wc -l | xargs echo "pods across namespaces:"`,
+   431→      ],
+   432→    });
+   433→  } else {
+   434→    push({
+   435→      title: "Verify the miner is live",
+   436→      description: dockerPath
+   437→        ? `container status + axon port ${profile.ports.axon} listening + first log lines`
+   438→        : `systemctl is-active + axon port ${profile.ports.axon} listening + first log lines`,
+   439→      gate: "auto",
+   440→      commands: dockerPath
+   441→        ? [
+   442→            `docker ps --filter name=${unit} --format '{{.Names}} | {{.Status}}' | grep -q ${unit} && ss -tlnp | grep ':${profile.ports.axon} ' ; docker logs --tail 5 ${unit} 2>&1 | tail -5`,
+   443→          ]
+   444→        : [
+   445→            `systemctl is-active ${unit} && ss -tlnp | grep ':${profile.ports.axon} ' ; tail -n 5 /var/log/infranex-miner-sn${netuid}.log 2>/dev/null`,
+   446→          ],
+   447→    });
+   448→  }
+   449→
+   450→  return steps;
+   451→}
+   452→
+   453→// --- Executor ---------------------------------------------------------------
+   454→
+   455→function okOut(s: string): boolean {
+   456→  return s.trim().length > 0;
+   457→}
+   458→
+   459→/** Compatibility step 1: compare host facts to the profile. */
+   460→export function runCompatibilityStep(step: InstallStep, profile: SubnetRequirementsProfile, facts: HostFacts | null): void {
+   461→  const problems: string[] = [];
+   462→  const notes: string[] = [];
+   463→  if (profile.minVramGb > 0) {
+   464→    if (!facts?.gpuName) problems.push("No GPU facts for this host — run the 10-step environment pipeline first.");
+   465→    else {
+   466→      const vramGb = facts.gpuVramMb ? facts.gpuVramMb / 1024 : null;
+   467→      // 1 GB tolerance: a "24 GB" RTX 4090 reports 24564 MiB usable (23.98).
+   468→      if (vramGb != null && vramGb < profile.minVramGb - 1)
+   469→        problems.push(`Host GPU has ${vramGb.toFixed(0)} GB VRAM; subnet needs ≥ ${profile.minVramGb} GB (${profile.recommendedGpu}).`);
+   470→      else notes.push(`GPU ${facts.gpuName}${vramGb ? ` (${vramGb.toFixed(0)} GB)` : ""} satisfies the ≥ ${profile.minVramGb} GB requirement.`);
+   471→    }
+   472→  }
+   473→  if (profile.cudaMinVersion) {
+   474→    if (!facts?.driverCuda) notes.push("Driver CUDA unknown — install step 8 of the pipeline will exercise it.");
+   475→    else {
+   476→      const [hmaj, hmin] = facts.driverCuda.split(".").map((x) => parseInt(x, 10) || 0);
+   477→      const [rmaj, rmin] = profile.cudaMinVersion.split(".").map((x) => parseInt(x, 10) || 0);
+   478→      if (hmaj < rmaj || (hmaj === rmaj && hmin < rmin))
+   479→        problems.push(`Driver CUDA ${facts.driverCuda} < subnet requirement ${profile.cudaMinVersion}.`);
+   480→      else notes.push(`Driver CUDA ${facts.driverCuda} ≥ required ${profile.cudaMinVersion}.`);
+   481→    }
+   482→  }
+   483→  notes.push(`Work type: ${profile.category ?? "unclassified"} · source: ${profile.gpuSource}`);
+   484→  if (problems.length > 0) {
+   485→    step.status = "fail";
+   486→    step.output = problems.join("\n");
+   487→    step.remediation = "Pick a host with enough VRAM/driver, or choose a different subnet.";
+   488→  } else {
+   489→    step.status = "pass";
+   490→    step.output = notes.join("\n");
+   491→  }
+   492→}
+   493→
+   494→/**
+   495→ * Execute ONE install step. action "override" only applies to the manual
+   496→ * wallet gate (user confirms files are in place). Uses the LATEST install
+   497→ * job for the host.
+   498→ */
+   499→export async function runInstallStep(
+   500→  host: GpuHost,
+   501→  secret: string,
+   502→  stepId: string,
+   503→  action: "run" | "override" = "run"
+   504→): Promise<{ install: { id: string; status: string }; step: InstallStep }> {
+   505→  const row = await db.hostInstall.findFirst({
+   506→    where: { hostId: host.id },
+   507→    orderBy: { updatedAt: "desc" },
+   508→  });
+   509→  if (!row) throw new Error("No install job staged for this host");
+   510→  if (row.status === "deployed") throw new Error("Install already deployed — stop it before re-running steps");
+   511→
+   512→  const steps = JSON.parse(row.stepsJson) as InstallStep[];
+   513→  const profile = JSON.parse(row.requirementsJson) as SubnetRequirementsProfile;
+   514→  const step = steps.find((s) => s.id === stepId);
+   515→  if (!step) throw new Error("Step not found");
+   516→  // Passed steps may only be re-executed to relaunch a stopped job
+   517→  // (e.g. start the miner again after a safety stop).
+   518→  const relaunch = row.status === "stopped";
+   519→  if (step.status === "pass" && !relaunch) throw new Error("Step already passed");
+   520→
+   521→  const started = Date.now();
+   522→  step.status = "running";
+   523→  step.output = "";
+   524→  await persistSteps(row.id, steps, "running");
+   525→
+   526→  try {
+   527→    if (action === "override" && step.gate === "manual") {
+   528→      step.status = "pass";
+   529→      step.output = `Manual confirmation accepted — wallet files assumed present for ${row.walletName}/${row.hotkeyName}.`;
+   530→    } else if (step.virtual) {
+   531→      if (step.idx === 1) {
+   532→        const facts: HostFacts = host.hostInfo ? JSON.parse(host.hostInfo) : {};
+   533→        runCompatibilityStep(step, profile, facts);
+   534→      } else {
+   535→        step.status = "skipped";
+   536→        step.output = "Skipped — nothing to do for this subnet.";
+   537→      }
+   538→    } else {
+   539→      const { openTransport } = await import("./transport");
+   540→      const transport: Transport = openTransport({
+   541→        kind: host.transport === "mock" ? "mock" : "ssh",
+   542→        hostId: host.id,
+   543→        host: host.host,
+   544→        port: host.port,
+   545→        user: host.user,
+   546→        authMethod: host.authMethod as "password" | "key",
+   547→        secret,
+   548→      });
+   549→      try {
+   550→        await transport.connect();
+   551→        for (const cmd of step.commands) {
+   552→          step.output += `$ ${cmd}\n`;
+   553→          const timeout = timeoutForCmd(cmd);
+   554→          const r = await transport.exec(cmd, timeout);
+   555→          if (r.stdout.trim()) step.output += r.stdout.trim() + "\n";
+   556→          if (r.stderr.trim()) step.output += r.stderr.trim() + "\n";
+   557→          if (r.code !== 0) {
+   558→            step.status = "fail";
+   559→            step.remediation = failRemediation(step, r.code);
+   560→            break;
+   561→          }
+   562→        }
+   563→        if (step.status !== "fail") {
+   564→          step.status = "pass";
+   565→          if (okOut(step.output) === false) step.output = "done";
+   566→        }
+   567→      } finally {
+   568→        transport.close();
+   569→      }
+   570→    }
+   571→  } catch (e) {
+   572→    step.status = "fail";
+   573→    step.output += `\n[engine] ${e instanceof Error ? e.message : String(e)}`;
+   574→    step.remediation = "Transport error — check the host is reachable, then retry this step.";
+   575→  } finally {
+   576→    step.durationMs = Date.now() - started;
+   577→  }
+   578→
+   579→  const overall = overallStatus(steps);
+   580→  await persistSteps(row.id, steps, overall);
+   581→  return { install: { id: row.id, status: overall }, step };
+   582→}
+   583→
+   584→export function failRemediation(step: InstallStep, code: number): string {
+   585→  if (step.title.startsWith("Install OS")) return "apt failed — check the distro sources and network on the host, then retry.";
+   586→  if (step.title.startsWith("Install Docker")) return code === 127 ? "curl/network unavailable on the host — install docker-ce + nvidia-container-toolkit manually, then retry." : "Docker/runtime install failed — inspect the output (repo keys, apt sources), then retry.";
+   587→  if (step.title.startsWith("Build the subnet")) return "docker build failed — the log shows the failing Dockerfile layer (deps, base image pull). Fix and retry.";
+   588→  if (step.title.startsWith("Create Python")) return code === 1 ? "Python version mismatch — install the required python3.x (deadsnakes PPA) or edit the plan." : "python3-venv missing — the OS-packages step installs it; retry.";
+   589→  if (step.title.startsWith("Clone")) return "git clone failed — check the repo URL is public and the host has outbound network.";
+   590→  if (step.title.startsWith("Install the subnet")) return "pip failed — inspect the output; heavy CUDA wheels may need more RAM/disk, then retry.";
+   591→  if (step.title.startsWith("Wallet")) return "Copy your bittensor coldkey + hotkey files onto the host (scp ~/.bittensor/wallets/...), or confirm they are in place and continue.";
+   592→  if (step.title.startsWith("Launch")) return "Miner failed to start — the log tail in the verify step usually shows the reason (wallet, chain, ports).";
+   593→  if (step.title.startsWith("Verify")) return "Check the service log: journalctl -u <unit>. Common causes: wrong wallet path, port conflict, chain sync errors.";
+   594→  return "Retry this step after addressing the output above.";
+   595→}
+   596→
+   597→function overallStatus(steps: InstallStep[]): string {
+   598→  if (steps.every((s) => s.status === "pass" || s.status === "skipped")) return "deployed";
+   599→  if (steps.some((s) => s.status === "fail")) return "failed";
+   600→  const nextPending = steps.find((s) => s.status === "pending" || s.status === "running");
+   601→  if (nextPending?.gate === "approval") return "waiting_approval";
+   602→  return "running";
+   603→}
+   604→
+   605→async function persistSteps(id: string, steps: InstallStep[], status: string) {
+   606→  await db.hostInstall.update({
+   607→    where: { id },
+   608→    data: { stepsJson: JSON.stringify(steps), status },
+   609→  });
+   610→}
+   611→
+   612→/** Stop the miner service (safety stop) and mark the install stopped. */
+   613→export async function stopInstall(
+   614→  host: GpuHost,
+   615→  secret: string
+   616→): Promise<{ ok: boolean; output: string }> {
+   617→  const row = await db.hostInstall.findFirst({
+   618→    where: { hostId: host.id },
+   619→    orderBy: { updatedAt: "desc" },
+   620→  });
+   621→  if (!row) throw new Error("No install job staged for this host");
+   622→  const netuid = row.netuid;
+   623→  const unit = UNIT_NAME(netuid);
+   624→  const profile = JSON.parse(row.requirementsJson) as SubnetRequirementsProfile;
+   625→  const dockerPath = Boolean(profile.dockerfileFound && profile.dockerImage);
+   626→  const stopCmd = dockerPath
+   627→    ? `docker rm -f ${unit} 2>/dev/null || true`
+   628→    : `systemctl disable --now ${unit} 2>&1 || true`;
+   629→
+   630→  let output = "[engine] stop requested";
+   631→  if (host.transport !== "mock") {
+   632→    const { openTransport } = await import("./transport");
+   633→    const transport = openTransport({
+   634→      kind: "ssh",
+   635→      hostId: host.id,
+   636→      host: host.host,
+   637→      port: host.port,
+   638→      user: host.user,
+   639→      authMethod: host.authMethod as "password" | "key",
+   640→      secret,
+   641→    });
+   642→    try {
+   643→      await transport.connect();
+   644→      const r = await transport.exec(stopCmd, 30_000);
+   645→      output = r.stdout.trim() || "service stopped";
+   646→    } finally {
+   647→      transport.close();
+   648→    }
+   649→  } else {
+   650→    output = "[mock] infranex-miner service stopped";
+   651→  }
+   652→  await db.hostInstall.update({ where: { id: row.id }, data: { status: "stopped" } });
+   653→  return { ok: true, output };
+   654→}
+   655→

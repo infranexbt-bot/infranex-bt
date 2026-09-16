@@ -11,6 +11,7 @@ import { runDevopsPass } from "@/lib/infranex/devops-monitor";
 import { runMinerMindsetPass } from "@/lib/infranex/miner-mindset";
 import { runServiceHealthPass } from "@/lib/infranex/service-health";
 import { SESSION_COOKIE, verifySessionToken } from "@/lib/auth";
+import { requireActiveAdmin } from "@/lib/auth-admin";
 import { logAudit } from "@/lib/infranex/audit";
 
 export const dynamic = "force-dynamic";
@@ -44,6 +45,8 @@ export async function GET() {
 
 // POST /api/triggers — { action: "run" | "approve" | "dismiss" | "act", id? }
 export async function POST(req: NextRequest) {
+  const gate = await requireActiveAdmin(req);
+  if ("error" in gate) return NextResponse.json({ error: gate.error }, { status: gate.status });
   try {
     const body = (await req.json()) as { action?: string; id?: string };
     switch (body.action) {

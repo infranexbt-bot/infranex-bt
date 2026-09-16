@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { listRevisions, rollbackToRevision } from "@/lib/infranex/deployment/revisions";
 import { SESSION_COOKIE, verifySessionToken } from "@/lib/auth";
+import { requireActiveAdmin } from "@/lib/auth-admin";
 
 export const dynamic = "force-dynamic";
 
@@ -43,6 +44,9 @@ export async function POST(
 ) {
   const { id } = await params;
 
+  // rollback pushes apply_config to the daemon → admin-gated (AUDIT-SEC-3)
+  const gate = await requireActiveAdmin(req);
+  if ("error" in gate) return NextResponse.json({ error: gate.error }, { status: gate.status });
   let body: { rev?: unknown };
   try {
     body = (await req.json()) as { rev?: unknown };

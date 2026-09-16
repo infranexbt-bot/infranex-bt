@@ -90,16 +90,6 @@ export interface MiningRequirements {
   };
 }
 
-/** Fields that can be sourced from the live chain. */
-export type LiveField =
-  | "minersCount"
-  | "taoInReserve"
-  | "price"
-  | "tempo"
-  | "emission"
-  | "status"
-  | "marketCap";
-
 export interface OpportunityFactor {
   name: string;
   value: number; // weighted contribution

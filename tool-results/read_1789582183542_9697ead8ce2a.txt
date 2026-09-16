@@ -1,0 +1,795 @@
+     1→import { db } from "@/lib/db";
+     2→import {
+     3→  fetchLiveSnapshot,
+     4→  type LiveNetworkSnapshot,
+     5→  type LiveSubnetMetrics,
+     6→} from "./chain";
+     7→import { commitFinding, autoResolve, safeParse } from "./triggers-core";
+     8→import { getDaemonView, enqueueCommand } from "./daemon-bridge";
+     9→import { deserializeConfig } from "./deployment/config";
+    10→
+    11→/**
+    12→ * DEVOPS-3 — the Miner Mindset strategy pass.
+    13→ *
+    14→ * Experienced miners treat their operation like a proprietary trading firm:
+    15→ * compute is a liquid asset, runtimes are tunable instruments, and validators
+    16→ * decide the income. This pass encodes that mindset into the always-on engine
+    17→ * (runs in the same 90s devops worker, after UID defense):
+    18→ *
+    19→ *   1. SUBNET ARBITRAGE / COMPUTE RECYCLING (ARBITRAGE events)
+    20→ *      Per-miner yield on our subnet (minerEmissionTaoPerDay / miners) is
+    21→ *      baselined every pass. When the yield collapses vs the observed peak
+    22→ *      for N consecutive passes — or the subnet's alpha price is bleeding out
+    23→ *      (24h momentum) — the engine ranks every other subnet by per-miner
+    24→ *      yield and proposes recycling: spin down this miner (approval-gated
+    25→ *      terminate) and redeploy the freed GPU on the higher-yield subnet.
+    26→ *      This is the "dynamic recycled registration / compute recycling" play.
+    27→ *
+    28→ *   2. RUNTIME OPTIMIZER (RUNTIME_OPT events)
+    29→ *      Stock miner stacks leak emissions to quant-firm competitors. When
+    30→ *      telemetry shows sustained saturation (util ≥ hotUtilPct across the
+    31→ *      last samples), VRAM pressure, or a persistent incentive gap vs the
+    32→ *      rewarded cohort median, the engine proposes an accelerated serving
+    33→ *      profile: vLLM continuous batching, TensorRT-LLM, AWQ/EXL2 quantized
+    34→ *      weights, or a domain LoRA fine-tune. Approval applies the profile env
+    35→ *      on the GPU via the daemon's apply_config (env persisted on-host +
+    36→ *      miner restarted) — the same closed loop as drift remediation.
+    37→ *
+    38→ *   3. VALIDATOR AWARENESS (posture + DEREG_RISK failover)
+    39→ *      The ops board surfaces validator-side facts per miner (top-10
+    40→ *      incentive concentration, our UID's validator trust / consensus) so
+    41→ *      operators prioritize the validators that actually score them. When
+    42→ *      UID defense escalates a critical incentive collapse, the event gains
+    43→ *      a failover plan: approval pushes a fallback serving profile + restart
+    44→ *      instead of a bare restart — the "automatic failover the second
+    45→ *      incentive drops" reflex.
+    46→ *
+    47→ * Mock deployments: arbitrage IS evaluated (subnet economics are real chain
+    48→ * facts; recycle on a mock simply terminates the simulated deployment, and
+    49→ * the evidence carries mode:"mock" so the UI shows the MOCK tag). Runtime
+    50→ * signals are telemetry-based — mocks have no real telemetry, so no runtime
+    51→ * alarms; their applied profiles are simulated with a deployment tick.
+    52→ */
+    53→
+    54→// ---------------------------------------------------------------------------
+    55→// Thresholds (single tuning place; MINDSET-thresholds ride the monitor payload)
+    56→// ---------------------------------------------------------------------------
+    57→
+    58→export const MINDSET_THRESHOLDS = {
+    59→  /** Relative per-miner yield drop (vs observed peak) that marks a collapse. */
+    60→  yieldCollapsePct: 0.4,
+    61→  /** Consecutive passes the collapse must hold before the arbitrage event. */
+    62→  yieldCollapsePasses: 3,
+    63→  /** 24h alpha price change (%) that alone signals capital outflow. */
+    64→  alphaDropPct24h: -15,
+    65→  /** An alternative subnet must promise at least this much more per-miner yield. */
+    66→  arbitrageUpliftPct: 0.5,
+    67→  /** Alternatives kept in evidence / posture. */
+    68→  maxAlternatives: 3,
+    69→  /** GPU utilization (%) considered saturation across recent samples. */
+    70→  hotUtilPct: 85,
+    71→  /** Recent saturated samples required before proposing a batching runtime. */
+    72→  hotUtilSamples: 3,
+    73→  /** VRAM pressure ratio (used/total) that favors quantized weights. */
+    74→  memPressureRatio: 0.9,
+    75→  /** Our incentive below this fraction of the rewarded median is a gap. */
+    76→  incentiveGapRatio: 0.5,
+    77→  /** Consecutive passes of the gap before proposing the fine-tune path. */
+    78→  incentiveGapPasses: 3,
+    79→} as const;
+    80→
+    81→/** Widened (non-literal) view of the thresholds for DI and internal plumbing. */
+    82→export type MindsetThresholds = { [K in keyof typeof MINDSET_THRESHOLDS]: number };
+    83→
+    84→// ---------------------------------------------------------------------------
+    85→// Pass state — yield baselines + consecutive counters (globalThis singleton)
+    86→// ---------------------------------------------------------------------------
+    87→
+    88→interface YieldBaseline {
+    89→  peak: number;
+    90→  last: number;
+    91→  collapsePasses: number;
+    92→  at: number;
+    93→}
+    94→
+    95→interface MindsetPassState {
+    96→  yieldBaselines: Map<string, YieldBaseline>;
+    97→  incentiveGapStreak: Map<string, number>;
+    98→  lastRunAt: number | null;
+    99→}
+   100→
+   101→const globalForMindset = globalThis as unknown as {
+   102→  __infranexMindsetPass: MindsetPassState | undefined;
+   103→};
+   104→
+   105→const mindsetState: MindsetPassState =
+   106→  globalForMindset.__infranexMindsetPass ??
+   107→  (globalForMindset.__infranexMindsetPass = {
+   108→    yieldBaselines: new Map(),
+   109→    incentiveGapStreak: new Map(),
+   110→    lastRunAt: null,
+   111→  });
+   112→
+   113→// ---------------------------------------------------------------------------
+   114→// Runtime recipe catalog — the quant-firm serving stack
+   115→// ---------------------------------------------------------------------------
+   116→
+   117→export interface RuntimeRecipe {
+   118→  id: "vllm" | "tensorrt" | "awq4" | "exl2" | "lora";
+   119→  label: string;
+   120→  engine: string;
+   121→  quantization: string | null;
+   122→  expectedGain: string;
+   123→  envDelta: Record<string, string>;
+   124→  reason?: string;
+   125→}
+   126→
+   127→export const RUNTIME_RECIPES: Record<RuntimeRecipe["id"], RuntimeRecipe> = {
+   128→  vllm: {
+   129→    id: "vllm",
+   130→    label: "vLLM continuous batching",
+   131→    engine: "vLLM",
+   132→    quantization: null,
+   133→    expectedGain: "2-4× throughput under concurrent validator load",
+   134→    envDelta: { INFANEX_RUNTIME: "vllm", VLLM_ENABLE_CHUNKED_PREFILL: "1" },
+   135→  },
+   136→  tensorrt: {
+   137→    id: "tensorrt",
+   138→    label: "TensorRT-LLM serving",
+   139→    engine: "TensorRT-LLM",
+   140→    quantization: null,
+   141→    expectedGain: "up to 3× lower time-to-first-token",
+   142→    envDelta: { INFANEX_RUNTIME: "tensorrt-llm" },
+   143→  },
+   144→  awq4: {
+   145→    id: "awq4",
+   146→    label: "AWQ 4-bit quantized weights",
+   147→    engine: "AWQ",
+   148→    quantization: "4-bit",
+   149→    expectedGain: "~1.5-2× faster TTFT, ~50% VRAM freed",
+   150→    envDelta: { INFANEX_QUANT: "awq4" },
+   151→  },
+   152→  exl2: {
+   153→    id: "exl2",
+   154→    label: "EXL2 adaptive quantization",
+   155→    engine: "ExLlamaV2",
+   156→    quantization: "4-8-bit",
+   157→    expectedGain: "flexible VRAM/quality trade, faster decode",
+   158→    envDelta: { INFANEX_QUANT: "exl2" },
+   159→  },
+   160→  lora: {
+   161→    id: "lora",
+   162→    label: "Domain LoRA fine-tune",
+   163→    engine: "PEFT/LoRA",
+   164→    quantization: null,
+   165→    expectedGain: "quality edge vs stock-weight cohorts",
+   166→    envDelta: { INFANEX_TUNED: "lora" },
+   167→  },
+   168→};
+   169→
+   170→/** Pure recipe selection — unit-testable, shared by the pass and the posture. */
+   171→export function pickRuntimeRecipes(signals: {
+   172→  saturatedUtil: boolean;
+   173→  memPressure: boolean;
+   174→  incentiveGap: boolean;
+   175→}): RuntimeRecipe[] {
+   176→  const out: RuntimeRecipe[] = [];
+   177→  if (signals.memPressure) {
+   178→    out.push({
+   179→      ...RUNTIME_RECIPES.awq4,
+   180→      reason: "VRAM headroom nearly exhausted — quantized weights free memory and restore serving headroom",
+   181→    });
+   182→  }
+   183→  if (signals.saturatedUtil) {
+   184→    out.push({
+   185→      ...RUNTIME_RECIPES.vllm,
+   186→      reason: "GPU saturated near full utilization — continuous batching multiplies served throughput",
+   187→    });
+   188→  }
+   189→  if (signals.incentiveGap) {
+   190→    if (!out.some((r) => r.id === "vllm" || r.id === "awq4")) {
+   191→      out.push({
+   192→        ...RUNTIME_RECIPES.tensorrt,
+   193→        reason: "Incentive lags the rewarded cohort — latency-sensitive scoring favors a faster runtime",
+   194→      });
+   195→    }
+   196→    out.push({
+   197→      ...RUNTIME_RECIPES.lora,
+   198→      reason: "Incentive lags the rewarded cohort — a domain fine-tune is the durable quality edge",
+   199→    });
+   200→  }
+   201→  return out;
+   202→}
+   203→
+   204→// ---------------------------------------------------------------------------
+   205→// Arbitrage math (pure, exported for tests)
+   206→// ---------------------------------------------------------------------------
+   207→
+   208→/** Per-miner yield on a subnet: miner emission share split across miners. */
+   209→export function perMinerYieldTaoPerDay(s: LiveSubnetMetrics): number | null {
+   210→  const miners = typeof s.minersCount === "number" ? s.minersCount : 0;
+   211→  const total = typeof s.minerEmissionTaoPerDay === "number" ? s.minerEmissionTaoPerDay : 0;
+   212→  if (miners <= 0 || total <= 0) return null;
+   213→  return total / miners;
+   214→}
+   215→
+   216→export interface ArbitrageAlternative {
+   217→  netuid: number;
+   218→  name: string;
+   219→  perMinerYieldTaoPerDay: number;
+   220→  upliftPct: number;
+   221→  burnCostTao: number | null;
+   222→  alphaChange24h: number | null;
+   223→  freeSlots: number | null;
+   224→}
+   225→
+   226→/** Rank alternative subnets by per-miner yield, filtered by uplift + capacity. */
+   227→export function rankArbitrageTargets(
+   228→  ourNetuid: number,
+   229→  ourYield: number,
+   230→  subnets: LiveSubnetMetrics[],
+   231→  th: MindsetThresholds
+   232→): ArbitrageAlternative[] {
+   233→  const out: ArbitrageAlternative[] = [];
+   234→  for (const s of subnets) {
+   235→    if (s.netuid === ourNetuid) continue;
+   236→    if (s.emissionEnabled === false) continue;
+   237→    const y = perMinerYieldTaoPerDay(s);
+   238→    if (y === null) continue;
+   239→    const uplift = ourYield > 0 ? y / ourYield - 1 : 0;
+   240→    if (uplift < th.arbitrageUpliftPct) continue;
+   241→    const freeSlots =
+   242→      typeof s.maxUids === "number"
+   243→        ? s.maxUids - (typeof s.minersCount === "number" ? s.minersCount : 0) -
+   244→          (typeof s.validatorsCount === "number" ? s.validatorsCount : 0)
+   245→        : null;
+   246→    if (freeSlots !== null && freeSlots < 1) continue;
+   247→    out.push({
+   248→      netuid: s.netuid,
+   249→      name: s.name ?? `α${s.netuid}`,
+   250→      perMinerYieldTaoPerDay: y,
+   251→      upliftPct: uplift,
+   252→      burnCostTao: s.burnCostTao ?? null,
+   253→      alphaChange24h: s.alphaPriceChange24h ?? null,
+   254→      freeSlots,
+   255→    });
+   256→  }
+   257→  return out
+   258→    .sort((a, b) => b.perMinerYieldTaoPerDay - a.perMinerYieldTaoPerDay)
+   259→    .slice(0, th.maxAlternatives);
+   260→}
+   261→
+   262→const r4 = (n: number) => Math.round(n * 1e4) / 1e4;
+   263→const pct = (x: number) => `${Math.round(x * 100)}%`;
+   264→
+   265→// ---------------------------------------------------------------------------
+   266→// The pass
+   267→// ---------------------------------------------------------------------------
+   268→
+   269→export interface MindsetPassResult {
+   270→  evaluatedAt: string;
+   271→  deploymentsEvaluated: number;
+   272→  created: number;
+   273→  refreshed: number;
+   274→  resolved: number;
+   275→  findings: {
+   276→    deploymentId: string;
+   277→    kind: "ARBITRAGE" | "RUNTIME_OPT";
+   278→    action: string;
+   279→  }[];
+   280→}
+   281→
+   282→export interface MindsetPassOptions {
+   283→  /** DI for tests — defaults to the cached live snapshot. */
+   284→  fetchSnapshot?: () => Promise<LiveNetworkSnapshot | null>;
+   285→  /** Threshold overrides (tests / tuning) — widened to plain numbers. */
+   286→  thresholds?: Partial<{ [K in keyof typeof MINDSET_THRESHOLDS]: number }>;
+   287→}
+   288→
+   289→export async function runMinerMindsetPass(opts?: MindsetPassOptions): Promise<MindsetPassResult> {
+   290→  const th: MindsetThresholds = { ...MINDSET_THRESHOLDS, ...(opts?.thresholds ?? {}) };
+   291→  const fetchSnapshot =
+   292→    opts?.fetchSnapshot ??
+   293→    (async () => {
+   294→      try {
+   295→        return await fetchLiveSnapshot();
+   296→      } catch {
+   297→        return null;
+   298→      }
+   299→    });
+   300→
+   301→  const deps = await db.deployment.findMany({ where: { status: "started" } });
+   302→  const snapshot = await fetchSnapshot();
+   303→  const subnets = snapshot && Array.isArray(snapshot.subnets) ? snapshot.subnets : [];
+   304→
+   305→  const result: MindsetPassResult = {
+   306→    evaluatedAt: new Date().toISOString(),
+   307→    deploymentsEvaluated: 0,
+   308→    created: 0,
+   309→    refreshed: 0,
+   310→    resolved: 0,
+   311→    findings: [],
+   312→  };
+   313→
+   314→  for (const dep of deps) {
+   315→    result.deploymentsEvaluated++;
+   316→
+   317→    // ---- Strategy 5: subnet arbitrage / compute recycling ----------------
+   318→    const arb = await evaluateArbitrage(dep, subnets, th);
+   319→    for (const f of arb.findings) {
+   320→      if (f.action === "created") result.created++;
+   321→      else if (f.action === "refreshed") result.refreshed++;
+   322→      result.findings.push({ deploymentId: dep.id, kind: "ARBITRAGE", action: f.action });
+   323→    }
+   324→    result.resolved += arb.resolved;
+   325→
+   326→    // ---- Strategy 2: runtime optimizer ------------------------------------
+   327→    const rt = await evaluateRuntime(dep, th);
+   328→    for (const f of rt.findings) {
+   329→      if (f.action === "created") result.created++;
+   330→      else if (f.action === "refreshed") result.refreshed++;
+   331→      result.findings.push({ deploymentId: dep.id, kind: "RUNTIME_OPT", action: f.action });
+   332→    }
+   333→    result.resolved += rt.resolved;
+   334→  }
+   335→
+   336→  mindsetState.lastRunAt = Date.now();
+   337→  return result;
+   338→}
+   339→
+   340→type MindsetDep = {
+   341→  id: string;
+   342→  minerName: string;
+   343→  netuid: number;
+   344→  subnetName: string;
+   345→  mode: string;
+   346→  hotkey: string | null;
+   347→};
+   348→type EvaluatorOut = { resolved: number; findings: { action: string }[] };
+   349→
+   350→// ---------------------------------------------------------------------------
+   351→// Arbitrage evaluator — compute is liquid
+   352→// ---------------------------------------------------------------------------
+   353→
+   354→async function evaluateArbitrage(
+   355→  dep: MindsetDep,
+   356→  subnets: LiveSubnetMetrics[],
+   357→  th: MindsetThresholds
+   358→): Promise<EvaluatorOut> {
+   359→  const our = subnets.find((s) => s.netuid === dep.netuid);
+   360→  const ourYield = our ? perMinerYieldTaoPerDay(our) : null;
+   361→  if (!our || ourYield === null) {
+   362→    // Unknown/empty subnet (e.g. mock netuids) — nothing to baseline.
+   363→    mindsetState.yieldBaselines.delete(dep.id);
+   364→    return { resolved: 0, findings: [] };
+   365→  }
+   366→
+   367→  const base = mindsetState.yieldBaselines.get(dep.id) ?? {
+   368→    peak: ourYield,
+   369→    last: ourYield,
+   370→    collapsePasses: 0,
+   371→    at: Date.now(),
+   372→  };
+   373→  const peak = Math.max(base.peak, ourYield);
+   374→  const dropPct = peak > 0 ? 1 - ourYield / peak : 0;
+   375→  const collapsing = dropPct >= th.yieldCollapsePct;
+   376→  const collapsePasses = collapsing ? base.collapsePasses + 1 : 0;
+   377→  const alpha = typeof our.alphaPriceChange24h === "number" ? our.alphaPriceChange24h : null;
+   378→  const alphaDrop = alpha !== null && alpha <= th.alphaDropPct24h;
+   379→  mindsetState.yieldBaselines.set(dep.id, { peak, last: ourYield, collapsePasses, at: Date.now() });
+   380→
+   381→  if (collapsePasses >= th.yieldCollapsePasses || alphaDrop) {
+   382→    const targets = rankArbitrageTargets(dep.netuid, ourYield, subnets, th);
+   383→    const best = targets[0] ?? null;
+   384→    const severity = dropPct >= 0.6 ? "critical" : "warning";
+   385→    const actionable = best !== null;
+   386→    const trigger = collapsePasses >= th.yieldCollapsePasses ? "yield_collapse" : "alpha_outflow";
+   387→
+   388→    const r = await commitFinding({
+   389→      kind: "ARBITRAGE",
+   390→      severity,
+   391→      dedupeKey: dep.id,
+   392→      title: actionable
+   393→        ? `Recycle compute — α${dep.netuid} yield down ${pct(dropPct)}; α${best.netuid} ${best.name} pays ${pct(best.upliftPct)} more`
+   394→        : `Compute recycling candidate — α${dep.netuid} yield down ${pct(dropPct)}, no better home right now`,
+   395→      detail:
+   396→        `Per-miner yield on α${dep.netuid} ${dep.subnetName} fell to ${r4(ourYield)} TAO/day ` +
+   397→        `(observed peak ${r4(peak)}${trigger === "alpha_outflow" ? "" : `, ${collapsePasses} pass${collapsePasses === 1 ? "" : "es"}`})` +
+   398→        `${alpha !== null ? `; alpha price ${alpha}% in 24h` : ""}. ` +
+   399→        (actionable
+   400→          ? `Approval spins down this miner (billing stops, GPU freed) for redeployment on α${best.netuid} ${best.name} at ≈${r4(best.perMinerYieldTaoPerDay)} TAO/day per miner. `
+   401→          : `No alternative clears the +${pct(th.arbitrageUpliftPct)} uplift bar — approval marks the decision and routes to the Optimization Engine. `) +
+   402→        `Mode ${dep.mode}${dep.mode === "mock" ? " — actions are simulated on mock deployments" : ""}.`,
+   403→      evidence: {
+   404→        type: actionable ? "recycle" : "evaluate",
+   405→        suggestedAction: actionable ? "recycle" : "evaluate",
+   406→        mode: dep.mode,
+   407→        ourNetuid: dep.netuid,
+   408→        ourSubnet: dep.subnetName,
+   409→        perMinerYieldTaoPerDay: r4(ourYield),
+   410→        peakYieldTaoPerDay: r4(peak),
+   411→        dropPct: Math.round(dropPct * 1000) / 1000,
+   412→        alphaChange24h: alpha,
+   413→        trigger,
+   414→        target: best,
+   415→        alternatives: targets,
+   416→        sampledAt: new Date().toISOString(),
+   417→      },
+   418→      deploymentId: dep.id,
+   419→      netuid: dep.netuid,
+   420→      runbook: actionable
+   421→        ? [
+   422→            `Confirm the collapse is structural (alpha outflow, emission cut) — not a one-epoch dip.`,
+   423→            `Approve to terminate this deployment — billing stops and the GPU capacity is freed.`,
+   424→            `Re-deploy on α${best.netuid} ${best.name} (≈${r4(best.perMinerYieldTaoPerDay)} TAO/day per miner; registration burn ≈${best.burnCostTao ?? "?"} TAO).`,
+   425→          ]
+   426→        : [
+   427→            `Confirm the collapse is structural — not a one-epoch dip.`,
+   428→            `No higher-yield subnet clears the uplift threshold right now; hold capacity.`,
+   429→            `Open the Optimization Engine to cut hardware cost while the engine keeps re-ranking opportunities.`,
+   430→          ],
+   431→    });
+   432→    return { resolved: 0, findings: [{ action: r }] };
+   433→  }
+   434→
+   435→  const resolved = await autoResolve("ARBITRAGE", dep.id);
+   436→  return { resolved, findings: [] };
+   437→}
+   438→
+   439→// ---------------------------------------------------------------------------
+   440→// Runtime optimizer — the serving stack is a tunable instrument
+   441→// ---------------------------------------------------------------------------
+   442→
+   443→async function evaluateRuntime(dep: MindsetDep, th: MindsetThresholds): Promise<EvaluatorOut> {
+   444→  if (dep.mode === "mock") {
+   445→    // No real telemetry on simulated pods — never runtime-alarm a mock.
+   446→    mindsetState.incentiveGapStreak.delete(dep.id);
+   447→    const resolved = await autoResolve("RUNTIME_OPT", dep.id);
+   448→    return { resolved, findings: [] };
+   449→  }
+   450→
+   451→  const samples = await db.gpuSample.findMany({
+   452→    where: { deploymentId: dep.id },
+   453→    orderBy: { createdAt: "desc" },
+   454→    take: Math.max(th.hotUtilSamples, 3),
+   455→  });
+   456→  const recent = samples.slice(0, Math.max(th.hotUtilSamples, 3));
+   457→  const withTelemetry = recent.filter((s) => s.gpuUtilPct !== null || s.memTotalMb !== null);
+   458→  const saturatedUtil =
+   459→    withTelemetry.length >= th.hotUtilSamples &&
+   460→    recent.slice(0, th.hotUtilSamples).every((s) => (s.gpuUtilPct ?? 0) >= th.hotUtilPct);
+   461→  const memPressure =
+   462→    withTelemetry.length > 0 &&
+   463→    recent.some((s) =>
+   464→      s.memTotalMb && s.memTotalMb > 0
+   465→        ? (s.memUsedMb ?? 0) / s.memTotalMb >= th.memPressureRatio
+   466→        : false
+   467→    );
+   468→
+   469→  // Incentive gap — needs N consecutive passes below the rewarded median.
+   470→  let incentiveGap = false;
+   471→  const uid = await db.uidSnapshot.findFirst({
+   472→    where: { deploymentId: dep.id },
+   473→    orderBy: { createdAt: "desc" },
+   474→  });
+   475→  if (uid && uid.uid !== null && uid.incentive !== null) {
+   476→    const { getUidState } = await import("./metagraph");
+   477→    const state = await getUidState(dep.netuid, dep.hotkey).catch(() => null);
+   478→    const median = state?.cohort?.medianRewardedIncentive ?? 0;
+   479→    if (state && median > 0) {
+   480→      incentiveGap = uid.incentive < median * th.incentiveGapRatio;
+   481→    }
+   482→  }
+   483→  const gapStreak = incentiveGap ? (mindsetState.incentiveGapStreak.get(dep.id) ?? 0) + 1 : 0;
+   484→  mindsetState.incentiveGapStreak.set(dep.id, gapStreak);
+   485→
+   486→  if (!saturatedUtil && !memPressure && gapStreak < th.incentiveGapPasses) {
+   487→    const resolved = await autoResolve("RUNTIME_OPT", dep.id);
+   488→    return { resolved, findings: [] };
+   489→  }
+   490→
+   491→  const recipes = pickRuntimeRecipes({ saturatedUtil, memPressure, incentiveGap: gapStreak >= th.incentiveGapPasses });
+   492→  if (recipes.length === 0) {
+   493→    const resolved = await autoResolve("RUNTIME_OPT", dep.id);
+   494→    return { resolved, findings: [] };
+   495→  }
+   496→
+   497→  const envDelta: Record<string, string> = {};
+   498→  for (const r of recipes) Object.assign(envDelta, r.envDelta);
+   499→  const latest = recent[0];
+   500→  const memRatio =
+   501→    latest && latest.memTotalMb && latest.memTotalMb > 0
+   502→      ? Math.round(((latest.memUsedMb ?? 0) / latest.memTotalMb) * 100) / 100
+   503→      : null;
+   504→
+   505→  const r = await commitFinding({
+   506→    kind: "RUNTIME_OPT",
+   507→    severity: "warning",
+   508→    dedupeKey: dep.id,
+   509→    title: `Runtime upgrade for "${dep.minerName}" — ${recipes.map((x) => x.label).join(" + ")}`,
+   510→    detail:
+   511→      `Signals: ` +
+   512→      [
+   513→        saturatedUtil ? `utilization ≥${th.hotUtilPct}% across the last ${th.hotUtilSamples} samples` : null,
+   514→        memPressure ? `VRAM pressure ≥${Math.round(th.memPressureRatio * 100)}%` : null,
+   515→        gapStreak >= th.incentiveGapPasses
+   516→          ? `incentive below ${Math.round(th.incentiveGapRatio * 100)}% of the rewarded median for ${gapStreak} passes`
+   517→          : null,
+   518→      ]
+   519→        .filter(Boolean)
+   520→        .join("; ") +
+   521→      `. Speed and quality are what validators score — approval applies the accelerated serving profile on the GPU and restarts the miner under it.`,
+   522→    evidence: {
+   523→      suggestedAction: "apply_runtime",
+   524→      mode: dep.mode,
+   525→      signals: {
+   526→        utilPct: latest?.gpuUtilPct ?? null,
+   527→        tempC: latest?.tempC ?? null,
+   528→        memRatio,
+   529→        incentive: uid?.incentive ?? null,
+   530→        gapStreak,
+   531→      },
+   532→      recipes: recipes.map((x) => ({
+   533→        id: x.id,
+   534→        label: x.label,
+   535→        engine: x.engine,
+   536→        quantization: x.quantization,
+   537→        reason: x.reason,
+   538→        expectedGain: x.expectedGain,
+   539→      })),
+   540→      envDelta,
+   541→      sampledAt: new Date().toISOString(),
+   542→    },
+   543→    deploymentId: dep.id,
+   544→    netuid: dep.netuid,
+   545→    runbook: [
+   546→      "Confirm the pod has headroom for the new runtime (disk, VRAM) — quantized profiles free VRAM rather than needing it.",
+   547→      "Approve to apply the runtime profile on the GPU (env persisted on-host, miner restarted).",
+   548→      "Watch incentive for 24-48h; the engine auto-resolves the event when signals normalize.",
+   549→    ],
+   550→  });
+   551→  return { resolved: 0, findings: [{ action: r }] };
+   552→}
+   553→
+   554→// ---------------------------------------------------------------------------
+   555→// Executors — the approval-gated GPU side (wired into triggers.actOnTrigger)
+   556→// ---------------------------------------------------------------------------
+   557→
+   558→export interface ApplyRuntimeResult {
+   559→  note: string;
+   560→  applied: string[];
+   561→  transport: "daemon" | "mock" | "platform-only";
+   562→}
+   563→
+   564→/**
+   565→ * Apply a runtime optimization profile to a GPU miner: merge the recipes'
+   566→ * env delta into the deployment config (durable), then push via the daemon's
+   567→ * apply_config (env persisted on-host + miner restarted). Mock deployments
+   568→ * get a simulated tick. Recipe ids default to the approved RUNTIME_OPT event.
+   569→ */
+   570→export async function applyRuntimeOptimization(
+   571→  deploymentId: string,
+   572→  opts?: { recipeIds?: string[] }
+   573→): Promise<ApplyRuntimeResult> {
+   574→  const row = await db.deployment.findUnique({ where: { id: deploymentId } });
+   575→  if (!row) throw new Error("Deployment not found");
+   576→
+   577→  let recipeIds = opts?.recipeIds ?? [];
+   578→  if (recipeIds.length === 0) {
+   579→    const ev = await db.triggerEvent.findFirst({
+   580→      where: { kind: "RUNTIME_OPT", deploymentId, status: "approved" },
+   581→      orderBy: { updatedAt: "desc" },
+   582→    });
+   583→    const evidence = ev ? safeParse(ev.evidenceJson) : {};
+   584→    const list = Array.isArray(evidence.recipes) ? evidence.recipes : [];
+   585→    recipeIds = list
+   586→      .map((x) => (x && typeof x === "object" && typeof (x as Record<string, unknown>).id === "string"
+   587→        ? ((x as Record<string, unknown>).id as string)
+   588→        : ""))
+   589→      .filter(Boolean);
+   590→  }
+   591→  if (recipeIds.length === 0) {
+   592→    return { note: "No runtime recipe bound to this event — nothing applied.", applied: [], transport: "platform-only" };
+   593→  }
+   594→
+   595→  const envDelta: Record<string, string> = {};
+   596→  const applied: string[] = [];
+   597→  for (const id of recipeIds) {
+   598→    const recipe = RUNTIME_RECIPES[id as RuntimeRecipe["id"]];
+   599→    if (!recipe) continue;
+   600→    Object.assign(envDelta, recipe.envDelta);
+   601→    applied.push(`${recipe.label} (${Object.keys(recipe.envDelta).join(", ")})`);
+   602→  }
+   603→  if (Object.keys(envDelta).length === 0) {
+   604→    return { note: `Unknown recipe ids (${recipeIds.join(", ")}) — nothing applied.`, applied: [], transport: "platform-only" };
+   605→  }
+   606→
+   607→  // Durable platform-side config update.
+   608→  // TIER2 — snapshot the live config BEFORE the runtime optimization writes,
+   609→  // so an over-aggressive profile is one rollback away.
+   610→  try {
+   611→    const cfg = deserializeConfig(row.config);
+   612→    if (cfg) {
+   613→      const { snapshotRevision } = await import("./deployment/revisions");
+   614→      await snapshotRevision(
+   615→        row.id,
+   616→        "runtime-opt",
+   617→        `before runtime optimization: ${applied.slice(0, 2).join("; ")}`,
+   618→        "engine"
+   619→      ).catch(() => null);
+   620→      const envVars = Array.isArray(cfg.docker.envVars) ? [...cfg.docker.envVars] : [];
+   621→      for (const [k, v] of Object.entries(envDelta)) {
+   622→        const i = envVars.findIndex((e) => e.name === k);
+   623→        if (i >= 0) envVars[i] = { name: k, value: v, secret: false };
+   624→        else envVars.push({ name: k, value: v, secret: false });
+   625→      }
+   626→      cfg.docker.envVars = envVars;
+   627→      await db.deployment.update({
+   628→        where: { id: row.id },
+   629→        data: { config: JSON.stringify(cfg) },
+   630→      });
+   631→      applied.push("deployment config env updated");
+   632→    } else {
+   633→      applied.push("deployment config left untouched (empty)");
+   634→    }
+   635→  } catch {
+   636→    applied.push("deployment config left untouched (unparseable)");
+   637→  }
+   638→
+   639→  const daemon = await getDaemonView(row.id).catch(() => null);
+   640→  if (daemon && daemon.status !== "unreachable") {
+   641→    await enqueueCommand(row.id, "apply_config", { env: envDelta });
+   642→    return {
+   643→      note: `apply_config queued via node daemon — runtime env (${Object.keys(envDelta).join(", ")}) persisted on-host; the miner restarts under the accelerated profile within 60s.`,
+   644→      applied,
+   645→      transport: "daemon",
+   646→    };
+   647→  }
+   648→  if (row.mode === "mock") {
+   649→    const { tickDeployment } = await import("./deployment/engine");
+   650→    await tickDeployment(row.id).catch(() => null);
+   651→    return { note: "Simulated apply — mock deployment ticked with the new runtime profile.", applied, transport: "mock" };
+   652→  }
+   653→  return {
+   654→    note: "No daemon installed on the pod — install the Node Daemon (Deployments → DevOps panel) to push apply_config; the deployment config env was updated platform-side meanwhile.",
+   655→    applied,
+   656→    transport: "platform-only",
+   657→  };
+   658→}
+   659→
+   660→/** DEREG_RISK failover — automatic fallback reflex when incentive collapses. */
+   661→export function failoverFor(codes: string[], severity: string): boolean {
+   662→  return (
+   663→    severity === "critical" &&
+   664→    (codes.includes("INCENTIVE_COLLAPSE") || codes.includes("PERSISTENT_DECLINE"))
+   665→  );
+   666→}
+   667→
+   668→export async function applyFailoverToGpu(deploymentId: string): Promise<{
+   669→  note: string;
+   670→  transport: "daemon" | "mock" | "platform-only";
+   671→}> {
+   672→  const row = await db.deployment.findUnique({ where: { id: deploymentId } });
+   673→  if (!row) throw new Error("Deployment not found");
+   674→  const env = { INFANEX_FAILOVER: "1", INFANEX_FAILOVER_SINCE: new Date().toISOString() };
+   675→  const daemon = await getDaemonView(row.id).catch(() => null);
+   676→  if (daemon && daemon.status !== "unreachable") {
+   677→    await enqueueCommand(row.id, "apply_config", { env });
+   678→    return {
+   679→      note: "failover profile applied via daemon (apply_config) — miner restarted in the fallback serving profile",
+   680→      transport: "daemon",
+   681→    };
+   682→  }
+   683→  if (row.mode === "mock") {
+   684→    const { tickDeployment } = await import("./deployment/engine");
+   685→    await tickDeployment(row.id).catch(() => null);
+   686→    return { note: "simulated failover — mock deployment ticked", transport: "mock" };
+   687→  }
+   688→  return {
+   689→    note: "no daemon reachable — failover profile could not be pushed to the pod",
+   690→    transport: "platform-only",
+   691→  };
+   692→}
+   693→
+   694→// ---------------------------------------------------------------------------
+   695→// Ops-board posture — per-miner strategy view for the monitor payload
+   696→// ---------------------------------------------------------------------------
+   697→
+   698→export interface MinerStrategyPosture {
+   699→  mindset: "earn_more" | "defend" | "optimize" | "steady";
+   700→  headline: string;
+   701→  perMinerYieldTaoPerDay: number | null;
+   702→  alphaChange24h: number | null;
+   703→  top10IncentiveShare: number | null;
+   704→  incentiveMedianShare: number | null;
+   705→  validatorTrust: number | null;
+   706→  consensus: number | null;
+   707→  bestAlternative: {
+   708→    netuid: number;
+   709→    name: string;
+   710→    upliftPct: number;
+   711→    perMinerYieldTaoPerDay: number;
+   712→    burnCostTao: number | null;
+   713→  } | null;
+   714→  recommendedRecipes: { id: string; label: string; reason: string }[];
+   715→  openMindsetEvent: boolean;
+   716→}
+   717→
+   718→const HEADLINES: Record<MinerStrategyPosture["mindset"], string> = {
+   719→  earn_more: "Reallocate — a higher-yield subnet is paying more per miner",
+   720→  defend: "Defend the UID — deregistration risk active",
+   721→  optimize: "Optimize the serving stack — validators reward speed and quality",
+   722→  steady: "Steady state — hold the position, keep watching",
+   723→};
+   724→
+   725→/**
+   726→ * Pure posture builder for the monitor route. Validator awareness without
+   727→ * per-validator chain reads: subnet-level incentive concentration (top-10
+   728→ * share) + our UID's validator trust / consensus from the latest snapshot.
+   729→ */
+   730→export function buildMinerStrategyPosture(input: {
+   731→  netuid: number;
+   732→  mode: string;
+   733→  uid: { riskLevel: string; validatorTrust: number | null; consensus: number | null } | null;
+   734→  recentSamples: { utilPct: number | null; memRatio: number | null }[];
+   735→  openKinds: string[];
+   736→  snapshot: LiveNetworkSnapshot | null;
+   737→  thresholds?: MindsetThresholds;
+   738→}): MinerStrategyPosture {
+   739→  const th = input.thresholds ?? MINDSET_THRESHOLDS;
+   740→  const our = input.snapshot?.subnets?.find((s) => s.netuid === input.netuid) ?? null;
+   741→  const perMinerYield = our ? perMinerYieldTaoPerDay(our) : null;
+   742→  const best =
+   743→    perMinerYield !== null
+   744→      ? (rankArbitrageTargets(input.netuid, perMinerYield, input.snapshot?.subnets ?? [], th)[0] ?? null)
+   745→      : null;
+   746→
+   747→  const telemetry = input.recentSamples.filter((s) => s.utilPct !== null || s.memRatio !== null);
+   748→  const saturatedUtil =
+   749→    telemetry.length >= th.hotUtilSamples &&
+   750→    input.recentSamples.slice(0, th.hotUtilSamples).every((s) => (s.utilPct ?? 0) >= th.hotUtilPct);
+   751→  const memPressure = input.recentSamples.some((s) => (s.memRatio ?? 0) >= th.memPressureRatio);
+   752→  // Posture shows telemetry-driven recipes only; incentive-gap recipes surface
+   753→  // through the RUNTIME_OPT inbox event (needs cohort context the board has).
+   754→  const recipes = pickRuntimeRecipes({ saturatedUtil, memPressure, incentiveGap: false }).map((r) => ({
+   755→    id: r.id,
+   756→    label: r.label,
+   757→    reason: r.reason ?? r.expectedGain,
+   758→  }));
+   759→
+   760→  const hasOpen = (k: string) => input.openKinds.includes(k);
+   761→  const risk = input.uid?.riskLevel ?? "healthy";
+   762→  const mindset: MinerStrategyPosture["mindset"] =
+   763→    risk === "critical"
+   764→      ? "defend"
+   765→      : hasOpen("ARBITRAGE")
+   766→        ? "earn_more"
+   767→        : hasOpen("RUNTIME_OPT")
+   768→          ? "optimize"
+   769→          : risk === "warning"
+   770→            ? "defend"
+   771→            : "steady";
+   772→
+   773→  return {
+   774→    mindset,
+   775→    headline: HEADLINES[mindset],
+   776→    perMinerYieldTaoPerDay: perMinerYield !== null ? r4(perMinerYield) : null,
+   777→    alphaChange24h: our?.alphaPriceChange24h ?? null,
+   778→    top10IncentiveShare: our?.top10IncentiveShare ?? null,
+   779→    incentiveMedianShare: our?.incentiveMedianShare ?? null,
+   780→    validatorTrust: input.uid?.validatorTrust ?? null,
+   781→    consensus: input.uid?.consensus ?? null,
+   782→    bestAlternative: best
+   783→      ? {
+   784→          netuid: best.netuid,
+   785→          name: best.name,
+   786→          upliftPct: Math.round(best.upliftPct * 100) / 100,
+   787→          perMinerYieldTaoPerDay: r4(best.perMinerYieldTaoPerDay),
+   788→          burnCostTao: best.burnCostTao,
+   789→        }
+   790→      : null,
+   791→    recommendedRecipes: recipes,
+   792→    openMindsetEvent: hasOpen("ARBITRAGE") || hasOpen("RUNTIME_OPT"),
+   793→  };
+   794→}
+   795→

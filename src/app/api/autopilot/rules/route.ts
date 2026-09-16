@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { toRuleDTO } from "@/lib/infranex/autopilot";
 import { TRIGGER_KIND_META } from "@/lib/infranex/triggers-core";
+import { requireActiveAdmin } from "@/lib/auth-admin";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +24,9 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  // rules drive automated deploy/repair actions → admin-gated (AUDIT-SEC-3)
+  const gate = await requireActiveAdmin(req);
+  if ("error" in gate) return NextResponse.json({ error: gate.error }, { status: gate.status });
   let body: Record<string, unknown>;
   try {
     body = (await req.json()) as Record<string, unknown>;

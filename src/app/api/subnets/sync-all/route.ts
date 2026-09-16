@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { requireActiveUser } from "@/lib/auth-admin";
 import { db } from "@/lib/db";
 import { subnets } from "@/lib/infranex/data";
 import { scrapeGithubMetadata } from "@/lib/infranex/github-scraper";
@@ -25,7 +26,10 @@ interface SyncResult {
  * scraped metadata as overrides. Skips subnets that already have an
  * override (unless ?force=true).
  */
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+  // overwrites shared catalog overrides from live scraping → active-user gated
+  const gate = await requireActiveUser(req);
+  if ("error" in gate) return NextResponse.json({ error: gate.error }, { status: gate.status });
   const url = new URL(req.url);
   const force = url.searchParams.get("force") === "true";
 

@@ -322,7 +322,13 @@ export async function getTrustReport(): Promise<TrustReport> {
   const actualMonthlyTao = R4(rows.reduce((a, r) => a + (r.actualMonthlyTao ?? 0), 0));
   const projectedUsd = R2(judged.reduce((a, r) => a + (r.projectedGrossMonthlyUsd ?? 0), 0));
   const actualUsd = R2(rows.reduce((a, r) => a + (r.earnedUsdTotal / Math.max(r.activeDays, 1)) * 30 * (r.actualMonthlyTao != null ? 1 : 0), 0));
-  const netUsd = R2(actualUsd - rows.reduce((a, r) => a + r.spendUsdTotal / 30, 0));
+  // AUDIT-MED-3 — pace spend by each miner's real activeDays, exactly like
+  // the earnings side; the flat /30 assumed a month of history for everyone
+  // (a 5-day-old miner's rent showed as ~1/6 of its real monthly pace).
+  const netUsd = R2(
+    actualUsd -
+      rows.reduce((a, r) => a + (r.spendUsdTotal / Math.max(r.activeDays, 1)) * 30, 0)
+  );
 
   // Calibration — how accurate have OUR projections been, fleet-wide?
   const calibratable = judged.filter(
@@ -367,20 +373,3 @@ export async function getTrustReport(): Promise<TrustReport> {
  * of our own projections into the model's confidence. Only kicks in with a
  * real sample (≥ 7 miner-days); otherwise the model confidence stands alone.
  */
-export async function getTrustCalibration(): Promise<{
-  minerDays: number;
-  accuracyRatio: number;
-} | null> {
-  try {
-    const { calibration } = await getTrustReport();
-    if (calibration.accuracyRatio == null || calibration.minerDays < TRUST_BANDS.CALIBRATION_MIN_DAYS) {
-      return null;
-    }
-    return {
-      minerDays: calibration.minerDays,
-      accuracyRatio: calibration.accuracyRatio,
-    };
-  } catch {
-    return null;
-  }
-}

@@ -313,7 +313,7 @@ async function main() {
       "posture: steady state, best alternative α951 +200%",
       postureSteady.mindset === "steady" &&
         postureSteady.bestAlternative?.netuid === 951 &&
-        postureSteady.bestAlternative.upliftPct === 2 &&
+        postureSteady.bestAlternative.upliftPct === 200 && // AUDIT-MED-5: payload now carries real percent (was fraction 2)
         postureSteady.perMinerYieldTaoPerDay === 1,
       JSON.stringify(postureSteady)
     );

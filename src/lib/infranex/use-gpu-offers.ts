@@ -1,11 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import {
-  fetchLiveGpuOffers,
-  mergeGpuOffers,
-  type LiveGpuSnapshot,
-} from "./runpod";
+import { mergeGpuOffers, type LiveGpuSnapshot } from "./runpod";
 import type { GPUOffer } from "./types";
 
 export type { LiveGpuSnapshot };

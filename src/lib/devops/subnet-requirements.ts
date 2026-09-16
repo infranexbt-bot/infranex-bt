@@ -95,12 +95,19 @@ function parseGithubUrl(url: string): RepoInfo | null {
     // ".git" suffixes — normalize before parsing.
     const normalized = /^https?:\/\//i.test(url) ? url : `https://${url}`;
     const u = new URL(normalized);
-    if (!u.hostname.includes("github.com")) return null;
+    // AUDIT-SEC-2 — exact-host check ("evilgithub.com" previously passed the
+    // substring test) + strict charset on owner/repo: these values become
+    // profile.repoUrl, which is interpolated into `git clone` shell commands
+    // in the install plan. Chars like ; $ ' ( ) must never survive.
+    if (u.hostname !== "github.com" && u.hostname !== "www.github.com") return null;
+    const OWNER_RE = /^[A-Za-z0-9][A-Za-z0-9._-]{0,62}$/;
     const parts = u.pathname.split("/").filter(Boolean);
     if (parts.length < 2) return null;
+    const repo = parts[1].replace(/\.git$/, "");
+    if (!OWNER_RE.test(parts[0]) || !OWNER_RE.test(repo)) return null;
     return {
       owner: parts[0],
-      repo: parts[1].replace(/\.git$/, ""),
+      repo,
       branch: parts[3] || "main",
     };
   } catch {

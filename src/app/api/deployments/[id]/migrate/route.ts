@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { migrateDeployment } from "@/lib/infranex/deployment/migrate";
 import type { GPUOffer } from "@/lib/infranex/types";
 import { SESSION_COOKIE, verifySessionToken } from "@/lib/auth";
+import { requireActiveAdmin } from "@/lib/auth-admin";
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +26,9 @@ export async function POST(
 ) {
   const { id } = await params;
 
+  // (spends provider credit → admin-gated, AUDIT-SEC-3)
+  const gate = await requireActiveAdmin(req);
+  if ("error" in gate) return NextResponse.json({ error: gate.error }, { status: gate.status });
   const payload = await verifySessionToken(req.cookies.get(SESSION_COOKIE)?.value);
   const actor = payload?.uid ?? "operator";
 

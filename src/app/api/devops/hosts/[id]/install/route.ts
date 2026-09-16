@@ -4,7 +4,8 @@
 //          pulls the subnet requirements profile, builds the 9-step plan,
 //          persists it as "staged" (nothing runs until steps are executed).
 
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { requireActiveAdmin } from "@/lib/auth-admin";
 import { db } from "@/lib/db";
 import { pullSubnetRequirements } from "@/lib/devops/subnet-requirements";
 import { buildInstallPlan } from "@/lib/devops/installer";
@@ -26,9 +27,12 @@ export async function GET(
 }
 
 export async function POST(
-  req: Request,
+  req: NextRequest,
   ctx: { params: Promise<{ id: string }> }
 ) {
+  // stages a real provisioning plan → admin-gated (AUDIT-SEC-3)
+  const gate = await requireActiveAdmin(req);
+  if ("error" in gate) return NextResponse.json({ error: gate.error }, { status: gate.status });
   const { id } = await ctx.params;
   try {
     const host = await db.gpuHost.findUnique({ where: { id } });

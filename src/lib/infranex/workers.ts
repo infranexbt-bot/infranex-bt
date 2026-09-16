@@ -48,6 +48,15 @@ export interface WorkerRunResult {
   error?: string;
 }
 
+function safeJsonParse<T>(raw: string | null | undefined, fallback: T): T {
+  if (!raw) return fallback;
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    return fallback;
+  }
+}
+
 const INTERVALS = {
   chain: 2 * 60 * 1000,    // 2 minutes
   market: 60 * 1000,        // 1 minute
@@ -124,8 +133,11 @@ export async function getLatestChainSnapshot(): Promise<LiveNetworkSnapshot | nu
     taoPriceUsd: row.taoPriceUsd,
     taoMarketCapUsd: row.taoMarketCapUsd,
     taoChange24h: row.taoChange24h,
-    subnets: JSON.parse(row.subnetsJson),
-    neurons: JSON.parse(row.neuronsJson || "[]"),
+    // AUDIT-MED-2 — corrupt snapshot rows are a known condition (odds-history
+    // tolerates them); a bare JSON.parse here crashed every worker that read
+    // this helper.
+    subnets: safeJsonParse(row.subnetsJson, []),
+    neurons: safeJsonParse(row.neuronsJson || "[]", []),
     source: row.source as "live" | "partial" | "error",
   };
 }
@@ -445,25 +457,32 @@ async function runGithubWorker(): Promise<WorkerRunResult> {
       try {
         const scraped = await scrapeGithubMetadata(githubUrl, { netuid });
         if (scraped.source === "github") {
+          // AUDIT-MED-1 — parity with sync-all: the worker previously
+          // dropped mechanicsJson/infraJson, so subnets first scraped by
+          // the hourly pipeline never got derived mechanics.
+          const scrapedFields = {
+            description: scraped.description,
+            minVramGb: scraped.minVramGb,
+            recommendedGpu: scraped.recommendedGpu,
+            gpuCount: scraped.gpuCount,
+            hostingRequirements: scraped.hosting ? JSON.stringify(scraped.hosting) : null,
+            mechanicsJson: scraped.mechanics ? JSON.stringify(scraped.mechanics) : null,
+            infraJson: scraped.infra ? JSON.stringify(scraped.infra) : null,
+            requirementsSource: scraped.requirementsSource,
+            requirementsScrapedAt: new Date(),
+            githubUrl,
+          };
           await db.subnetOverride.upsert({
             where: { netuid },
-            create: {
-              netuid,
-              description: scraped.description,
-              minVramGb: scraped.minVramGb,
-              recommendedGpu: scraped.recommendedGpu,
-              gpuCount: scraped.gpuCount,
-              hostingRequirements: scraped.hosting ? JSON.stringify(scraped.hosting) : null,
-              requirementsSource: scraped.requirementsSource,
-              requirementsScrapedAt: new Date(),
-              githubUrl,
-            },
+            create: { netuid, ...scrapedFields },
             update: {
               description: scraped.description ?? undefined,
               minVramGb: scraped.minVramGb ?? undefined,
               recommendedGpu: scraped.recommendedGpu ?? undefined,
               gpuCount: scraped.gpuCount ?? undefined,
               hostingRequirements: scraped.hosting ? JSON.stringify(scraped.hosting) : undefined,
+              mechanicsJson: scraped.mechanics ? JSON.stringify(scraped.mechanics) : undefined,
+              infraJson: scraped.infra ? JSON.stringify(scraped.infra) : undefined,
               requirementsSource: scraped.requirementsSource ?? undefined,
               requirementsScrapedAt: new Date(),
               githubUrl,

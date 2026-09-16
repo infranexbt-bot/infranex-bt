@@ -10,8 +10,6 @@ import {
   autoResolve,
 } from "./triggers-core";
 
-export { TRIGGER_KIND_META, type TriggerEventDTO } from "./triggers-core";
-
 /**
  * Trigger Engine v1 — scheduled evaluations that PROPOSE actions.
  *

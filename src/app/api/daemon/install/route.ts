@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireActiveAdmin } from "@/lib/auth-admin";
 import { ensureDaemon, buildDaemonScript } from "@/lib/infranex/daemon-bridge";
 import { getDeployment } from "@/lib/infranex/deployment/engine";
 
@@ -7,6 +8,9 @@ export const dynamic = "force-dynamic";
 // POST /api/daemon/install { deploymentId } — register the daemon and return
 // the one-shot install script (secret shown ONCE here).
 export async function POST(req: NextRequest) {
+  // reveals the per-deployment HMAC secret → admin-gated (AUDIT-SEC-4)
+  const gate = await requireActiveAdmin(req);
+  if ("error" in gate) return NextResponse.json({ error: gate.error }, { status: gate.status });
   try {
     const body = (await req.json()) as { deploymentId?: string; platformUrl?: string };
     const deploymentId = body.deploymentId?.trim();

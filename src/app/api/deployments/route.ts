@@ -9,6 +9,15 @@ import { pullSubnetRequirements } from "@/lib/devops/subnet-requirements";
 import { computeDeploymentProjection } from "@/lib/infranex/trust";
 import type { SubnetProfileHint } from "@/lib/infranex/deployment/config";
 import { SESSION_COOKIE, verifySessionToken } from "@/lib/auth";
+import { requireActiveAdmin } from "@/lib/auth-admin";
+
+// AUDIT-SEC-1 — wallet/hotkey/miner names reach shell commands on the target
+// host (env files, systemd units, docker names) and Prisma records; restrict
+// to a safe charset so no quoting/escaping trick can inject commands.
+const NAME_RE = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
+function validName(v: string | undefined): v is string {
+  return !!v && NAME_RE.test(v);
+}
 import type { Subnet, GPUOffer } from "@/lib/infranex/types";
 
 export const dynamic = "force-dynamic";
@@ -87,8 +96,11 @@ async function resolveSubnet(netuid: number): Promise<Subnet | null> {
   }
 }
 
-// POST /api/deployments — create a new deployment
+// POST /api/deployments — create a new deployment (spends real provider
+// credit → admin-gated; AUDIT-SEC-3).
 export async function POST(req: NextRequest) {
+  const gate = await requireActiveAdmin(req);
+  if ("error" in gate) return NextResponse.json({ error: gate.error }, { status: gate.status });
   try {
     const body = await req.json();
     const { netuid, offerId, minerName, hotkey, walletName, mode } = body as {
@@ -104,6 +116,28 @@ export async function POST(req: NextRequest) {
     // API provisions real rentals exclusively.
     if (mode !== "runpod" && mode !== "vast") {
       return NextResponse.json({ error: "mode must be runpod or vast" }, { status: 400 });
+    }
+
+    // AUDIT-SEC-1 — charset-validate every name that flows into shell
+    // commands on the target host (install plan env/unit lines) — a name
+    // like "x';reboot;'a" previously escaped its quoting.
+    if (!validName(minerName?.trim())) {
+      return NextResponse.json(
+        { error: "minerName must be 1-64 chars: letters, digits, dot, dash, underscore (must start alphanumeric)" },
+        { status: 400 }
+      );
+    }
+    if (walletName && !validName(walletName.trim())) {
+      return NextResponse.json(
+        { error: "walletName must be 1-64 chars: letters, digits, dot, dash, underscore (must start alphanumeric)" },
+        { status: 400 }
+      );
+    }
+    if (hotkey && !validName(hotkey.trim())) {
+      return NextResponse.json(
+        { error: "hotkey name must be 1-64 chars: letters, digits, dot, dash, underscore (must start alphanumeric)" },
+        { status: 400 }
+      );
     }
 
     const subnet = await resolveSubnet(netuid);

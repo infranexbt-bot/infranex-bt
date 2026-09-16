@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireActiveAdmin } from "@/lib/auth-admin";
 import { db } from "@/lib/db";
 import { toRuleDTO } from "@/lib/infranex/autopilot";
 import { TRIGGER_KIND_META } from "@/lib/infranex/triggers-core";
@@ -18,6 +19,8 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const gate = await requireActiveAdmin(req);
+  if ("error" in gate) return NextResponse.json({ error: gate.error }, { status: gate.status });
   const { id } = await params;
   const existing = await db.autopilotRule.findUnique({ where: { id } });
   if (!existing) {
@@ -59,9 +62,11 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const gate = await requireActiveAdmin(req);
+  if ("error" in gate) return NextResponse.json({ error: gate.error }, { status: gate.status });
   const { id } = await params;
   const existing = await db.autopilotRule.findUnique({ where: { id } });
   if (!existing) {

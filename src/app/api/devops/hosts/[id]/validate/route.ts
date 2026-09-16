@@ -1,7 +1,8 @@
 // DevOps Engine — run/resume the 10-step validation pipeline for a host.
 // Runs synchronously (mock < 2s; real host up to ~3 min on first docker pull).
 
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { requireActiveAdmin } from "@/lib/auth-admin";
 import { db } from "@/lib/db";
 import { decryptSecret } from "@/lib/devops/crypto";
 import { runValidation } from "@/lib/devops/inspector";
@@ -10,9 +11,12 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
 export async function POST(
-  _req: Request,
+  req: NextRequest,
   ctx: { params: Promise<{ id: string }> }
 ) {
+  // SSHes into the host with stored credentials → admin-gated (AUDIT-SEC-3)
+  const gate = await requireActiveAdmin(req);
+  if ("error" in gate) return NextResponse.json({ error: gate.error }, { status: gate.status });
   const { id } = await ctx.params;
   try {
     const host = await db.gpuHost.findUnique({ where: { id } });

@@ -1172,3 +1172,26 @@ Work Log:
 
 Stage Summary:
 - Verdict: helpful as a LABELED third-party editorial source for the 8 subnets we cannot source from official repos (fills description/mechanics-context gap, incl. SN122 CookingTAO + SN95 Actual). NOT helpful for: live tokenomics (stale vs our chain snapshot), infra/requirements (not documented there — our GitHub pipeline remains authoritative for installs), seat/chance (we compute from chain). Integration (not yet wired): store per-netuid in SubnetOverride as provenance-tagged third-party summary rendered only when no official README description exists.
+
+---
+Task ID: code-audit-1
+Agent: main (Super Z) + 3 subagents (dead-code Explore, API-security, AI-mistake)
+Task: Full audit of the InfranEx app for dead code, security bugs, and AI coding mistakes; verify findings and fix.
+
+Work Log:
+- 3 parallel audit agents: dead-code (exports/components/deps), API security (40 routes: gates, injection, SSRF, secret leaks), AI mistakes (math/date/copy-paste/React/async/Prisma).
+- Personally verified every CRITICAL/HIGH claim before fixing (chain.ts 720, monitoring 1e18/Math.random/fabricated revenue, deployments route gate, installer env-line quoting, worker upsert fields).
+- SECURITY FIXED (C-1): walletName/minerName/hotkey now NAME_RE-validated in POST /api/deployments; installer env lines escape single quotes like unit lines; deployment routes admin-gated.
+- SECURITY FIXED (C-2): parseGithubUrl exact-host + strict owner/repo charset; repoUrl single-quoted in git clone; override PUT/DELETE gated (requireActiveUser) + githubUrl regex + tags/minVramGb/netuid validation + honest deleteMany.
+- SECURITY FIXED (H-1/H-3/M-1): requireActiveAdmin added to 16 mutating routes (deployments POST/DELETE/tick/terminate/migrate/revisions/registration/to-devops, devops hosts validate/fix/install/steps/stop, triggers POST, autopilot rules POST/PATCH/DELETE, judge/apply, daemon/install); sync-all requireActiveUser. Deployment DELETE now terminates pod before deleting record.
+- MATH FIXED: blocks/day 720→7200 in chain.ts + data.ts (all emission/ROI/APY numbers were 10x understated); monitoring incentive/trust divisor 1e18→65535 (u16 sum convention); monitoring rank Math.random→null; fabricated incentive*0.5 TAO/day→null; monitoring TAO price now uses shared lastKnownTaoPrice (new getter in chain.ts).
+- LOGIC FIXED: workers.ts hourly upsert now includes mechanicsJson/infraJson (parity with sync-all); getLatestChainSnapshot JSON.parse guarded (safeJsonParse<T>); trust.ts netUsd paces spend by activeDays; miner-mindset freeSlots no longer double-subtracts validatorsCount; runway T-minus converts samples→blocks (90s/12s); upliftPct converted to real percent at payload boundary (miner-mindset.ts:786 + type docs); engine.ts deploy-kick dynamic import got .catch.
+- DEAD CODE REMOVED: runpod.ts dead GpuSnapshotCache/fetchLiveGpuOffers chain (~90 lines) + dead import in use-gpu-offers.ts; getTrustCalibration (trust.ts); hostingSummary (hosting-requirements.tsx); dead re-export (triggers.ts:13); 4 dead types (LiveField, BenchSummary, JudgeableSubnet, DeploySubnetOption); pagedjs dropped from package.json; @polkadot/util-crypto declared (was phantom dep).
+- Verification: tsc --noEmit clean for src/ (scripts/skills errors pre-existing); verify-plan-shapes + verify-sn64-plan pass; NEW scripts/audit-verify-injection.ts proves hostile walletName + repoUrl payloads neutralized; test-opportunity-score ALL PASS; test-miner-mindset 38/38 (updated 1 assertion to expect percent payload); smoke test: all patched routes 401 unauthenticated (proxy intact, hot-reload live).
+- Incident: a buggy python end_marker=None slice duplicated 286 lines in use-devops.ts; caught immediately via git diff, restored with git checkout, redone cleanly. File verified 315 lines, no duplication.
+
+Stage Summary:
+- 2 critical shell-injection paths closed (wallet names → root RCE via install plan; github URL → git clone RCE), 16 privilege escalations closed, 1 pod-orphaning delete fixed.
+- All headline revenue/ROI/APY numbers corrected 10x upward (were understated); monitoring engine no longer shows fabricated rank/revenue or fires false "Low incentive" alerts.
+- ~120 lines dead code + 1 dead dep removed; phantom dep declared.
+- Not done (recommended follow-ups): optimization.ts ranks alternatives against static curated table (should take live snapshot); daemon-bridge uniform auth errors + no-nonce replay window (5min); cookie secure flag when TLS lands; serial chain queries in monitoring loop (perf); SubnetOverride.tags/infraJson written but never read by UI.

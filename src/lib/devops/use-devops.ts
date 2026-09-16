@@ -284,16 +284,6 @@ export function useStopInstall(hostId: string) {
   });
 }
 
-/** Subnet options for the deploy picker — from the live network snapshot. */
-export interface DeploySubnetOption {
-  netuid: number;
-  name: string;
-  gpuRequired: string;
-  minVramGb: number;
-  category: string;
-  minersCount: number;
-}
-
 export function useDeploySubnetOptions() {
   return useQuery({
     queryKey: ["deploy-subnet-options"],

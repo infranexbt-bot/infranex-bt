@@ -1,13 +1,17 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { requireActiveAdmin } from "@/lib/auth-admin";
 import { terminateDeployment } from "@/lib/infranex/deployment/engine";
 
 export const dynamic = "force-dynamic";
 
 // POST /api/deployments/[id]/terminate — terminate the deployment
+// (destroys a paid pod → admin-gated, AUDIT-SEC-3)
 export async function POST(
-  _req: Request,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const gate = await requireActiveAdmin(req);
+  if ("error" in gate) return NextResponse.json({ error: gate.error }, { status: gate.status });
   try {
     const { id } = await params;
     const deployment = await terminateDeployment(id);

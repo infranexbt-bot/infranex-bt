@@ -631,8 +631,10 @@ export const opportunities: Opportunity[] = (() => {
       emissionEnabled: s.status === "active",
       movingPrice: s.price,
       emission: s.emission,
-      emissionTaoPerDay: s.emission * 720,
-      minerEmissionTaoPerDay: s.emission * 720 * 0.41, // docs: miners get 41%
+      // AUDIT-MATH-1 — blocks/day is 86400s / 12s = 7200 (was 720, a 10×
+      // understatement consistent with the live path fix in chain.ts).
+      emissionTaoPerDay: s.emission * 7200,
+      minerEmissionTaoPerDay: s.emission * 7200 * 0.41, // docs: miners get 41%
       rewardedMiners: Math.max(1, Math.round(s.minersCount * 0.7)),
       top10IncentiveShare: null,
       incentiveMedianShare: null,

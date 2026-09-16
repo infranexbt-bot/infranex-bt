@@ -28,15 +28,6 @@ export const BASELINE_RUNS = 10;
 export const BASELINE_MIN = 3;
 export const REGRESSION_FACTOR = 1.5;
 
-export interface BenchSummary {
-  samples: number;
-  okCount: number;
-  p50Ms: number | null;
-  p95Ms: number | null;
-  successPct: number;
-  errorKind: string | null;
-}
-
 /** Pure percentile math — exported so tests verify EXACTLY what runs store. */
 export function summarizeProbeDurations(durationsMs: number[]): { p50: number | null; p95: number | null } {
   if (!durationsMs.length) return { p50: null, p95: null };

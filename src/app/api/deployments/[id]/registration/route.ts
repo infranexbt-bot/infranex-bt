@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { requireActiveAdmin } from "@/lib/auth-admin";
 import { db } from "@/lib/db";
 import {
   checkRegistration,
@@ -72,9 +73,11 @@ export async function GET(
 }
 
 export async function POST(
-  req: Request,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const gate = await requireActiveAdmin(req);
+  if ("error" in gate) return NextResponse.json({ error: gate.error }, { status: gate.status });
   try {
     const { id } = await params;
     const body = (await req.json().catch(() => ({}))) as {

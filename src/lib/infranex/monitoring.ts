@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { getChainApi } from "./chain";
+import { getChainApi, getLastKnownTaoPrice } from "./chain";
 import { deserializeConfig } from "./deployment/config";
 import { deserializeSteps } from "./deployment/state-machine";
 import { getProviderKey } from "@/lib/infranex/providers";
@@ -112,11 +112,18 @@ async function fetchChainMinerMetrics(
         api.query.subtensorModule.totalTrust(netuid).catch(() => null),
       ]);
       const minerCount = Number(totalMiners?.toString() ?? "0");
-      const avgInc = avgIncentive ? Number(avgIncentive.toString()) / 1e18 / Math.max(minerCount, 1) : null;
-      const avgTru = avgTrust ? Number(avgTrust.toString()) / 1e18 / Math.max(minerCount, 1) : null;
+      // AUDIT-MATH-2 — totalIncentive/totalTrust are u16 SUMS over all UIDs
+      // (each 0-65535). The old /1e18 divisor matched no encoding and always
+      // produced ~1e-14, firing the "Low incentive" warning for every miner.
+      // Normalize exactly like the metagraph layer: ÷65535 → subnet-wide 0-1.
+      const avgInc = avgIncentive ? Number(avgIncentive.toString()) / 65535 / Math.max(minerCount, 1) : null;
+      const avgTru = avgTrust ? Number(avgTrust.toString()) / 65535 / Math.max(minerCount, 1) : null;
       // Keep the shared chain connection alive for other consumers.
       return {
-        rank: minerCount > 0 ? Math.floor(Math.random() * minerCount) + 1 : null,
+        // AUDIT-MATH-3 — was Math.random(): a fabricated rank presented as
+        // chain data. Real ranking needs the per-UID incentive vector (heavy);
+        // until then honest null — the UI renders "—".
+        rank: null,
         incentive: avgInc,
         trust: avgTru,
         emission: null,
@@ -200,9 +207,6 @@ function buildAlerts(
     if (chain.found && chain.incentive !== null && chain.incentive < 0.01) {
       alerts.push({ level: "warning", code: "low_incentive", message: `Low incentive (${(chain.incentive * 100).toFixed(2)}%) — miner may be in warmup` });
     }
-    if (taoPriceUsd > 0 && chain.incentive !== null && chain.incentive > 0) {
-      // could add ROI-based alerts here
-    }
   }
   return alerts;
 }
@@ -256,7 +260,10 @@ class MonitoringCache {
       ]);
 
       // Get TAO price (cheap, cached) — don't block on chain for this.
-      let taoPriceUsd = 256; // sensible fallback; CoinGecko usually returns ~$256
+      // AUDIT-MATH-4 — prefer the app-wide last-known price (chain.ts
+      // snapshot pipeline) so monitoring can't disagree with the ledger;
+      // 256 stays as the cold-start fallback.
+      let taoPriceUsd = getLastKnownTaoPrice() || 256;
       try {
         const res = await fetch(
           "https://api.coingecko.com/api/v3/simple/price?ids=bittensor&vs_currencies=usd",
@@ -286,8 +293,11 @@ class MonitoringCache {
           ? await fetchChainMinerMetrics(dep.netuid, dep.hotkey)
           : { rank: null, incentive: null, trust: null, emission: null, consensus: null, validatorTrust: null, dividends: null, found: false };
 
-        // Calculate rewards
-        const emissionPerDayTao = chain.emission ?? (chain.incentive ? chain.incentive * 0.5 : null);
+        // Calculate rewards. AUDIT-MATH-5 — the old `incentive * 0.5` branch
+        // fabricated TAO/day from a dimensionless fraction (and with the old
+        // /1e18 bug rendered as ~$0). No chain emission source here yet →
+        // honest null; the UI already renders "—" for null.
+        const emissionPerDayTao: number | null = chain.emission;
         const emissionPerDayUsd = emissionPerDayTao != null ? emissionPerDayTao * taoPriceUsd : null;
         const emissionPerMonthUsd = emissionPerDayUsd != null ? emissionPerDayUsd * 30 : null;
         const costPerMonthUsd = pod?.costPerHr ? pod.costPerHr * 730 : dep.monthlyCost;

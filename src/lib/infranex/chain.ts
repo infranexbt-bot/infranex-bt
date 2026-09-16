@@ -330,6 +330,11 @@ async function fetchTaoPrice(): Promise<{
 // Cache the last known good TAO price as a fallback when APIs are rate-limited.
 let lastKnownTaoPrice = 0;
 
+/** Last known good TAO/USD price (0 until the first successful fetch). */
+export function getLastKnownTaoPrice(): number {
+  return lastKnownTaoPrice;
+}
+
 /**
  * Fetch neurons (individual miners) for a subnet via the metagraph.
  * Returns per-miner incentive, trust, rank, emission, stake, etc.
@@ -661,7 +666,7 @@ class SnapshotCache {
                   : 0;
             // TAO-value emission for the whole subnet.
             const emissionPerBlockTao = alphaPerBlock * priceTao;
-            const emissionPerDayTao = emissionPerBlockTao * 720;
+            const emissionPerDayTao = emissionPerBlockTao * 7200; // 86400s / 12s blocks (AUDIT-MATH-1: was 720 — understated 10×)
             // Miner share of emission (miners vs validators split); 50/50 fallback.
             const validatorAlphaRao = Math.max(epochAlphaRao - minerAlphaRao, 0);
             const minerShare =

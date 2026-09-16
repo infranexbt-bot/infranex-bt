@@ -217,6 +217,7 @@ export interface ArbitrageAlternative {
   netuid: number;
   name: string;
   perMinerYieldTaoPerDay: number;
+  /** Internal FRACTION (0.5 = +50%) — convert to percent for UI payloads. */
   upliftPct: number;
   burnCostTao: number | null;
   alphaChange24h: number | null;
@@ -238,10 +239,12 @@ export function rankArbitrageTargets(
     if (y === null) continue;
     const uplift = ourYield > 0 ? y / ourYield - 1 : 0;
     if (uplift < th.arbitrageUpliftPct) continue;
+    // AUDIT-MED-4 — minersCount is subnetworkN: ALL registered UIDs,
+    // validators included. Subtracting validatorsCount again double-counted
+    // and wrongly skipped validator-heavy subnets as "full".
     const freeSlots =
       typeof s.maxUids === "number"
-        ? s.maxUids - (typeof s.minersCount === "number" ? s.minersCount : 0) -
-          (typeof s.validatorsCount === "number" ? s.validatorsCount : 0)
+        ? s.maxUids - (typeof s.minersCount === "number" ? s.minersCount : 0)
         : null;
     if (freeSlots !== null && freeSlots < 1) continue;
     out.push({
@@ -707,6 +710,7 @@ export interface MinerStrategyPosture {
   bestAlternative: {
     netuid: number;
     name: string;
+    /** Real PERCENT (50 = +50%); converted from the internal fraction at the payload boundary. */
     upliftPct: number;
     perMinerYieldTaoPerDay: number;
     burnCostTao: number | null;
@@ -783,7 +787,11 @@ export function buildMinerStrategyPosture(input: {
       ? {
           netuid: best.netuid,
           name: best.name,
-          upliftPct: Math.round(best.upliftPct * 100) / 100,
+          // AUDIT-MED-5 — convert the fraction to real percent at the
+          // payload boundary (0.5 → 50): the Strategy Board formats this
+          // value as a whole percent; the old fraction rendered "+1%"
+          // for a +50% alternative.
+          upliftPct: Math.round(best.upliftPct * 1000) / 10,
           perMinerYieldTaoPerDay: r4(best.perMinerYieldTaoPerDay),
           burnCostTao: best.burnCostTao,
         }

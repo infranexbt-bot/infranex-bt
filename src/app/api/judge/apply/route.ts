@@ -9,8 +9,12 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { applyJudgeFix } from "@/lib/infranex/judge/apply";
+import { requireActiveAdmin } from "@/lib/auth-admin";
 
 export async function POST(req: NextRequest) {
+  // pushes new config to a live miner via the daemon → admin-gated (AUDIT-SEC-3)
+  const gate = await requireActiveAdmin(req);
+  if ("error" in gate) return NextResponse.json({ error: gate.error }, { status: gate.status });
   try {
     const body = (await req.json().catch(() => ({}))) as Record<string, unknown>;
     const deploymentId = typeof body.deploymentId === "string" ? body.deploymentId : "";

@@ -1,7 +1,8 @@
 // DevOps Engine — apply the fix for a failed pipeline step, re-check it.
 // Body: { step: number }
 
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { requireActiveAdmin } from "@/lib/auth-admin";
 import { db } from "@/lib/db";
 import { decryptSecret } from "@/lib/devops/crypto";
 import { applyStepFix, PIPELINE } from "@/lib/devops/inspector";
@@ -10,9 +11,12 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
 export async function POST(
-  req: Request,
+  req: NextRequest,
   ctx: { params: Promise<{ id: string }> }
 ) {
+  // SSHes into the host and applies remediation → admin-gated (AUDIT-SEC-3)
+  const gate = await requireActiveAdmin(req);
+  if ("error" in gate) return NextResponse.json({ error: gate.error }, { status: gate.status });
   const { id } = await ctx.params;
   try {
     const body = (await req.json()) as { step?: number };

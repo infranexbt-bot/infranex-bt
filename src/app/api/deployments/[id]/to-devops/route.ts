@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireActiveAdmin } from "@/lib/auth-admin";
 import { BridgeError, bridgeDeploymentToDevOps } from "@/lib/infranex/deployment/to-devops";
 import { decryptSecret } from "@/lib/devops/crypto";
 import { db } from "@/lib/db";
@@ -17,7 +18,9 @@ type Params = { params: Promise<{ id: string }> };
  * Security: only the PUBLIC hotkey ever goes to the machine. The SSH
  * private key is re-encrypted into the host inventory store.
  */
-export async function POST(_req: NextRequest, { params }: Params) {
+export async function POST(req: NextRequest, { params }: Params) {
+  const gate = await requireActiveAdmin(req);
+  if ("error" in gate) return NextResponse.json({ error: gate.error }, { status: gate.status });
   try {
     const { id } = await params;
     const result = await bridgeDeploymentToDevOps(id);

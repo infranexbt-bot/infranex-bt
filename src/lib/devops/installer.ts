@@ -162,13 +162,17 @@ export function buildInstallPlan(input: InstallPlanInput): InstallStep[] {
     }
   }
 
-  // 4 — Clone the subnet repo
+  // 4 — Clone the subnet repo. repoUrl is schema-validated upstream
+  //      (https + github.com + strict owner/repo charset — see
+  //      parseGithubUrl) and single-quoted here so a hostile URL can never
+  //      break into the shell (AUDIT-SEC-2).
   if (profile.repoUrl) {
+    const quotedRepoUrl = `'${profile.repoUrl.replace(/'/g, "'\\''")}'`;
     push({
       title: "Clone the subnet repository",
       description: `${profile.repoUrl} → ${root}/app`,
       gate: "auto",
-      commands: [`rm -rf ${root}/app && git clone --depth 1 ${profile.repoUrl} ${root}/app`],
+      commands: [`rm -rf ${root}/app && git clone --depth 1 ${quotedRepoUrl} ${root}/app`],
     });
   } else {
     push({
@@ -347,7 +351,12 @@ export function buildInstallPlan(input: InstallPlanInput): InstallStep[] {
       description: `${root}/env — network, netuid, wallet, GPU device`,
       gate: "auto",
       commands: [
-        `mkdir -p ${root} && printf '%s\\n' ${envLines.map((l) => `'${l}'`).join(" ")} > ${root}/env && cat ${root}/env`,
+        // AUDIT-SEC-1 — escape single quotes exactly like the systemd unit
+        // lines below; raw '${l}' wrapping let a name containing ' break out
+        // of quoting and inject arbitrary commands.
+        `mkdir -p ${root} && printf '%s\\n' ${envLines
+          .map((l) => `'${l.replace(/'/g, "'\\''")}'`)
+          .join(" ")} > ${root}/env && cat ${root}/env`,
       ],
     });
   }

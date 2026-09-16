@@ -26,14 +26,6 @@ export function hostingFlags(hosting: HostingRequirements): string[] {
   return flags;
 }
 
-export function hostingSummary(hosting: HostingRequirements): string {
-  const flags = hostingFlags(hosting);
-  if (flags.length === 0) return "";
-  return `${flags.join(" · ")} — per the subnet's repo README${
-    hosting.notes?.length ? `: "${hosting.notes[0]}"` : ""
-  }`;
-}
-
 /** Compact inline chips — for grid cards and table cells. */
 export function HostingChips({
   hosting,

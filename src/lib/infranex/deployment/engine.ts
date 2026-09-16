@@ -406,7 +406,9 @@ export async function advanceDeployment(
         .catch((e) => console.warn(`[engine ${id}] setup kick failed: ${e instanceof Error ? e.message : e}`));
     }
     if (next === "deploying") {
-      import("./real-setup").then((m) => m.kickDeploy(id));
+      import("./real-setup")
+        .then((m) => m.kickDeploy(id))
+        .catch((e) => console.warn(`[engine ${id}] deploy kick failed: ${e instanceof Error ? e.message : e}`));
     }
     return rec2;
   });

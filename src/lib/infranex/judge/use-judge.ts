@@ -37,14 +37,6 @@ export interface JudgeRunRecord {
   createdAt: string;
 }
 
-export interface JudgeableSubnet {
-  netuid: number;
-  name: string;
-  symbol: string;
-  category: string;
-  githubUrl?: string | null;
-}
-
 async function fetchProfiles(): Promise<{ ok: boolean; profiles: (JudgeProfileData & { fetchedAt: string })[] }> {
   const res = await fetch("/api/judge/profiles", { cache: "no-store" });
   if (!res.ok) throw new Error(`judge/profiles ${res.status}`);

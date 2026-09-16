@@ -175,8 +175,13 @@ export function computeRunway(input: {
       // absolute decay per sample ≈ |slope| × current level, so
       // k ≈ (incentive − floor) / (|slope| × incentive).
       const absSlope = Math.abs(slopePerSample);
-      const blocksToFloor =
+      // AUDIT-MED-6 — slope is PER SAMPLE (one UidSnapshot per ~90s devops
+      // pass), so the decay countdown is in samples; convert to blocks
+      // (12s each) before comparing with the block-denominated immunityLeft.
+      const SAMPLE_BLOCKS = 90 / 12; // devops pass cadence / block time
+      const samplesToFloor =
         absSlope > 1e-9 ? (incentive - INCOME_FLOOR) / Math.max(absSlope * Math.max(incentive, 1e-6), 1e-9) : Infinity;
+      const blocksToFloor = samplesToFloor === Infinity ? Infinity : samplesToFloor * SAMPLE_BLOCKS;
       // …bounded by the immunity hard deadline.
       tMinus = Math.max(0, Math.min(immunityLeft, Math.floor(blocksToFloor)));
     }
