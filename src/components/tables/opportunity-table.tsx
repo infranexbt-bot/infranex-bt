@@ -455,7 +455,12 @@ export function OpportunityTable({
                                   : "text-muted-foreground"
                             )}
                           >
+                            {/* RIDGES-FIX: mark revenue-estimated figures so a
+                                guessed GPU is never read as a documented spec. */}
                             {o.minVramGb} GB
+                            {!o.requirementsSource && !o.hardwareClassified && (
+                              <span className="ml-1 text-[10px] font-normal text-muted-foreground" title="Revenue-based estimate — not documented by the subnet">est.</span>
+                            )}
                           </span>
                           <span className="text-[10px] text-muted-foreground">
                             {o.recommendedGpu.replace("NVIDIA ", "").replace(" 80GB", "").replace(" 40GB", "")}

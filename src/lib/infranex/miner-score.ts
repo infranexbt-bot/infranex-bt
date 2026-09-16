@@ -237,7 +237,16 @@ const CATEGORY_RULES: CategoryRule[] = [
   { keywords: /\b(scrap|crawl|data collect|data index|social data|sentiment|feed|dataset)\b/i, category: "Data & scraping", tier: GPU_TIERS.cpu, infra: INFRA_SCRAPER_USD },
   { keywords: /\b(storag|file|archiv|backup)\b/i, category: "Storage", tier: GPU_TIERS.cpu },
   { keywords: /\b(prediction|market mak|trading|financ|quant|hedge|odds)\b/i, category: "Prediction & markets", tier: GPU_TIERS.cpu },
-  { keywords: /\b(agent|orchestrat|routing|logic|swarm|tool use|evm|smart contract|web3 infra)\b/i, category: "Agents & logic", tier: GPU_TIERS.cpu },
+  // RIDGES-FIX (SN62): software-engineering agent subnets — miners upload a
+  // coding agent (agent.py) that validators run on benchmark tasks; LLM
+  // inference is API-based (OpenRouter/Targon/Chutes per the repo README),
+  // so the miner box is CPU + Docker and NO GPU is required. Must precede
+  // the generic "Agents & logic" rule so the label reflects the actual work.
+  { keywords: /\b(software[ -]?engineer(?:ing)?|coding|code[ -]?(?:gen|agent|repair)|program(?:ming)?|developer)\b/i, category: "Software engineering agents", tier: GPU_TIERS.cpu },
+  // RIDGES-FIX: \bagents?\b — the old \bagent\b silently missed PLURAL
+  // descriptions ("Software Engineering Agents"), dropping such subnets into
+  // the revenue-based GPU guess instead of any work-type classification.
+  { keywords: /\b(agents?|orchestrat|routing|logic|swarm|tool use|evm|smart contract|web3 infra)\b/i, category: "Agents & logic", tier: GPU_TIERS.cpu },
   { keywords: /\b(protein|fold|bio|genom|drug|science|research|simulat)\b/i, category: "Science & simulation", tier: GPU_TIERS.a6000 },
   { keywords: /\b(compute|gpu|depin|edge|latency|bandwidth|network shar)\b/i, category: "Compute sharing", tier: GPU_TIERS.consumer24 },
   { keywords: /\b(moderat|detect|scan|verif|audit|secur|privacy|zero.?know)\b/i, category: "Verification & security", tier: GPU_TIERS.consumer24 },

@@ -329,6 +329,7 @@ export function mergeOpportunities(
       gpuCount: diag.gpuCount ?? null,
       hosting: diag.hosting ?? null,
       requirementsSource: diag.requirementsSource ?? null,
+      hardwareClassified: diag.hardwareClassified,
       mechanics,
       costClass: diag.costClass ?? null,
       workType: diag.category,

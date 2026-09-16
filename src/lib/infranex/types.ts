@@ -88,6 +88,10 @@ export interface Opportunity {
   } | null;
   /** Repo URL the hosting/GPU requirements came from. */
   requirementsSource?: string | null;
+  /** True when the work-type classifier matched name/description (vs
+   *  revenue-based GPU guess). RIDGES-FIX: lets the UI label the GPU line
+   *  honestly — repo-documented, work-type typical, or revenue estimate. */
+  hardwareClassified?: boolean;
   /** Curated official mechanics (mechanics.ts) — null when none verified. */
   mechanics?: {
     netuid: number;

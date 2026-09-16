@@ -1214,3 +1214,24 @@ Stage Summary:
 - All verification green: tsc clean; mechanics 64/64; miner-mindset 38/38; rebuild-cluster 60/60 (incl. live path-bound HMAC + replay rejection); merge-engine 14/14; tier1 27/27; opportunity-score + auth + seat-coverage pass; live server: pages 200, gates 401/403 correct, /api/admin/users shows hasCode only, /api/network live 129 subnets with chain names (SN64=Chutes intact)
 - Blast radius contained: stored SubnetRequirements profiles untouched; scraper seeds preserved; no schema changes
 - Known accepted residuals (documented, low): in-memory login rate limiter assumes trusted proxy; Caddyfile XTransformPort (platform infra, untouched); CSRF rests on SameSite=Lax
+
+---
+Task ID: ridges-research-1
+Agent: Super Z (main)
+Task: Research Ridges subnet — Opportunities card showed "Unclassified workload" / "GPU required: H200 141GB" / Alpha $10.19 / Pool 30,221 TAO; verify against the official GitHub repo.
+
+Work Log:
+- Traced the card data flow: opportunity-detail.tsx "Miner's ledger" ← live-merge.ts mergeOpportunities ← miner-score.ts classifySubnetHardware (keyword classifier → scraped requirements → revenue-based GPU guess).
+- Chain snapshot: SN27 is now ORION (SILX-LABS data subnet); Ridges moved to SN62 ("Software Engineering Agents", github.com/ridgesai/ridges). User was looking at SN62.
+- Confirmed vs chain data: Alpha $10.19 = movingPrice 0.0468 × TAO spot (now $10.25 as TAO moved); Pool liquidity 30,221 TAO = subnetTao 30,221.2; 0.0% = alphaPriceChange24h. All honest chain data.
+- Fetched ridgesai/ridges README (main): miners upload agent.py coding agent, validators run it on Harbor benchmark tasks, inference via API providers (OpenRouter/Targon/Chutes) — NO GPU anywhere in the docs; miner needs CPU + Docker + provider keys.
+- ROOT CAUSE (AI mistake): CATEGORY_RULES had \bagent\b which misses plural "Agents" → SN62 fell through to estimateGpuTierFromRevenue (per-earning revenue ≥ $1200/mo ⇒ H200) and displayed "GPU required: H200 141GB" — a revenue guess rendered as a spec.
+- FIXED miner-score.ts: new CPU-tier "Software engineering agents" rule (software[ -]?engineer|coding|code-gen|program|developer) before "Agents & logic"; plural fix \bagents?\b.
+- FIXED honesty labeling: LiveOpportunity.hardwareClassified now surfaced (types.ts, live-merge.ts); opportunity-detail.tsx GPU line renders 3 honest sources — "GPU required" (repo-documented) / "Typical GPU" (classifier) / "GPU (revenue est.)" + tooltip; opportunity-table.tsx VRAM cell gets an "est." marker for guesses.
+- Added scripts/verify-ridges-fix.ts: 14/14 against live server — SN62 = "Software engineering agents"/CPU VPS/$50 GPU cost; SN27 stays honestly unclassified; blast-radius diff vs old rules: α15 ORO, α36 Epago → Agents & logic; α61 RedTeam, α62 Ridges, α76 Ormas → Software engineering agents; α115 MoirAI → Agents & logic — ALL CPU-ward, none gained a fake GPU requirement.
+- Regression: tsc clean for src/; verify-merge-engine 14/14; miner-mindset 38/38; mechanics 64/64; classifier-layers + opportunity-score + opportunity-live pass. Browser-verified the live card: Work type "Software engineering agents", "Typical GPU CPU VPS", Alpha $10.25▲0.0%, Pool 30,221 TAO, net = gross $514 − GPU $50.
+
+Stage Summary:
+- The two wrong fields were an AI-mistake pair (plural-keyword miss → revenue-guess presented as requirement); both fixed at the engine level, not cosmetically.
+- SN62 economics corrected as a consequence: the fictional $2,500/mo H200 rent is gone (CPU $50/mo), net +$384/mo, rank re-scored honestly (WATCH band).
+- Not touched (by design): SN27 Orion stays "Unclassified workload" + "GPU (revenue est.)" — honest, since its docs don't state hardware; ridgesai repo's kubernetes/testcontainers deps stay in SubnetOverride.infraJson as repo-sourced facts for DevOps planning.

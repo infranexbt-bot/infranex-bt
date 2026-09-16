@@ -432,8 +432,21 @@ export function OpportunityDetailDialog({
               <p className="font-medium">{o.workType ?? o.category}</p>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">GPU required</p>
-              <p className="mono text-xs font-medium">{o.recommendedGpu.replace("NVIDIA ", "")}</p>
+              {/* RIDGES-FIX: honest GPU sourcing — repo-documented requirement,
+                  work-type typical, or a revenue-based estimate (not a spec). */}
+              {(() => {
+                const gpuSource = o.requirementsSource
+                  ? { label: "GPU required", title: `Documented by the subnet's repo: ${o.requirementsSource}` }
+                  : o.hardwareClassified
+                    ? { label: "Typical GPU", title: "Typical GPU for this work type — derived from the subnet's description, not official docs" }
+                    : { label: "GPU (revenue est.)", title: "Not documented by the subnet — estimated from what per-miner revenue could fund. Check the subnet's docs before buying hardware." };
+                return (
+                  <>
+                    <p className="text-xs text-muted-foreground" title={gpuSource.title}>{gpuSource.label}</p>
+                    <p className="mono text-xs font-medium">{o.recommendedGpu.replace("NVIDIA ", "")}</p>
+                  </>
+                );
+              })()}
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Alpha price</p>

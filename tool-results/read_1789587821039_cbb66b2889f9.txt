@@ -1,0 +1,745 @@
+     1→"use client";
+     2→
+     3→import { cn, formatCurrency, formatPercent, getStatusColor, opportunityBand } from "@/lib/utils";
+     4→import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+     5→import { Badge } from "@/components/ui/badge";
+     6→import { Progress } from "@/components/ui/progress";
+     7→import { Separator } from "@/components/ui/separator";
+     8→import {
+     9→  Dialog,
+    10→  DialogContent,
+    11→  DialogHeader,
+    12→  DialogTitle,
+    13→  DialogDescription,
+    14→} from "@/components/ui/dialog";
+    15→import { TrendingUp, AlertTriangle, Cpu, Wallet, Calculator } from "lucide-react";
+    16→import { formatNumber } from "@/lib/utils";
+    17→import { assessSeatChance, formatBurnTao } from "@/lib/infranex/miner-score";
+    18→import { RegisterOddsBlock, RegisterOddsInline } from "@/components/cards/register-odds";
+    19→import { HostingWarningBlock, HostingChips } from "@/components/cards/hosting-requirements";
+    20→import { OfficialMechanicsBlock, MechanicsChips, rampWeeksSourceNote } from "@/components/cards/mechanics-block";
+    21→import { useOddsTrends } from "@/lib/infranex/use-odds";
+    22→import type { Opportunity } from "@/lib/infranex/types";
+    23→
+    24→interface OpportunityDetailDialogProps {
+    25→  opportunity: Opportunity | null;
+    26→  open: boolean;
+    27→  onOpenChange: (open: boolean) => void;
+    28→}
+    29→
+    30→export function OpportunityDetailDialog({
+    31→  opportunity,
+    32→  open,
+    33→  onOpenChange,
+    34→}: OpportunityDetailDialogProps) {
+    35→  if (!opportunity) return null;
+    36→  const o = opportunity;
+    37→  const band = opportunityBand(o);
+    38→  const risk = getStatusColor(o.riskLevel);
+    39→  const prof = o.profitability;
+    40→
+    41→  return (
+    42→    <Dialog open={open} onOpenChange={onOpenChange}>
+    43→      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto custom-scroll">
+    44→        <DialogHeader>
+    45→          <div className="flex items-center gap-2">
+    46→            <Badge variant="outline" className="mono">
+    47→              {o.subnetSymbol}
+    48→            </Badge>
+    49→            <Badge variant="outline" className={cn(band.bg, band.color)}>
+    50→              {band.label}
+    51→            </Badge>
+    52→            {prof && (
+    53→              <Badge
+    54→                variant="outline"
+    55→                className={cn(
+    56→                  prof.verdict === "PROFITABLE" && "bg-success/10 text-success",
+    57→                  prof.verdict === "MARGINAL" && "bg-warning/10 text-warning",
+    58→                  prof.verdict === "AVOID" && "bg-destructive/10 text-destructive"
+    59→                )}
+    60→              >
+    61→                {prof.verdict === "PROFITABLE" && "✓ Profitable"}
+    62→                {prof.verdict === "MARGINAL" && "≈ Marginal"}
+    63→                {prof.verdict === "AVOID" && "✗ Below target"}
+    64→              </Badge>
+    65→            )}
+    66→            <Badge variant="outline" className={cn(risk.bg, risk.text, "capitalize")}>
+    67→              {o.riskLevel} risk
+    68→            </Badge>
+    69→          </div>
+    70→          <DialogTitle className="text-display text-2xl">
+    71→            {o.subnetName}
+    72→            <span className="ml-2 tabular text-primary">{o.score.toFixed(1)}</span>
+    73→          </DialogTitle>
+    74→          <DialogDescription>
+    75→            NetUID {o.netuid} · {o.category} · rank #{o.rank} · updated{" "}
+    76→            {new Date(o.updatedAt).toLocaleTimeString()}
+    77→          </DialogDescription>
+    78→        </DialogHeader>
+    79→
+    80→        {/* --- Profitability Engine: P&L waterfall + minimum entry rule --- */}
+    81→        {prof && (
+    82→          <div
+    83→            className={cn(
+    84→              "rounded-lg border p-4",
+    85→              prof.meetsMinimum
+    86→                ? "border-success/30 bg-success/5"
+    87→                : "border-destructive/40 bg-destructive/5"
+    88→            )}
+    89→          >
+    90→            <div className="flex items-center justify-between gap-2">
+    91→              <h3 className="text-display flex items-center gap-2 text-base font-semibold">
+    92→                <Calculator className="h-4 w-4 text-primary" />
+    93→                Profitability engine
+    94→              </h3>
+    95→              <span className="text-eyebrow text-muted-foreground">
+    96→                monthly USD · per mid-pack miner
+    97→              </span>
+    98→            </div>
+    99→
+   100→            {!prof.meetsMinimum && (
+   101→              <div className="mt-2 flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2">
+   102→                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
+   103→                <p className="text-xs text-destructive">
+   104→                  <span className="font-bold">AVOID</span> — expected net profit{" "}
+   105→                  {formatCurrency(prof.netMonthlyUsd)}/mo is below the minimum target of{" "}
+   106→                  {formatCurrency(prof.targetUsd)}/mo (shortfall{" "}
+   107→                  {formatCurrency(prof.shortfallUsd)}). Raise the bar or skip this subnet.
+   108→                </p>
+   109→              </div>
+   110→            )}
+   111→
+   112→            {/* Waterfall: revenue − cost lines = net */}
+   113→            <div className="mt-3 space-y-1 text-sm">
+   114→              <div className="flex items-center justify-between">
+   115→                <span className="text-muted-foreground">Expected revenue</span>
+   116→                <span className="tabular font-semibold">{formatCurrency(prof.expectedRevenueUsd)}</span>
+   117→              </div>
+   118→              <div className="flex items-center justify-between pl-4 text-muted-foreground">
+   119→                {/* DATA-AUDIT-1 (H4) — the rate behind this line is a modeled
+   120→                    market estimate, not a live provider quote. */}
+   121→                <span title="Modeled market rate (survey estimate), not a live provider quote">
+   122→                  − GPU rental (modeled rate){prof.gpuRentalUsd === 0 && " (none)"}
+   123→                </span>
+   124→                <span className="tabular">−{formatCurrency(prof.gpuRentalUsd)}</span>
+   125→              </div>
+   126→              <div className="flex items-center justify-between pl-4 text-muted-foreground">
+   127→                <span>− Storage</span>
+   128→                <span className="tabular">−{formatCurrency(prof.storageUsd)}</span>
+   129→              </div>
+   130→              <div className="flex items-center justify-between pl-4 text-muted-foreground">
+   131→                <span>− Infrastructure</span>
+   132→                <span className="tabular">−{formatCurrency(prof.infrastructureUsd)}</span>
+   133→              </div>
+   134→              <div className="flex items-center justify-between pl-4 text-muted-foreground">
+   135→                <span
+   136→                  title={
+   137→                    prof.amortizedBurnUsd > 0
+   138→                      ? `Includes ${formatCurrency(prof.amortizedBurnUsd)}/mo amortized registration burn`
+   139→                      : "Bandwidth, fees, misc operating costs"
+   140→                  }
+   141→                >
+   142→                  − Other operating
+   143→                  {prof.amortizedBurnUsd > 0 && (
+   144→                    <span className="ml-1 text-[10px]">(incl. reg burn)</span>
+   145→                  )}
+   146→                </span>
+   147→                <span className="tabular">−{formatCurrency(prof.otherOperatingTotalUsd)}</span>
+   148→              </div>
+   149→              <div className="flex items-center justify-between border-t border-border/60 pt-1.5">
+   150→                <span className="font-semibold">= Net profit</span>
+   151→                <span
+   152→                  className={cn(
+   153→                    "tabular text-lg font-bold",
+   154→                    prof.netMonthlyUsd >= 0 ? "text-success" : "text-destructive"
+   155→                  )}
+   156→                >
+   157→                  {formatCurrency(prof.netMonthlyUsd)}
+   158→                  <span className="ml-1 text-[10px] font-normal text-muted-foreground">/mo</span>
+   159→                </span>
+   160→              </div>
+   161→              <p className="text-right text-[10px] text-muted-foreground">
+   162→                minimum target {formatCurrency(prof.targetUsd)}/mo ·{" "}
+   163→                {prof.meetsMinimum ? (
+   164→                  <span className="text-success">PASSED</span>
+   165→                ) : (
+   166→                  <span className="text-destructive">FAILED</span>
+   167→                )}
+   168→              </p>
+   169→            </div>
+   170→
+   171→            {/* Metrics grid */}
+   172→            <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 border-t border-border/60 pt-3 text-sm sm:grid-cols-4">
+   173→              <div>
+   174→                <p className="text-[10px] text-muted-foreground">ROI (monthly)</p>
+   175→                <p
+   176→                  className={cn(
+   177→                    "tabular font-semibold",
+   178→                    prof.roiMonthlyPct >= 0 ? "text-success" : "text-destructive"
+   179→                  )}
+   180→                  title={`Net profit ÷ total operating cost — annualized ≈ ${prof.roiAnnualPct.toFixed(0)}%`}
+   181→                >
+   182→                  {prof.roiMonthlyPct.toFixed(1)}%
+   183→                </p>
+   184→              </div>
+   185→              <div>
+   186→                <p className="text-[10px] text-muted-foreground">Daily profit</p>
+   187→                <p
+   188→                  className={cn(
+   189→                    "tabular font-semibold",
+   190→                    prof.netDailyUsd >= 0 ? "text-success" : "text-destructive"
+   191→                  )}
+   192→                >
+   193→                  {formatCurrency(prof.netDailyUsd)}
+   194→                </p>
+   195→              </div>
+   196→              <div>
+   197→                <p className="text-[10px] text-muted-foreground">Weekly profit</p>
+   198→                <p
+   199→                  className={cn(
+   200→                    "tabular font-semibold",
+   201→                    prof.netWeeklyUsd >= 0 ? "text-success" : "text-destructive"
+   202→                  )}
+   203→                >
+   204→                  {formatCurrency(prof.netWeeklyUsd)}
+   205→                </p>
+   206→              </div>
+   207→              <div>
+   208→                <p className="text-[10px] text-muted-foreground">Monthly profit</p>
+   209→                <p
+   210→                  className={cn(
+   211→                    "tabular font-semibold",
+   212→                    prof.netMonthlyUsd >= 0 ? "text-success" : "text-destructive"
+   213→                  )}
+   214→                >
+   215→                  {formatCurrency(prof.netMonthlyUsd)}
+   216→                </p>
+   217→              </div>
+   218→              <div>
+   219→                <p className="text-[10px] text-muted-foreground">Break-even</p>
+   220→                <p className="tabular font-semibold">
+   221→                  {prof.breakEvenDays != null ? `${prof.breakEvenDays} days` : "—"}
+   222→                </p>
+   223→              </div>
+   224→              <div>
+   225→                <p className="text-[10px] text-muted-foreground">Profit margin</p>
+   226→                <p
+   227→                  className={cn(
+   228→                    "tabular font-semibold",
+   229→                    prof.profitMarginPct >= 15 ? "text-success" : prof.profitMarginPct >= 0 ? "text-warning" : "text-destructive"
+   230→                  )}
+   231→                >
+   232→                  {prof.profitMarginPct.toFixed(1)}%
+   233→                </p>
+   234→              </div>
+   235→              <div>
+   236→                <p className="text-[10px] text-muted-foreground" title={`Risk haircut ${(prof.riskFactor * 100).toFixed(0)}% from seat safety, alpha economics and earning reality`}>
+   237→                  Risk-adjusted
+   238→                </p>
+   239→                <p
+   240→                  className={cn(
+   241→                    "tabular font-semibold",
+   242→                    prof.riskAdjustedMonthlyUsd >= prof.targetUsd ? "text-success" : "text-warning"
+   243→                  )}
+   244→                >
+   245→                  {formatCurrency(prof.riskAdjustedMonthlyUsd)}
+   246→                </p>
+   247→              </div>
+   248→              <div>
+   249→                <p className="text-[10px] text-muted-foreground">Total opex</p>
+   250→                <p className="tabular font-semibold">{formatCurrency(prof.totalCostsUsd)}</p>
+   251→              </div>
+   252→            </div>
+   253→
+   254→            {/* Bear / Base / Bull — planning range, not a promise */}
+   255→            <div className="mt-3 border-t border-border/60 pt-3">
+   256→              <div className="flex items-baseline justify-between gap-2">
+   257→                <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+   258→                  Monthly scenarios
+   259→                </p>
+   260→                <p className="text-[10px] text-muted-foreground">
+   261→                  planning range — earnings are not guaranteed
+   262→                </p>
+   263→              </div>
+   264→              <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-3">
+   265→                {([
+   266→                  {
+   267→                    label: "Bear",
+   268→                    sc: prof.scenarios.bear,
+   269→                    cls:
+   270→                      prof.scenarios.bear.netMonthlyUsd >= prof.targetUsd
+   271→                        ? "text-success"
+   272→                        : prof.scenarios.bear.netMonthlyUsd >= 0
+   273→                          ? "text-warning"
+   274→                          : "text-destructive",
+   275→                    border: "border-border/60",
+   276→                  },
+   277→                  {
+   278→                    label: "Base",
+   279→                    sc: prof.scenarios.base,
+   280→                    cls: prof.scenarios.base.meetsTarget ? "text-success" : "text-warning",
+   281→                    border: "border-border/60",
+   282→                  },
+   283→                  {
+   284→                    label: "Bull",
+   285→                    sc: prof.scenarios.bull,
+   286→                    cls: "text-success",
+   287→                    border: "border-primary/30",
+   288→                  },
+   289→                ] as const).map(({ label, sc, cls, border }) => (
+   290→                  <div
+   291→                    key={label}
+   292→                    title={sc.note}
+   293→                    className={cn("rounded-md border px-3 py-2", border)}
+   294→                  >
+   295→                    <p className="text-[10px] font-bold tracking-widest text-muted-foreground">
+   296→                      {label}
+   297→                      {label === "Base" && (
+   298→                        <span className="ml-1 font-normal normal-case tracking-normal">
+   299→                          (the number above)
+   300→                        </span>
+   301→                      )}
+   302→                    </p>
+   303→                    <p className={cn("tabular text-lg font-bold", cls)}>
+   304→                      {formatCurrency(sc.netMonthlyUsd)}
+   305→                      <span className="ml-1 text-[10px] font-normal text-muted-foreground">/mo</span>
+   306→                    </p>
+   307→                    <p className="mt-0.5 text-[10px] leading-tight text-muted-foreground">
+   308→                      {sc.note}
+   309→                    </p>
+   310→                  </div>
+   311→                ))}
+   312→              </div>
+   313→            </div>
+   314→          </div>
+   315→        )}
+   316→
+   317→        <div className="grid gap-4 sm:grid-cols-3">
+   318→          <Card className="bg-card/40">
+   319→            <CardContent className="p-4">
+   320→              <div className="flex items-center gap-2 text-muted-foreground">
+   321→                <Wallet className="h-4 w-4" />
+   322→                <span className="text-xs font-medium">Net monthly (after GPU)</span>
+   323→              </div>
+   324→              <p
+   325→                className={cn(
+   326→                  "mt-1 tabular text-xl font-bold",
+   327→                  (o.netMonthlyUsd ?? o.estimatedMonthlyRewardUsd) >= 0
+   328→                    ? "text-success"
+   329→                    : "text-destructive"
+   330→                )}
+   331→              >
+   332→                {formatCurrency(o.netMonthlyUsd ?? o.estimatedMonthlyRewardUsd)}
+   333→              </p>
+   334→              {o.gpuCostMonthlyUsd != null && (
+   335→                <p className="mt-0.5 text-[11px] text-muted-foreground">
+   336→                  gross {formatCurrency(o.grossMonthlyUsd ?? o.estimatedMonthlyRewardUsd)} − GPU{" "}
+   337→                  {formatCurrency(o.gpuCostMonthlyUsd)}
+   338→                </p>
+   339→              )}
+   340→            </CardContent>
+   341→          </Card>
+   342→          <Card className="bg-card/40">
+   343→            <CardContent className="p-4">
+   344→              <div className="flex items-center gap-2 text-muted-foreground">
+   345→                <TrendingUp className="h-4 w-4" />
+   346→                <span className="text-xs font-medium">Est. APY</span>
+   347→              </div>
+   348→              <p className="mt-1 tabular text-xl font-bold text-success">
+   349→                {formatPercent(o.estimatedApy)}
+   350→              </p>
+   351→              <p className="mt-0.5 text-[11px] text-muted-foreground">
+   352→                vs {o.requiredStake.toLocaleString()} TAO required stake
+   353→              </p>
+   354→            </CardContent>
+   355→          </Card>
+   356→          <Card className="bg-card/40">
+   357→            <CardContent className="p-4">
+   358→              <div className="flex items-center gap-2 text-muted-foreground">
+   359→                <Cpu className="h-4 w-4" />
+   360→                <span className="text-xs font-medium">Daily reward</span>
+   361→              </div>
+   362→              <p className="mt-1 tabular text-xl font-bold">
+   363→                {o.estimatedDailyReward.toFixed(3)}{" "}
+   364→                <span className="text-sm font-normal text-muted-foreground">TAO</span>
+   365→              </p>
+   366→              <p className="mt-0.5 text-[11px] text-muted-foreground">
+   367→                newcomer mid-pack estimate
+   368→                {o.rewardMedianShare != null && o.rewardMedianShare < 0.9 && (
+   369→                  <span title="A top UID (whale) captures most of this subnet's rewards — the estimate is discounted by the median earner's share of the mean">
+   370→                    {" "}· {Math.round(o.rewardMedianShare * 100)}% spread
+   371→                  </span>
+   372→                )}{" "}
+   373→                · {(o.rewardedRatio != null ? (o.rewardedRatio * 100).toFixed(0) : "—")}% of slots rewarded
+   374→                {o.perEarningMeanDailyTao != null && o.perEarningMeanDailyTao > o.estimatedDailyReward * 3 && (
+   375→                  <span title="Mean over currently rewarded UIDs — what top performers earn today (upside if you outcompete)">
+   376→                    {" "}· mean earner {o.perEarningMeanDailyTao.toFixed(2)} TAO/d
+   377→                  </span>
+   378→                )}
+   379→              </p>
+   380→              {o.earnChance && (
+   381→                <div
+   382→                  className={cn(
+   383→                    "mt-2 rounded-md border px-2 py-1.5",
+   384→                    o.earnChance.level === "high"
+   385→                      ? "border-success/30 bg-success/5"
+   386→                      : o.earnChance.level === "medium"
+   387→                        ? "border-warning/30 bg-warning/5"
+   388→                        : "border-destructive/30 bg-destructive/5"
+   389→                  )}
+   390→                  title={`Chance to earn · month 1 — ${o.earnChance.note}`}
+   391→                >
+   392→                  <div className="flex items-center justify-between gap-2">
+   393→                    <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+   394→                      Chance to earn · month 1
+   395→                    </span>
+   396→                    <span
+   397→                      className={cn(
+   398→                        "text-xs font-bold uppercase tracking-wide",
+   399→                        o.earnChance.level === "high"
+   400→                          ? "text-success"
+   401→                          : o.earnChance.level === "medium"
+   402→                            ? "text-warning"
+   403→                            : "text-destructive"
+   404→                      )}
+   405→                    >
+   406→                      {o.earnChance.level}
+   407→                      {o.earnChance.pct > 0 && (
+   408→                        <span className="ml-1 font-normal normal-case tracking-normal text-muted-foreground">
+   409→                          ~{o.earnChance.pct}%
+   410→                        </span>
+   411→                      )}
+   412→                    </span>
+   413→                  </div>
+   414→                  <p className="mt-0.5 text-[10px] leading-tight text-muted-foreground">
+   415→                    {o.earnChance.note}. Uptime keeps the seat — performance fills
+   416→                    the wallet.
+   417→                  </p>
+   418→                </div>
+   419→              )}
+   420→              <RegisterOddsBlock row={o} className="mt-2" />
+   421→            </CardContent>
+   422→          </Card>
+   423→        </div>
+   424→
+   425→        <Separator />
+   426→
+   427→        <div>
+   428→          <h3 className="text-eyebrow mb-2 text-muted-foreground">Miner's ledger</h3>
+   429→          <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
+   430→            <div>
+   431→              <p className="text-xs text-muted-foreground">Work type</p>
+   432→              <p className="font-medium">{o.workType ?? o.category}</p>
+   433→            </div>
+   434→            <div>
+   435→              <p className="text-xs text-muted-foreground">GPU required</p>
+   436→              <p className="mono text-xs font-medium">{o.recommendedGpu.replace("NVIDIA ", "")}</p>
+   437→            </div>
+   438→            <div>
+   439→              <p className="text-xs text-muted-foreground">Alpha price</p>
+   440→              <p className="tabular font-medium">
+   441→                {o.alphaPriceUsd != null && o.alphaPriceUsd > 0
+   442→                  ? `$${o.alphaPriceUsd < 1 ? o.alphaPriceUsd.toFixed(4) : o.alphaPriceUsd.toFixed(2)}`
+   443→                  : "—"}
+   444→                {o.alphaChange24h != null && (
+   445→                  <span className={cn("ml-1.5 text-xs", o.alphaChange24h >= 0 ? "text-success" : "text-destructive")}>
+   446→                    {o.alphaChange24h >= 0 ? "▲" : "▼"}
+   447→                    {Math.abs(o.alphaChange24h).toFixed(1)}%
+   448→                  </span>
+   449→                )}
+   450→              </p>
+   451→            </div>
+   452→            <div>
+   453→              <p className="text-xs text-muted-foreground">Pool liquidity</p>
+   454→              <p className="mono tabular text-xs font-medium">
+   455→                {o.liquidityTao != null ? `${formatNumber(o.liquidityTao)} TAO` : "—"}
+   456→              </p>
+   457→            </div>
+   458→            <div>
+   459→              <p className="text-xs text-muted-foreground">Seat availability</p>
+   460→              <p className="tabular font-medium">
+   461→                {o.freeSlots != null && o.totalSlots ? `${o.freeSlots} / ${o.totalSlots}` : "—"}
+   462→                {(() => {
+   463→                  const seat = assessSeatChance({
+   464→                    minersCount: o.totalSlots != null && o.freeSlots != null ? o.totalSlots - o.freeSlots : null,
+   465→                    maxUids: o.totalSlots ?? null, // WINDUP-1: totalSlots also undefined-able here
+   466→                    freeSlots: o.freeSlots,
+   467→                    burnCostTao: o.burnCostTao ?? null,
+   468→                    immunityBlocks: o.immunityBlocks ?? null,
+   469→                    rewardedRatio: o.rewardedRatio ?? null,
+   470→                  });
+   471→                  if (seat.verdict === "unknown") return null;
+   472→                  const cls =
+   473→                    seat.verdict === "open"
+   474→                      ? "text-success"
+   475→                      : seat.verdict === "burn-entry"
+   476→                        ? "text-warning"
+   477→                        : "text-destructive";
+   478→                  return (
+   479→                    <span className={cn("ml-1.5 text-xs font-medium", cls)} title={seat.detail}>
+   480→                      · {seat.verdict === "open" ? "open" : seat.verdict === "burn-entry" ? "burn-entry" : "competitive"}
+   481→                    </span>
+   482→                  );
+   483→                })()}
+   484→              </p>
+   485→            </div>
+   486→            <div>
+   487→              <p className="text-xs text-muted-foreground">Burn entry</p>
+   488→              <p className="mono tabular text-xs font-medium" title="Pay this TAO to register immediately — when the subnet is full it replaces the worst-performing non-immune UID">
+   489→                {o.burnCostTao != null ? `~${formatBurnTao(o.burnCostTao)} TAO` : "—"}
+   490→              </p>
+   491→            </div>
+   492→            <div>
+   493→              <p className="text-xs text-muted-foreground">Top-10% take</p>
+   494→              <p
+   495→                className={cn(
+   496→                  "tabular font-medium",
+   497→                  o.top10IncentiveShare != null && o.top10IncentiveShare > 0.7
+   498→                    ? "text-warning"
+   499→                    : ""
+   500→                )}
+   501→                title="Share of last-epoch incentive captured by the top 10% of UIDs — near 100% means a knife fight for rewards"
+   502→              >
+   503→                {o.top10IncentiveShare != null
+   504→                  ? `${Math.round(o.top10IncentiveShare * 100)}% of emissions`
+   505→                  : "—"}
+   506→              </p>
+   507→            </div>
+   508→            <div>
+   509→              <p className="text-xs text-muted-foreground">Registration burn</p>
+   510→              <p className="mono tabular text-xs font-medium">
+   511→                {o.burnCostTao != null ? `${formatBurnTao(o.burnCostTao)} TAO` : "—"}
+   512→              </p>
+   513→            </div>
+   514→            <div>
+   515→              <p className="text-xs text-muted-foreground">Ramp-up estimate</p>
+   516→              <p className="tabular font-medium">
+   517→                {o.rampWeeks != null
+   518→                  ? `~${o.rampWeeks.toFixed(0)} week${o.rampWeeks >= 1.5 ? "s" : ""}`
+   519→                  : "—"}
+   520→                {o.immunityBlocks != null && (
+   521→                  <span className="ml-1.5 text-xs text-muted-foreground">
+   522→                    {Math.round((o.immunityBlocks * 12) / 3600)}h immunity
+   523→                  </span>
+   524→                )}
+   525→              </p>
+   526→              {rampWeeksSourceNote(o.mechanics ?? null) && (
+   527→                <p className="text-[10px] text-muted-foreground">
+   528→                  {rampWeeksSourceNote(o.mechanics ?? null)}
+   529→                </p>
+   530→              )}
+   531→            </div>
+   532→          </div>
+   533→          {o.hosting && (
+   534→            <div className="mt-3">
+   535→              <HostingWarningBlock hosting={o.hosting} source={o.requirementsSource} />
+   536→            </div>
+   537→          )}
+   538→          {o.mechanics && (
+   539→            <div className="mt-3">
+   540→              <OfficialMechanicsBlock mechanics={o.mechanics} />
+   541→            </div>
+   542→          )}
+   543→        </div>
+   544→
+   545→        <Separator />
+   546→
+   547→        <div>
+   548→          <div className="mb-3 flex items-center justify-between">
+   549→            <h3 className="text-display text-lg font-semibold">
+   550→              Score breakdown
+   551→            </h3>
+   552→            <span className="text-eyebrow text-muted-foreground">
+   553→              Miner's Ledger · 5 pillars
+   554→            </span>
+   555→          </div>
+   556→          <div className="space-y-4">
+   557→            {o.factors.map((f) => (
+   558→              <div key={f.name}>
+   559→                <div className="flex items-center justify-between gap-2">
+   560→                  <div className="flex items-center gap-2">
+   561→                    <span className="text-sm font-medium">{f.name}</span>
+   562→                    {f.impact === "negative" && (
+   563→                      <AlertTriangle className="h-3 w-3 text-warning" />
+   564→                    )}
+   565→                  </div>
+   566→                  <div className="flex items-center gap-2">
+   567→                    <span className="mono text-[10px] text-muted-foreground">
+   568→                      w {Math.round(f.weight * 100)}%
+   569→                    </span>
+   570→                    <span
+   571→                      className={cn(
+   572→                        "tabular text-sm font-semibold",
+   573→                        f.raw >= 60
+   574→                          ? "text-success"
+   575→                          : f.raw <= 40
+   576→                            ? "text-destructive"
+   577→                            : "text-foreground"
+   578→                      )}
+   579→                    >
+   580→                      {f.raw.toFixed(0)}
+   581→                    </span>
+   582→                  </div>
+   583→                </div>
+   584→                <Progress
+   585→                  value={f.raw}
+   586→                  className="mt-1.5 h-1.5"
+   587→                  indicatorClassName={cn(
+   588→                    f.raw >= 60
+   589→                      ? "bg-success"
+   590→                      : f.raw <= 40
+   591→                        ? "bg-destructive"
+   592→                        : "bg-warning"
+   593→                  )}
+   594→                />
+   595→                <p className="mt-1 text-xs text-muted-foreground">
+   596→                  {f.description}
+   597→                </p>
+   598→              </div>
+   599→            ))}
+   600→          </div>
+   601→        </div>
+   602→
+   603→        <Separator />
+   604→
+   605→        <div className="grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
+   606→          <div>
+   607→            <p className="text-xs text-muted-foreground">Required stake</p>
+   608→            <p className="mono tabular font-medium">
+   609→              {o.requiredStake.toLocaleString()} TAO
+   610→            </p>
+   611→          </div>
+   612→          <div>
+   613→            <p className="text-xs text-muted-foreground">Utilization</p>
+   614→            <p className="tabular font-medium">
+   615→              {(o.utilization * 100).toFixed(0)}%
+   616→            </p>
+   617→          </div>
+   618→          <div>
+   619→            <p className="text-xs text-muted-foreground">Confidence</p>
+   620→            <p className="tabular font-medium text-success">
+   621→              {formatPercent(o.confidence * 100)}
+   622→            </p>
+   623→          </div>
+   624→          <div>
+   625→            <p className="text-xs text-muted-foreground">Status</p>
+   626→            <p className="font-medium capitalize">{o.status}</p>
+   627→          </div>
+   628→        </div>
+   629→      </DialogContent>
+   630→    </Dialog>
+   631→  );
+   632→}
+   633→
+   634→/** Compact card for grid layouts. */
+   635→export function OpportunityCard({ opportunity: o }: { opportunity: Opportunity }) {
+   636→  const band = opportunityBand(o);
+   637→  const risk = getStatusColor(o.riskLevel);
+   638→  const prof = o.profitability;
+   639→  // Batch winner-stability trends — one request shared by every card.
+   640→  const { data: oddsTrends } = useOddsTrends();
+   641→  const oddsTrend = oddsTrends?.[o.netuid] ?? null;
+   642→  const hasOdds = o.earnChance != null || o.rampWeeks != null || oddsTrend != null;
+   643→  return (
+   644→    <Card className="editorial-card transition-all hover:border-primary/40">
+   645→      <CardHeader className="pb-3">
+   646→        <div className="flex items-start justify-between gap-2">
+   647→          <div className="min-w-0">
+   648→            <div className="flex flex-wrap items-center gap-2">
+   649→              <CardTitle className="text-display truncate text-lg">
+   650→                {o.subnetName}
+   651→              </CardTitle>
+   652→              <Badge variant="outline" className="mono text-[10px]">
+   653→                {o.subnetSymbol}
+   654→              </Badge>
+   655→            </div>
+   656→            <p className="mt-1 text-xs text-muted-foreground">
+   657→              NetUID {o.netuid} · {o.category}
+   658→            </p>
+   659→          </div>
+   660→          <div className="text-right">
+   661→            <p className="tabular text-2xl font-bold text-primary">
+   662→              {o.score.toFixed(1)}
+   663→            </p>
+   664→            <Badge variant="outline" className={cn("text-[10px]", band.bg, band.color)}>
+   665→              {band.label}
+   666→            </Badge>
+   667→          </div>
+   668→        </div>
+   669→      </CardHeader>
+   670→      <CardContent className="space-y-3">
+   671→        <div className="grid grid-cols-2 gap-3 text-sm">
+   672→          <div>
+   673→            <p className="text-xs text-muted-foreground">Est. APY</p>
+   674→            <p className="tabular font-medium text-success">
+   675→              {formatPercent(o.estimatedApy)}
+   676→            </p>
+   677→          </div>
+   678→          <div>
+   679→            <p className="text-xs text-muted-foreground">Net monthly</p>
+   680→            <p
+   681→              className={cn(
+   682→                "tabular font-medium",
+   683→                (o.netMonthlyUsd ?? o.estimatedMonthlyRewardUsd) >= 0
+   684→                  ? "text-success"
+   685→                  : "text-destructive"
+   686→              )}
+   687→            >
+   688→              {formatCurrency(o.netMonthlyUsd ?? o.estimatedMonthlyRewardUsd)}
+   689→            </p>
+   690→            {prof && (
+   691→              <p
+   692→                className={cn(
+   693→                  "text-[10px] font-medium",
+   694→                  prof.meetsMinimum ? "text-success" : "text-destructive"
+   695→                )}
+   696→              >
+   697→                {prof.meetsMinimum
+   698→                  ? `✓ ≥ $${prof.targetUsd.toLocaleString()} target`
+   699→                  : `✗ AVOID · < $${prof.targetUsd.toLocaleString()}`}
+   700→              </p>
+   701→            )}
+   702→          </div>
+   703→          <div>
+   704→            <p className="text-xs text-muted-foreground">GPU</p>
+   705→            <p className="mono truncate text-xs text-muted-foreground">
+   706→              {o.recommendedGpu.replace("NVIDIA ", "")}
+   707→            </p>
+   708→            {o.hosting && (
+   709→              <HostingChips hosting={o.hosting} source={o.requirementsSource} className="mt-1" />
+   710→            )}
+   711→            {o.mechanics && (
+   712→              <MechanicsChips mechanics={o.mechanics} className="mt-1" />
+   713→            )}
+   714→          </div>
+   715→          <div>
+   716→            <p className="text-xs text-muted-foreground">Risk</p>
+   717→            <span
+   718→              className={cn(
+   719→                "badge-status capitalize",
+   720→                risk.bg,
+   721→                risk.text
+   722→              )}
+   723→            >
+   724→              {o.riskLevel}
+   725→            </span>
+   726→          </div>
+   727→        </div>
+   728→        {hasOdds && (
+   729→          <div className="rounded-lg border border-border/40 bg-background/50 px-2.5 py-1.5">
+   730→            <p className="text-eyebrow text-[9px] text-muted-foreground">
+   731→              If you register today
+   732→            </p>
+   733→            <RegisterOddsInline row={o} trend={oddsTrend} className="mt-1" />
+   734→          </div>
+   735→        )}
+   736→        <Progress
+   737→          value={o.score}
+   738→          className="h-1"
+   739→          indicatorClassName={cn(band.color.replace("text-", "bg-"))}
+   740→        />
+   741→      </CardContent>
+   742→    </Card>
+   743→  );
+   744→}
+   745→
