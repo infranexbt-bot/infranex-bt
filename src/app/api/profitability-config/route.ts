@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { requireActiveAdmin } from "@/lib/auth-admin";
 import {
   sanitizeProfitabilityConfig,
   DEFAULT_PROFITABILITY_CONFIG,
@@ -34,6 +35,11 @@ export async function GET() {
 }
 
 export async function PUT(req: NextRequest) {
+  // SEC-AUDIT-1: mutating endpoint — admin-gated, consistent with /api/settings.
+  const gate = await requireActiveAdmin(req);
+  if ("error" in gate) {
+    return NextResponse.json({ error: gate.error }, { status: gate.status });
+  }
   let body: unknown;
   try {
     body = await req.json();

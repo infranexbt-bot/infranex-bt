@@ -363,7 +363,7 @@ const DEEP_SN67_PHASES: Phase[] = [
     n: 0,
     title: "Size the deal before you touch anything",
     cost: "free",
-    why: "The Opportunities scanner found SN67 for you: classified CPU-only (\"Agents & logic\", min VRAM 0), scored 65.5 with a ~$100/mo base-case net. Watch the economics first so the budget you commit is sized honestly, not on hope.",
+    why: "Worked example (economics frozen 2026-09-16): the Opportunities scanner had SN67 classified CPU-only (\"Agents & logic\", min VRAM 0), scored 65.5 with a ~$100/mo base-case net. Numbers move — always re-read the live Opportunities row before you commit a budget; this walkthrough is about the METHOD, not today's numbers.",
     steps: [
       "Open Opportunities and filter by \"CPU-only work\" — SN67 is the cheapest live hit.",
       "Open the SN67 detail: score 65.5, gross ~$234/mo, net ~$100/mo base (bear −$37 / bull +$179).",
@@ -414,7 +414,7 @@ const DEEP_SN67_PHASES: Phase[] = [
     n: 3,
     title: "Study the champion + mine the validator profile",
     cost: "free",
-    why: "SN67 clears the market on Price (56% of the reward weight) with Quality at 19%, a ~30 s response deadline, a ~$0.50/1M price reference and ~25 tps throughput reference. That mix is the validator's actual scoring shape — mined live, not guessed.",
+    why: "Worked example (SN67 scoring shape, read 2026-09-16): Price carried 56% of the reward weight with Quality at 19%, a ~30 s response deadline, a ~$0.50/1M price reference and ~25 tps throughput reference. The validator's scoring shape was mined live from the subnet's repo at the time — re-verify against the current repo before relying on it.",
     steps: [
       "Validator Lab → Sync netuid 67 — the profile arrives in ~15 s from the repo + chain.",
       "Probe the top miner through the champion endpoint (MCP: api.harnyx.ai/mcp) — read its latency, price and citation style.",
@@ -1138,8 +1138,8 @@ export function CpuGuideView({ onNavigate }: { onNavigate: (v: ViewKey) => void 
             </p>
             <p className="mt-0.5 text-xs text-muted-foreground">
               {baseNet != null
-                ? `base case · bear ${bearNet != null ? `${bearNet < 0 ? "−" : "+"}$${Math.abs(Math.round(bearNet))}` : "—"} · bull ${bullNet != null ? `${bullNet < 0 ? "−" : "+"}$${Math.abs(Math.round(bullNet))}` : "—"} (scanner engine)`
-                : "base case · bear −$37 · bull +$179 (scanner engine)"}
+                ? `base case · bear ${bearNet != null ? `${bearNet < 0 ? "−" : "+"}$${Math.abs(Math.round(bearNet))}` : "—"} · bull ${bullNet != null ? `${bullNet < 0 ? "−" : "+"}$${Math.abs(Math.round(bullNet))}` : "—"} (scanner engine, live)`
+                : "fallback example from 2026-09-16 (base ~$100 · bear −$37 · bull +$179) — connect to the chain for live numbers"}
             </p>
           </div>
         </CardContent>

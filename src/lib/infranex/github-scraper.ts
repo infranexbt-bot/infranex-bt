@@ -508,6 +508,11 @@ export function parseInfraStack(text: string): InfraStack | null {
     const t = line.trim();
     if (/^\s*\[/.test(t) || /\]\(#/.test(t)) continue;
     if (!netHit(t)) continue;
+    // AUDIT-FIX (mechanics negative control) — a hardware spec line that
+    // merely mentions "a static IP" among VRAM/GPU requirements ("Requires
+    // 24GB VRAM GPU and a static IP") is NOT a documented networking rule.
+    // Only count such lines when they carry real firewall/port-range phrasing.
+    if (!netPreferred(t) && /\b(?:vram|gpu)\b/i.test(t)) continue;
     if (netPreferred(t)) {
       networkRule = { quote: t.replace(/[#*`>]/g, "").slice(0, 220) };
       break;

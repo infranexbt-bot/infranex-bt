@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { fetchLiveSnapshot } from "../chain";
-import { subnets as curatedSubnets } from "../data";
+import { curatedGithubUrl } from "../data";
 import { fetchJudgeInputs, extractJudgeProfile } from "./extract";
 import { buildCohort } from "./cohort";
 import { simulateAgainstProfile } from "./simulate";
@@ -20,26 +20,23 @@ interface MemProfile {
 
 const memCache = new Map<number, MemProfile>();
 
-/** Resolve the repo URL for a subnet: chain identity first, curated fallback. */
+/** Resolve the repo URL for a subnet: chain identity first, curated seed fallback. */
 async function resolveRepoUrl(netuid: number): Promise<{ url: string | null; fromChain: boolean }> {
   try {
     const snap = await fetchLiveSnapshot();
     const live = snap.subnets.find((s) => s.netuid === netuid);
     if (live?.identityGithub) return { url: live.identityGithub, fromChain: true };
   } catch {
-    // chain unavailable — fall through to curated
+    // chain unavailable — fall through to the curated seed
   }
-  const curated = curatedSubnets.find((s) => s.netuid === netuid);
-  return { url: curated?.githubUrl ?? null, fromChain: false };
+  return { url: curatedGithubUrl(netuid), fromChain: false };
 }
 
 function subnetNameFor(netuid: number): string {
-  return (
-    curatedSubnets.find((s) => s.netuid === netuid)?.name ?? `Subnet ${netuid}`
-  );
+  return `Subnet ${netuid}`;
 }
 
-/** Best-known display name for a subnet (chain identity → curated). */
+/** Best-known display name for a subnet (chain identity → honest placeholder). */
 export async function resolveSubnetName(netuid: number): Promise<string> {
   try {
     const snap = await fetchLiveSnapshot();

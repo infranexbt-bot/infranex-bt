@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireActiveUser } from "@/lib/auth-admin";
 import { runSimulation } from "@/lib/infranex/judge/service";
 import type { MinerSpec } from "@/lib/infranex/judge/types";
 
@@ -19,6 +20,11 @@ function isMinerSpec(s: unknown): s is MinerSpec {
 
 // POST /api/judge/simulate { netuid, spec } — mock-validator run
 export async function POST(req: NextRequest) {
+  // SEC-AUDIT-1: compute endpoint — require an active operator.
+  const gate = await requireActiveUser(req);
+  if ("error" in gate) {
+    return NextResponse.json({ error: gate.error }, { status: gate.status });
+  }
   try {
     const body = (await req.json()) as { netuid?: number; spec?: unknown };
     const netuid = Number(body.netuid);

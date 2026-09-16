@@ -8,8 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { SubnetCard } from "@/components/cards/subnet-card";
 import { SubnetEditDialog } from "@/components/subnets/subnet-edit-dialog";
 import { SubnetRequirementsDialog } from "@/components/subnets/subnet-requirements-dialog";
-import { subnets as curatedSubnets, opportunities as curatedOpportunities } from "@/lib/infranex/data";
-import { useNetwork, mergeSubnets } from "@/lib/infranex/use-network";
+import { useNetwork, mergeSubnets, mergeOpportunities } from "@/lib/infranex/use-network";
 import { useSubnetOverrides, useSyncAllSubnets } from "@/lib/infranex/use-subnet-overrides";
 import { useToast } from "@/hooks/use-toast";
 import { Search, RefreshCw, Network, Info, Github, CheckCircle2, AlertTriangle } from "lucide-react";
@@ -18,7 +17,7 @@ import type { Subnet } from "@/lib/infranex/types";
 
 export function SubnetsView() {
   const [search, setSearch] = useState("");
-  const [activeOnly, setActiveOnly] = useState<"all" | "active" | "open">("all");
+  const [activeOnly, setActiveOnly] = useState<"all" | "active">("all");
   const [editSubnet, setEditSubnet] = useState<Subnet | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [reqSubnet, setReqSubnet] = useState<Subnet | null>(null);
@@ -31,11 +30,16 @@ export function SubnetsView() {
 
   const subnets = mergeSubnets(snap, overrides);
 
+  // DATA-AUDIT-1 — card scores/ranks come from the LIVE Miner's Ledger run
+  // over the current snapshot (the old static fabricated scores are gone).
+  // With no snapshot yet there is no honest score to badge.
   const scoreByNetuid = useMemo(() => {
     const map = new Map<number, { score: number; rank: number }>();
-    curatedOpportunities.forEach((o) => map.set(o.netuid, { score: o.score, rank: o.rank }));
+    for (const o of mergeOpportunities(snap, undefined, overrides)) {
+      map.set(o.netuid, { score: o.score, rank: o.rank });
+    }
     return map;
-  }, []);
+  }, [snap, overrides]);
 
   const filtered = useMemo(() => {
     let r = subnets;
@@ -51,7 +55,9 @@ export function SubnetsView() {
       );
     }
     if (activeOnly === "active") r = r.filter((s) => s.status === "active");
-    if (activeOnly === "open") r = r.filter((s) => s.registrationOpen);
+    // DATA-AUDIT-1: the "registration open" filter is gone — the chain scan
+    // has no registration-open signal, so the old fabricated flags were
+    // removed instead of being presented as data.
     return r;
   }, [search, activeOnly, subnets]);
 
@@ -92,7 +98,6 @@ export function SubnetsView() {
   }, [overrides, syncMut.isPending]);
 
   const overrideCount = overrides?.size ?? 0;
-  const githubSubnetCount = curatedSubnets.filter((s) => s.githubUrl).length;
 
   return (
     <div className="space-y-6">
@@ -104,8 +109,8 @@ export function SubnetsView() {
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {snap?.totalSubnets
-              ? `${snap.totalSubnets} subnets on the live Finney chain — ${curatedSubnets.length} tracked in detail.`
-              : `All Bittensor subnets tracked by the platform — ${curatedSubnets.length} on the Finney chain.`}
+              ? `${snap.totalSubnets} subnets on the live Finney chain — scores and ranks are computed live from chain data.`
+              : "All Bittensor subnets on the Finney chain — waiting for the first live chain scan."}
             {overrideCount > 0 && ` · ${overrideCount} with user overrides`}
           </p>
         </div>
@@ -148,11 +153,7 @@ export function SubnetsView() {
           </Badge>
           <Badge variant="outline" className="border-primary/30 text-[10px] text-primary">
             <Github className="mr-1 h-3 w-3" />
-            GitHub ({githubSubnetCount} repos)
-          </Badge>
-          <Badge variant="outline" className="text-[10px] text-muted-foreground">
-            <span className="mr-1 h-1.5 w-1.5 rounded-full bg-muted-foreground" />
-            Curated (default)
+            GitHub (scraped repos)
           </Badge>
           {syncMut.isPending && (
             <Badge variant="outline" className="text-[10px] text-primary">
@@ -185,7 +186,7 @@ export function SubnetsView() {
             />
           </div>
           <div className="flex gap-2">
-            {(["all", "active", "open"] as const).map((k) => (
+            {(["all", "active"] as const).map((k) => (
               <Button
                 key={k}
                 variant={activeOnly === k ? "default" : "outline"}
@@ -193,7 +194,7 @@ export function SubnetsView() {
                 onClick={() => setActiveOnly(k)}
                 className="capitalize"
               >
-                {k === "open" ? "Registration open" : k}
+                {k}
               </Button>
             ))}
           </div>

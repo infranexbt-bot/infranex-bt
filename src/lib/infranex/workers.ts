@@ -2,7 +2,7 @@ import { db } from "@/lib/db";
 import { fetchLiveSnapshot } from "./chain";
 import type { LiveNetworkSnapshot } from "./chain";
 import { scrapeGithubMetadata } from "./github-scraper";
-import { subnets } from "./data";
+import { curatedSubnetSeeds } from "./data";
 import { runTriggerPass } from "./triggers";
 import { runUidDefensePass } from "./uid-defense";
 import { runDevopsPass } from "./devops-monitor";
@@ -430,12 +430,12 @@ async function runGithubWorker(): Promise<WorkerRunResult> {
   const workerName = "github-analyzer";
   let tasksProcessed = 0;
   try {
-    // Universe: curated catalog ∪ existing overrides ∪ live chain identity
-    // repos — so requirements coverage spans ALL subnets, not just the 16
-    // curated ones (raw.githubusercontent has no API quota; hourly is safe).
+    // Universe: curated seed repos ∪ existing overrides ∪ live chain identity
+    // repos — so requirements coverage spans ALL subnets (raw.githubusercontent
+    // has no API quota; hourly is safe).
     const seen = new Map<number, string>();
-    for (const s of subnets) {
-      if (s.githubUrl) seen.set(s.netuid, s.githubUrl);
+    for (const seed of curatedSubnetSeeds) {
+      seen.set(seed.netuid, seed.githubUrl);
     }
     const existing = await db.subnetOverride.findMany();
     for (const o of existing) {

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireActiveUser } from "@/lib/auth-admin";
 import { db } from "@/lib/db";
-import { subnets } from "@/lib/infranex/data";
+import { curatedSubnetSeeds } from "@/lib/infranex/data";
 import { scrapeGithubMetadata } from "@/lib/infranex/github-scraper";
 
 export const dynamic = "force-dynamic";
@@ -33,10 +33,34 @@ export async function POST(req: NextRequest) {
   const url = new URL(req.url);
   const force = url.searchParams.get("force") === "true";
 
-  // Get subnets with GitHub URLs
-  const toSync = subnets.filter((s) => s.githubUrl);
+  // Get subnets with GitHub URLs (override first, then the curated seed).
+  // DATA-AUDIT-1: the sync universe is repo SEEDS — no fabricated names.
   const existing = await db.subnetOverride.findMany();
   const existingNetuids = new Set(existing.map((o) => o.netuid));
+  const existingByUrl = new Map(existing.map((o) => [o.netuid, o]));
+
+  interface SyncTarget {
+    netuid: number;
+    name: string;
+    githubUrl: string;
+  }
+  const toSync: SyncTarget[] = [];
+  const seenNetuids = new Set<number>();
+  for (const seed of curatedSubnetSeeds) {
+    const ovr = existingByUrl.get(seed.netuid);
+    toSync.push({
+      netuid: seed.netuid,
+      name: ovr?.name ?? `Subnet ${seed.netuid}`,
+      githubUrl: ovr?.githubUrl ?? seed.githubUrl,
+    });
+    seenNetuids.add(seed.netuid);
+  }
+  for (const o of existing) {
+    if (o.githubUrl && !seenNetuids.has(o.netuid)) {
+      toSync.push({ netuid: o.netuid, name: o.name ?? `Subnet ${o.netuid}`, githubUrl: o.githubUrl });
+      seenNetuids.add(o.netuid);
+    }
+  }
 
   const results: SyncResult[] = [];
 

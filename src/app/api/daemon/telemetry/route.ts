@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
   const sig = req.headers.get("x-infranex-signature") ?? "";
   const deploymentId = req.headers.get("x-infranex-deployment") ?? "";
 
-  const v = await getDaemonForRequest(deploymentId, ts, raw, sig);
+  const v = await getDaemonForRequest(deploymentId, ts, req.nextUrl.pathname, raw, sig);
   if (!v.ok) {
     return NextResponse.json({ error: v.error ?? "unauthorized" }, { status: 401 });
   }

@@ -1,4 +1,7 @@
-import { opportunities, subnets } from "./data";
+import { db } from "@/lib/db";
+import { loadProfitabilityConfig } from "./trust";
+import { fetchLiveSnapshot } from "./chain";
+import { mergeOpportunities, type LiveOpportunity } from "./live-merge";
 import { fetchAllLiveOffers } from "./providers";
 import type { GPUOffer } from "./types";
 import type { MonitoredDeployment, MonitoringOverview } from "./monitoring";
@@ -126,11 +129,68 @@ function computeHealthScore(
   return Math.max(0, Math.min(100, score));
 }
 
+/** Load the SubnetOverride table as the merge map (same shape the client builds). */
+async function loadOverrides(): Promise<Map<number, Record<string, unknown>>> {
+  const map = new Map<number, Record<string, unknown>>();
+  try {
+    const rows = await db.subnetOverride.findMany();
+    for (const o of rows) {
+      const entry: Record<string, unknown> = {};
+      if (o.name) entry.name = o.name;
+      if (o.description) entry.description = o.description;
+      if (o.category) entry.category = o.category;
+      if (o.minVramGb != null) entry.minVramGb = o.minVramGb;
+      if (o.recommendedGpu) entry.recommendedGpu = o.recommendedGpu;
+      if (o.gpuCount != null) entry.gpuCount = o.gpuCount;
+      if (o.hostingRequirements) {
+        try {
+          entry.hosting = JSON.parse(o.hostingRequirements);
+        } catch {
+          // corrupt JSON — ignore, classifier fallback applies
+        }
+      }
+      if (o.mechanicsJson) {
+        try {
+          entry.mechanics = JSON.parse(o.mechanicsJson);
+        } catch {
+          // corrupt JSON — ignore, scoring falls back to the heuristic
+        }
+      }
+      if (o.requirementsSource) entry.requirementsSource = o.requirementsSource;
+      if (o.githubUrl) entry.githubUrl = o.githubUrl;
+      if (o.website) entry.website = o.website;
+      map.set(o.netuid, entry);
+    }
+  } catch {
+    // DB hiccup — merge proceeds without overrides (chain data only)
+  }
+  return map;
+}
+
+// DATA-AUDIT-1 — subnet alternatives come ONLY from the LIVE chain snapshot,
+// scored by the same Miner's Ledger engine the Opportunities view uses. With
+// no live snapshot there is nothing honest to recommend, so alternatives are
+// empty (the old fabricated-catalog pool is gone).
+async function computeLiveOpportunities(): Promise<LiveOpportunity[]> {
+  try {
+    const [snap, overrides, profConfig] = await Promise.all([
+      fetchLiveSnapshot(),
+      loadOverrides(),
+      loadProfitabilityConfig(),
+    ]);
+    if (!snap || snap.source === "error" || snap.subnets.length === 0) return [];
+    return mergeOpportunities(snap, profConfig, overrides);
+  } catch {
+    return [];
+  }
+}
+
 function findAlternativeSubnets(
+  liveOpps: LiveOpportunity[],
   currentNetuid: number,
   currentScore: number
 ): AlternativeSubnet[] {
-  return opportunities
+  return liveOpps
     .filter((o) => o.netuid !== currentNetuid && o.score > currentScore)
     .sort((a, b) => b.score - a.score)
     .slice(0, 3)
@@ -175,12 +235,16 @@ function findAlternativeGpus(
 
 function buildRecommendation(
   dep: MonitoredDeployment,
-  liveOffers: GPUOffer[]
+  liveOffers: GPUOffer[],
+  liveOpps: LiveOpportunity[]
 ): DeploymentRecommendation {
   const score = computeHealthScore(dep);
-  const currentSubnet = subnets.find((s) => s.netuid === dep.netuid);
-  const currentOpp = opportunities.find((o) => o.netuid === dep.netuid);
+  // DATA-AUDIT-1: subnet score comes from the live Miner's Ledger row (when
+  // the snapshot is present); without one we stay neutral instead of
+  // inventing a baseline.
+  const currentOpp = liveOpps.find((o) => o.netuid === dep.netuid);
   const subnetScore = currentOpp?.score ?? 50;
+  const minVramForGpuSwitch = currentOpp?.minVramGb ?? 24;
 
   let type: RecommendationType;
   let headline: string;
@@ -292,11 +356,11 @@ function buildRecommendation(
   // Find alternatives for switch recommendations
   const alternatives = type === "switch" || type === "optimize"
     ? {
-        subnets: findAlternativeSubnets(dep.netuid, subnetScore),
+        subnets: findAlternativeSubnets(liveOpps, dep.netuid, subnetScore),
         gpus: findAlternativeGpus(
           dep.gpuModel,
           dep.monitoring.pod.costPerHr,
-          currentSubnet?.minVramGb ?? 24,
+          minVramForGpuSwitch,
           liveOffers
         ),
       }
@@ -351,7 +415,10 @@ export async function computeOptimizations(
     liveOffers = [];
   }
 
-  const recommendations = startedDeps.map((d) => buildRecommendation(d, liveOffers));
+  // DATA-AUDIT-1 — subnet alternatives come from the live snapshot only.
+  const liveOpps = await computeLiveOpportunities();
+
+  const recommendations = startedDeps.map((d) => buildRecommendation(d, liveOffers, liveOpps));
 
   const keep = recommendations.filter((r) => r.type === "keep").length;
   const optimize = recommendations.filter((r) => r.type === "optimize").length;

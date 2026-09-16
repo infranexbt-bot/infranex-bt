@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireActiveUser } from "@/lib/auth-admin";
 import { buildJudgeProfile, resolveSubnetName } from "@/lib/infranex/judge/service";
 
 export const dynamic = "force-dynamic";
@@ -6,6 +7,11 @@ export const maxDuration = 120;
 
 // POST /api/judge/sync { netuid } — (re)build a subnet's validator profile
 export async function POST(req: NextRequest) {
+  // SEC-AUDIT-1: (re)builds persisted profiles — require an active operator.
+  const gate = await requireActiveUser(req);
+  if ("error" in gate) {
+    return NextResponse.json({ error: gate.error }, { status: gate.status });
+  }
   try {
     const body = (await req.json()) as { netuid?: number };
     const netuid = Number(body.netuid);

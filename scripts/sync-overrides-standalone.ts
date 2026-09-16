@@ -5,16 +5,15 @@
  */
 
 import { PrismaClient } from "@prisma/client";
-import { subnets } from "../src/lib/infranex/data";
+import { curatedSubnetSeeds } from "../src/lib/infranex/data";
 import { scrapeGithubMetadata } from "../src/lib/infranex/github-scraper";
 
 const db = new PrismaClient();
 
 // Same universe as runGithubWorker: curated ∪ existing overrides ∪ chain identity
 const seen = new Map<number, string>();
-for (const s of subnets) {
-  if ((s as { githubUrl?: string | null }).githubUrl)
-    seen.set(s.netuid, (s as { githubUrl: string }).githubUrl);
+for (const seed of curatedSubnetSeeds) {
+  seen.set(seed.netuid, seed.githubUrl);
 }
 const existing = await db.subnetOverride.findMany();
 for (const o of existing) {
@@ -34,9 +33,6 @@ if (snapRow?.subnetsJson) {
 const toSync = [...seen.entries()].map(([netuid, githubUrl]) => ({ netuid, githubUrl }));
 // Best-effort name map for derived-mechanics labels (curated > override > snapshot).
 const nameByNetuid = new Map<number, string>();
-for (const s of subnets) {
-  if (s.name) nameByNetuid.set(s.netuid, s.name);
-}
 for (const o of existing) {
   if (o.name && !nameByNetuid.has(o.netuid)) nameByNetuid.set(o.netuid, o.name);
 }

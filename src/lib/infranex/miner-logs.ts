@@ -6,7 +6,8 @@ import { db } from "@/lib/db";
  *
  * Two callers:
  *   - /api/daemon/telemetry: real Node Daemon v3 tails report new lines.
- *   - Engine regression suites: simulateMockLogs is a TEST-ONLY harness that
+ *   - (DATA-AUDIT-1) the old simulateMockLogs test harness — which inserted
+ *     fabricated miner chatter into the DB — was removed.
  *     populates log rows for in-process fixture deployments.
  *
  * Dedupe: daemon restarts re-read the file tail, so the same line can arrive
@@ -108,38 +109,4 @@ export async function ingestMinerLogs(deploymentId: string, lines: RawLogLine[])
     await db.minerLog.deleteMany({ where: { id: { in: stale.map((s) => s.id) } } });
   }
   return fresh.length;
-}
-
-// ---------------------------------------------------------------------------
-// Mock simulation — realistic miner chatter for "mock"-tagged deployments.
-// Mostly INFO/SUCCESS with the occasional soft WARN (a simulated fleet is
-// never sick — that rule is enforced by the health scorer, and log WARNs do
-// not feed findings).
-// ---------------------------------------------------------------------------
-
-const MOCK_LOG_POOL: { severity: ParsedLogLine["severity"]; message: (n: number) => string }[] = [
-  { severity: "info", message: (n) => `syncing metagraph — block ${4_200_000 + (n % 5_000)}` },
-  { severity: "info", message: (n) => `forward pass complete in ${140 + (n % 220)}ms` },
-  { severity: "success", message: (n) => `served ${18 + (n % 40)} queries in the last window` },
-  { severity: "info", message: () => "axon endpoint healthy — priority medium" },
-  { severity: "success", message: (n) => `batch ${n % 10_000} scored — priority updated` },
-  { severity: "info", message: (n) => `validator handshake ok (${2 + (n % 4)} peers)` },
-  { severity: "warning", message: () => "slow query from validator — retrying with backoff" },
-  { severity: "info", message: () => "weights loaded from cache" },
-  { severity: "success", message: (n) => `heartbeat ${n % 1_000_000} — all systems nominal` },
-  { severity: "info", message: (n) => `queue depth ${1 + (n % 6)} — healthy` },
-];
-
-/** Insert 1–2 simulated log lines for a mock deployment. Returns rows stored. */
-export async function simulateMockLogs(deploymentId: string): Promise<number> {
-  const n = Math.floor(Date.now() / 90_000); // deterministic-ish rotation per pass
-  const first = MOCK_LOG_POOL[n % MOCK_LOG_POOL.length];
-  const second = MOCK_LOG_POOL[(n * 7 + 3) % MOCK_LOG_POOL.length];
-  const lines: RawLogLine[] = [
-    { at: Date.now() / 1000, severity: first.severity, source: "miner", message: first.message(n) },
-  ];
-  if (n % 2 === 0) {
-    lines.push({ at: Date.now() / 1000 - 20, severity: second.severity, source: "miner", message: second.message(n + 13) });
-  }
-  return ingestMinerLogs(deploymentId, lines);
 }

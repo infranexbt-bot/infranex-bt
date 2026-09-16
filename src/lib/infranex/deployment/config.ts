@@ -75,51 +75,28 @@ export interface DeploymentConfig {
   };
 }
 
-// Map subnet categories to miner commands + default runtime versions.
-// NOTE: these are command/arg FALLBACKS only — the pod's docker image is no
-// longer a category placeholder (the old "bittensor/subnet:latest"-style
-// entries mostly don't exist on Docker Hub and would fail the pull).
+// Map subnet categories to miner CLI fallbacks + default runtime versions.
+// DATA-AUDIT-1 — the old invented per-category docker images
+// ("bittensor/subnet:latest"-style, none of which exist on Docker Hub) and
+// fabricated flags ("--neuron.model_name diffusion", "--neuron.compile") are
+// GONE. The pod image is the runpod/pytorch keep-alive family below; the
+// miner command is built from the repo's own parsed entrypoint; only the
+// generic CUDA device flag is ever appended.
 const SUBNET_TEMPLATES: Record<
   string,
-  { image: string; command: string; extraArgs: string[]; python: string; cuda: string }
+  { extraArgs: string[]; python: string; cuda: string }
 > = {
-  Inference: {
-    image: "bittensor/subnet:latest",
-    command: "python neurons/miner.py --no_auto_weights_update",
-    extraArgs: ["--neuron.device", "cuda", "--neuron.num_workers", "1"],
-    python: "3.10",
-    cuda: "12.1",
-  },
-  Vision: {
-    image: "bittensor/vision-subnet:latest",
-    command: "python neurons/miner.py --neuron.model_name diffusion",
-    extraArgs: ["--neuron.device", "cuda", "--neuron.batch_size", "4"],
-    python: "3.10",
-    cuda: "12.1",
-  },
-  Training: {
-    image: "bittensor/training-subnet:latest",
-    command: "python neurons/miner.py --neuron.compile",
-    extraArgs: ["--neuron.device", "cuda", "--neuron.world_size", "1"],
-    python: "3.10",
-    cuda: "12.2",
-  },
-  Data: {
-    image: "bittensor/data-subnet:latest",
-    command: "python neurons/miner.py",
-    extraArgs: ["--neuron.device", "cuda"],
-    python: "3.10",
-    cuda: "12.1",
-  },
-  default: {
-    image: "bittensor/bittensor:latest",
-    command: "python neurons/miner.py",
-    extraArgs: ["--neuron.device", "cuda"],
-    python: "3.10",
-    cuda: "12.1",
-  },
+  Inference: { extraArgs: ["--neuron.device", "cuda"], python: "3.10", cuda: "12.1" },
+  Vision: { extraArgs: ["--neuron.device", "cuda"], python: "3.10", cuda: "12.1" },
+  Training: { extraArgs: ["--neuron.device", "cuda"], python: "3.10", cuda: "12.2" },
+  Data: { extraArgs: ["--neuron.device", "cuda"], python: "3.10", cuda: "12.1" },
+  default: { extraArgs: ["--neuron.device", "cuda"], python: "3.10", cuda: "12.1" },
 };
 
+// DATA-AUDIT-1 (H4-class) — category revenue figures are a ROUGH PLANNING
+// GUESS, not measured data. They are only used when NO chain projection
+// exists (offline deploy), and the UI must render the "category-fallback"
+// revenueSource tag next to them.
 const CATEGORY_REVENUE_ESTIMATE: Record<string, number> = {
   Training: 3200,
   Vision: 2800,

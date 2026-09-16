@@ -105,7 +105,11 @@ export function OpportunitiesView({ onSelectOpportunity, onStartMining }: Opport
             Opportunities
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            All 129 Finney subnets scored with the Miner&apos;s Ledger — per-<span className="text-foreground/80">earning</span>-miner
+            {snap?.subnets?.length
+              ? `All ${snap.subnets.length} Finney subnets scored with the Miner's Ledger`
+              : "Finney subnets scored with the Miner's Ledger"}
+            {" "}
+            — per-<span className="text-foreground/80">earning</span>-miner
             revenue minus GPU + infra cost, seat safety (slot pressure, reward
             concentration, burn, immunity), alpha economics (24h trend,
             liquidity, slippage) and earning reality.
@@ -143,6 +147,20 @@ export function OpportunitiesView({ onSelectOpportunity, onStartMining }: Opport
           </Button>
         </div>
       </header>
+
+      {/* DATA-AUDIT-1 — stale/empty honesty notice (M1): no silent fake data */}
+      {snap && !snap.isLive && (
+        <div className="rounded-lg border border-amber-500/40 bg-amber-500/[0.06] px-4 py-2.5 text-xs text-amber-600">
+          Chain data is stale or unavailable right now — the ranking below is
+          computed from the last snapshot ({snap.fetchedAt ? new Date(snap.fetchedAt).toLocaleString() : "unknown time"}).
+          {opportunities.length === 0 && " No subnets are scored until a chain scan succeeds."}
+        </div>
+      )}
+      {snap?.isLive && opportunities.length === 0 && (
+        <div className="rounded-lg border border-border/60 bg-card/40 px-4 py-2.5 text-xs text-muted-foreground">
+          No subnets to score yet — the first chain scan is still running.
+        </div>
+      )}
 
       <div className="flex flex-wrap items-center gap-2">
         {tabs.map((t) => (

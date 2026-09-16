@@ -5,7 +5,6 @@
  * Run: bun scripts/retry-failed-scrapes.ts
  */
 import { PrismaClient } from "@prisma/client";
-import { subnets } from "../src/lib/infranex/data";
 import { scrapeGithubMetadata } from "../src/lib/infranex/github-scraper";
 
 const db = new PrismaClient();
@@ -20,7 +19,6 @@ const CANDIDATES: Array<{ netuid: number; githubUrl: string }> = [
 
 // Best-effort name map (curated > override > snapshot) — same as sync script.
 const nameByNetuid = new Map<number, string>();
-for (const s of subnets) if (s.name) nameByNetuid.set(s.netuid, s.name);
 for (const o of await db.subnetOverride.findMany()) {
   if (o.name && !nameByNetuid.has(o.netuid)) nameByNetuid.set(o.netuid, o.name);
 }

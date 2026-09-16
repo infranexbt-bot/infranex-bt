@@ -44,7 +44,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { assessSeatChance, formatBurnTao } from "@/lib/infranex/miner-score";
-import type { Subnet, MiningRequirements } from "@/lib/infranex/types";
+import type { Subnet } from "@/lib/infranex/types";
 import type { SubnetRequirementsProfile } from "@/lib/devops/subnet-requirements";
 
 interface SubnetRequirementsDialogProps {
@@ -295,7 +295,6 @@ function ErrorState({
   onRefresh: () => void;
   refreshing: boolean;
 }) {
-  const hasStatic = Boolean(subnet.miningRequirements);
   return (
     <div className="space-y-4">
       <div className="rounded-lg border border-amber-500/40 bg-amber-500/[0.06] p-4">
@@ -319,12 +318,14 @@ function ErrorState({
           </div>
         </div>
       </div>
-      {hasStatic ? <StaticRequirementsView req={subnet.miningRequirements!} subnet={subnet} /> : (
-        <p className="text-xs text-muted-foreground">
-          No curated baseline exists for this subnet either — retry in a moment (GitHub or the chain
-          snapshot may be temporarily unreachable).
-        </p>
-      )}
+      {/* DATA-AUDIT-1 — the old fabricated "curated baseline" fallback
+          (invented docker images, commands, VRAM numbers) is gone. When the
+          live profiler fails we say so instead of guessing. */}
+      <p className="text-xs text-muted-foreground">
+        No verified requirements are available for this subnet until the live
+        profiler succeeds — retry in a moment (GitHub or the chain snapshot may
+        be temporarily unreachable).
+      </p>
     </div>
   );
 }
@@ -609,57 +610,6 @@ const GPU_SOURCE_LABEL: Record<SubnetRequirementsProfile["gpuSource"], string> =
   "revenue-est": "revenue estimate",
   curated: "curated baseline",
 };
-
-// ---------------------------------------------------------------------------
-// Curated static fallback (only when the profiler fails on a curated subnet)
-// ---------------------------------------------------------------------------
-
-function StaticRequirementsView({ req, subnet }: { req: MiningRequirements; subnet: Subnet }) {
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <Chip>curated catalog baseline</Chip>
-        <span className="text-[10px] text-muted-foreground">not live-profiled — verify against the repo</span>
-      </div>
-      <Section icon={<Cpu className="h-4 w-4 text-primary" />} title="GPU Requirements">
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          <Spec label="Min VRAM" value={`${req.gpu.minVramGb} GB`} highlight={req.gpu.minVramGb >= 80} />
-          <Spec label="Recommended GPU" value={req.gpu.recommendedGpu} />
-          <Spec label="GPU Count" value={String(req.gpu.gpuCount)} />
-          <Spec label="Min CUDA Compute" value={req.gpu.minCudaComputeCapability} />
-          <Spec label="CUDA Version" value={req.runtime.cudaVersion} />
-          <Spec label="NVIDIA Runtime" value={req.runtime.nvidiaRuntimeRequired ? "Required" : "Optional"} />
-        </div>
-      </Section>
-      <Section icon={<Server className="h-4 w-4 text-primary" />} title="Hardware Requirements">
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <Spec label="Min CPU Cores" value={String(req.hardware.minCpuCores)} />
-          <Spec label="Min RAM" value={`${req.hardware.minRamGb} GB`} />
-          <Spec label="Recommended RAM" value={`${req.hardware.recommendedRamGb} GB`} />
-          <Spec label="Min Disk" value={`${req.hardware.minDiskGb} GB`} />
-        </div>
-      </Section>
-      <Section icon={<Terminal className="h-4 w-4 text-primary" />} title="Miner Command">
-        <pre className="overflow-x-auto rounded-md border bg-background/80 p-3 font-mono text-[11px] text-success custom-scroll">
-          {req.miner.command}
-        </pre>
-      </Section>
-      <Section icon={<Coins className="h-4 w-4 text-primary" />} title="Registration Requirements">
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <Spec label="Min Stake" value={`${req.registration.minStakeTao} TAO`} mono />
-          <Spec label="Reg. Cost" value={`${req.registration.registrationCostTao} TAO`} mono />
-          <Spec label="Tempo" value={String(req.registration.tempo)} mono />
-          <Spec label="Max Reg/Block" value={String(req.registration.maxRegistrationsPerBlock)} />
-        </div>
-      </Section>
-      <p className="text-xs text-muted-foreground">
-        To mine <strong>{subnet.name}</strong> (α{subnet.netuid}), you need a GPU with{" "}
-        <span className="font-semibold text-primary">{req.gpu.minVramGb}GB VRAM</span> ({req.gpu.recommendedGpu}),
-        running <span className="mono">Python {req.runtime.pythonVersion}</span> + <span className="mono">CUDA {req.runtime.cudaVersion}</span>.
-      </p>
-    </div>
-  );
-}
 
 // ---------------------------------------------------------------------------
 // Shared bits

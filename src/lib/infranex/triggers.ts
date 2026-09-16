@@ -340,7 +340,10 @@ export async function actOnTrigger(id: string): Promise<{ event: TriggerEventDTO
     const { applyRuntimeOptimization } = await import("./miner-mindset");
     try {
       const r = await applyRuntimeOptimization(row.deploymentId, { recipeIds });
-      actionNote = `Applied to GPU — ${r.applied.length ? r.applied.join("; ") : "no recipe deltas"}. ${r.note}`;
+      // DATA-AUDIT-1 (H2) — honest scope: this records a PROPOSAL's env delta
+      // (platform config + optional daemon export), not an executed
+      // serving-stack switch.
+      actionNote = `Recorded optimization proposal env — ${r.applied.length ? r.applied.join("; ") : "no recipe deltas"}. ${r.note}`;
     } catch (e) {
       actionNote = `GPU runtime apply FAILED: ${
         e instanceof Error ? e.message : "unknown error"

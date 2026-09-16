@@ -3,16 +3,15 @@
 // ADMINPANEL-1 — credential management, visible ONLY to the admin user.
 // The sidebar entry is gated on the session role, the view re-checks it,
 // and every /api/admin/users call enforces role === "admin" server-side.
-// Viewing codes is possible because they are stored AES-256-GCM encrypted
-// (codeEnc); verification still uses the one-way scrypt hash.
+// SEC-AUDIT-1: codes are NOT displayed here any more — the API never
+// bulk-exports plaintext credentials. Rotation = Regenerate (the new code is
+// shown ONCE in the response). Verification stays one-way (scrypt).
 
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Check,
   Copy,
-  Eye,
-  EyeOff,
   KeyRound,
   Loader2,
   RefreshCcw,
@@ -30,7 +29,7 @@ interface AdminUser {
   label: string;
   role: string;
   active: boolean;
-  code: string | null; // null → legacy row without an encrypted copy
+  hasCode: boolean; // SEC-AUDIT-1: presence only — codes are never listed
   lastLoginAt: string | null;
   createdAt: string;
 }
@@ -54,7 +53,6 @@ const fmtDate = (iso: string | null) =>
 export function AdminView() {
   const { toast } = useToast();
   const qc = useQueryClient();
-  const [revealed, setRevealed] = useState<Record<string, boolean>>({});
   const [copied, setCopied] = useState<string | null>(null);
   const [fresh, setFresh] = useState<RegenerateState | null>(null);
 
@@ -84,9 +82,8 @@ export function AdminView() {
     },
     onSuccess: (data) => {
       setFresh({ userId: data.userId, code: data.code });
-      setRevealed((r) => ({ ...r, [data.userId]: true }));
       invalidate();
-      toast({ title: `${data.userId} has a new access code`, description: "Copy it now — both credential files were updated." });
+      toast({ title: `${data.userId} has a new access code`, description: "Copy it now — it is shown only once." });
     },
     onError: (e: Error) =>
       toast({ title: "Regeneration failed", description: e.message, variant: "destructive" }),
@@ -139,10 +136,11 @@ export function AdminView() {
             <div>
               <h3 className="text-display text-lg font-bold leading-tight">Access control</h3>
               <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-                View current access codes, issue new ones, or disable an operator. Only the
-                admin account can open this panel — the server enforces the role on every
-                request. Verification stays one-way (scrypt); display is possible because the
-                code is also stored AES-256-GCM encrypted.
+                Issue new access codes or disable an operator. Only the admin account
+                can open this panel — the server enforces the role on every request.
+                Codes are never listed over the API: regenerate issues a fresh code that
+                is shown once. Existing codes live only server-side in a 0600
+                git-ignored mirror file.
               </p>
             </div>
           </div>
@@ -188,24 +186,6 @@ export function AdminView() {
             <span className="text-display text-sm font-semibold">Operator credentials</span>
             <Badge variant="outline" className="text-[10px]">{users.length}</Badge>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 gap-1.5 text-xs"
-            onClick={() => {
-              const all = users.every((u) => revealed[u.userId]);
-              const next: Record<string, boolean> = {};
-              for (const u of users) next[u.userId] = !all;
-              setRevealed(next);
-            }}
-          >
-            {users.length > 0 && users.every((u) => revealed[u.userId]) ? (
-              <EyeOff className="h-3.5 w-3.5" />
-            ) : (
-              <Eye className="h-3.5 w-3.5" />
-            )}
-            {users.length > 0 && users.every((u) => revealed[u.userId]) ? "Hide all codes" : "Reveal all codes"}
-          </Button>
         </div>
 
         {usersQ.isLoading ? (
@@ -231,7 +211,6 @@ export function AdminView() {
               </thead>
               <tbody>
                 {users.map((u) => {
-                  const shown = revealed[u.userId];
                   return (
                     <tr key={u.userId} className="border-b border-border/40 last:border-0 hover:bg-muted/30">
                       <td className="px-5 py-3.5">
@@ -246,33 +225,13 @@ export function AdminView() {
                         </div>
                       </td>
                       <td className="px-4 py-3.5">
-                        {u.code ? (
-                          <div className="flex items-center gap-1.5">
-                            <code className="mono rounded-md border border-border/50 bg-background/50 px-2 py-1 text-[12px] tracking-wider">
-                              {shown ? u.code : "••••-••••-••••-••••"}
-                            </code>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7"
-                              onClick={() => setRevealed((r) => ({ ...r, [u.userId]: !shown }))}
-                              aria-label={shown ? "Hide code" : "Reveal code"}
-                            >
-                              {shown ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7"
-                              onClick={() => copy(u.code!, u.userId)}
-                              aria-label="Copy code"
-                            >
-                              {copied === u.userId ? <Check className="h-3.5 w-3.5 text-success" /> : <Copy className="h-3.5 w-3.5" />}
-                            </Button>
-                          </div>
+                        {u.hasCode ? (
+                          <span className="text-xs text-muted-foreground">
+                            stored — hidden (regenerate to rotate; the new code is shown once)
+                          </span>
                         ) : (
-                          <span className="text-xs text-muted-foreground/70">
-                            hidden (legacy) — regenerate to restore
+                          <span className="text-xs text-amber-600">
+                            not set — regenerate to issue one
                           </span>
                         )}
                       </td>
@@ -345,8 +304,8 @@ export function AdminView() {
       </div>
 
       <p className="text-xs text-muted-foreground/70">
-        Codes are mirrored to <span className="mono">scripts/users.local.json</span> and a
-        wipe-proof copy under <span className="mono">/tmp/my-project/</span> on every change.
+        Access codes are mirrored server-side to <span className="mono">scripts/users.local.json</span>
+        (0600, git-ignored) on every change — they are never listed through the API.
         Disabled operators cannot sign in until re-enabled.
       </p>
     </div>

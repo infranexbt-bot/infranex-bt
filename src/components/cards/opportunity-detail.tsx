@@ -116,7 +116,11 @@ export function OpportunityDetailDialog({
                 <span className="tabular font-semibold">{formatCurrency(prof.expectedRevenueUsd)}</span>
               </div>
               <div className="flex items-center justify-between pl-4 text-muted-foreground">
-                <span>− GPU rental{prof.gpuRentalUsd === 0 && " (none)"}</span>
+                {/* DATA-AUDIT-1 (H4) — the rate behind this line is a modeled
+                    market estimate, not a live provider quote. */}
+                <span title="Modeled market rate (survey estimate), not a live provider quote">
+                  − GPU rental (modeled rate){prof.gpuRentalUsd === 0 && " (none)"}
+                </span>
                 <span className="tabular">−{formatCurrency(prof.gpuRentalUsd)}</span>
               </div>
               <div className="flex items-center justify-between pl-4 text-muted-foreground">

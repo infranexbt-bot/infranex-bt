@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { scrapeGithubMetadata } from "@/lib/infranex/github-scraper";
-import { subnets } from "@/lib/infranex/data";
+import { curatedGithubUrl } from "@/lib/infranex/data";
+import { fetchLiveSnapshot } from "@/lib/infranex/chain";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 30;
@@ -15,15 +16,23 @@ export async function GET(
   const { netuid } = await params;
   const n = parseInt(netuid, 10);
 
-  // Find the curated subnet
-  const curated = subnets.find((s) => s.netuid === n);
-  if (!curated) {
-    return NextResponse.json({ error: "Subnet not found" }, { status: 404 });
+  // DATA-AUDIT-1 — identity comes from the chain registry (or an honest
+  // placeholder), never from the removed fabricated catalog.
+  let chainName: string | null = null;
+  let chainDescription: string | null = null;
+  try {
+    const snap = await fetchLiveSnapshot();
+    const live = snap.subnets.find((s) => s.netuid === n);
+    if (live?.name) chainName = live.name;
+    if (live?.identityDescription) chainDescription = live.identityDescription;
+  } catch {
+    // chain unavailable — placeholders apply
   }
+  const fallbackName = chainName ?? `Subnet ${n}`;
 
-  // Check for user override (may have a githubUrl)
+  // Check for user override (may have a githubUrl), then the curated seed.
   const override = await db.subnetOverride.findUnique({ where: { netuid: n } });
-  const githubUrl = override?.githubUrl ?? curated.githubUrl ?? null;
+  const seedUrl = override?.githubUrl ?? curatedGithubUrl(n);
 
   const result: {
     netuid: number;
@@ -34,11 +43,11 @@ export async function GET(
   } = {
     netuid: n,
     curated: {
-      name: curated.name,
-      description: curated.description,
-      minVramGb: curated.minVramGb,
-      recommendedGpu: curated.recommendedGpu,
-      githubUrl,
+      name: fallbackName,
+      description: chainDescription ?? "",
+      minVramGb: (override?.minVramGb as number) ?? 0,
+      recommendedGpu: override?.recommendedGpu ?? "",
+      githubUrl: seedUrl,
     },
     override,
     github: null,
@@ -46,8 +55,8 @@ export async function GET(
   };
 
   // 1. Scrape GitHub if we have a URL
-  if (githubUrl) {
-    result.github = await scrapeGithubMetadata(githubUrl);
+  if (seedUrl) {
+    result.github = await scrapeGithubMetadata(seedUrl);
   }
 
   // 2. Probe common subnet metadata API endpoints

@@ -107,12 +107,19 @@ export async function verifySessionToken(token: string | undefined | null): Prom
   }
 }
 
-/** Cookie attributes for the session (httpOnly, 30d, SameSite=Lax). */
-export function sessionCookieOptions(maxAge: number = SESSION_TTL_SECONDS) {
+/** Cookie attributes for the session (httpOnly, 7d, SameSite=Lax).
+ *  SEC-AUDIT-1: `secure` is opted in per-request — the login route passes
+ *  true when the request arrived over https (x-forwarded-proto, set by the
+ *  front proxy). Over plain http the flag stays off so the preview proxy
+ *  does not silently drop the cookie; the platform terminates TLS upstream. */
+export function sessionCookieOptions(
+  maxAge: number = SESSION_TTL_SECONDS,
+  secure: boolean = false
+) {
   return {
     httpOnly: true,
     sameSite: "lax" as const,
-    secure: false, // served over the platform's http proxy; do not drop the cookie
+    secure,
     path: "/",
     maxAge,
   };

@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { commitFinding } from "./triggers-core";
-import { subnets } from "./data";
+import { curatedGithubUrl } from "./data";
 
 /**
  * TIER3 — Git intelligence (upstream watcher).
@@ -24,7 +24,7 @@ import { subnets } from "./data";
  *
  * Repo resolution order per deployment:
  *   requirementsJsonSnapshot.profile.repoUrl → SubnetOverride.githubUrl →
- *   curated subnets githubUrl (data.ts).
+ *   curated seed githubUrl (data.ts).
  */
 
 export interface UpstreamLatest {
@@ -111,8 +111,7 @@ export async function resolveRepoUrl(netuid: number, requirementsSnapshot: strin
   }
   const override = await db.subnetOverride.findUnique({ where: { netuid } });
   if (override?.githubUrl) return override.githubUrl;
-  const curated = subnets.find((s) => s.netuid === netuid);
-  return curated?.githubUrl ?? null;
+  return curatedGithubUrl(netuid);
 }
 
 function summarizeChange(prev: { tag: string | null; sha: string | null }, next: UpstreamLatest): string {

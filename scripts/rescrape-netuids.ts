@@ -3,7 +3,6 @@
  * scraped fields incl. infraJson). Run: bun scripts/rescrape-netuids.ts 11 26
  */
 import { PrismaClient } from "@prisma/client";
-import { subnets } from "../src/lib/infranex/data";
 import { scrapeGithubMetadata } from "../src/lib/infranex/github-scraper";
 
 const db = new PrismaClient();
@@ -14,7 +13,6 @@ if (!targets.length) {
 }
 
 const nameByNetuid = new Map<number, string>();
-for (const s of subnets) if (s.name) nameByNetuid.set(s.netuid, s.name);
 for (const o of await db.subnetOverride.findMany()) {
   if (o.name && !nameByNetuid.has(o.netuid)) nameByNetuid.set(o.netuid, o.name);
 }

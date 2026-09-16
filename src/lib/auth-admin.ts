@@ -6,12 +6,15 @@
 // privilege gates for sensitive routes: on top of signature + expiry they
 // re-check the AppUser row, so an admin's `setActive(false)` revokes a live
 // token on the very next gated call instead of after the cookie's full TTL.
-// (Token role is also re-checked here; the payload's role is trusted only
-// up to this DB round-trip.)
+// The role is ALSO re-read from the DB row (SEC-AUDIT-1): a demoted admin
+// loses admin routes immediately, not after the 7-day cookie TTL.
 //
-// Fail-open policy: if the AppUser row cannot be read (DB hiccup), the gate
-// falls back to the proxy-verified identity rather than locking operators
-// out — the user row is only deleted via the same admin panel that disables.
+// FAIL-CLOSED policy (SEC-AUDIT-1): if the AppUser row cannot be read or no
+// longer exists, the gate DENIES. A DB hiccup briefly locks operators out —
+// acceptable, because every data surface behind this gate is DB-backed
+// anyway; the previous fail-open variant let a deleted/disabled user keep
+// working whenever the read failed, which is exactly what this gate exists
+// to prevent.
 // ---------------------------------------------------------------------------
 
 import type { NextRequest } from "next/server";
@@ -20,21 +23,30 @@ import { db } from "@/lib/db";
 
 export type ActiveGate =
   | { session: SessionPayload }
-  | { error: string; status: 401 | 403 };
+  | { error: string; status: 401 | 403 | 503 };
 
 async function gate(req: NextRequest, requireAdminRole: boolean): Promise<ActiveGate> {
   const session = await verifySessionToken(req.cookies.get(SESSION_COOKIE)?.value);
   if (!session) return { error: "Not signed in", status: 401 };
 
-  // Revocation check — a deactivated account's token is dead immediately.
+  // Revocation + role check — a deactivated or deleted account's token is
+  // dead immediately, and the DB role (not the token role) decides admin.
   const row = await db.appUser
-    .findUnique({ where: { userId: session.uid }, select: { active: true } })
+    .findUnique({
+      where: { userId: session.uid },
+      select: { active: true, role: true },
+    })
     .catch(() => null);
-  if (row && !row.active) {
+
+  if (!row) {
+    // DB unreachable OR user row deleted — fail closed either way.
+    return { error: "Session cannot be verified right now — try again.", status: 503 };
+  }
+  if (!row.active) {
     return { error: "Account disabled — ask an admin to reactivate it.", status: 403 };
   }
 
-  if (requireAdminRole && session.role !== "admin") {
+  if (requireAdminRole && row.role !== "admin") {
     return { error: "Admin privileges required.", status: 403 };
   }
   return { session };

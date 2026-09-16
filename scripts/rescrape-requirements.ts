@@ -12,7 +12,7 @@
 
 import { PrismaClient } from "@prisma/client";
 import { scrapeGithubMetadata, type ScrapedMetadata } from "../src/lib/infranex/github-scraper";
-import { subnets as curated } from "../src/lib/infranex/data";
+import { curatedSubnetSeeds } from "../src/lib/infranex/data";
 
 const db = new PrismaClient();
 const DELAY_MS = 400;
@@ -27,8 +27,8 @@ async function main() {
   // --- Build the universe: curated + overrides + live chain identities ----
   const map = new Map<number, Source>();
 
-  for (const s of curated) {
-    if (s.githubUrl) map.set(s.netuid, { netuid: s.netuid, githubUrl: s.githubUrl, origin: "curated" });
+  for (const seed of curatedSubnetSeeds) {
+    map.set(seed.netuid, { netuid: seed.netuid, githubUrl: seed.githubUrl, origin: "curated" });
   }
 
   const overrides = await db.subnetOverride.findMany();

@@ -696,9 +696,22 @@ function DeploymentDetail({
 
             {/* Cost projection */}
             <div className="rounded-lg border border-primary/30 bg-primary/[0.04] p-3">
-              <p className="text-eyebrow text-primary mb-2 flex items-center gap-1.5">
-                <DollarSign className="h-3 w-3" /> Cost projection
-              </p>
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <p className="text-eyebrow text-primary flex items-center gap-1.5">
+                  <DollarSign className="h-3 w-3" /> Cost projection
+                </p>
+                {/* DATA-AUDIT-1 (H5) — the revenue estimate's provenance must
+                    be visible: chain-measured vs rough category guess. */}
+                {cfg.cost.revenueSource === "category-fallback" ? (
+                  <span className="rounded border border-amber-500/40 bg-amber-500/[0.07] px-1.5 py-0.5 text-[10px] font-medium text-amber-600">
+                    rough category guess — not chain-measured
+                  </span>
+                ) : (
+                  <span className="rounded border border-success/40 bg-success/[0.07] px-1.5 py-0.5 text-[10px] font-medium text-success">
+                    chain-measured
+                  </span>
+                )}
+              </div>
               <div className="grid grid-cols-4 gap-3 text-center">
                 <div>
                   <p className="text-[10px] text-muted-foreground">Hourly</p>

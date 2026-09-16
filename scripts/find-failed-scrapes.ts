@@ -4,14 +4,13 @@
  * Run: bun scripts/find-failed-scrapes.ts
  */
 import { PrismaClient } from "@prisma/client";
-import { subnets } from "../src/lib/infranex/data";
+import { curatedSubnetSeeds } from "../src/lib/infranex/data";
 
 const db = new PrismaClient();
 
 const seen = new Map<number, string>();
-for (const s of subnets) {
-  if ((s as { githubUrl?: string | null }).githubUrl)
-    seen.set(s.netuid, (s as { githubUrl: string }).githubUrl);
+for (const seed of curatedSubnetSeeds) {
+  seen.set(seed.netuid, seed.githubUrl);
 }
 const existing = await db.subnetOverride.findMany();
 for (const o of existing) {

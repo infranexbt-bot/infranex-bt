@@ -108,6 +108,7 @@ function makeProfile(over: Partial<SubnetRequirementsProfile> = {}): SubnetRequi
     dockerfileFound: false,
     chainNetwork: "finney",
     ports: { axon: 8091, prometheus: 8092 },
+    infraStack: null,
     envKeys: [
       { name: "BT_NETWORK", description: "network", required: true },
       { name: "BT_NETUID", description: "netuid", required: true },

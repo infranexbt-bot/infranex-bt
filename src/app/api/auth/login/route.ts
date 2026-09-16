@@ -104,6 +104,12 @@ export async function POST(req: NextRequest) {
     ok: true,
     user: { userId: user.userId, label: user.label, role: user.role },
   });
-  res.cookies.set(SESSION_COOKIE, token, sessionCookieOptions());
+  // SEC-AUDIT-1: mark the cookie Secure whenever the request reached us over
+  // https (front proxy sets x-forwarded-proto) — no flag over plain http so
+  // the platform's preview proxy does not drop the cookie.
+  const overHttps =
+    req.headers.get("x-forwarded-proto")?.split(",")[0]?.trim() === "https" ||
+    req.nextUrl.protocol === "https:";
+  res.cookies.set(SESSION_COOKIE, token, sessionCookieOptions(undefined, overHttps));
   return res;
 }

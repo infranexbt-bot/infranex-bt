@@ -71,9 +71,10 @@ export function decryptSecret(payload: string): string {
   }
 }
 
-/** Never echo secrets back to the UI — show only a shape hint. */
+/** Never echo secrets back to the UI — show only a shape/length hint
+ *  (SEC-AUDIT-1: no characters of the secret, not even a suffix). */
 export function secretHint(plain: string): string {
   if (!plain) return "";
   if (plain.startsWith("-----BEGIN")) return `key(${plain.length} chars)`;
-  return `****${plain.slice(-2)}`;
+  return `password(${plain.length} chars)`;
 }

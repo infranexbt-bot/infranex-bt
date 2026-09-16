@@ -1,19 +1,20 @@
 // /api/admin/users — ADMINPANEL-1 credential management (ADMIN-ONLY).
 //
-// Every handler re-verifies the session AND requires role === "admin".
-// The proxy guarantees a valid session exists; the role check here is the
-// actual privilege gate (members hitting this API get 403).
-//
-// GET                    → list all users incl. current codes (decrypted)
-// POST { action }        → "regenerate" { userId }  → new code (returned)
+// Every handler re-verifies the session AND requires role === "admin" (and
+// SEC-AUDIT-1: the role is re-read from the DB, so a demoted admin is cut
+// off immediately).
+// GET                    → list all users (code presence, NOT the codes —
+//                          SEC-AUDIT-1: no bulk plaintext export over the API)
+// POST { action }        → "regenerate" { userId }  → new code (shown ONCE)
 //                          "setActive"  { userId, active }
-// Every mutation re-mirrors scripts/users.local.json + the /tmp wipe-proof
-// copy, so the files NEVER drift from the database.
+// Out-of-band recovery stays server-side: the 0600 gitignored mirror
+// (scripts/users.local.json + /tmp wipe-proof copy) is re-synced on every
+// mutation so it NEVER drifts from the database.
 
 import { NextRequest, NextResponse } from "next/server";
 import { requireActiveAdmin } from "@/lib/auth-admin";
 import {
-  listUsersWithCodes,
+  listUsers,
   regenerateUserCode,
   setUserActive,
 } from "@/lib/auth-users";
@@ -25,7 +26,7 @@ export async function GET(req: NextRequest) {
   if ("error" in gate) {
     return NextResponse.json({ error: gate.error }, { status: gate.status });
   }
-  const users = await listUsersWithCodes();
+  const users = await listUsers();
   return NextResponse.json({ users });
 }
 

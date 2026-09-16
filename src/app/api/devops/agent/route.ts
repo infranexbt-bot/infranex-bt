@@ -53,7 +53,12 @@ function throttleRecord(uid: string) {
   }
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  // SEC-AUDIT-1: re-check the account is still active (proxy cannot reach the DB).
+  const gate = await requireActiveUser(req);
+  if ("error" in gate) {
+    return NextResponse.json({ error: gate.error }, { status: gate.status });
+  }
   try {
     const notes = await listAgentNotes(10);
     return NextResponse.json({ ok: true, notes });

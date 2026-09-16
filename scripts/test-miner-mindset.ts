@@ -486,10 +486,10 @@ async function main() {
       JSON.stringify(envNames)
     );
     check(
-      "act RUNTIME_OPT audit note mentions Applied to GPU + daemon",
+      "act RUNTIME_OPT audit note states the env-only PROPOSAL scope",
       typeof ac2.json?.action === "string" &&
-        ac2.json.action.includes("Applied to GPU") &&
-        ac2.json.action.includes("apply_config"),
+        ac2.json.action.includes("Recorded optimization proposal env") &&
+        ac2.json.action.includes("node daemon"),
       ac2.json?.action
     );
 

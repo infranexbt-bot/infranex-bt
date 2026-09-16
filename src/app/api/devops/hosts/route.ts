@@ -75,7 +75,9 @@ export async function POST(req: NextRequest) {
   try {
     const body = (await req.json()) as Record<string, unknown>;
     const name = String(body.name ?? "").trim();
-    const transport = body.transport === "mock" ? "mock" : "ssh";
+    // DATA-AUDIT-1 (M3) — mock hosts are no longer accepted: the scripted
+    // transport was removed. Only real SSH hosts can be registered.
+    const transport = "ssh";
     const host = String(body.host ?? "").trim();
     const port = Math.min(Math.max(parseInt(String(body.port ?? 22), 10) || 22, 1), 65535);
     const user = String(body.user ?? "root").trim() || "root";
@@ -83,21 +85,21 @@ export async function POST(req: NextRequest) {
     const secret = String(body.secret ?? "");
 
     if (!name) return NextResponse.json({ error: "name is required" }, { status: 400 });
-    if (transport === "ssh" && !host)
+    if (!host)
       return NextResponse.json({ error: "host is required" }, { status: 400 });
-    if (transport === "ssh" && !secret)
+    if (!secret)
       return NextResponse.json({ error: "password or private key is required" }, { status: 400 });
 
     const created = await db.gpuHost.create({
       data: {
         name,
         transport,
-        host: transport === "mock" ? "mock.local" : host,
+        host,
         port,
         user,
         authMethod,
         secretEnc: encryptSecret(secret),
-        provider: transport === "mock" ? "mock" : "byo",
+        provider: "byo",
         status: "pending",
       },
     });

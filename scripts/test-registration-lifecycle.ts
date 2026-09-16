@@ -3,7 +3,6 @@
  *
  * Sections:
  *   A  pure transition logic (decideRegistrationTransition + SS58 gate)
- *   B  MockTransport post-registration restart branches (offline)
  *   C  DB + LIVE chain E2E (run with --live): attach a real registered
  *      hotkey → registered(uid, block) → downgrade on a junk hotkey →
  *      restart guard. Uses a temp deployment row, cleaned up afterwards.
@@ -19,7 +18,6 @@ import {
   attachHotkey,
   restartAfterRegistration,
 } from "../src/lib/infranex/deployment/registration";
-import { MockTransport } from "../src/lib/devops/transport";
 import {
   resolveJourneyProgress,
   findJourneyDeployment,
@@ -78,43 +76,6 @@ console.log("\nA2. isValidSs58 gate");
   check("rejects short strings", !isValidSs58("5Short"));
   check("rejects non-5 prefix", !isValidSs58("1DfhGyQdFobKM8NsWvELEAK6gT9iSaXPADjFUesajnVjWYth"));
   check("rejects null/empty", !isValidSs58(null) && !isValidSs58(""));
-}
-
-// ---------------------------------------------------------------------------
-// B. MockTransport restart branches
-// ---------------------------------------------------------------------------
-console.log("\nB. MockTransport post-registration restart branches");
-
-{
-  const t = new MockTransport(`test-reg-${Date.now()}-systemd`);
-  await t.connect();
-  // Fresh mock host: miner not running yet.
-  const before = await t.exec("systemctl is-active infranex-miner-sn8");
-  check("venv verify before restart: inactive", before.stdout.trim() === "inactive" && before.code === 3);
-  const r = await t.exec("systemctl restart infranex-miner-sn8");
-  check("systemctl restart succeeds (exit 0)", r.code === 0 && r.stdout.includes("restarted"), `exit=${r.code}`);
-  const after = await t.exec("systemctl is-active infranex-miner-sn8");
-  check("miner is active after the restart", after.code === 0 && after.stdout.trim() === "active");
-  t.close();
-}
-{
-  const t = new MockTransport(`test-reg-${Date.now()}-docker`);
-  await t.connect();
-  const early = await t.exec("docker restart infranex-miner-sn90");
-  check("docker restart BEFORE the image exists fails", early.code !== 0, `exit=${early.code}`);
-  // Remediate exactly like the installer's fix commands would on a bare host.
-  await t.exec("curl -fsSL https://get.docker.com | sh");
-  await t.exec("install-nvidia-toolkit nvidia-container-toolkit");
-  await t.exec("git clone https://github.com/example/subnet /opt/infranex/sn90/app");
-  await t.exec("cd /opt/infranex/sn90/app && docker build -t infranex/sn90:miner .");
-  await t.exec(
-    "docker rm -f infranex-miner-sn90 2>/dev/null || true; docker run -d --restart unless-stopped --name infranex-miner-sn90 --gpus all --env-file /opt/infranex/sn90/env -p 8091:8091 infranex/sn90:miner"
-  );
-  const r = await t.exec("docker restart infranex-miner-sn90");
-  check("docker restart succeeds on a running container", r.code === 0 && r.stdout.trim().length === 64, `exit=${r.code}`);
-  const ps = await t.exec("docker ps --filter name=infranex-miner-sn90 --format '{{.Names}} {{.Status}}'");
-  check("container still up after restart", ps.code === 0 && ps.stdout.includes("Up"), ps.stdout.trim());
-  t.close();
 }
 
 // ---------------------------------------------------------------------------

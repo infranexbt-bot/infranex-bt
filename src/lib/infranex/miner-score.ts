@@ -130,6 +130,11 @@ export interface GpuTier {
 }
 
 export const GPU_TIERS = {
+  // DATA-AUDIT-1 (H4) — the monthly rates below are MODELED MARKET ESTIMATES
+  // (container + dedicated market surveys), not live quotes. They drive the
+  // P&L "GPU rental" line; the Profitability settings expose infra/opex but
+  // not these — treat every net-$ figure as an estimate until a live provider
+  // offer (gpus-view) replaces the model for a real deployment.
   b200: { label: "B200-class", recommendedGpu: "B200 180GB", minVramGb: 180, monthlyRentUsd: 3200, bareMetalMonthlyUsd: 9000, powerWatts: 1000 },
   h200: { label: "H200-class", recommendedGpu: "H200 141GB", minVramGb: 141, monthlyRentUsd: 2500, bareMetalMonthlyUsd: 7000, powerWatts: 700 },
   h100: { label: "H100-class", recommendedGpu: "H100 80GB", minVramGb: 80, monthlyRentUsd: 1700, bareMetalMonthlyUsd: 4800, powerWatts: 700 },

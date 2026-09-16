@@ -8,6 +8,10 @@ import { assessSeatChance } from "../src/lib/infranex/miner-score";
 const db = new PrismaClient();
 
 const snap = await db.chainSnapshot.findFirst({ orderBy: { id: "desc" } });
+if (!snap?.subnetsJson) {
+  console.error("no chain snapshot with subnetsJson — run the app's chain scanner first");
+  process.exit(1);
+}
 const live = JSON.parse(snap.subnetsJson) as Array<{
   netuid: number; name?: string | null; maxUids?: number | null; minersCount?: number | null;
   burnCostTao?: number | null; immunityBlocks?: number | null; rewardedMiners?: number | null;

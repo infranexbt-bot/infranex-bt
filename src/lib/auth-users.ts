@@ -112,15 +112,22 @@ export async function syncCredentialFiles(): Promise<{ main: string; backup: str
   return { main: mainPath, backup: backupPath };
 }
 
-/** Admin list: everything the panel shows, including decrypted codes. */
-export async function listUsersWithCodes() {
+/**
+ * Admin list: everything the panel shows. SEC-AUDIT-1: codes are NOT
+ * decrypted/returned here — a compromised admin session must not be able to
+ * bulk-export every operator's credential. The panel shows whether a code is
+ * set; rotation goes through regenerateUserCode (code shown ONCE in the
+ * POST response). Out-of-band recovery remains available server-side via the
+ * 0600 gitignored mirror (scripts/users.local.json).
+ */
+export async function listUsers() {
   const rows = await db.appUser.findMany({ orderBy: { userId: "asc" } });
   return rows.map((r) => ({
     userId: r.userId,
     label: r.label ?? r.userId,
     role: r.role,
     active: r.active,
-    code: r.codeEnc ? decryptSecret(r.codeEnc) : null, // null → regenerate to restore
+    hasCode: Boolean(r.codeHash),
     lastLoginAt: r.lastLoginAt ? r.lastLoginAt.toISOString() : null,
     createdAt: r.createdAt.toISOString(),
   }));

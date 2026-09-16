@@ -39,7 +39,6 @@ import {
 } from "lucide-react";
 import { cn, formatRelativeTime } from "@/lib/utils";
 import { useNetwork } from "@/lib/infranex/use-network";
-import { subnets as curatedSubnets } from "@/lib/infranex/data";
 import {
   useJudgeProfiles,
   useJudgeRuns,
@@ -102,12 +101,12 @@ export function JudgeView() {
     [profilesData]
   );
 
-  // Live subnets merged with the curated list for the picker.
+  // Subnet picker — chain identity names (live) with honest placeholders for
+  // unregistered netuids. DATA-AUDIT-1: no fabricated catalog names.
   const subnets = useMemo(() => {
     const names = new Map<number, string>();
-    for (const s of curatedSubnets) names.set(s.netuid, s.name);
     for (const s of net?.subnets ?? []) {
-      if (s.name) names.set(s.netuid, s.name);
+      names.set(s.netuid, s.name ?? `Subnet ${s.netuid}`);
     }
     return [...names.entries()]
       .map(([netuid, name]) => ({ netuid, name }))

@@ -150,10 +150,11 @@ section("2. Daemon bridge — HMAC + scripts");
 
 const secret = "a".repeat(64);
 const freshTs = String(Date.now());
-const sig = hmacSign(secret, freshTs, '{"ok":1}');
-check("hmac verify ok", verifyHmac(secret, freshTs, '{"ok":1}', sig).ok);
-check("hmac rejects tampered body", !verifyHmac(secret, freshTs, '{"ok":0}', sig).ok);
-check("hmac rejects stale timestamp", !verifyHmac(secret, "1000000000000", '{"ok":1}', sig).ok);
+const sig = hmacSign(secret, freshTs, "/api/daemon/commands", '{"ok":1}');
+check("hmac verify ok", verifyHmac(secret, freshTs, "/api/daemon/commands", '{"ok":1}', sig).ok);
+check("hmac rejects tampered body", !verifyHmac(secret, freshTs, "/api/daemon/commands", '{"ok":0}', sig).ok);
+check("hmac rejects cross-path replay", !verifyHmac(secret, freshTs, "/api/daemon/telemetry", '{"ok":1}', sig).ok);
+check("hmac rejects stale timestamp", !verifyHmac(secret, "1000000000000", "/api/daemon/commands", '{"ok":1}', sig).ok);
 
 const script = buildDaemonScript({
   deploymentId: "dep123",
@@ -227,10 +228,24 @@ section("5. Server E2E — triggers + daemon pipeline");
 
 const BASE = "http://localhost:3000";
 
+// WINDUP-1: session-gated routes need the admin cookie — log in first
+// (credentials come from the gitignored users.local.json, never hardcoded).
+const USERS_RB: Array<{ userId: string; code: string; role?: string }> = JSON.parse(
+  (await import("node:fs")).readFileSync(new URL("./users.local.json", import.meta.url), "utf8")
+);
+const _admin = USERS_RB.find((u) => u.role === "admin") ?? USERS_RB[0];
+const _login = await fetch(`${BASE}/api/auth/login`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ userId: _admin.userId, code: _admin.code }),
+});
+const AUTH_COOKIE = _login.headers.get("set-cookie")?.split(";")[0] ?? "";
+check("script login ok", _login.ok, `status ${_login.status}`);
+
 async function api(path: string, init?: RequestInit) {
   const res = await fetch(`${BASE}${path}`, {
     ...init,
-    headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
+    headers: { "Content-Type": "application/json", Cookie: AUTH_COOKIE, ...(init?.headers ?? {}) },
   });
   let body: unknown = null;
   try {
@@ -242,27 +257,28 @@ async function api(path: string, init?: RequestInit) {
 }
 
 try {
-  // Create a started mock deployment with a synthetic hotkey via DB-level API.
-  // POST /api/deployments needs subnet + offer from curated data.
-  const created = await api("/api/deployments", {
-    method: "POST",
-    body: JSON.stringify({
-      netuid: 8,
-      offerId: "o2",
+  // DATA-AUDIT-1 — the HTTP route no longer accepts mode:"mock" (correctly),
+  // so the harness seeds the mock deployment DIRECTLY at DB level. The
+  // daemon-bridge HTTP checks below still run against the real server.
+  const { PrismaClient } = await import("@prisma/client");
+  const pdb = new PrismaClient();
+  const existing = await pdb.deployment.findFirst({ where: { mode: "mock", status: "started" }, orderBy: { createdAt: "desc" } });
+  const depRow = existing ?? (await pdb.deployment.create({
+    data: {
       minerName: "Cluster Test Miner",
-      hotkey: "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY",
-      walletName: "test",
+      netuid: 8,
+      subnetName: "Test",
+      gpuModel: "RTX 4090",
+      provider: "mock",
       mode: "mock",
-    }),
-  });
-  let deploymentId: string | null = (created.body.deployment as { id?: string } | undefined)?.id ?? null;
-  check("mock deployment created (or existing)", created.status === 201 || created.status === 400, `status ${created.status}`);
-  if (!deploymentId && created.status === 400) {
-    // offerId mismatch — list deployments and reuse the newest mock one
-    const list = await api("/api/deployments");
-    const deps = (list.body.deployments ?? []) as { id: string; mode: string }[];
-    deploymentId = deps.find((d) => d.mode === "mock")?.id ?? null;
-  }
+      status: "started",
+      hotkey: "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY",
+      hourlyCost: 0.36,
+      monthlyCost: 260,
+      config: JSON.stringify({ subnet: { netuid: 8, name: "Test", symbol: "T8", category: "Test", minVramGb: 24, recommendedGpu: "RTX 4090" } }),
+    },
+  }));
+  const deploymentId: string | null = depRow.id;
   check("have a deployment to work with", !!deploymentId);
 
   if (deploymentId) {
@@ -282,7 +298,7 @@ try {
     const daemonSecret = secretMatch?.[1] ?? "";
     const ts = String(Date.now());
     const telemetryBody = JSON.stringify({ ts: 1, hostname: "test-host", gpus: [], minerProcessAlive: true });
-    const sigLocal = hmacSign(daemonSecret, ts, telemetryBody);
+    const sigLocal = hmacSign(daemonSecret, ts, "/api/daemon/telemetry", telemetryBody);
     const tele = await fetch(`${BASE}/api/daemon/telemetry`, {
       method: "POST",
       headers: {
@@ -365,6 +381,7 @@ const profileBase = {
   sources: ["github" as const],
   confidence: "high" as const,
   notes: [],
+  infraStack: null,
   fetchedAt: new Date().toISOString(),
 };
 

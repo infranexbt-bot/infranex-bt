@@ -10,8 +10,11 @@ import { encryptSecret, decryptSecret } from "@/lib/devops/crypto";
  *   - Every deployment gets a random 32-byte daemon secret (shown ONCE in
  *     the install script, stored AES-256-GCM encrypted).
  *   - Telemetry POSTs and command polls are HMAC-SHA256 signed
- *     (secret over `timestamp + "." + rawBody`); replays beyond ±5 min and
- *     signatures that don't verify are rejected.
+ *     (secret over `timestamp + "." + path + "." + rawBody`); replays beyond
+ *     ±5 min and signatures that don't verify are rejected. SEC-AUDIT-1:
+ *     the path is bound into the signature (a telemetry signature can no
+ *     longer be replayed at /commands or vice versa) and a 6-minute replay
+ *     cache rejects any signature that has already been accepted.
  *   - Commands are APPROVED via the Trigger Engine; the daemon only ever
  *     pulls its own queue — we never push into the host.
  *
@@ -28,13 +31,34 @@ export function generateDaemonSecret(): string {
   return crypto.randomBytes(32).toString("hex");
 }
 
-export function hmacSign(secret: string, timestamp: string, body: string): string {
-  return crypto.createHmac("sha256", secret).update(`${timestamp}.${body}`).digest("hex");
+export function hmacSign(secret: string, timestamp: string, path: string, body: string): string {
+  return crypto.createHmac("sha256", secret).update(`${timestamp}.${path}.${body}`).digest("hex");
+}
+
+// SEC-AUDIT-1 — replay cache: any signature already accepted within the
+// ±5 min skew window is rejected on re-use. In-memory is sufficient for the
+// single-instance standalone server; entries self-expire after 6 min.
+const seenSignatures = new Map<string, number>();
+const REPLAY_TTL_MS = 6 * 60_000;
+
+function replayCheck(key: string, signature: string): boolean {
+  const now = Date.now();
+  // Opportunistic GC — the map only grows with accepted daemons.
+  if (seenSignatures.size > 10_000) {
+    for (const [k, exp] of seenSignatures) {
+      if (exp < now) seenSignatures.delete(k);
+    }
+  }
+  const cacheKey = `${key}:${signature}`;
+  if (seenSignatures.has(cacheKey)) return false; // already accepted → replay
+  seenSignatures.set(cacheKey, now + REPLAY_TTL_MS);
+  return true;
 }
 
 export function verifyHmac(
   secret: string,
   timestamp: string,
+  path: string,
   body: string,
   signature: string
 ): { ok: boolean; error?: string } {
@@ -42,7 +66,7 @@ export function verifyHmac(
   if (!Number.isFinite(ts)) return { ok: false, error: "bad timestamp" };
   const skew = Math.abs(Date.now() - ts);
   if (skew > 5 * 60_000) return { ok: false, error: "timestamp outside ±5min window" };
-  const expected = hmacSign(secret, timestamp, body);
+  const expected = hmacSign(secret, timestamp, path, body);
   const a = Buffer.from(expected, "utf8");
   const b = Buffer.from(signature ?? "", "utf8");
   if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) {
@@ -74,14 +98,21 @@ export async function ensureDaemon(deploymentId: string): Promise<{
 export async function getDaemonForRequest(
   deploymentId: string,
   timestamp: string,
+  path: string,
   body: string,
   signature: string
 ): Promise<{ ok: boolean; error?: string; daemonId?: string }> {
   const row = await db.daemonState.findUnique({ where: { deploymentId } });
   if (!row) return { ok: false, error: "daemon not registered" };
   const secret = decryptSecret(row.secretEnc);
-  const v = verifyHmac(secret, timestamp, body, signature);
+  const v = verifyHmac(secret, timestamp, path, body, signature);
   if (!v.ok) return v;
+  // SEC-AUDIT-1 — a captured (valid) request may not be replayed inside the
+  // timestamp window. Keyed per deployment so one daemon's traffic can never
+  // collide with another's.
+  if (!replayCheck(row.id, signature)) {
+    return { ok: false, error: "replayed signature" };
+  }
   return { ok: true, daemonId: row.id };
 }
 
@@ -250,8 +281,8 @@ def miner_patterns():
                 toks.append(t)
     return toks
 
-def sign(ts, body):
-    return hmac.new(SECRET.encode(), f"{ts}.{body}".encode(), hashlib.sha256).hexdigest()
+def sign(ts, path, body):
+    return hmac.new(SECRET.encode(), f"{ts}.{path}.{body}".encode(), hashlib.sha256).hexdigest()
 
 def post(path, payload):
     body = json.dumps(payload)
@@ -262,7 +293,7 @@ def post(path, payload):
         headers={
             "Content-Type": "application/json",
             "X-Infranex-Timestamp": ts,
-            "X-Infranex-Signature": sign(ts, body),
+            "X-Infranex-Signature": sign(ts, path, body),
             "X-Infranex-Deployment": DEPLOYMENT_ID,
         },
         method="POST",

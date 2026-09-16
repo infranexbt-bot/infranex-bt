@@ -43,7 +43,15 @@ const PROVIDERS: Record<string, ProviderAdapter> = {
 };
 
 function getProvider(mode: string): ProviderAdapter {
-  return PROVIDERS[mode] ?? MockProvider;
+  // DATA-AUDIT-1 (M3) — fail closed on unknown modes instead of silently
+  // falling back to the mock provider. "mock" remains an explicit,
+  // admin-only engine test harness (POST /api/deployments rejects it);
+  // anything else must be a real provider.
+  const provider = PROVIDERS[mode];
+  if (!provider) {
+    throw new Error(`Unknown deployment mode "${mode}" — expected runpod or vast`);
+  }
+  return provider;
 }
 
 // Step output generators — produce realistic-looking logs per step.

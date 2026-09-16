@@ -3,7 +3,6 @@ import {
   createDeployment,
   listDeployments,
 } from "@/lib/infranex/deployment/engine";
-import { subnets } from "@/lib/infranex/data";
 import { fetchLiveSnapshot } from "@/lib/infranex/chain";
 import { pullSubnetRequirements } from "@/lib/devops/subnet-requirements";
 import { computeDeploymentProjection } from "@/lib/infranex/trust";
@@ -39,14 +38,12 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ deployments });
 }
 
-// The curated catalog first; any OTHER live subnet (chain snapshot) is built
-// on demand — min VRAM + GPU come from the cached requirements profile so the
-// installer's compat gate stays accurate. This is what lets the wizard deploy
-// to ALL ~120 live subnets, not just the 16 curated ones.
+// DATA-AUDIT-1 — every deployment resolves from the LIVE chain snapshot
+// (min VRAM + GPU come from the cached requirements profile so the
+// installer's compat gate stays accurate). The old curated-catalog branch —
+// which returned fabricated prices/market data for 16 netuids — is gone.
+// This is what lets the wizard deploy to ALL ~120 live subnets.
 async function resolveSubnet(netuid: number): Promise<Subnet | null> {
-  const curated = subnets.find((s) => s.netuid === netuid);
-  if (curated) return curated;
-
   try {
     const snap = await fetchLiveSnapshot();
     const m = snap.subnets.find((s) => s.netuid === netuid);
@@ -70,18 +67,19 @@ async function resolveSubnet(netuid: number): Promise<Subnet | null> {
       description: m.identityDescription ?? "",
       category: "Live",
       owner: m.owner ?? "",
-      tempo: 360,
-      emission: 0,
+      tempo: m.tempo || 360,
+      emission: m.emission ?? 0,
       taoInReserve: m.subnetTao ?? 0,
-      price: 0,
+      price: m.movingPrice ?? 0,
       marketCap: 0,
       volume24h: 0,
       change24h: 0,
       minersCount: m.minersCount,
       validatorsCount: m.validatorsCount ?? 0,
       maxNeurons: m.maxUids ?? 256,
-      status: "active",
-      registrationOpen: true,
+      status: m.emissionEnabled ? "active" : "inactive",
+      // No chain source for registration openness — honest default.
+      registrationOpen: false,
       createdAt: m.registeredAt ? String(m.registeredAt) : new Date().toISOString(),
       tags: [],
       minVramGb,

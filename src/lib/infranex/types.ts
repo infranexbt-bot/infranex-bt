@@ -28,7 +28,9 @@ export interface Subnet {
   recommendedGpu: string;
   githubUrl?: string | null;
   website?: string | null;
-  miningRequirements?: MiningRequirements;
+  // DATA-AUDIT-1: the old `miningRequirements` (fabricated per-category
+  // docker images / commands) was removed — requirements now come ONLY from
+  // the live repo profiler (SubnetRequirementsProfile / InfraStack).
   // --- Live seat/registration data (chain snapshot; absent on curated-only) ---
   /** Current registration burn cost in TAO — the deterministic entry path when full. */
   burnCostTao?: number | null;
@@ -38,56 +40,6 @@ export interface Subnet {
   maxUids?: number | null;
   /** UIDs that earned incentive last epoch. */
   rewardedMiners?: number | null;
-}
-
-/** Complete technical requirements to mine a subnet. */
-export interface MiningRequirements {
-  gpu: {
-    minVramGb: number;
-    recommendedGpu: string;
-    alternativeGpus: string[];
-    minCudaComputeCapability: string;
-    gpuCount: number;
-  };
-  runtime: {
-    pythonVersion: string;
-    cudaVersion: string;
-    dockerRequired: boolean;
-    nvidiaRuntimeRequired: boolean;
-    dockerImage: string;
-  };
-  hardware: {
-    minCpuCores: number;
-    minRamGb: number;
-    minDiskGb: number;
-    recommendedRamGb: number;
-  };
-  network: {
-    subtensorNetwork: "finney" | "test";
-    subtensorEndpoint: string;
-    axonPort: number;
-    prometheusPort: number;
-    openPorts: string[];
-  };
-  miner: {
-    command: string;
-    walletName: string;
-    hotkeyName: string;
-    extraArgs: string[];
-    keyDependencies: string[];
-  };
-  registration: {
-    minStakeTao: number;
-    registrationCostTao: number;
-    tempo: number;
-    maxRegistrationsPerBlock: number;
-  };
-  docker: {
-    imageName: string;
-    ports: string[];
-    volumes: { path: string; sizeGb: number }[];
-    envVars: { name: string; description: string; required: boolean }[];
-  };
 }
 
 export interface OpportunityFactor {

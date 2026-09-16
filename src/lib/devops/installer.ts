@@ -362,13 +362,19 @@ export function buildInstallPlan(input: InstallPlanInput): InstallStep[] {
   }
 
   // 7 — Wallet files (manual gate: private keys never leave the user)
-  const walletDir = `$HOME/.bittensor/wallets/${walletName}`;
+  // SEC-AUDIT-1 — hardening: the names are regex-validated upstream
+  // (^[a-zA-Z0-9_-]{1,32}$), but the interpolation sits inside double quotes,
+  // so escape the metacharacters that double quotes would honor ($, `, ", \)
+  // instead of relying on remembering the validation rule.
+  const dqEscape = (s: string) => s.replace(/([$`"\\])/g, "\\$1");
+  const walletDir = `$HOME/.bittensor/wallets/${dqEscape(walletName)}`;
+  const hotkeySafe = dqEscape(hotkeyName);
   push({
     title: "Wallet files present on the host",
     description: `${walletDir}/coldkey + hotkeys/${hotkeyName} — the engine never creates or transfers your keys.`,
     gate: "manual",
     commands: [
-      `test -f "${walletDir}/coldkey" && test -f "${walletDir}/hotkeys/${hotkeyName}" && echo "wallet ${walletName}/${hotkeyName} found" || { echo "MISSING: copy your coldkey + hotkey into ${walletDir}/ on the host (scp from your local machine), then continue"; exit 1; }`,
+      `test -f "${walletDir}/coldkey" && test -f "${walletDir}/hotkeys/${hotkeySafe}" && echo "wallet ${walletName}/${hotkeyName} found" || { echo "MISSING: copy your coldkey + hotkey into ${walletDir}/ on the host (scp from your local machine), then continue"; exit 1; }`,
     ],
   });
 

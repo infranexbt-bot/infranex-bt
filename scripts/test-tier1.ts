@@ -4,7 +4,7 @@
 // Three layers:
 //   A. Pure health scorer (computeMinerHealth) — perfect/blind/broken/mock
 //      inputs, hard-fail rules, factor-sum invariant.
-//   B. MinerLog ingest lib (parseLogLine / ingestMinerLogs / simulateMockLogs)
+//   B. MinerLog ingest lib (parseLogLine / ingestMinerLogs)
 //      — dedupe on lineKey, retention cap, severity fallback.
 //   C. Live server — /api/devops/monitor payload carries health + logs +
 //      machine + fleet economics per miner; a mock pass populates the log
@@ -29,7 +29,6 @@ import {
 import {
   parseLogLine,
   ingestMinerLogs,
-  simulateMockLogs,
   LOG_RETENTION,
 } from "../src/lib/infranex/miner-logs";
 
@@ -193,9 +192,6 @@ async function testLogLib() {
     { at: Date.now() / 1000, severity: "info", message: "line four (new)" },
   ]);
   check("daemon retry dedupes repeats, stores only the new line", n2 === 1, `stored=${n2}`);
-
-  const n3 = await simulateMockLogs(MOCK_DEP);
-  check("simulateMockLogs populates 1-2 lines for mock fleets", n3 >= 1, `stored=${n3}`);
 
   // Retention — push a big batch through and expect the cap to hold.
   const flood = Array.from({ length: LOG_RETENTION + 40 }, (_, i) => ({

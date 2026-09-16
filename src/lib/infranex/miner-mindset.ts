@@ -111,7 +111,15 @@ const mindsetState: MindsetPassState =
   });
 
 // ---------------------------------------------------------------------------
-// Runtime recipe catalog — the quant-firm serving stack
+// Runtime recipe catalog — PROPOSAL LAYER (DATA-AUDIT-1, H2).
+//
+// These recipes are RECOMMENDATIONS, not an executed serving-stack switch.
+// No code in this repo (or the installer) converts a miner to vLLM /
+// TensorRT-LLM / a quantized engine: the apply path only records the env
+// delta in the deployment config and — with a daemon installed — exports
+// those vars on the host before a miner restart. Whether they do anything
+// depends ENTIRELY on the subnet's own miner code consuming them. The
+// gain figures are vendor-typical estimates, not measured on this fleet.
 // ---------------------------------------------------------------------------
 
 export interface RuntimeRecipe {
@@ -130,7 +138,7 @@ export const RUNTIME_RECIPES: Record<RuntimeRecipe["id"], RuntimeRecipe> = {
     label: "vLLM continuous batching",
     engine: "vLLM",
     quantization: null,
-    expectedGain: "2-4× throughput under concurrent validator load",
+    expectedGain: "vendor-typical: 2-4× throughput under concurrent load (unverified, proposal only)",
     envDelta: { INFANEX_RUNTIME: "vllm", VLLM_ENABLE_CHUNKED_PREFILL: "1" },
   },
   tensorrt: {
@@ -138,7 +146,7 @@ export const RUNTIME_RECIPES: Record<RuntimeRecipe["id"], RuntimeRecipe> = {
     label: "TensorRT-LLM serving",
     engine: "TensorRT-LLM",
     quantization: null,
-    expectedGain: "up to 3× lower time-to-first-token",
+    expectedGain: "vendor-typical: up to 3× lower time-to-first-token (unverified, proposal only)",
     envDelta: { INFANEX_RUNTIME: "tensorrt-llm" },
   },
   awq4: {
@@ -146,7 +154,7 @@ export const RUNTIME_RECIPES: Record<RuntimeRecipe["id"], RuntimeRecipe> = {
     label: "AWQ 4-bit quantized weights",
     engine: "AWQ",
     quantization: "4-bit",
-    expectedGain: "~1.5-2× faster TTFT, ~50% VRAM freed",
+    expectedGain: "vendor-typical: 1.5-2× faster TTFT, ~50% VRAM freed (unverified, proposal only)",
     envDelta: { INFANEX_QUANT: "awq4" },
   },
   exl2: {
@@ -154,7 +162,7 @@ export const RUNTIME_RECIPES: Record<RuntimeRecipe["id"], RuntimeRecipe> = {
     label: "EXL2 adaptive quantization",
     engine: "ExLlamaV2",
     quantization: "4-8-bit",
-    expectedGain: "flexible VRAM/quality trade, faster decode",
+    expectedGain: "vendor-typical: flexible VRAM/quality trade, faster decode (unverified, proposal only)",
     envDelta: { INFANEX_QUANT: "exl2" },
   },
   lora: {
@@ -162,7 +170,7 @@ export const RUNTIME_RECIPES: Record<RuntimeRecipe["id"], RuntimeRecipe> = {
     label: "Domain LoRA fine-tune",
     engine: "PEFT/LoRA",
     quantization: null,
-    expectedGain: "quality edge vs stock-weight cohorts",
+    expectedGain: "hypothesis: quality edge vs stock-weight cohorts (unverified, proposal only)",
     envDelta: { INFANEX_TUNED: "lora" },
   },
 };
@@ -565,10 +573,16 @@ export interface ApplyRuntimeResult {
 }
 
 /**
- * Apply a runtime optimization profile to a GPU miner: merge the recipes'
- * env delta into the deployment config (durable), then push via the daemon's
- * apply_config (env persisted on-host + miner restarted). Mock deployments
- * get a simulated tick. Recipe ids default to the approved RUNTIME_OPT event.
+ * Apply a runtime optimization PROPOSAL to a GPU miner (DATA-AUDIT-1, H2:
+ * honest scope). This does NOT switch the miner's serving engine — no such
+ * machinery exists. What it does:
+ *   1. merges the recipes' env delta into the deployment config (durable,
+ *      platform-side, revision-snapshotted for rollback),
+ *   2. with a daemon installed: apply_config persists the env on-host and
+ *      restarts the miner under it.
+ * The variables only have an effect if the subnet's own miner code consumes
+ * them. Mock deployments get a simulated tick. Recipe ids default to the
+ * approved RUNTIME_OPT event.
  */
 export async function applyRuntimeOptimization(
   deploymentId: string,
@@ -643,7 +657,7 @@ export async function applyRuntimeOptimization(
   if (daemon && daemon.status !== "unreachable") {
     await enqueueCommand(row.id, "apply_config", { env: envDelta });
     return {
-      note: `apply_config queued via node daemon — runtime env (${Object.keys(envDelta).join(", ")}) persisted on-host; the miner restarts under the accelerated profile within 60s.`,
+      note: `PROPOSAL env applied via node daemon (${Object.keys(envDelta).join(", ")}) — exported on-host and the miner restarts within 60s. NOTE: this is an env-only proposal; the subnet's miner only benefits if its own code consumes these variables.`,
       applied,
       transport: "daemon",
     };
