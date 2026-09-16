@@ -503,7 +503,7 @@ function scoreColor(score: number): string {
   return "hsl(var(--destructive))";
 }
 
-function ScoreRing({ score }: { score: number }) {
+function ScoreRing({ score, caption = "score" }: { score: number; caption?: string }) {
   const r = 52;
   const c = 2 * Math.PI * r;
   const filled = (clampScore(score) / 100) * c;
@@ -525,7 +525,7 @@ function ScoreRing({ score }: { score: number }) {
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span className="text-display text-4xl font-bold tabular">{score}</span>
-        <span className="text-[10px] uppercase tracking-wider text-muted-foreground">score</span>
+        <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{caption}</span>
       </div>
     </div>
   );
@@ -881,17 +881,17 @@ function OpportunityScoreCard({ onNavigate }: { onNavigate: (v: ViewKey) => void
         ) : (
           <div className="flex flex-col gap-6 lg:flex-row">
             <div className="flex flex-col items-center justify-center gap-3 lg:w-[190px]">
-              <ScoreRing score={score.score} />
+              <ScoreRing score={score.score} caption="mine vs stake" />
               <div className="flex flex-wrap items-center justify-center gap-1.5">
                 <span className={cn("rounded-full px-2 py-0.5 text-[10px] uppercase tracking-wide", riskBadgeClass(recommended.riskLevel))}>
                   {recommended.riskLevel} risk
                 </span>
-                {recBand && recBand.label !== "RUN" && (
+                {recBand && (
                   <span
                     className={cn("rounded-full px-2 py-0.5 text-[10px] uppercase tracking-wide", recBand.bg, recBand.color)}
-                    title={`Miner's Ledger composite ${recLedger!.score.toFixed(1)} — the Opportunities page bands this subnet ${recBand.label}`}
+                    title={`Miner's Ledger composite ${recLedger!.score.toFixed(1)}/100 — the Opportunities page's 5-pillar score of this subnet as a mining seat (net ROI, seat safety, alpha economics, earning reality, fit). The ring is a different question: how decisively mining beats staking on monthly net ROI — with ${score.recommended.roiMonthlyPct.toFixed(0)}%/mo vs ${score.alternative.roiMonthlyPct.toFixed(2)}%/mo the edge maxes the ring out. The two scores are not meant to match.`}
                   >
-                    {recBand.label} on Opportunities
+                    {recBand.label} · Ledger {recLedger!.score.toFixed(1)}
                   </span>
                 )}
                 <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
@@ -900,6 +900,8 @@ function OpportunityScoreCard({ onNavigate }: { onNavigate: (v: ViewKey) => void
               </div>
               <p className="text-center text-[10px] leading-relaxed text-muted-foreground">
                 {score.liveData ? "Live chain data" : "Curated fallback"} · TAO ${score.taoPriceUsd.toFixed(0)} · ₹{score.usdInr}/$
+                <br />
+                Ring = mine-vs-stake ROI edge · Ledger = subnet seat quality (Opportunities)
               </p>
             </div>
             <div className="min-w-0 flex-1 space-y-3">
