@@ -1235,3 +1235,19 @@ Stage Summary:
 - The two wrong fields were an AI-mistake pair (plural-keyword miss → revenue-guess presented as requirement); both fixed at the engine level, not cosmetically.
 - SN62 economics corrected as a consequence: the fictional $2,500/mo H200 rent is gone (CPU $50/mo), net +$384/mo, rank re-scored honestly (WATCH band).
 - Not touched (by design): SN27 Orion stays "Unclassified workload" + "GPU (revenue est.)" — honest, since its docs don't state hardware; ridgesai repo's kubernetes/testcontainers deps stay in SubnetOverride.infraJson as repo-sourced facts for DevOps planning.
+
+---
+Task ID: git-push-1
+Agent: Super Z (main)
+Task: Save and push all work to GitHub (user supplied PAT).
+
+Work Log:
+- Found local git was re-initialized post-reset (101 UUID snapshot commits, unrelated to remote); remote nextjs-platform still at Sep 14 (3dab7af) — all post-restore work unpersisted.
+- Untracked tool-results/ session scratch + download/ deliverables (4.3MB); both added to .gitignore.
+- Grafted current tree onto real remote history via plumbing (write-tree/commit-tree, no working-tree churn, no force-push): commit 8c6bce4 "feat: post-restore sync — DevOps infra audit, code audits, Ridges SN62 fix" (275 files, +13,843/−3,478).
+- Pushed with one-shot token URL: 3dab7af..8c6bce4 ridges-sync -> nextjs-platform (fast-forward). Token never written to disk or .git/config (verified grep=0). Local main kept as backup branch.
+- Secret scan of pushed tree: no tokens/codes in tracked files; users.local.json + custom.db remain untracked.
+
+Stage Summary:
+- GitHub infranexbt-bot/infranex-bt nextjs-platform tip = 8c6bce4 with all post-restore work (infra audit, subnetalpha eval, both audits, RIDGES-FIX + verify script).
+- Recommend: user rotates the PAT since it was pasted in chat.
