@@ -870,3 +870,23 @@ Stage Summary:
   Opportunities detail dialog. Design note: trend block intentionally
   NOT rendered per table row (128 rows would fan out snapshot parsing);
   it loads per opened dialog only.
+
+---
+Task ID: odds-per-row-1
+Agent: main (Super Z)
+Task: Add "If you register today" odds readout to every Opportunities subnet row (user: "yes add this to each opportunities subnets")
+
+Work Log:
+- Extended /api/subnets/odds-history with batch mode (no netuid → {trends} for all subnets, one pass over last 90 scans, 30s in-memory cache); single-subnet mode preserved for dashboard/detail dialog
+- New src/lib/infranex/use-odds.ts — useOddsTrends() hook; TanStack Query dedupes all table/card mounts onto ONE fetch (129 rows = 1 request, no fan-out)
+- register-odds.tsx: added RegisterOddsInline (compact mo-1 odds + bond ramp + winner-trend chips, zero fetching) + winnerTrendShortLabel() in registration-odds.ts
+- opportunity-table.tsx: new "Your odds" column (non-compact only, dashboard compact table unaffected); month-1 earn line moved out of Score cell into the odds column; colSpan 11→12
+- opportunity-detail.tsx: OpportunityCard (grid) now shows an "If you register today" block per card
+- SANDBOX REBOOT DISCOVERED mid-task (~08:13): .env regenerated (secrets lost) and db/custom.db rebuilt EMPTY by dev.sh db:push → AppUser wiped (login 401s). Restored all 5 users with ORIGINAL codes via scripts/seed-users.ts reading /tmp/my-project/infranex-users.local.json (wipe-proof mirror worked). ChainSnapshot history also lost — scanner re-accumulating (1/min)
+- Verified trends end-to-end with scripts/seed-odds-demo.ts: seeded 40 synthetic snapshots (~1.6h span, source='odds-demo' marker) → batch endpoint labeled SN36 frozen@2, SN2 widening 28→31, SN100 recovered; browser confirmed chips: Epago "mo-1 ~6% LOW · ramp ~11.4wk · frozen @2", Targon "frozen @6", no-history rows "thin history" — then PURGED all synthetic rows (0 left, real data only)
+- Screenshots: download/opportunities-odds-table.png, opportunities-odds-grid.png; 0 console errors / 0 page errors; bunx tsc --noEmit clean
+
+Stage Summary:
+- Every Opportunities row (table "Your odds" column + grid card block) now answers "if I register today": first-month odds %, bond-ramp weeks, winner-stability trend
+- Commit fa68c31 on nextjs-platform
+- NOTE: after sandbox reboots, ChainSnapshot history restarts at zero → trend chips show "thin history" for ~30min until the 0.5h window fills; AppUser wiped on reboot but /tmp/my-project credential mirror restores original codes (bun scripts/seed-users.ts)
