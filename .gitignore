@@ -65,3 +65,6 @@ db/custom.db
 
 # auth: plaintext login codes for the 5 seeded users (repo is public — never commit)
 scripts/users.local.json
+
+# session scratch (tool outputs) — never push
+tool-results/
