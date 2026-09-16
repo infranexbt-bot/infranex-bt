@@ -1156,3 +1156,19 @@ Work Log:
 Stage Summary:
 - Answer to the user: YES for what the engine can honestly do on the provider GPU (base packages, Docker+NVIDIA runtime or venv/uv deps, postgres/redis, env, wallet gate, launch w/ approval, verify); k8s-class subnets now take an explicit honest provisioning path instead of a fake one-click; GraVal is intentionally absent because Chutes deprecated it for TEE attestation (now detected); remaining manual-by-design: upstream firewall config + cluster provisioning per the subnet's official tooling.
 - Scripts added: scripts/audit-infra-stack.ts, scripts/verify-sn64-plan.ts, scripts/sample-infra-profiles.ts, scripts/verify-plan-shapes.ts.
+
+---
+Task ID: subnetalpha-eval
+Agent: main (Super Z)
+Task: Evaluate https://subnetalpha.ai/ as a potential data source for the app ("check if this is helpful").
+
+Work Log:
+- Fetched homepage + /subnet/chutes/ via page_reader; site = WordPress/Elementor editorial Bittensor subnet directory (127 /subnet/<slug>/ pages) with dTAO tokenomics blocks + long human-written "What exactly does it do?" essays per subnet.
+- Extracted all 127 slugs; matched against our 16 GitHub-uncoverable gap subnets by name→slug from the chain snapshot: 9 pages exist (SN30/31/87/95/99/109/110/116/122), 7 no-match (SN16 kenju, SN39 deprecated, SN42 Unknown, SN47 Feval, SN73 Parked, SN112 for-sale, SN126 Attelier — mostly dead/parked anyway).
+- Fetched all 9 pages; 8 have substantive editorial summaries (2600-char cap hit on SN30/31/109/110), SN116 Memo is a disclaimer stub.
+- Verified page→netuid binding ("Subnet NN" on each page) matches our mapping.
+- Saved structured artifact: download/subnetalpha-editorial-summaries.json (provenance-labeled, third-party editorial).
+- Scripts: scripts/check-subnetalpha.ts, scripts/parse-subnetalpha-pages.ts.
+
+Stage Summary:
+- Verdict: helpful as a LABELED third-party editorial source for the 8 subnets we cannot source from official repos (fills description/mechanics-context gap, incl. SN122 CookingTAO + SN95 Actual). NOT helpful for: live tokenomics (stale vs our chain snapshot), infra/requirements (not documented there — our GitHub pipeline remains authoritative for installs), seat/chance (we compute from chain). Integration (not yet wired): store per-netuid in SubnetOverride as provenance-tagged third-party summary rendered only when no official README description exists.
