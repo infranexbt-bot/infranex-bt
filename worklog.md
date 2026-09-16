@@ -922,3 +922,22 @@ Work Log:
 Stage Summary:
 - GitHub platform-live branch = sanitized local main (77 commits, zero secrets)
 - User advised to regenerate the PAT (was pasted in chat) and treat pre-rewrite remote history's old secrets as compromised (APP_SESSION_SECRET already rotated locally; old DEVOPS_SECRET no longer in use post-reboot)
+
+---
+Task ID: chutes-knowledge-1
+Agent: main (Super Z)
+Task: Research whether the web app knew the official Chutes miner-software mechanics (7-day compute-sum ramp, first-inference bounties, 5 optimization targets, GPU-variety guidance) and explain why it missed them.
+
+Work Log:
+- Grepped all of src/ for Chutes: only 3 hits, none reward-mechanics (burn-precision comment in miner-score.ts:628, cashout advice in runbook-view.tsx:365, placeholder in deploy-stepper.tsx:532).
+- Traced scoring inputs: miner-score.ts engine ingests chain metrics ONLY (metagraph vecs, emissions, pool, burn, immunity); rampWeeks = generic Bittensor bond-EMA heuristic (3 + (1-rewardedRatio)*6 + conc + full).
+- Inspected github-scraper.ts: fetches README/requirements but parses ONLY min VRAM / GPU model / description — reward prose is out of scope.
+- Wrote scripts/research-chutes-knowledge.ts (auth via session cookie) — ran SN64 through the exact UI engine path (use-network.ts mergeOpportunities equivalent).
+- Live result SN64: score 62.4 WATCH; pillars net_roi 82.4 / seat_safety 34.5 / alpha 69.2 / earning_reality 22.9 / fit 90; rampWeeks 13.6; month-1 odds LOW ~3%; GPU classified RTX 4090 24GB.
+- Gap audit printed: 0/4 official mechanics represented in scoring; GPU variety/cold-start/uptime/utilization absent; cost efficiency only as expense line.
+
+Stage Summary:
+- Root cause: engine is chain-metrics-only by design ("no curated special-casing"); the quoted facts are off-chain software/docs facts that nothing ingests. Scraper scope = hardware only.
+- Notable: for Chutes our rampWeeks=13.6wk OVERSTATES ramp (7-day sum => ~1-2wk effective), so the >8wk 0.8x penalty on month-1 odds is wrong for SN64 — but odds stay LOW anyway (17/256 rewarded, top-10% take 100%).
+- Fix path if requested: per-subnet "mechanics" knowledge layer (curated notes or scraper keyword extraction: 7-day window, bounties, cold-start) feeding rampWeeks + runbook guidance; GPU-variety support in hardware classifier.
+- Artifacts: scripts/research-chutes-knowledge.ts (persisted, re-runnable with INFRANEX_COOKIE env).
