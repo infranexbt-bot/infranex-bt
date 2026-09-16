@@ -68,3 +68,6 @@ scripts/users.local.json
 
 # session scratch (tool outputs) — never push
 tool-results/
+
+# user deliverables — kept local, not for the source repo
+download/
