@@ -44,6 +44,12 @@ export interface ScrapedMetadata {
    * (mechanics.ts CURATED_MECHANICS) always win at merge time.
    */
   mechanics: SubnetMechanics | null;
+  /**
+   * INFRA-STACK: service-level infrastructure the subnet's miner stack
+   * requires (Kubernetes/k3s, Postgres, Redis, Gepetto, ...), parsed from
+   * the same combined README text. Null when no service stack is documented.
+   */
+  infra: InfraStack | null;
   /** Repo whose README supplied the GPU/hosting requirements. */
   requirementsSource: string | null;
   readmeUrl: string | null;
@@ -386,6 +392,103 @@ function parseHosting(text: string): HostingRequirements | null {
   return { ...flags, notes: [...notes].slice(0, 5) };
 }
 
+// --- INFRA-STACK: service-level infrastructure the subnet's miner stack ----
+// requires, parsed from the same README text as hosting/mechanics.
+// Chutes-class subnets document a full stack (Kubernetes/k3s, Postgres,
+// Redis, Gepetto, ansible playbooks) — a plain "pip install + run miner"
+// plan is NOT sufficient for them, so the detection must be structured
+// (services + orchestration + sizing rules), not just prose.
+
+export interface InfraService {
+  /** Canonical service key: kubernetes | postgres | redis | gepetto | ansible | ... */
+  name: string;
+  /** What the README says the service does in this subnet's stack. */
+  role: string | null;
+  /** Verbatim evidence line from the README. */
+  quote: string;
+}
+
+export interface InfraStack {
+  services: InfraService[];
+  /** kubernetes | docker-compose | ansible | null — how the stack is deployed. */
+  orchestration: string | null;
+  /** "RAM per GPU ≥ VRAM" class sizing rule, when documented. */
+  ramRule: { quote: string } | null;
+}
+
+// service key → detection regex. Conservative: name must appear as a word.
+const INFRA_SERVICES: Array<[string, RegExp, RegExp]> = [
+  // key, detector, role-extractor (first capture = purpose clause)
+  ["kubernetes", /\bk(ubernetes|8s|3s)\b/i, /(?:run(?:ning)?|provision(?:ed)?|deploy(?:ed)?|orchestrat\w*)\s+(?:with|within|by|via|using)?\s*(?:the\s*)?(?:entirety of the\s*)?(k(ubernetes|8s|3s)\b[^\n.]{0,140})/i],
+  ["postgres", /\bpostgres(ql|)\b/i, /(?:tracked in|deployed with|uses?|making? use of|requires?)\s+(?:\w+[^\n.]{0,40})?(postgres(?:ql|)\b[^\n.]{0,140})/i],
+  ["redis", /\bredis\b/i, /((?:redis\b[^\n.]{0,160}?)(?:used for|triggers?|pubsub)[^\n.]{0,160})/i],
+  ["gepetto", /\bgepetto\b/i, /(gepetto\b[^\n.]{0,160})/i],
+  ["rabbitmq", /\brabbitmq\b/i, /(rabbitmq\b[^\n.]{0,140})/i],
+  ["nats", /\bnats\b/i, /(nats\b[^\n.]{0,140})/i],
+  ["mongodb", /\bmongodb\b/i, /(mongodb\b[^\n.]{0,140})/i],
+  ["ipfs", /\bipfs\b/i, /(ipfs\b[^\n.]{0,140})/i],
+];
+
+export function parseInfraStack(text: string): InfraStack | null {
+  const lines = text.split("\n");
+  const services: InfraService[] = [];
+  const seen = new Set<string>();
+
+  for (const [key, detect, roleRe] of INFRA_SERVICES) {
+    if (seen.has(key)) continue;
+    let hit: { line: string; role: string | null } | null = null;
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      if (!detect.test(line)) continue;
+      // Skip roadmap/speculative sections and validator-only lines.
+      let heading = "";
+      for (let h = i - 1; h >= Math.max(0, i - 30); h--) {
+        const t = lines[h].trim();
+        if (/^#{1,6} /.test(t)) { heading = t.toLowerCase(); break; }
+      }
+      if (ROADMAP_HEADING.test(heading)) continue;
+      if (/\bvalidators?\b/i.test(line) && !/\bminers?\b|\bcluster\b|\bstack\b/i.test(line)) continue;
+      const roleM = line.match(roleRe);
+      hit = { line, role: roleM ? roleM[1].trim().slice(0, 180) : null };
+      // Prefer lines with purpose/requirement phrasing over a bare mention.
+      if (roleM || /must|requires?|deployed|provisioned|uses?|run(?:s|ning)?\s+within/i.test(line)) break;
+    }
+    if (hit) {
+      seen.add(key);
+      services.push({
+        name: key,
+        role: hit.role,
+        quote: hit.line.trim().replace(/[#*`>]/g, "").slice(0, 220),
+      });
+    }
+  }
+
+  // Orchestration style — what the miner's stack actually runs on.
+  let orchestration: InfraStack["orchestration"] = null;
+  const joined = text.toLowerCase();
+  if (/\bk3s\b|\bkubernetes\b|\bk8s\b/.test(joined)) orchestration = "kubernetes";
+  else if (/docker[ -]compose/.test(joined)) orchestration = "docker-compose";
+  else if (/\bansible\b/.test(joined)) orchestration = "ansible";
+
+  // RAM sizing rule — the "RAM per GPU ≥ VRAM" family (Chutes-class). Require
+  // both tokens AND per-GPU linkage in one line: generic spec lines ("32 GB
+  // RAM, GPU with 8 GB VRAM") are hardware guidance, not sizing RULES.
+  let ramRule: InfraStack["ramRule"] = null;
+  for (const line of lines) {
+    if (
+      /\bram\b/i.test(line) &&
+      /\bvram\b/i.test(line) &&
+      (/per\s+gpu/i.test(line) || /as much ram/i.test(line))
+    ) {
+      ramRule = { quote: line.trim().replace(/[#*`>]/g, "").slice(0, 220) };
+      break;
+    }
+  }
+
+  if (!services.length && !ramRule) return null;
+  return { services, orchestration, ramRule };
+}
+
 // Parse VRAM requirements from text (README or requirements)
 function parseVram(text: string): number | null {
   // Look for patterns like "80GB VRAM", "80 GB", "VRAM: 80GB", "min 80GB"
@@ -514,7 +617,7 @@ export async function scrapeGithubMetadata(
   githubUrl: string,
   opts?: { netuid?: number; subnetName?: string | null }
 ): Promise<ScrapedMetadata> {
-  const NO_MECHANICS: ScrapedMetadata = { description: null, minVramGb: null, recommendedGpu: null, gpuCount: null, gpuModelRaw: null, hosting: null, mechanics: null, requirementsSource: null, readmeUrl: null, requirementsUrl: null, rawReadmeSnippet: null, source: "error" };
+  const NO_MECHANICS: ScrapedMetadata = { description: null, minVramGb: null, recommendedGpu: null, gpuCount: null, gpuModelRaw: null, hosting: null, mechanics: null, infra: null, requirementsSource: null, readmeUrl: null, requirementsUrl: null, rawReadmeSnippet: null, source: "error" };
   try {
     let info = parseGithubUrl(githubUrl);
     if (!info) {
@@ -632,6 +735,9 @@ export async function scrapeGithubMetadata(
         })
       : null;
 
+    // INFRA-STACK: service components from the same combined text.
+    const infra = hostingCombined ? parseInfraStack(hostingCombined) : null;
+
     const requirementsSource = miner?.readme && minerRepoInfo
       ? `https://github.com/${minerRepoInfo.owner}/${minerRepoInfo.repo}`
       : `https://github.com/${info.owner}/${info.repo}`;
@@ -644,6 +750,7 @@ export async function scrapeGithubMetadata(
       gpuModelRaw: gpuFinal ? gpuFinal.raw : null,
       hosting,
       mechanics,
+      infra,
       requirementsSource: gpuFinal || hosting ? requirementsSource : null,
       readmeUrl: identity.readmeUrl,
       requirementsUrl: miner?.requirementsUrl ?? identity.requirementsUrl,

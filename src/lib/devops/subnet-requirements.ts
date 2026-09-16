@@ -20,7 +20,12 @@
 import { db } from "@/lib/db";
 import { fetchLiveSnapshot } from "@/lib/infranex/chain";
 import { classifySubnetHardware } from "@/lib/infranex/miner-score";
-import { scrapeGithubMetadata, type ScrapedMetadata } from "@/lib/infranex/github-scraper";
+import {
+  scrapeGithubMetadata,
+  CURATED_MINER_REPOS,
+  type ScrapedMetadata,
+  type InfraStack,
+} from "@/lib/infranex/github-scraper";
 
 const CACHE_TTL_MS = 6 * 60 * 60 * 1000; // 6h
 
@@ -46,6 +51,14 @@ export interface SubnetRequirementsProfile {
   dockerRequired: boolean;
   bittensorStack: string[]; // bittensor / async_substrate pieces detected
   packageManager: "pip" | "uv"; // uv workspace repos install via `uv sync`
+
+  /**
+   * INFRA-STACK: service-level infrastructure the subnet documents beyond a
+   * pip stack (Kubernetes/k3s, Postgres, Redis, Gepetto, RAM-per-GPU sizing).
+   * When present with kubernetes-class orchestration, the generic venv plan
+   * is NOT sufficient — the installer adds explicit manual gates.
+   */
+  infraStack: InfraStack | null;
 
   // Repo + entrypoint
   repoUrl: string | null;
@@ -382,10 +395,22 @@ async function buildProfile(netuid: number): Promise<SubnetRequirementsProfile> 
   let repoInfo: RepoInfo | null = null;
 
   if (githubUrl) repoInfo = parseGithubUrl(githubUrl);
+  // MINER-REPO ROUTING: for subnets whose on-chain identity repo is the
+  // product page (Chutes-class), the curated map points at the MINER repo
+  // where requirements/entrypoint/Dockerfile actually live. Raw probes and
+  // the scraper (hosting/infra/mechanics) all use the routed repo; the
+  // identity URL stays only as the fallback description source.
+  const routedUrl = githubUrl ? CURATED_MINER_REPOS[netuid] ?? githubUrl : null;
+  const routed = routedUrl !== githubUrl;
+  if (routedUrl) repoInfo = parseGithubUrl(routedUrl);
+  if (routed)
+    notes.push(
+      `The on-chain identity repo is the product page — requirements probed from the miner repo (${routedUrl}) per the curated routing map.`
+    );
   if (repoInfo) {
-    // README (reuse the scraper's parsing for description/VRAM/GPU)
+    // README (reuse the scraper's parsing for description/VRAM/GPU/infra)
     try {
-      scraped = await scrapeGithubMetadata(githubUrl!);
+      scraped = await scrapeGithubMetadata(routedUrl!, { netuid });
       if (scraped.source === "github") sources.push("github");
     } catch {
       /* handled below */
@@ -514,6 +539,10 @@ async function buildProfile(netuid: number): Promise<SubnetRequirementsProfile> 
       ? "medium"
       : "low";
   if (!hasRepo) notes.push("Software list comes from the bittensor baseline, not the subnet repo.");
+  if (scraped?.infra?.services.length)
+    notes.push(
+      `Service stack documented: ${scraped.infra.services.map((s) => s.name).join(", ")}${scraped.infra.orchestration ? ` (orchestration: ${scraped.infra.orchestration})` : ""} — the install plan includes it; kubernetes-class stacks get an explicit manual gate.`
+    );
   if (registeredMiners === 0) notes.push("No registered miners yet — treat entrypoint/command as provisional.");
   if (hasRepo && !entrypoint)
     notes.push("Entrypoint not found (repo tree unreachable or unusual layout) — the plan uses the neurons/miner.py default; edit if the subnet documents a different one.");
@@ -538,7 +567,8 @@ async function buildProfile(netuid: number): Promise<SubnetRequirementsProfile> 
     dockerRequired: Boolean(dockerImage),
     bittensorStack,
     packageManager,
-    repoUrl: githubUrl,
+    infraStack: scraped?.infra ?? null,
+    repoUrl: routedUrl,
     repoBranch: repoInfo?.branch ?? "main",
     entrypoint,
     readmeUrl: scraped?.readmeUrl ?? null,

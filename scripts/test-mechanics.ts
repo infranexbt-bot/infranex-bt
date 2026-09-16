@@ -19,6 +19,7 @@ import {
   computeEarnChance,
   GPU_TIERS,
 } from "../src/lib/infranex/miner-score";
+import { parseInfraStack } from "../src/lib/infranex/github-scraper";
 import type { HostingRequirements } from "../src/lib/infranex/github-scraper";
 import type { LiveSubnetMetrics } from "../src/lib/infranex/chain";
 
@@ -359,5 +360,65 @@ check(
   `infra $${derivedLedger.diag.infraCostMonthlyUsd} (no $120 control plane)`
 );
 
+// --- INFRA-STACK parser -----------------------------------------------------
+const CHUTES_STACK_TEXT = `# Chutes Miner
+
+The entirety of the chutes miner must run within a kubernetes. We recommend k3s.
+1. The control-plane cluster (miner API, gepetto, postgres, redis, registry proxy, monitoring), provisioned with the ansible playbooks here.
+#### Postgres
+We make heavy use of SQLAlchemy/postgres throughout chutes. All servers, GPUs, deployments, etc., are tracked in postgresql which is deployed with a host volume within your kubernetes cluster.
+#### Redis
+Redis is primarily used for it's pubsub functionality within the miner. Events trigger pubsub messages within redis.
+### Important RAM note!
+It is very important to have as much RAM (or very close to it) per GPU as VRAM. This means a server with 4x a40 GPUs must have >= 192 GB of RAM.
+`;
+
+const infraChutes = parseInfraStack(CHUTES_STACK_TEXT);
+check("infra: chutes stack detected", infraChutes != null);
+check(
+  "infra: all 4 chutes services parsed",
+  infraChutes != null &&
+    ["kubernetes", "postgres", "redis", "gepetto"].every((n) =>
+      infraChutes!.services.some((s) => s.name === n)
+    ),
+  infraChutes?.services.map((s) => s.name).join(",") ?? "none"
+);
+check("infra: orchestration = kubernetes", infraChutes?.orchestration === "kubernetes");
+check(
+  "infra: RAM-per-GPU rule captured verbatim",
+  infraChutes?.ramRule?.quote.includes("per GPU as VRAM") ?? false
+);
+check(
+  "infra: every service carries a verbatim quote",
+  infraChutes != null && infraChutes.services.every((s) => s.quote.length > 10)
+);
+
+const infraNeg = parseInfraStack(
+  "# Miner\n\nRun `python neurons/miner.py --netuid 1`. Requires 24GB VRAM GPU and a static IP.\n"
+);
+check("infra: negative control → null (no stack prose)", infraNeg === null);
+
+const infraK8sOnly = parseInfraStack(
+  "# Miner\n\nThe miner runs on kubernetes with Helm charts provided.\nNo database services are needed.\n"
+);
+check(
+  "infra: k8s-only stack detected without false services",
+  infraK8sOnly != null &&
+    infraK8sOnly.services.length === 1 &&
+    infraK8sOnly.services[0].name === "kubernetes",
+  infraK8sOnly?.services.map((s) => s.name).join(",") ?? "none"
+);
+
+const infraSpecRam = parseInfraStack(
+  "# Miner\n\nRecommended: 8 vCPU, 32 GB RAM, NVIDIA GPU with 8+ GB VRAM, 100+ GB SSD.\n"
+);
+check(
+  "infra: RAM+VRAM spec line is NOT a sizing rule (precision guard)",
+  infraSpecRam === null,
+  infraSpecRam ? `ramRule=${!!infraSpecRam.ramRule}` : "null"
+);
+
 console.log(`\n${pass} passed, ${fail} failed`);
+
+
 if (fail > 0) process.exit(1);

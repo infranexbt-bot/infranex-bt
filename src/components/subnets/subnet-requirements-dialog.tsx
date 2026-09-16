@@ -414,6 +414,40 @@ function LiveProfileView({
         </div>
       </Section>
 
+      {/* INFRA-STACK: documented service infrastructure beyond a pip stack */}
+      {p.infraStack && (p.infraStack.services.length > 0 || p.infraStack.ramRule) && (
+        <Section icon={<Server className="h-4 w-4 text-primary" />} title="Service Infrastructure (from the subnet's docs)">
+          <div className="flex flex-wrap items-center gap-1.5">
+            {p.infraStack.services.map((s) => (
+              <Chip key={s.name}>{s.name}</Chip>
+            ))}
+            {p.infraStack.orchestration && (
+              <span className="text-xs text-muted-foreground">
+                orchestration: <span className="font-medium text-foreground">{p.infraStack.orchestration}</span>
+              </span>
+            )}
+          </div>
+          <div className="mt-2 space-y-1.5">
+            {p.infraStack.services.filter((s) => s.quote).slice(0, 4).map((s) => (
+              <p key={s.name} className="text-xs text-muted-foreground border-l-2 border-border pl-2 italic">
+                {s.quote}
+              </p>
+            ))}
+            {p.infraStack.ramRule && (
+              <p className="text-xs border-l-2 border-warning pl-2 italic text-foreground/80">
+                RAM rule: {p.infraStack.ramRule.quote}
+              </p>
+            )}
+          </div>
+          {p.infraStack.services.some((s) => s.name === "kubernetes") && (
+            <p className="mt-2 text-xs text-warning">
+              The install plan adds an explicit manual gate for this stack — a one-click venv/container
+              deploy cannot build a Kubernetes cluster; follow the subnet's official provisioning tooling.
+            </p>
+          )}
+        </Section>
+      )}
+
       {/* Runtime & Dependencies */}
       <Section icon={<Package className="h-4 w-4 text-primary" />} title="Runtime & Dependencies">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">

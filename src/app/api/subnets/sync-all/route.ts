@@ -65,6 +65,7 @@ export async function POST(req: Request) {
           gpuCount: scraped.gpuCount,
           hostingRequirements: scraped.hosting ? JSON.stringify(scraped.hosting) : null,
           mechanicsJson: scraped.mechanics ? JSON.stringify(scraped.mechanics) : null,
+          infraJson: scraped.infra ? JSON.stringify(scraped.infra) : null,
           requirementsSource: scraped.requirementsSource,
           requirementsScrapedAt: new Date(),
           githubUrl: subnet.githubUrl,

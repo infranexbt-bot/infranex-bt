@@ -59,6 +59,7 @@ for (const subnet of toSync) {
         gpuCount: meta.gpuCount,
         hostingRequirements: meta.hosting ? JSON.stringify(meta.hosting) : null,
         mechanicsJson: meta.mechanics ? JSON.stringify(meta.mechanics) : null,
+          infraJson: meta.infra ? JSON.stringify(meta.infra) : null,
         requirementsSource: meta.requirementsSource,
         requirementsScrapedAt: new Date(),
         githubUrl: s.githubUrl,

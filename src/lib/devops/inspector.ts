@@ -28,6 +28,8 @@ export interface HostFacts {
   arch?: string;
   gpuName?: string;
   gpuVramMb?: number;
+  /** Total host RAM in MiB — feeds the subnet RAM-per-GPU sizing gates. */
+  totalRamMb?: number;
   driverVersion?: string;
   driverCuda?: string;
   dockerVersion?: string;
@@ -65,6 +67,7 @@ export interface ValidationSummary {
 // --- Commands (shared by real SSH hosts and the mock transport) ------------
 
 const CMD_OS = "cat /etc/os-release 2>/dev/null; uname -m";
+const CMD_RAM = "free -m 2>/dev/null | awk '/^Mem:/ {print $2}'";
 const CMD_GPU_PCI = "lspci 2>/dev/null | grep -i nvidia | head -3";
 const CMD_GPU_INFO =
   "nvidia-smi --query-gpu=name,memory.total,driver_version --format=csv,noheader 2>/dev/null";
@@ -173,6 +176,14 @@ export const PIPELINE: StepDef[] = [
       facts.os = parsed.os;
       facts.osId = parsed.osId;
       facts.arch = parsed.arch;
+      // Total RAM — cheap probe alongside the OS; used by install-plan RAM gates.
+      try {
+        const ram = await t.exec(CMD_RAM, 10_000);
+        const ramMb = parseInt(ram.stdout.trim(), 10);
+        if (Number.isFinite(ramMb) && ramMb > 0) facts.totalRamMb = ramMb;
+      } catch {
+        /* RAM unknown — RAM-rule gates will report data unavailable */
+      }
       return { status: "pass", output: `${parsed.os ?? "?"} · ${parsed.arch ?? "?"}`, remediation: null };
     },
   },

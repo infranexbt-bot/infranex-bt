@@ -209,6 +209,56 @@ export function buildInstallPlan(input: InstallPlanInput): InstallStep[] {
     });
   }
 
+  // 5b — INFRA-STACK services: the subnet documents more than a pip stack.
+  //      apt-able services (postgres, redis) install automatically; anything
+  //      cluster-shaped (kubernetes) gets an explicit manual gate — faking a
+  //      one-click k8s bootstrap would produce a miner that never validates.
+  const infra = profile.infraStack;
+  if (infra?.services.length) {
+    const aptServices = infra.services.filter((s) => s.name === "postgres" || s.name === "redis");
+    if (aptServices.length) {
+      const aptNames = aptServices.flatMap((s) => (s.name === "postgres" ? ["postgresql"] : ["redis-server"]));
+      push({
+        title: "Install subnet service stack (apt)",
+        description: `Documented services: ${aptServices.map((s) => s.name).join(", ")} — installed as system services (${aptNames.join(", ")}). ${aptServices.map((s) => `“${(s.quote || "").slice(0, 90)}”`).join(" ")}`,
+        gate: "auto",
+        commands: [
+          `export DEBIAN_FRONTEND=noninteractive; apt-get update -qq && apt-get install -y -qq ${[...new Set(aptNames)].join(" ")} && (systemctl is-active postgresql redis-server 2>/dev/null || service postgresql start && service redis-server start)`,
+        ],
+      });
+    }
+    const k8s = infra.services.find((s) => s.name === "kubernetes") ?? (infra.orchestration === "kubernetes" ? infra.services[0] : null);
+    if (k8s || infra.orchestration === "kubernetes") {
+      push({
+        title: "Subnet requires a Kubernetes stack — manual provisioning gate",
+        description:
+          `The subnet's own documentation requires its miner to run INSIDE Kubernetes${infra.orchestration === "kubernetes" ? " (k3s-class)" : ""}. ` +
+          `A one-click venv/container plan cannot build this honestly: the cluster, its CNI/TEE tooling and the subnet's operators must be provisioned via the subnet's official tooling (ansible/helm/host-tools). ` +
+          (k8s?.quote ? `README evidence: “${k8s.quote.slice(0, 160)}” ` : "") +
+          `Confirm you have followed the subnet's official cluster provisioning docs before continuing.`,
+        gate: "manual",
+        commands: [
+          `kubectl version --client 2>/dev/null || k3s --version 2>/dev/null || { echo "No kubectl/k3s found on this host — provision the subnet's Kubernetes stack per its official docs before launching."; exit 1; }`,
+        ],
+      });
+    }
+    if (infra.ramRule) {
+      const ramKnown = hostFacts?.totalRamMb != null && hostFacts?.gpuVramMb != null;
+      const ramOk = ramKnown ? hostFacts!.totalRamMb! >= hostFacts!.gpuVramMb! : null;
+      push({
+        title: "RAM-per-GPU sizing rule",
+        description:
+          `Documented sizing rule: “${infra.ramRule.quote.slice(0, 160)}” ` +
+          (ramOk != null
+            ? `Host: ${Math.round(hostFacts!.totalRamMb! / 1024)} GB RAM vs ${Math.round(hostFacts!.gpuVramMb! / 1024)} GB per-GPU VRAM — ${ramOk ? "satisfied for the single-GPU case (multiply for multi-GPU hosts)" : "VIOLATED — deployments will fail; pick a host with more RAM"}.`
+            : "Host RAM was not reported by the inspection pass — confirm manually that RAM ≥ VRAM per GPU."),
+        gate: ramOk === false ? "manual" : "auto",
+        virtual: true,
+        commands: [],
+      });
+    }
+  }
+
   // 6 — Miner environment file
   const envLines = [
     `BT_NETWORK=finney`,
