@@ -414,6 +414,12 @@ export interface InfraStack {
   orchestration: string | null;
   /** "RAM per GPU ≥ VRAM" class sizing rule, when documented. */
   ramRule: { quote: string } | null;
+  /** Documented firewall/port rules ("allow the kubernetes ephemeral port range…"). */
+  networkRule?: { quote: string } | null;
+  /** Documented storage prep ("bind-mount storage under /var/snap" class). */
+  storageRule?: { quote: string } | null;
+  /** Bare-metal / static-IP / "will not work on Runpod/Vast" hosting constraints. */
+  hostClass?: { quote: string } | null;
 }
 
 // service key → detection regex. Conservative: name must appear as a word.
@@ -423,6 +429,9 @@ const INFRA_SERVICES: Array<[string, RegExp, RegExp]> = [
   ["postgres", /\bpostgres(ql|)\b/i, /(?:tracked in|deployed with|uses?|making? use of|requires?)\s+(?:\w+[^\n.]{0,40})?(postgres(?:ql|)\b[^\n.]{0,140})/i],
   ["redis", /\bredis\b/i, /((?:redis\b[^\n.]{0,160}?)(?:used for|triggers?|pubsub)[^\n.]{0,160})/i],
   ["gepetto", /\bgepetto\b/i, /(gepetto\b[^\n.]{0,160})/i],
+  // Chutes-class TEE stacks: worker nodes verified via hardware attestation
+  // (Intel TDX confidential VMs) instead of software GPU challenges.
+  ["tee-attestation", /\b(intel\s+tdx|tee[- ]?(?:worker|node|vm)|hardware\s+attestation|attestation\s+service)\b/i, /((?:intel\s+tdx|tee[- ]?(?:worker|node|vm)|hardware\s+attestation|attestation\s+service)\b[^\n.]{0,160})/i],
   ["rabbitmq", /\brabbitmq\b/i, /(rabbitmq\b[^\n.]{0,140})/i],
   ["nats", /\bnats\b/i, /(nats\b[^\n.]{0,140})/i],
   ["mongodb", /\bmongodb\b/i, /(mongodb\b[^\n.]{0,140})/i],
@@ -485,8 +494,59 @@ export function parseInfraStack(text: string): InfraStack | null {
     }
   }
 
-  if (!services.length && !ramRule) return null;
-  return { services, orchestration, ramRule };
+  // Networking rule — documented firewall/port obligations ("allow the
+  // kubernetes ephemeral port range…", NodePort access, firewall disable).
+  // ToC anchor lines ("[Important Networking Note](#…)") don't count. Lines
+  // with direct allow/firewall phrasing beat bare NodePort mentions.
+  let networkRule: InfraStack["networkRule"] = null;
+  const netHit = (t: string) =>
+    /firewall|port range|nodeport|port mapping|static ip/i.test(t) &&
+    /allow|open|expose|disable|must|need|require|unique|1:1/i.test(t);
+  const netPreferred = (t: string) => /firewall|port range|allow the/i.test(t);
+  let netFallback: string | null = null;
+  for (const line of lines) {
+    const t = line.trim();
+    if (/^\s*\[/.test(t) || /\]\(#/.test(t)) continue;
+    if (!netHit(t)) continue;
+    if (netPreferred(t)) {
+      networkRule = { quote: t.replace(/[#*`>]/g, "").slice(0, 220) };
+      break;
+    }
+    netFallback ??= t.replace(/[#*`>]/g, "").slice(0, 220);
+  }
+  networkRule ??= netFallback ? { quote: netFallback } : null;
+
+  // Storage rule — documented storage prep ("be sure as much as possible is
+  // allocated under /var/snap", bind-mount / fstab instructions).
+  let storageRule: InfraStack["storageRule"] = null;
+  for (const line of lines) {
+    const t = line.trim();
+    if (/^\s*\[/.test(t) || /\]\(#/.test(t)) continue;
+    if (
+      /\b(var\/snap|\/etc\/fstab|bind mount)\b/i.test(t) ||
+      (/\bstorage\b/i.test(t) && /\bmount|allocat/i.test(t) && /check|be sure|want|should|must/i.test(t))
+    ) {
+      storageRule = { quote: t.replace(/[#*`>]/g, "").slice(0, 220) };
+      break;
+    }
+  }
+
+  // Host-class constraints — bare-metal-only / no serverless-rental / static
+  // 1:1 IPs ("will not work on Runpod, Vast, etc.").
+  let hostClass: InfraStack["hostClass"] = null;
+  for (const line of lines) {
+    const t = line.trim();
+    if (/^\s*\[/.test(t) || /\]\(#/.test(t)) continue;
+    if (
+      /\b(bare[ -]?metal|will not work on (runpod|vast|hyperstack|lambda)|no shared or dynamic ip|unique, static)\b/i.test(t)
+    ) {
+      hostClass = { quote: t.replace(/[#*`>]/g, "").slice(0, 220) };
+      break;
+    }
+  }
+
+  if (!services.length && !ramRule && !networkRule && !storageRule && !hostClass) return null;
+  return { services, orchestration, ramRule, networkRule, storageRule, hostClass };
 }
 
 // Parse VRAM requirements from text (README or requirements)

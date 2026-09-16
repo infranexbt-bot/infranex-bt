@@ -415,7 +415,12 @@ function LiveProfileView({
       </Section>
 
       {/* INFRA-STACK: documented service infrastructure beyond a pip stack */}
-      {p.infraStack && (p.infraStack.services.length > 0 || p.infraStack.ramRule) && (
+      {p.infraStack &&
+        (p.infraStack.services.length > 0 ||
+          p.infraStack.ramRule ||
+          p.infraStack.networkRule ||
+          p.infraStack.storageRule ||
+          p.infraStack.hostClass) && (
         <Section icon={<Server className="h-4 w-4 text-primary" />} title="Service Infrastructure (from the subnet's docs)">
           <div className="flex flex-wrap items-center gap-1.5">
             {p.infraStack.services.map((s) => (
@@ -436,6 +441,21 @@ function LiveProfileView({
             {p.infraStack.ramRule && (
               <p className="text-xs border-l-2 border-warning pl-2 italic text-foreground/80">
                 RAM rule: {p.infraStack.ramRule.quote}
+              </p>
+            )}
+            {p.infraStack.networkRule && (
+              <p className="text-xs border-l-2 border-warning pl-2 italic text-foreground/80">
+                Networking: {p.infraStack.networkRule.quote}
+              </p>
+            )}
+            {p.infraStack.storageRule && (
+              <p className="text-xs border-l-2 border-border pl-2 italic text-muted-foreground">
+                Storage: {p.infraStack.storageRule.quote}
+              </p>
+            )}
+            {p.infraStack.hostClass && (
+              <p className="text-xs border-l-2 border-destructive pl-2 italic text-foreground/80">
+                Host class: {p.infraStack.hostClass.quote}
               </p>
             )}
           </div>

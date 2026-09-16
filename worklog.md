@@ -1138,3 +1138,21 @@ Work Log:
 Stage Summary:
 - The app now honestly answers the Chutes infra-stack question: requirements (incl. service stacks + RAM sizing) ARE fetched per subnet from official READMEs; the installer installs the apt-able services automatically and REFUSES to pretend a one-click K8s bootstrap — instead an explicit manual gate with the subnet's own documentation quoted. 18/122 subnets document service stacks; the rest genuinely have none in their docs (nothing invented).
 - Note: chutes-miner has no root requirements.txt (ansible/helm repo) so pipCount stays 0 — by design the k8s gate + official tooling is the honest deployment path for it.
+
+---
+Task ID: infra-stack-audit-2
+Agent: main (Super Z)
+Task: "We have DevOps Engine — does it install all the required infra to the providers GPU?" — audit + close the remaining gaps between the subnet docs' infra requirements (Chutes: k8s, Postgres, Redis, Chutes API components, Gepetto, GraVal/TEE, RAM≈VRAM, networking config) and what the DevOps Engine detects + executes.
+
+Work Log:
+- Read installer.ts + subnet-requirements.ts + parseInfraStack; confirmed the DevOps Engine is a REAL SSH executor (apt, venv/uv/docker, services, systemd/container launch, verify), not just a runbook.
+- Live-probed chutesai/chutes-miner HEAD: GraVal is now DEPRECATED (TEE-exclusive: Intel TDX confidential VMs via sek8s host-tools); docs add "Important storage note" + "Important networking note" (firewall/ephemeral port range 30000-32767, NodePort 30443, agent 32000) + bare-metal/static-IP constraint; pyproject is a poetry monorepo (no requirements.txt at root).
+- Extended InfraStack (github-scraper.ts): new optional networkRule / storageRule / hostClass + new "tee-attestation" service key (Intel TDX / hardware attestation). Conservative detectors with ToC-anchor filtering; firewall/allow lines preferred over bare NodePort mentions.
+- Rewrote installer.ts buildInstallPlan: NEW cluster path when infra.orchestration==="kubernetes" — OS packages+ansible, clone repo, MANUAL host-prerequisites gate (networking/storage/hostClass evidence verbatim), MANUAL control-plane provisioning gate (kubectl/k3s checks), wallet gate, kubectl verify. Skips the dishonest venv/pip/env/systemd-launch steps for cluster subnets; postgres/redis apt auto-install kept ONLY for non-cluster stacks; rules-only stacks (no services) get an auto "Host constraints from the subnet's docs" step so nothing is silently dropped.
+- Extended subnet-requirements-dialog.tsx infra section to render Networking/Storage/Host-class rule quotes.
+- Verified: tsc src/ clean, eslint clean on the 3 changed files. E2E refreshes: SN64 profile now services=[kubernetes,postgres,redis,gepetto,tee-attestation] + ram+net+stor+host rules; plan = 7-step cluster path. SN90 KubeTEE: services=[kubernetes,postgres,redis,tee-attestation,ipfs] orch=kubernetes → 6-step cluster path. SN4 Targon: rules-only ("Bare metal access...") → 10-step venv plan + host-constraints step. Sample refreshes SN1/SN8/SN27 = no documented service stack (correct: plain pip/GPU miners, nothing fabricated).
+- Universe scan: infra signals live in only 6 stored hostingRequirements docs (SN28/SN51/SN64 TEE, SN64 firewall/ports + bare-metal); DevOps Engine does NOT depend on that cache — it builds a fresh profile per subnet at install time (proven by the 7-subnet live sample).
+
+Stage Summary:
+- Answer to the user: YES for what the engine can honestly do on the provider GPU (base packages, Docker+NVIDIA runtime or venv/uv deps, postgres/redis, env, wallet gate, launch w/ approval, verify); k8s-class subnets now take an explicit honest provisioning path instead of a fake one-click; GraVal is intentionally absent because Chutes deprecated it for TEE attestation (now detected); remaining manual-by-design: upstream firewall config + cluster provisioning per the subnet's official tooling.
+- Scripts added: scripts/audit-infra-stack.ts, scripts/verify-sn64-plan.ts, scripts/sample-infra-profiles.ts, scripts/verify-plan-shapes.ts.
