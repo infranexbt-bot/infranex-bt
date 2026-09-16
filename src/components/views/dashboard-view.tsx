@@ -7,13 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";import { computeOpportunityScore, type OpportunityScoreResult, type ScoredStrategy } from "@/lib/infranex/opportunity-score";
 import { formatBurnTao } from "@/lib/infranex/miner-score";
-import { useQuery } from "@tanstack/react-query";
-import {
-  winnerTrendChipClass,
-  winnerTrendChipLabel,
-  winnerTrendSentence,
-  type WinnerTrend,
-} from "@/lib/infranex/registration-odds";
+import { RegisterOddsBlock } from "@/components/cards/register-odds";
 import { MetricCard } from "@/components/cards/metric-card";
 import { DataSourceBanner } from "@/components/cards/data-source-banner";
 import { OpportunityTable } from "@/components/tables/opportunity-table";
@@ -840,22 +834,9 @@ function OpportunityScoreCard({ onNavigate }: { onNavigate: (v: ViewKey) => void
   // immunity runway, reward spread) come off the merged row.
   const recSeatFactor =
     recLedger?.factors.find((f) => f.name === "Seat Safety") ?? null;
-  // "If you register today" — first-month earn odds + bond ramp come off the
-  // merged row; the winner-stability trend (paid-seat count across recent
-  // scans) comes from /api/subnets/odds-history, which reads stored chain
-  // snapshots. Hidden gracefully when history is unavailable.
-  const oddsHistory = useQuery<{ trend: WinnerTrend }>({
-    queryKey: ["odds-history", recLedger?.netuid ?? null],
-    queryFn: async () => {
-      const res = await fetch(`/api/subnets/odds-history?netuid=${recLedger!.netuid}`, { cache: "no-store" });
-      if (!res.ok) throw new Error("odds history unavailable");
-      return res.json();
-    },
-    enabled: recLedger?.netuid != null,
-    staleTime: 60_000,
-    refetchInterval: 120_000,
-  });
-  const oddsTrend = oddsHistory.data?.trend ?? null;
+  // "If you register today" odds (first-month %, bond ramp, winner-stability
+  // trend) render via <RegisterOddsBlock> inside the seat panel below — the
+  // shared component owns the per-netuid trend query.
   const showAlternative = alternative && recommended && alternative !== recommended;
   // Runner-ups — the subnets the score evaluated and did NOT pick. Rendered
   // so the verdict is transparent: the card pits the best mining subnet
@@ -1036,60 +1017,7 @@ function OpportunityScoreCard({ onNavigate }: { onNavigate: (v: ViewKey) => void
                         </span>
                       )}
                     </div>
-                    <div className="mt-2 rounded-lg border border-border/40 bg-background/50 px-2.5 py-2">
-                      <p className="text-eyebrow mb-1.5 text-muted-foreground">
-                        If you register today
-                      </p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {recLedger.earnChance && (
-                          <span
-                            className="inline-flex items-center gap-1.5 rounded-lg border border-border/50 bg-background/60 px-2.5 py-1 text-[11px]"
-                            title={recLedger.earnChance.note}
-                          >
-                            <span className="font-semibold">First-month odds</span>
-                            <span
-                              className={cn(
-                                "mono tabular",
-                                recLedger.earnChance.level === "high"
-                                  ? "text-success"
-                                  : recLedger.earnChance.level === "none"
-                                    ? "text-destructive"
-                                    : "text-warning"
-                              )}
-                            >
-                              ~{recLedger.earnChance.pct}%
-                            </span>
-                            <span className="text-[9px] uppercase tracking-wide text-muted-foreground">
-                              {recLedger.earnChance.level}
-                            </span>
-                          </span>
-                        )}
-                        {recLedger.rampWeeks != null && (
-                          <span
-                            className="inline-flex items-center gap-1.5 rounded-lg border border-border/50 bg-background/60 px-2.5 py-1 text-[11px]"
-                            title="Bond-EMA ramp: weeks until a performing newcomer reaches full reward weight — expect little to nothing before this"
-                          >
-                            <span className="font-semibold">Bond ramp</span>
-                            <span className="mono tabular text-muted-foreground">~{recLedger.rampWeeks.toFixed(1)} wk</span>
-                          </span>
-                        )}
-                        {oddsTrend && (
-                          <span
-                            className="inline-flex items-center gap-1.5 rounded-lg border border-border/50 bg-background/60 px-2.5 py-1 text-[11px]"
-                            title={winnerTrendSentence(oddsTrend)}
-                          >
-                            <span className={cn("font-semibold", winnerTrendChipClass(oddsTrend.label))}>
-                              {winnerTrendChipLabel(oddsTrend)}
-                            </span>
-                          </span>
-                        )}
-                      </div>
-                      {oddsTrend && (
-                        <p className="mt-1.5 text-[10px] leading-relaxed text-muted-foreground">
-                          {winnerTrendSentence(oddsTrend)}
-                        </p>
-                      )}
-                    </div>
+                    <RegisterOddsBlock row={recLedger} className="mt-2" />
                     <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">
                       Weighed 20% of the Ledger composite. Open slots register directly; on a full subnet a burn registration replaces the worst non-immune UID — immunity is your runway to start earning first.
                     </p>

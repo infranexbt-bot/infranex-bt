@@ -15,6 +15,7 @@ import {
 import { TrendingUp, AlertTriangle, Cpu, Wallet, Calculator } from "lucide-react";
 import { formatNumber } from "@/lib/utils";
 import { assessSeatChance, formatBurnTao } from "@/lib/infranex/miner-score";
+import { RegisterOddsBlock } from "@/components/cards/register-odds";
 import type { Opportunity } from "@/lib/infranex/types";
 
 interface OpportunityDetailDialogProps {
@@ -409,6 +410,7 @@ export function OpportunityDetailDialog({
                   </p>
                 </div>
               )}
+              <RegisterOddsBlock row={o} className="mt-2" />
             </CardContent>
           </Card>
         </div>
