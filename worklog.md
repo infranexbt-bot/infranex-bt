@@ -812,3 +812,33 @@ Stage Summary:
   quality. 98 now requires Ledger >= 78 (clean seat + blowout edge) —
   regains discriminating power; AVOID picks headline <= ~65 max.
 - Epago today: 84.6 ring / 64.6 Ledger RUN #1 / 570.8%/mo — coherent.
+
+---
+Task ID: register-odds-1
+Agent: main (Super Z)
+Task: Implement "Your odds if you register today" readout + winner-stability trend (user approved)
+
+Work Log:
+- New lib src/lib/infranex/registration-odds.ts: describeWinnerTrend
+  (frozen/widening/shrinking/recovered/thin-history over rewardedMiners
+  time series), winnerTrendSentence, chip label + color helpers.
+- New API GET /api/subnets/odds-history?netuid=N: reads last 90
+  ChainSnapshot rows, extracts rewardedMiners/minersCount for the
+  subnet from subnetsJson, downsamples to <=40 points chronological,
+  returns { trend, samples }. Validates netuid 0-255.
+- dashboard-view.tsx seat panel: new "If you register today" block —
+  First-month odds chip (earnChance.pct + level, note as title), Bond
+  ramp chip (rampWeeks), Winners-trend chip (color-coded red for
+  frozen/shrinking, green widening) + plain-language trend sentence;
+  react-query useQuery, 60s stale / 120s refetch, graceful hide on
+  error/empty.
+- tsc clean; live verify: SN36 trend frozen 2->2, 29 samples / 1.4h;
+  browser-verified chips + sentence render; 0 console errors.
+  Screenshot download/dashboard-register-odds.png. NOTE: dev server
+  had died between sessions — restarted via .zscripts/dev.sh.
+
+Stage Summary:
+- Seat panel now answers the full newcomer question: entry (seats/
+  burn/immunity) + odds (first-month %, bond ramp, winner stability).
+  Epago verdict stays consistent: ~6% first-month odds, ~11.4wk ramp,
+  winners frozen at 2 — jackpot-seat profile confirmed by trend.
