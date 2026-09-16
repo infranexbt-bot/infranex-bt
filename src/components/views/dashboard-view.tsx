@@ -19,7 +19,7 @@ import {
 } from "@/lib/infranex/use-network";
 import { useWorkerStatus } from "@/lib/infranex/use-worker-status";
 import { useEconomics } from "@/lib/infranex/use-platform";
-import { cn, formatNumber, formatCurrency, formatTao, formatRelativeTime } from "@/lib/utils";
+import { cn, formatNumber, formatCurrency, formatTao, formatRelativeTime, opportunityBand } from "@/lib/utils";
 import { useProfitabilityConfig } from "@/lib/infranex/use-profitability";
 import { useTrustReport, trustVerdictStyle } from "@/lib/infranex/use-trust";
 import type { Opportunity, ViewKey } from "@/lib/infranex/types";
@@ -803,8 +803,29 @@ function OpportunityScoreCard({ onNavigate }: { onNavigate: (v: ViewKey) => void
     }
   }, [snap, capitalTao, profConfig, calMinerDays, calRatio]);
 
+  // Cross-check the pick against the Miner's Ledger (the Opportunities page's
+  // scoring). The dashboard ranks mining candidates by net ROI only, so a
+  // "jackpot seat" subnet can top this card while carrying elevated seat /
+  // reward risk — when its own Ledger band is WATCH or AVOID, surface it
+  // instead of silently recommending it.
+  const ledgerCheck = useMemo(() => {
+    if (!snap || snap.subnets.length === 0) return null;
+    try {
+      return new Map(
+        mergeOpportunities(snap, profConfig).map((o) => [o.netuid, o])
+      );
+    } catch {
+      return null;
+    }
+  }, [snap, profConfig]);
+
   const recommended = score ? score.recommended : null;
   const alternative = score ? score.alternative : null;
+  const recLedger =
+    recommended && recommended.strategy === "mine" && recommended.netuid != null
+      ? ledgerCheck?.get(recommended.netuid) ?? null
+      : null;
+  const recBand = recLedger ? opportunityBand(recLedger) : null;
   const showAlternative = alternative && recommended && alternative !== recommended;
   // Runner-ups — the subnets the score evaluated and did NOT pick. Rendered
   // so the verdict is transparent: the card pits the best mining subnet
@@ -858,6 +879,14 @@ function OpportunityScoreCard({ onNavigate }: { onNavigate: (v: ViewKey) => void
                 <span className={cn("rounded-full px-2 py-0.5 text-[10px] uppercase tracking-wide", riskBadgeClass(recommended.riskLevel))}>
                   {recommended.riskLevel} risk
                 </span>
+                {recBand && recBand.label !== "RUN" && (
+                  <span
+                    className={cn("rounded-full px-2 py-0.5 text-[10px] uppercase tracking-wide", recBand.bg, recBand.color)}
+                    title={`Miner's Ledger composite ${recLedger!.score.toFixed(1)} — the Opportunities page bands this subnet ${recBand.label}`}
+                  >
+                    {recBand.label} on Opportunities
+                  </span>
+                )}
                 <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
                   {Math.round(score.confidence * 100)}% confidence
                 </span>
@@ -879,6 +908,25 @@ function OpportunityScoreCard({ onNavigate }: { onNavigate: (v: ViewKey) => void
                   capitalTao={score.capitalTao}
                   primary
                 />
+                {recBand && recBand.label !== "RUN" && recLedger && (
+                  <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+                    Heads-up: this subnet leads on raw ROI but scores{" "}
+                    <span className="font-semibold text-foreground/80">
+                      {recLedger.score.toFixed(1)} ({recBand.label})
+                    </span>{" "}
+                    on the Miner&apos;s Ledger
+                    {recLedger.meetsMinimum === false
+                      ? " and misses your minimum net-profit target"
+                      : " — seat safety, reward concentration or thin exit liquidity are the usual reasons"}
+                    .{" "}
+                    <button
+                      onClick={() => onNavigate("opportunities")}
+                      className="underline underline-offset-2 transition-colors hover:text-foreground"
+                    >
+                      Review the breakdown
+                    </button>
+                  </p>
+                )}
               </div>
               {showAlternative && (
                 <div>

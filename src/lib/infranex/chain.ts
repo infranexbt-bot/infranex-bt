@@ -592,7 +592,10 @@ class SnapshotCache {
             const minerCount = Number(miners?.toString() ?? "0") || 0;
             const subnetTao = toTao((taoArr[j] as { toString(): string } | null)?.toString());
             if (minerCount === 0 && subnetTao === 0) continue;
-            const emEnabled = emEnabledArr[j] as { isEmpty: boolean } | null;
+            const emEnabled = emEnabledArr[j] as {
+              isEmpty: boolean;
+              isFalse?: boolean;
+            } | null;
 
             // --- Real emission accounting from per-neuron vectors ---
             const emVec = numVec(emissionVecs[j]);
@@ -736,7 +739,16 @@ class SnapshotCache {
               alphaIn: alphaInTao,
               alphaOut: toTao((alphaOutArr[j] as { toString(): string } | null)?.toString()),
               tempo: tempoSafe,
-              emissionEnabled: !emEnabled?.isEmpty,
+              // Emission-on flag: trust the chain storage item when it returns
+              // a value. When it returns None (or the query failed), fall back
+              // to the MEASURED last-epoch emission — some live subnets return
+              // None here while actively paying rewards (e.g. SN36 Epago on
+              // Finney emitted 55+ TAO/day against a None flag), and treating
+              // them as "emission off" floors 3 of the 5 Miner's Ledger pillars.
+              emissionEnabled:
+                emEnabled != null && !emEnabled.isEmpty
+                  ? !emEnabled.isFalse // storage answered — respect its value
+                  : epochAlphaRao > 0, // storage None/failed — did it pay last epoch?
               movingPrice,
               emission: emissionPerBlockTao > 0 ? emissionPerBlockTao : null,
               emissionTaoPerDay: emissionPerDayTao > 0 ? emissionPerDayTao : null,

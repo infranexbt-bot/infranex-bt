@@ -700,3 +700,24 @@ Stage Summary:
 - Root cause is TWO-fold: (1) by design the pages score different things (ROI%/mo mine-vs-stake verdict vs 5-pillar composite with RUN/WATCH/AVOID bands); (2) a scanner bug (emissionEnabled=false for actively-emitting SN29/35/36) suppresses Epago's composite by ~17.8 pts → 46.9 WATCH instead of ~64.7 RUN
 - Scripts saved: scripts/research-epago-mismatch.ts, scripts/research-epago-counterfactual.ts
 - Proposed fixes (NOT applied — user asked for research only): derive emissionEnabled from measured emission when storage returns empty; optionally risk-annotate the dashboard pick
+
+---
+Task ID: fix-epago-mismatch-2
+Agent: main (Super Z)
+Task: Apply both fixes for the Dashboard "Mine Epago α36" vs Opportunities 46/WATCH mismatch (user approved)
+
+Work Log:
+- Fix 1 (scanner): chain.ts — emissionEnabled now trusts the storage bool when present (incl. isFalse), and falls back to MEASURED last-epoch emission (epochAlphaRao > 0) when the RPC returns None/empty. Root cause: subnetEmissionEnabled returned None for actively-emitting SN29/35/36, flooring 3 of 5 Miner's Ledger pillars.
+- Fix 2 (dashboard): dashboard-view.tsx OpportunityScoreCard — new ledgerCheck memo (mergeOpportunities) cross-checks the recommended mining pick against the Miner's Ledger; when its band is WATCH/AVOID the card renders a "{band} on Opportunities" badge (next to risk/confidence chips) plus an explanatory note with an "Review the breakdown" link to Opportunities. Badge hidden for RUN picks. Recommendation ranking unchanged (ROI-only) by design.
+- Typecheck: bunx tsc --noEmit — zero errors in app src (only pre-existing skill-script errors).
+- Restarted dev server via .zscripts/dev.sh (setsid detached). NOTE: plain nohup'd background servers get reaped between tool sessions — always restart via .zscripts/dev.sh.
+- Live verification after fresh scan (block 9,078,312):
+  * emissionEnabled FALSE count: 3 → 0; SN36 Epago flag now TRUE (55.6 TAO/day)
+  * Epago Opportunities: 46.9 WATCH #19/128 → 64.7 RUN #1/128, risk medium → low
+  * Dashboard: still "Mine Epago α36" (ROI 574%/mo unchanged), confidence 54% → 66%
+  * Browser-verified dashboard card (screenshot download/dashboard-opp-score-card.png) + Opportunities row; zero console errors
+  * Badge logic simulated (scripts/verify-badge-logic.ts): hidden for current all-RUN top-3; renders for WATCH/AVOID picks
+
+Stage Summary:
+- Both fixes applied and verified end-to-end on live Finney data; the Dashboard/Opportunities discrepancy is resolved (both pages now agree Epago = RUN #1, ROI 574%/mo)
+- Scripts: scripts/verify-fix.ts, scripts/verify-badge-logic.ts (plus earlier research scripts)
