@@ -941,3 +941,21 @@ Stage Summary:
 - Notable: for Chutes our rampWeeks=13.6wk OVERSTATES ramp (7-day sum => ~1-2wk effective), so the >8wk 0.8x penalty on month-1 odds is wrong for SN64 — but odds stay LOW anyway (17/256 rewarded, top-10% take 100%).
 - Fix path if requested: per-subnet "mechanics" knowledge layer (curated notes or scraper keyword extraction: 7-day window, bounties, cold-start) feeding rampWeeks + runbook guidance; GPU-variety support in hardware classifier.
 - Artifacts: scripts/research-chutes-knowledge.ts (persisted, re-runnable with INFRANEX_COOKIE env).
+
+---
+Task ID: chutes-knowledge-2
+Agent: main (Super Z)
+Task: Audit whether the app knows Chutes' hosting constraint: bare metal/VM only, RunPod/Vast explicitly rejected, unique static IP + 1:1 port mapping required (official chutesai/chutes-miner repo).
+
+Work Log:
+- Grepped src/ + scripts/ for runpod|vast|bare-metal|static ip|port mapping: 0 hits for bare-metal/static-IP as SUBNET constraints; RunPod/Vast appear 100+ times as OUR rental infrastructure.
+- Confirmed cost model: miner-score.ts:105 GPU_TIERS comment "2026 rental rates (Vast/RunPod/Lambda-class)"; SN64 uses consumer24 $260/mo (RTX 4090) container-rent pricing.
+- Confirmed deployment engine: real rentals ONLY via RunPod (full GraphQL adapter + pod->DevOps bridge) and Vast.ai (TIER4 bundle adapter); mode: "mock"|"runpod"|"vast". No bare-metal rental provider exists.
+- Confirmed guidance: mining-journey.tsx:434 step 2 says "Rent (RunPod / Vast / Lambda), or connect your own box" — no per-subnet hosting gate.
+- Confirmed requirements schema (use-deployments.ts): minVramGb/pythonVersion/cudaVersion/dockerRequired/nvidiaRuntimeRequired — no hosting/staticIp/portMapping fields.
+- DevOps SSH transport DOES support BYO bare metal (colo rig) — platform can manage a compliant box, but nothing steers users there for SN64.
+
+Stage Summary:
+- Verdict: app does NOT know the constraint, and is structurally worse than the reward-mechanics gap — the guided flow (GPU catalog -> deploy wizard -> RunPod/Vast) produces exactly the setup Chutes rejects (container, NAT IP, mapped ports) while showing "running".
+- SN64 Net ROI $1,958/mo is priced off $260/mo container rent — invalid for the only compliant hosting class (bare metal dedicated ~2-3x, or owned capex; owned mode + electricity line exists but nothing flips SN64 to it).
+- Fix path: requirements schema + hosting constraint fields (hosting: container-ok|bare-metal-vm, staticIpRequired, portMapping) -> Fit pillar warning chip, deploy-stepper gate, bare-metal cost column in GPU_TIERS.
