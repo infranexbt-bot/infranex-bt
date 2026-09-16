@@ -147,3 +147,21 @@ export function winnerTrendChipLabel(trend: WinnerTrend): string {
       return "Trend: thin history";
   }
 }
+
+/** Extra-compact label for per-row chips (tables/cards) — the full
+ *  "Winners …" phrasing lives in winnerTrendChipLabel; here the tooltip
+ *  carries the sentence, so the chip itself stays tight. */
+export function winnerTrendShortLabel(trend: WinnerTrend): string {
+  switch (trend.label) {
+    case "frozen":
+      return `frozen @${trend.rewardedNow}`;
+    case "widening":
+      return `widening ${trend.rewardedThen}→${trend.rewardedNow}`;
+    case "shrinking":
+      return `shrinking ${trend.rewardedThen}→${trend.rewardedNow}`;
+    case "recovered":
+      return `stable @${trend.rewardedNow}`;
+    default:
+      return "thin history";
+  }
+}

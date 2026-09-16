@@ -15,7 +15,8 @@ import {
 import { TrendingUp, AlertTriangle, Cpu, Wallet, Calculator } from "lucide-react";
 import { formatNumber } from "@/lib/utils";
 import { assessSeatChance, formatBurnTao } from "@/lib/infranex/miner-score";
-import { RegisterOddsBlock } from "@/components/cards/register-odds";
+import { RegisterOddsBlock, RegisterOddsInline } from "@/components/cards/register-odds";
+import { useOddsTrends } from "@/lib/infranex/use-odds";
 import type { Opportunity } from "@/lib/infranex/types";
 
 interface OpportunityDetailDialogProps {
@@ -612,6 +613,10 @@ export function OpportunityCard({ opportunity: o }: { opportunity: Opportunity }
   const band = opportunityBand(o);
   const risk = getStatusColor(o.riskLevel);
   const prof = o.profitability;
+  // Batch winner-stability trends — one request shared by every card.
+  const { data: oddsTrends } = useOddsTrends();
+  const oddsTrend = oddsTrends?.[o.netuid] ?? null;
+  const hasOdds = o.earnChance != null || o.rampWeeks != null || oddsTrend != null;
   return (
     <Card className="editorial-card transition-all hover:border-primary/40">
       <CardHeader className="pb-3">
@@ -691,6 +696,14 @@ export function OpportunityCard({ opportunity: o }: { opportunity: Opportunity }
             </span>
           </div>
         </div>
+        {hasOdds && (
+          <div className="rounded-lg border border-border/40 bg-background/50 px-2.5 py-1.5">
+            <p className="text-eyebrow text-[9px] text-muted-foreground">
+              If you register today
+            </p>
+            <RegisterOddsInline row={o} trend={oddsTrend} className="mt-1" />
+          </div>
+        )}
         <Progress
           value={o.score}
           className="h-1"

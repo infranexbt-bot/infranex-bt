@@ -842,3 +842,31 @@ Stage Summary:
   burn/immunity) + odds (first-month %, bond ramp, winner stability).
   Epago verdict stays consistent: ~6% first-month odds, ~11.4wk ramp,
   winners frozen at 2 — jackpot-seat profile confirmed by trend.
+
+---
+Task ID: odds-everywhere-1
+Agent: main (Super Z)
+Task: Add "If you register today" odds to every Opportunities subnet (user approved)
+
+Work Log:
+- Extracted shared src/components/cards/register-odds.tsx:
+  RegisterOddsBlock (first-month odds chip, bond ramp chip,
+  winner-stability chip + sentence; owns the /api/subnets/odds-history
+  useQuery keyed by netuid, 60s stale / 120s refetch; takes a minimal
+  RegisterOddsRow shape satisfied by both Opportunity and
+  LiveOpportunity).
+- Dashboard seat panel now renders <RegisterOddsBlock row={recLedger}/>
+  (inline JSX + local useQuery removed — one source of truth).
+- OpportunityDetailDialog (opportunity-detail.tsx): block mounted after
+  the "Chance to earn · month 1" card — every subnet detail now shows
+  the odds + trend; query fires only while a dialog is open.
+- tsc clean; browser-verified all three surfaces: dashboard Epago
+  (6%/11.4wk/frozen@2), Epago dialog, Chutes dialog (3%/13.6wk/
+  frozen@17 — per-subnet trend confirmed different); 0 console errors.
+  Screenshot download/opportunities-detail-odds2.png.
+
+Stage Summary:
+- Newcomer odds readout now platform-wide: dashboard pick + every
+  Opportunities detail dialog. Design note: trend block intentionally
+  NOT rendered per table row (128 rows would fan out snapshot parsing);
+  it loads per opened dialog only.

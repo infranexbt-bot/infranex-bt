@@ -6,6 +6,7 @@ import {
   winnerTrendChipClass,
   winnerTrendChipLabel,
   winnerTrendSentence,
+  winnerTrendShortLabel,
   type WinnerTrend,
 } from "@/lib/infranex/registration-odds";
 
@@ -113,6 +114,76 @@ export function RegisterOddsBlock({
         <p className="mt-1.5 text-[10px] leading-relaxed text-muted-foreground">
           {winnerTrendSentence(oddsTrend)}
         </p>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Compact per-row odds readout for table rows and grid cards — the same
+ * three signals as RegisterOddsBlock ("If you register today") squeezed
+ * into one line: first-month odds · bond ramp · winner stability.
+ *
+ * Fetches NOTHING: the parent passes the trend from the batch useOddsTrends()
+ * query, so 129 rows cost one request, not one per row. Renders nothing when
+ * the row has no odds data at all.
+ */
+export function RegisterOddsInline({
+  row,
+  trend,
+  className,
+}: {
+  row: RegisterOddsRow;
+  trend?: WinnerTrend | null;
+  className?: string;
+}) {
+  if (row.earnChance == null && row.rampWeeks == null && trend == null) {
+    return null;
+  }
+  return (
+    <div className={cn("flex flex-wrap items-center gap-x-2 gap-y-0.5", className)}>
+      {row.earnChance && (
+        <span
+          className="inline-flex items-center gap-1 text-[10px]"
+          title={`If you register today — first-month odds: ${row.earnChance.note}`}
+        >
+          <span className="text-muted-foreground">mo-1</span>
+          <span
+            className={cn(
+              "mono tabular font-semibold",
+              row.earnChance.level === "high"
+                ? "text-success"
+                : row.earnChance.level === "none"
+                  ? "text-destructive"
+                  : "text-warning"
+            )}
+          >
+            ~{row.earnChance.pct}%
+          </span>
+          <span className="text-[9px] uppercase tracking-wide text-muted-foreground">
+            {row.earnChance.level}
+          </span>
+        </span>
+      )}
+      {row.rampWeeks != null && (
+        <span
+          className="inline-flex items-center gap-1 text-[10px] text-muted-foreground"
+          title="Bond-EMA ramp: weeks until a performing newcomer reaches full reward weight — expect little to nothing before this"
+        >
+          <span className="text-muted-foreground">ramp</span>
+          <span className="mono tabular">~{row.rampWeeks.toFixed(1)}wk</span>
+        </span>
+      )}
+      {trend && (
+        <span
+          className={cn(
+            "inline-flex items-center gap-1 text-[10px] font-semibold",
+            winnerTrendChipClass(trend.label)
+          )}
+          title={winnerTrendSentence(trend)}
+        >
+          {winnerTrendShortLabel(trend)}
+        </span>
       )}
     </div>
   );

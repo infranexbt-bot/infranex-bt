@@ -23,6 +23,8 @@ import { Input } from "@/components/ui/input";
 import { formatNumber } from "@/lib/utils";
 import { assessSeatChance } from "@/lib/infranex/miner-score";
 import { SeatChanceBadge } from "@/components/subnets/seat-chance-badge";
+import { RegisterOddsInline } from "@/components/cards/register-odds";
+import { useOddsTrends } from "@/lib/infranex/use-odds";
 import type { Opportunity } from "@/lib/infranex/types";
 
 interface OpportunityTableProps {
@@ -110,6 +112,9 @@ export function OpportunityTable({
   const [sortKey, setSortKey] = useState<SortKey>("rank");
   const [dir, setDir] = useState<"asc" | "desc">("asc");
   const [search, setSearch] = useState("");
+  // Winner-stability trends for ALL subnets in ONE request — TanStack Query
+  // dedupes every table/card mount onto a single cache entry.
+  const { data: oddsTrends } = useOddsTrends();
 
   const filtered = useMemo(() => {
     let r = opportunities;
@@ -178,6 +183,14 @@ export function OpportunityTable({
                 <SortableTh k="score" sortKey={sortKey} dir={dir} onSort={handleSort}>
                   Score
                 </SortableTh>
+              )}
+              {!compact && (
+                <TableHead
+                  className="whitespace-nowrap"
+                  title="If you register today — first-month earn odds · bond ramp to full weight · winner stability (paid seats across recent scans)"
+                >
+                  Your odds
+                </TableHead>
               )}
               {!compact && (
                 <SortableTh
@@ -255,7 +268,7 @@ export function OpportunityTable({
             {filtered.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={compact ? 5 : 11}
+                  colSpan={compact ? 5 : 12}
                   className="py-12 text-center text-muted-foreground"
                 >
                   No opportunities match your search.
@@ -306,21 +319,6 @@ export function OpportunityTable({
                               {band.label}
                             </Badge>
                           </div>
-                          {o.earnChance && (
-                            <span
-                              className={cn(
-                                "text-[10px] font-medium",
-                                o.earnChance.level === "high"
-                                  ? "text-success"
-                                  : o.earnChance.level === "medium"
-                                    ? "text-warning"
-                                    : "text-destructive"
-                              )}
-                              title={`Chance to earn · month 1 — ${o.earnChance.note}`}
-                            >
-                              month-1 earn: {o.earnChance.level}
-                            </span>
-                          )}
                           {o.totalSlots != null && (() => {
                             const seat = assessSeatChance({
                               minersCount: o.totalSlots != null && o.freeSlots != null ? o.totalSlots - o.freeSlots : null,
@@ -335,6 +333,24 @@ export function OpportunityTable({
                             ) : null;
                           })()}
                         </div>
+                      </TableCell>
+                    )}
+                    {!compact && (
+                      <TableCell className="align-top">
+                        {(() => {
+                          const trend = oddsTrends?.[o.netuid] ?? null;
+                          const hasAny =
+                            o.earnChance != null || o.rampWeeks != null || trend != null;
+                          return hasAny ? (
+                            <RegisterOddsInline
+                              row={o}
+                              trend={trend}
+                              className="max-w-[170px]"
+                            />
+                          ) : (
+                            <span className="text-[10px] text-muted-foreground">—</span>
+                          );
+                        })()}
                       </TableCell>
                     )}
                     {!compact && (

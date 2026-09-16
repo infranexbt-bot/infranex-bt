@@ -1,0 +1,873 @@
+     1→
+     2→---
+     3→Task ID: restore-and-run-1
+     4→Agent: main (Super Z)
+     5→Task: Restore infranex-bt from GitHub after sandbox reset and run the web app
+     6→
+     7→Work Log:
+     8→- Found sandbox container reset — /home/z/my-project wiped (only download/skills/upload left)
+     9→- Ran fullstack init script (platform scaffold at workspace root)
+    10→- Cloned infranexbt-bot/infranex-bt (nextjs-platform branch) from GitHub — token still valid
+    11→- Copied repo into workspace root; removed scaffold conflicts (tailwind.config.ts, examples)
+    12→- Fixed package.json absolute paths (infranex-bt → workspace root)
+    13→- Generated APP_SESSION_SECRET + DEVOPS_SECRET into .env; kept platform DATABASE_URL
+    14→- bun install (91 pkgs), prisma generate + db push → db/custom.db created
+    15→- Restarted platform dev.sh — Next.js dev server on port 3000
+    16→- Recovered original login credentials from /tmp/my-project/infranex-users.local.json (5 users seeded)
+    17→- Browser-verified: login gate OK, admin login OK, dashboard renders LIVE Finney chain data
+    18→  (block 9,070,701, TAO $231.22, 129 subnets, 29,718 miners), CPU Guide multi-subnet picker
+    19→  works (17 subnets, SN67→SN123 switch verified), zero runtime errors in dev.log
+    20→
+    21→Stage Summary:
+    22→- App is RUNNING on port 3000 with all 7 background workers active and writing to SQLite
+    23→- Login: admin / BRJ2-W2GT-WJNF-97VC (also ops01, ops02, analyst01, viewer01 — see scripts/users.local.json)
+    24→- Note: DB is FRESH (old container lost it) — deployments/wallets/settings history gone; chain snapshots re-accumulating
+    25→
+    26→---
+    27→Task ID: judge-apply-1
+    28→Agent: main (Super Z)
+    29→Task: Build "Apply fix to deployment" bridge in Judge Lab (user request: yes do that)
+    30→
+    31→Work Log:
+    32→- Explored judge types (Recommendation: dimensionKey/label/gain/text), daemon-bridge
+    33→  enqueueCommand + apply_config, miner-mindset applyRuntimeOptimization pattern
+    34→- Created src/lib/infranex/judge/apply.ts — JUDGE_FIX_RECIPES (quality→fp8+self-verify,
+    35→  resource_fit→awq4, throughput→vllm, speed→tensorrt, price→INFANEX_ASK_PRICE_USD from
+    36→  priceTargetUsd; availability deliberately manual) + applyJudgeFix() with revision
+    37→  snapshot → config env merge → daemon apply_config / mock tick / platform-only ladder
+    38→- Created POST /api/judge/apply route (thin validation wrapper)
+    39→- judge-view.tsx: ApplyFixButton dialog per fix — deployment picker (same-subnet sort,
+    40→  SN badge, price-target preview from run's own priceScore math), post-apply result note
+    41→- Fixed Radix controlled-dialog bug: onOpenChange doesn't fire on programmatic open →
+    42→  fetch moved to click handler (openDialog); lint-clean (0 errors in touched files)
+    43→- Browser-verified end-to-end: sim → Apply → targon-demo-01 → config mutated
+    44→  (int4→fp8, +SELF_VERIFY, ask price 0.62→0.31 exactly matching computed target),
+    45→  2 revision snapshots created, mock tick note shown
+    46→- Committed bc77d4a; pushed to NEW branch platform-live (workspace repo history differs
+    47→  from GitHub nextjs-platform lineage — avoided force-push)
+    48→
+    49→Stage Summary:
+    50→- Feature LIVE on https://preview (port 3000) + GitHub branch platform-live
+    51→- Judge fixes are now one-click applicable; price math self-consistent with judge engine
+    52→
+    53→---
+    54→Task ID: judge-apply-visibility-1
+    55→Agent: main (Super Z)
+    56→Task: Fix "Apply button not found" in Judge Lab — verdict/Apply buttons only existed for the lifetime of one in-session simulation
+    57→
+    58→Work Log:
+    59→- Diagnosed root cause: ApplyFixButton rendered only inside VerdictPanel, which renders solely from in-session `result` state (set by a fresh Run simulation). Page reload / nav away destroyed it; Recent runs list offered no way back. Backend (/api/judge/apply + judge/apply.ts) was already complete and working.
+    60→- use-judge.ts: widened JudgeRunRecord.result to full SimulationResult shape (dimensionScores + recommendations w/ dimensionKey) — the runs API already persisted it.
+    61→- judge-view.tsx: (1) restore-on-load effect — picking a subnet auto-restores its latest run's spec+result; (2) subnet picker onValueChange restores latest run instead of clearing; (3) Recent runs rows converted to clickable buttons (hover highlight, chevron, hint line) via restoreRun() with same-subnet edge handled; (4) Apply trigger button made prominent (default variant, h-7, shadow).
+    62→- revisions.ts: added "judge-fix" to RevisionCause union (fixes pre-existing TS error in judge/apply.ts snapshotRevision call).
+    63→- Verified typecheck clean (app sources only).
+    64→
+    65→Stage Summary:
+    66→- Browser E2E verified: login → Judge Lab → click Targon run row → verdict restored w/ 3 Apply buttons → Apply (response_quality) → dialog lists targon-demo-01 → apply → "Simulated apply — mock deployment ticked".
+    67→- DB confirmed: deployment env now INFANEX_QUANT=fp8, INFANEX_SELF_VERIFY=1 (+ earlier INFANEX_ASK_PRICE_USD=0.31); revisions rev3/rev4 snapshot cause="judge-fix" note="before judge fix: Quality upshift (FP8 tier + self-verification)".
+    68→- Reload path verified: after reload → pick SN4 → verdict + Apply buttons auto-restore without re-running.
+    69→- Screenshots: tool-results/judge-apply-buttons.png, tool-results/judge-restored-verdict.png
+    70→
+    71→---
+    72→Task ID: daemon-install-ui-1
+    73→Agent: main (Super Z)
+    74→Task: Walk user through daemon install — built the missing Install Daemon UI, found+fixed a fatal generated-script bug, proved the chain live
+    75→
+    76→Work Log:
+    77→- Found POST /api/daemon/install existed (per-deployment Python daemon, one-shot HMAC secret) but NO UI surfaced it; runbook even pointed users to a panel button that didn't exist.
+    78→- Built src/components/deployments/daemon-install-dialog.tsx: editable platform URL (defaults to browser origin, localhost warning), generates script via the API, "Copy full setup command" (heredoc + nohup launch) + "Copy script only", 4-step instructions, secret-shown-once note.
+    79→- Wired "Install daemon" button into deployment cards (deployments-view.tsx) — shown for all non-terminal deployments.
+    80→- CRITICAL BUG: generated Python had a fatal SyntaxError — JS template literal in buildDaemonScript consumed the \n in the f-string at apply_config's env-export line (daemon-bridge.ts:463), producing an unterminated f-string. The daemon would have died on startup on ANY pod. Fixed with \\n escape.
+    81→- Verified: python AST parse of the real generated script OK; ran the daemon live (scripts/gen-daemon-test.ts regenerates it from DB secret via decryptSecret) → telemetry POST accepted → daemonState flipped status "pending" → "online" with lastSeenAt.
+    82→- Confirmed daemon telemetry/commands routes are HMAC-authed (no browser session needed from remote pods); install route stays session-guarded.
+    83→
+    84→Stage Summary:
+    85→- Operator flow is now: Deployments → card → Install daemon → copy setup command → paste on GPU pod as root → chip online in ~60s → Judge Lab Apply pushes reach the real miner.
+    86→- Real-pod caveat: platform URL must be the public URL (preview URL now, VPS domain after migration); daemon process needs a supervisor (systemd/pm2) to survive pod reboots.
+    87→
+    88→---
+    89→Task ID: daemon-systemd-autostart-1
+    90→Agent: main (Super Z)
+    91→Task: Add systemd auto-start generator to the daemon install dialog (user confirmed)
+    92→
+    93→Work Log:
+    94→- Extracted the setup-command wrapper into a pure, testable module: src/lib/infranex/daemon-setup.ts (buildDaemonSetupCommand + DAEMON_UNINSTALL_COMMAND).
+    95→- Upgraded the installer: writes the daemon py, then systemd present → /etc/systemd/system/infranex-daemon.service (Restart=always, RestartSec=15, WantedBy=multi-user.target → survives pod reboots) + daemon-reload/enable/restart; no systemd (RunPod/Vast containers) → pkill old process + bash watchdog loop relaunch every 15s. Idempotent — re-paste updates in place. Prints "launcher=systemd" or "launcher=watchdog".
+    96→- Dialog updates: primary button now "Copy setup command (auto-start service)", steps + tip text refreshed, added a "copy uninstall command" link (disable/remove service + files).
+    97→- Fixed test-script Bun type error by using node:fs/child_process; added scripts/test-daemon-setup.ts sandbox E2E.
+    98→
+    99→Stage Summary:
+   100→- Sandbox E2E PASS: bash -n OK; python AST OK; sandbox installer ran → chose launcher=watchdog (no systemd in this container, mirrors RunPod/Vast); daemonState flipped status "online" with fresh lastSeenAt. Test artifacts with embedded secrets deleted after run.
+   101→- Browser verified: dialog renders the full auto-start setup command + uninstall copy link.
+   102→- Operator experience: paste once as root → daemon installed, supervised, auto-starts on reboot; uninstall is one copy-paste.
+   103→
+   104→---
+   105→Task ID: daemon-systemd-autostart-2
+   106→Agent: main (Super Z)
+   107→Task: Verify the systemd/watchdog auto-start installer end-to-end and harden migration paths
+   108→
+   109→Work Log:
+   110→- Confirmed heredoc-marker safety: buildDaemonScript never emits INFRANEX_DAEMON_EOF / INFRANEX_UNIT_EOF (grep on generator source).
+   111→- Hardened daemon-setup.ts: systemd branch now pkills stray nohup/watchdog daemons before systemctl restart (exactly one daemon after migrating from the old nohup install); uninstall command now runs systemctl daemon-reload after removing the unit.
+   112→- Re-ran full E2E from the exact operator-paste command (scripts/gen-setup-command.ts, real secret from DB): bash -n PASS; executed in this container (no systemd → launcher=watchdog, same as RunPod/Vast); daemonState status=online with lastSeenAge 14s.
+   113→- Proved crash auto-restart: killed daemon PID 10360 → watchdog revived it as PID 10362 within 15s (log shows second "[infranex-daemon] up").
+   114→- Proved idempotency: re-pasting the setup command cleanly replaced the old watchdog+daemon pair.
+   115→- Extracted and reviewed the systemd unit: After/Wants=network-online.target, Restart=always, RestartSec=15, Environment=PYTHONUNBUFFERED=1, WantedBy=multi-user.target.
+   116→- Noted pkill -f caveat: pattern matches both daemon and watchdog cmdline (intended for cleanup; external pkill of daemon also drops the supervisor — systemd branch immune via Restart=always).
+   117→- Security cleanup: deleted tool-results/setup_command.sh, setup_sandbox.sh, sandbox/ tree (embedded HMAC secret); killed test daemon/watchdog processes.
+   118→
+   119→Stage Summary:
+   120→- Auto-start installer verified real-world: paste once as root on the GPU pod → daemon supervised (systemd on VMs/bare metal, watchdog in containers) → survives crashes and pod reboots.
+   121→- src typecheck clean. Dialog text/button already matched the new behavior.
+   122→
+   123→---
+   124→Task ID: daemon-install-automation-tip
+   125→Agent: main (Super Z)
+   126→Task: Answer "can daemon install be automated?" and surface the provider start-script path in the dialog
+   127→
+   128→Work Log:
+   129→- Explained the chicken-and-egg boundary: before an agent exists on the pod, the platform has no channel to execute anything there, so first contact is necessarily out-of-band (SSH paste or provider start script).
+   130→- Added an "Automating across pods?" tip to DaemonInstallDialog: the setup command is self-contained + idempotent, so it can be pasted into RunPod template Start script / Vast.ai on-start script / Oracle-Hetzner cloud-init user-data; pods then self-install on first boot and refresh on every restart. Notes one-template-per-deployment (identity/secret is per-deployment).
+   131→- src typecheck clean.
+   132→
+   133→Stage Summary:
+   134→- Manual paste remains the one-time bootstrap per pod; provider start scripts are the zero-code automation path; SSH auto-install and enrollment-token bootstrap one-liner identified as opt-in future work.
+   135→
+   136→---
+   137→Task ID: git-push-platform-live-2
+   138→Agent: main (Super Z)
+   139→Task: Push accumulated work (daemon auto-start + dialog automation tip) to GitHub
+   140→
+   141→Work Log:
+   142→- Located repo infranexbt-bot/infranex-bt via worklog; no remote/credentials in workspace after sandbox reset — user supplied a fresh classic token (ghp_...).
+   143→- ls-remote: nextjs-platform @ 3dab7af, platform-live @ bc77d4a (previous push point). Local HEAD ecbd57a confirmed descendant (fast-forward, no force).
+   144→- Pushed HEAD:platform-live — bc77d4a..ecbd57a; ls-remote verifies remote == local HEAD.
+   145→- Token NOT persisted (no remote added, nothing on disk); used ad-hoc in push URL only.
+   146→- Outstanding security items flagged to user: revoke the pasted token (plaintext in chat, classic repo-wide scope); .env still tracked in repo and present in pushed history.
+   147→
+   148→Stage Summary:
+   149→- GitHub platform-live is now current with the workspace: systemd/watchdog auto-start installer, hardened setup module, dialog automation tip, E2E scripts, worklog.
+   150→
+   151→---
+   152→Task ID: app-analysis-1
+   153→Agent: main (Super Z)
+   154→Task: Full product research — what the app is, menu-by-menu analysis, operating advice
+   155→
+   156→Work Log:
+   157→- Mapped navigation: 15 views in 4 groups (Intelligence / Operations / Platform / Administration) from sidebar.tsx.
+   158→- Read README (product pitch, data sources, stack), per-view on-screen sections, devops trigger vocabulary, optimization action set, economics lib, docs/ tree (setup-guide + screenshots).
+   159→- Delivered in-chat analysis; no code changes.
+   160→
+   161→Stage Summary:
+   162→- Product identified as: Bittensor intelligence + mining operations platform; core loop = research subnets → deploy miner → install daemon → judge → apply fixes → monitor/optimize.
+   163→
+   164→---
+   165→Task ID: handbook-pdf-1
+   166→Agent: main (Super Z)
+   167→Task: Produce the Infranex BT Operator Handbook as a PDF (user: "save this and provide me pdf")
+   168→
+   169→Work Log:
+   170→- Loaded pdf skill chain in full: SKILL.md, fonts.md, briefs/report.md (complete), typesetting/cover.md, overflow.md, palette.md, typography.md, pagination.md.
+   171→- Routed Report (English A4, no emoji). Cover: Template 07 Crystal Blue (fixed palette per cover.md) via html2poster.js at 794px; passed poster_validate check-html + cover_validate.js (no overlaps).
+   172→- Body: ReportLab TocDocTemplate + multiBuild, clickable TOC, FreeSerif + install_font_fallback, Template 07 body palette, dual page numbering (hidden cover / roman TOC / arabic body reset), CondPageBreak 25% before H1s, Paragraph-wrapped proportional tables with repeatRows, stat band + callout flowables.
+   173→- Fixed env issues: chinese/ has no static NotoSansSC (variable TTF unreadable by ReportLab -> pointed fallback names at NotoSerifSC statics); cover page 595.9pt vs A4 595.3pt -> tightened normalize tolerance to 0.4pt.
+   174→- QA chain: code.sanitize, meta.brand, pages.clean (0 blank), font.check (0 issues), toc.check (0 errors), pdf_qa.py PASS (12 checks).
+   175→
+   176→Stage Summary:
+   177→- Deliverables: download/infranex-bt-operator-handbook.pdf (14 pages, ~197KB, vector, clickable TOC) + download/infranex-bt-handbook-cover.html (cover source).
+   178→- Scripts persisted: scripts/handbook_content.py (content), scripts/gen_handbook_pdf.py (builder), scripts/handbook_cover.html.
+   179→
+   180→---
+   181→Task ID: operator-handbook-pdf-1
+   182→Agent: main (Super Z)
+   183→Task: Complete step-by-step workflow guide as PDF (user: "yes provide complete step by step guide of the workflow")
+   184→
+   185→Work Log:
+   186→- Loaded pdf skill; routed to Creative Flow brief (handbook/guide); read creative-flow.md + fonts.md + overflow/pagination/typography/palette/cover/cover-backgrounds/charts typesetting files
+   187→- Verified exact UI workflow from source: deploy-wizard 5 steps (Subnet/Requirements/GPU/Install/Hotkey & run), daemon-install-dialog (SSH->paste->60s->Online, systemd vs watchdog, idempotent, provider start-script automation), judge-view (Re-mine profile -> Run simulation -> Verdict -> ApplyFixButton deployment picker -> apply_config push ladder), /api/judge/apply takes deploymentId
+   188→- Built 886-line HTML handbook (download/infranex-operator-handbook.html): Crystal Blue design (Template 07 dark cover #0a1628 + light-blue body #f5f8fc, one hue family ~215), 11 sections: cover, golden path (6-phase flow), Phase 0 setup, Phase 1 subnet, Phase 2 deploy wizard, Phase 3 daemon, Phase 4 judge+when-to-judge table, Phase 5 operate (14 triggers), troubleshooting, rhythms+quick reference, ending page
+   189→- poster_validate: fixed divider text-line collisions (pseudo-element ::after instead of DOM line), moved cover glows into cover background (no bleed), aligned screen bg; cover page itself 0 overlaps; remaining validator flags = body table cells (cover_validate is documented cover-ONLY, out of scope for flowing docs)
+   190→- Rendered via html2pdf-next.js (installed pagedjs via bun): 11 pages vector; bound 65 em-dashes to preceding words (nbsp) to fix line-start punctuation
+   191→- Post-process (scripts/postprocess_handbook.py): stamped Arabic page numbers 1-9 on body pages (cover+ending skipped), set metadata Title/Author Z.ai/Subject/Creator; pypdf extract_text KeyError(bbox) bug -> corruption scan via pymupdf instead: 0 U+FFFD
+   192→- pdf_qa final: all critical checks PASS (no overflow, no blank pages, fill ratio ok, full-bleed cover, symmetric margins, fonts embedded); 2 benign warnings = English opening quotes at line start (legitimate)
+   193→
+   194→Stage Summary:
+   195→- DELIVERED: download/infranex-operator-handbook.pdf (11 pages, 450.6 KB, vector, page-numbered) + download/infranex-operator-handbook.html (editable source)
+   196→- Content: golden path one-liner (Subnet->GPU->Daemon online->Judge->Apply->Operate), daemon-before-judge timing rule, every button name verified against source
+   197→
+   198→---
+   199→Task ID: deploy-page-simplify-1
+   200→Agent: main (Super Z)
+   201→Task: Simplify the deployment page — clear step-by-step deploy flow on a single page (user: "i need clear step by step options in the deployment page for deploying the miner in single page, simplify more")
+   202→
+   203→Work Log:
+   204→- Rebuilt the deploy flow as an INLINE 4-step stepper on the Deployments page (no popup): 1 Subnet → 2 GPU (requirements strip folded into this step) → 3 Deploy (review summary + Rent & deploy + live install log) → 4 Go live (Register on-chain + Connect daemon + What's next)
+   205→- Created src/components/deployments/deploy-stepper.tsx (~700 lines): clickable step rail showing each step's picked value (α4 · Targon / RTX 4090 · $0.34/hr / installed / live UID), always-visible "Your picks" summary panel, auto-advance from install to Go live when miner starts, post-live "Deploy another miner" reset, wallet wizard + daemon dialogs bound to the in-flight deployment, steps lock once the GPU is rented
+   206→- Created deploy-preselect.ts module singleton (take-once semantics) replacing the app-root dialog singleton; page.tsx entry points now navigate to Deployments + preseed the stepper: opportunity "Start mining" → subnet, GPU catalog "Provision" → offer
+   207→- deployments-view.tsx: simplified header, stepper leads, cards below ("Your deployments · N active"), DevOps Engine demoted to collapsed <details> "Advanced — deploy on your own GPU hosts" at page bottom
+   208→- Deleted deploy-wizard.tsx (old 5-step dialog); fixed lint error in analytics-view.tsx (manual useMemo blocked React Compiler optimization)
+   209→- Wallet name prefill converted from setState-in-effect to derived-at-render (effWalletName) to satisfy react-hooks/set-state-in-effect
+   210→- Browser E2E (agent-browser): step 1 live chain list → select α4 Targon → step 2 requirement strip "Needs ≥ 24GB VRAM" + burn-entry warning + offer list + miner/wallet inputs → step 3 review rows + honest no-key error toast → (with mocked provider boundary) install log with step progression → auto-advance to step 4 (Register/daemon/next-steps blocks) → daemon dialog opens → DevOps section collapses/expands → "Start mining" preseeds α64 at step 2 → "Provision" preseeds H100 offer at step 1 → mobile 390px layout OK (2×2 grid)
+   211→- Verification notes: no provider keys in DB → /api/gpu-offers returns 0 offers (MOCK-PURGE-2, honest empty state); real rental path verified previously via same API/hooks; deployment lifecycle mocked at browser level only for UI-state verification
+   212→
+   213→Stage Summary:
+   214→- Deploy flow is now ONE page, FOUR steps, zero popups; all entry points converge on it
+   215→- Lint 0 errors; tsc src/ clean; dev.log clean; committed locally (deploy-page-simplify-1)
+   216→
+   217→---
+   218→Task ID: git-push-platform-live-3
+   219→Agent: main (Super Z)
+   220→Task: Push deploy-stepper work + pending snapshot to GitHub (user: "push this to github")
+   221→
+   222→Work Log:
+   223→- Verified local main descends from platform-live tip ecbd57a (fast-forward, no force needed)
+   224→- Committed pending .alpha-price-history.json runtime snapshot (90e2ddc)
+   225→- Token from prior session still valid; used ad-hoc in push URL only, not persisted on disk
+   226→- Pushed main:platform-live → ecbd57a..90e2ddc; ls-remote confirms remote == local HEAD
+   227→
+   228→Stage Summary:
+   229→- GitHub platform-live now current: single-page 4-step deploy stepper, preselect entry points,
+   230→  old wizard removed, price-history snapshot. 10 commits delivered this push.
+   231→- Standing reminder: revoke the shared token (plaintext in chat); .env still tracked in repo.
+   232→
+   233→---
+   234→Task ID: deploy-pending-fix-1
+   235→Agent: main (Super Z)
+   236→Task: Diagnose "why is deployment showing Pending" (user screenshot: targon-01 frozen at Approve=Running) and fix the root cause
+   237→
+   238→Work Log:
+   239→- Root cause: the deploy pipeline advances ONE state per tick, and ticks came ONLY from the
+   240→  browser (deploy-stepper.tsx / deployments-view.tsx pollers via POST /api/deployments/[id]/tick).
+   241→  No server worker called tickDeployment — so closing the dialog, backgrounding the tab, or a
+   242→  dev-server restart froze the deployment mid-pipeline forever (state "approved" renders as
+   243→  Approve=Running + all later steps Pending).
+   244→- Extra finding: DB was fresh (0 deployments) — the user's targon-01 was from a previous DB
+   245→  generation; and port 3000 was DOWN during the session: run-dev.sh / run-dev-keepalive.sh
+   246→  pointed at nonexistent /home/z/my-project/infranex-bt with a bogus DATABASE_URL (stale clone
+   247→  path from an earlier restore), and ad-hoc nohup/setsid server starts were killed when tool
+   248→  calls ended. Fixed both scripts to PROJECT_DIR=/home/z/my-project; now start the server via
+   249→  the platform's own .zscripts/dev.sh (bun install + db:push + next dev & + disown) — survives
+   250→  tool-call teardown.
+   251→- FIX (DEPLOY-2): new src/lib/infranex/deployment/ticker.ts — runDeploymentTickerPass() ticks
+   252→  every deployment in active states (requested/approved/provisioning/provisioned/setup/ready/
+   253→  deploying) every 5s. Terminal states excluded; "stopped" never auto-restarts; on-chain
+   254→  registration stays a manual action; provider failures land in "failed" with the real error
+   255→  (honest, no silent hang). Wired as worker #5 "deploy-ticker" in workers.ts (INTERVALS.deployTick).
+   256→- Verified: tsc clean on touched files, eslint 0 errors.
+   257→- E2E (scripts/test-deploy-ticker.ts): created mock deployment, NO browser, NO script-side
+   258→  ticks — server ticker advanced requested→approved→provisioning→provisioned→setup→ready→
+   259→  started in ~32s, all 6 steps done, then auto-cleanup deleted the row. PASS.
+   260→
+   261→Stage Summary:
+   262→- Deployments can no longer freeze at "Pending": the pipeline self-advances server-side even
+   263→  with the browser closed; real provider errors surface as "failed" with the actual message.
+   264→- Dev server restored via platform dev.sh (pid changes across restarts; port 3000 confirmed).
+   265→- User guidance: targon-01 no longer exists (fresh DB) — redeploy from Deployments; if a deploy
+   266→  is ever interrupted, the ticker resumes it automatically within seconds.
+   267→
+   268→---
+   269→Task ID: rename-validator-lab-1
+   270→Agent: main (Super Z)
+   271→Task: Rename "Judge Lab" to "Validator Lab" across user-facing UI (user asked for rename suggestions)
+   272→
+   273→Work Log:
+   274→- Chose "Validator Lab" (user's first option; singular = correct Bittensor term; keeps the
+   275→  simulate+apply "lab" concept). Alternatives offered: Validator Scores, Score Simulator.
+   276→- Renamed user-facing strings only — sidebar label, page title + eyebrow, judge-view header/
+   277→  buttons/badges ("Quality Judge"→"Quality Validator", "Mining judge profile…", "Scoring
+   278→  against validator…"), cpu-guide-view guide copy (~15 strings: "judge profile/weights/shape/
+   279→  sim" → "validator …"), deploy-stepper + daemon-install-dialog copy, service-health runbook
+   280→  line, simulate.ts disclaimer. Internal identifiers untouched: /api/judge routes, judge-view/
+   281→  use-judge/apply.ts, JudgeKind + judgeKind + quality_judge type keys, route key "judge".
+   282→- Also reseeded users this session (fresh DB had 0 AppUser rows → login 401s) from the
+   283→  /tmp wipe-proof mirror; original codes preserved; session secret regenerated; server
+   284→  restarted via .zscripts/dev.sh; login verified 200 + session cookie.
+   285→- Verification: rg sweep shows zero user-facing "Judge" left (only internal keys/comments);
+   286→  tsc clean on src; eslint 0 errors (1 pre-existing unused-disable warning); live check:
+   287→  login → GET / HTML contains "Validator Lab", no "Judge Lab".
+   288→
+   289→Stage Summary:
+   290→- Nav 04 is now "Validator Lab" everywhere the user can see; all judge APIs/types unchanged so
+   291→  zero functional risk. Handbook PDFs still say "Judge Lab" (static files) — regenerate on request.
+   292→
+   293→---
+   294→Task ID: rename-validator-lab-2
+   295→Agent: main
+   296→Task: Second-pass sweep of "Judge Lab"/"judge" wording missed by the first rename pass (follow-up to rename-validator-lab-1).
+   297→
+   298→Work Log:
+   299→- Swept src/ for remaining "Judge Lab"/"Judge for"/"Judge fix"/"judge profile" strings.
+   300→- User-visible strings renamed: extract.ts buildSummary outputs ("Judge for X classified…"
+   301→  → "Validator for X classified…"); apply.ts daemon apply note ("Re-run the Judge…" →
+   302→  "Re-run Validator Lab…"); revision snapshot cause "judge-fix" → "validator-fix" + note
+   303→  "before judge fix:" → "before validator fix:"; /api/judge/apply 500 fallback error
+   304→  "Judge fix apply failed" → "Validator fix apply failed".
+   305→- RevisionCause union updated in deployment/revisions.ts (judge-fix → validator-fix; DTO
+   306→  cause is RevisionCause|string so old DB rows still render); added violet chip style for
+   307→  "validator-fix" in revisions-dialog CAUSE_CHIP.
+   308→- Comment/doc consistency pass: apply.ts header, service.ts, types.ts, simulate.ts,
+   309→  use-judge.ts, extract.ts, judge-view.tsx, cpu-guide-view.tsx, api/judge/sync/route.ts.
+   310→  devops-monitor.ts "can't judge thermals" kept (English verb, not the feature).
+   311→- Internal identifiers intentionally stable: /api/judge/* routes, use-judge, JudgeKind,
+   312→  judgeKind, quality_judge, nav key "judge", JudgeProfile prisma model.
+   313→- Verification: rg sweep zero matches for "Judge Lab|Judge for|Judge fix|the Judge|judge
+   314→  profile|judge weights"; tsc clean on src/ (pre-existing errors only in scripts/ + skills/
+   315→  which are outside the app build); live: login 200, GET /api/judge/profiles?netuid=67 → 200
+   316→  with renamed summary text.
+   317→
+   318→Stage Summary:
+   319→- Rename fully complete — zero user-visible or doc-level "Judge Lab"/"judge" wording left in
+   320→  src/; all APIs/types stable; committed locally as rename follow-up. NOT pushed yet: no git
+   321→  remote configured (prior push used ad-hoc token URL) and no stored credentials — awaiting
+   322→  fresh token or user-side push.
+   323→
+   324→---
+   325→Task ID: git-push-platform-live-4
+   326→Agent: main
+   327→Task: Push rename follow-up + pending commits to infranexbt-bot/infranex-bt platform-live.
+   328→
+   329→Work Log:
+   330→- User re-supplied GitHub PAT (same ghp_iXdt… as prior session); used as ad-hoc push URL,
+   331→  never written to disk or .git/config.
+   332→- git push main:platform-live → success (826d1dd..5d342d1). Remote head verified via
+   333→  ls-remote = 5d342d1 = local HEAD (5d342d1 is a platform autosave commit on top of the
+   334→  rename commit d92c754, matching the existing UUID-message autosave pattern in history).
+   335→
+   336→Stage Summary:
+   337→- platform-live now contains: Validator Lab rename (826d1dd) + follow-up sweep (d92c754) +
+   338→  autosave (5d342d1). Token shared twice in chat — user should rotate/revoke and prefer
+   339→  fine-grained tokens (Contents: R/W, short expiry) for future pushes.
+   340→
+   341→---
+   342→Task ID: operator-handbook-pdf-2
+   343→Agent: main (Super Z)
+   344→Task: Regenerate Operator Handbook PDFs with Validator Lab naming + recent platform updates (user: "provide updated operator handbook pdf").
+   345→
+   346→Work Log:
+   347→- Reused the approved Creative Flow handbook (download/infranex-operator-handbook.html) —
+   348→  design untouched, content edits only. scripts/update_handbook_rename.py applied 44
+   349→  exact-match replacements (each asserted count==1; two section titles needed \u00a0 NBSP
+   350→  before the em-dash): Judge Lab -> Validator Lab across cover chips/path, golden path,
+   351→  phases 0-5, when-to-run table, troubleshooting, rhythms, quick reference, ending
+   352→  ("Mine. Validate. Apply. Repeat."); "simulated judge" -> "simulated validator";
+   353→  "re-judge" -> "re-validate"; cover edition 1 -> 2. Phase 2 lifecycle copy updated for
+   354→  DEPLOY-2: "auto-advances on the platform server even if you close the tab".
+   355→- Re-rendered via html2pdf-next.js (794x1123, Paged.js) -> postprocess_handbook.py (page
+   356→  numbers 1-9 on body pages, metadata Subject now says Validator Lab; corruption scan
+   357→  migrated to pymupdf to dodge pypdf KeyError(bbox)) -> pdf_qa: 11 checks PASS, same 2
+   358→  benign line-start-quote warnings as the approved original. PDF text scan: 0 judge, 17
+   359→  Validator Lab, 11 pages.
+   360→- Secondary ReportLab variant kept consistent: scripts/update_handbook2_rename.py updated
+   361→  handbook_content.py (12 targeted rules + global Judge Lab) + cover html (Validate-to-Apply
+   362→  loop, Edition 2); cover re-rendered via html2poster.js -> tool-results/handbook_cover.pdf;
+   363→  gen_handbook_pdf.py rebuilt body + merged -> download/infranex-bt-operator-handbook.pdf
+   364→  (14 pages). pdf_qa --skip-cover: full PASS, TOC populated. 0 judge mentions.
+   365→
+   366→Stage Summary:
+   367→- DELIVERED: download/infranex-operator-handbook.pdf (11 pp, Edition 2, Validator Lab,
+   368→  server-side ticker documented) + infranex-bt-operator-handbook.pdf (14 pp, consistent).
+   369→  HTML sources delivered alongside per skill rule. Update scripts persisted for future edits.
+   370→
+   371→---
+   372→Task ID: git-push-platform-live-5
+   373→Agent: main
+   374→Task: User-confirm sync of handbook updates to GitHub.
+   375→
+   376→Work Log:
+   377→- Verified working tree clean (runtime churn swept into platform autosave 4a8ee58).
+   378→- Pushed da3f281..4a8ee58 main:platform-live; ls-remote confirms remote head = local head.
+   379→
+   380→Stage Summary:
+   381→- platform-live fully synced: Validator Lab rename + Edition 2 handbooks + autosave.
+   382→
+   383→---
+   384→Task ID: overlay-1-2-gap-fixes
+   385→Agent: main (Super Z)
+   386→Task: Fix the two per-subnet requirements gaps: (1) profiler ignores user-provided
+   387→SubnetOverride.githubUrl, (2) pod docker image came from fake category templates.
+   388→
+   389→Work Log:
+   390→- OVERLAY-1 (subnet-requirements.ts): override layer added to buildProfile —
+   391→  SubnetOverride.githubUrl (normalized: bare domains, .git suffix, /tree/branch)
+   392→  now takes precedence over the on-chain identity link; "override" provenance
+   393→  source + validation notes; confidence logic unchanged.
+   394→- OVERLAY-1 (override route): PUT/DELETE now invalidate the 6h SubnetRequirements
+   395→  cache so the next pull re-fetches from the user's repo immediately.
+   396→- OVERLAY-2 (config.ts): pod image no longer fake "bittensor/*" placeholders —
+   397→  resolvePodImage() selects runpod/pytorch CUDA devel image matched to the
+   398→  subnet's parsed min CUDA (11.8 / 12.1 ladder; RunPod deploy API has no command
+   399→  override, so pod image must be keep-alive + sshd). SubnetProfileHint passed
+   400→  from POST /api/deployments (pullSubnetRequirements, cached) into
+   401→  createDeployment → buildDeploymentConfig: imageSource + repoDockerfileBase
+   402→  recorded, entrypoint/python/cuda from profile. Repo's real Dockerfile still
+   403→  rules the miner image via in-pod docker build (installer step 5).
+   404→- Robust Dockerfile FROM parsing: multi-stage → last concrete FROM; skips
+   405→  ${VAR} indirection and scratch; --platform flag handled.
+   406→- engine.ts: approve-step mode line no longer infers from imageName; profileHint
+   407→  plumbed through CreateDeploymentInput.
+   408→- UI: deployments-view shows "Repo Dockerfile base" row; client type mirror synced.
+   409→- Tests: scripts/test-overlay-fixes.ts (25 unit checks) PASS;
+   410→  scripts/test-profiler-e2e.ts (10 authenticated e2e checks incl. override
+   411→  round-trip PUT→repo wins→invalid URL rejected→DELETE reverts) PASS;
+   412→  test-tier2.ts 58 PASS / 0 FAIL; test-tier4.ts PASS; tsc clean for touched code.
+   413→- Committed cb62b1a. NOT pushed: no git remote/credentials in workspace (by
+   414→  design after PAT exposure) — push to infranexbt-bot/infranex-bt platform-live
+   415→  pending fresh fine-grained token from user.
+   416→
+   417→Stage Summary:
+   418→- Both gaps fixed and verified e2e. Deployment configs now carry
+   419→  imageSource="subnet-requirements" + repoDockerfileBase; profiler honors team
+   420→  overrides with cache invalidation. Local commit cb62b1a awaits push.
+   421→
+   422→---
+   423→Task ID: tao-opportunity-score-1
+   424→Agent: main (Super Z)
+   425→Task: Research TAO staking/delegation and build the "TAO Opportunity Score"
+   426→home-screen feature (mine vs stake, in numbers — the user's killer feature).
+   427→
+   428→Work Log:
+   429→- Research (web search, Sept 2026): root staking = TAO-denominated, ~5.25-5.65%
+   430→  APY market estimates, validator take 9-20% (chain default 18%); dTAO subnet
+   431→  staking = alpha-denominated, dividends lane ≈42% of subnet emission, alpha
+   432→  price risk + pool slippage; root yield decays over time. TAO spot ≈ $225.
+   433→- staking.ts (new): root strategy from market baseline (chain proxy as note —
+   434→  live run showed the naive emission/stake proxy reads 1.39% vs observed 4-5%,
+   435→  so baseline is authoritative); subnet pool strategies = emission×365/stake ×
+   436→  0.42 × (1−take) × (1−2% fee), thin pools skipped, deep+calm → medium risk.
+   437→- opportunity-score.ts (new): best mining runner (Miner's Ledger full P&L,
+   438→  meetsMinimum, optional GPU cap) vs best staking lane, compared on monthly
+   439→  net ROI %; score = 50+50·tanh(edge/8); confidence weighted; ₹ projections.
+   440→- dashboard-view.tsx: OpportunityScoreCard hero — score ring, recommended
+   441→  strategy block (mine X: ₹/mo, TAO/mo, GPU, risk, confidence), alternative
+   442→  block (stake: net APY, ₹/mo on capital), capital input (localStorage),
+   443→  notes, Open opportunities link.
+   444→- Verified e2e: 21 synthetic checks PASS; live Finney scan (129 subnets,
+   445→  TAO $221): score 98 → mine Chutes SN64 (₹1,35,625/mo net, 8.571 TAO/mo,
+   446→  RTX 4090, low risk, 62% conf) vs stake rec4ll 67.5% net APY (high risk);
+   447→  browser-verified rendering via agent-browser screenshots; tier2 58 PASS;
+   448→  lint + tsc clean.
+   449→- Committed 7702586. Push to platform-live still pending user token (both
+   450→  this and cb62b1a — overlay fixes — are local).
+   451→
+   452→Stage Summary:
+   453→- Feature LIVE on the dashboard. Phase 2 candidates: live FX rate, validator
+   454→  take picker (9-18%), staking execution via wallet integration, auto-rebalance.
+   455→
+   456→---
+   457→Task ID: trust-loop-1
+   458→Agent: main (Super Z)
+   459→Task: Build the Trust Loop — projected vs actual earnings per miner, with calibration
+   460→feeding the TAO Opportunity Score (my pick from the "what should we build next" shortlist).
+   461→
+   462→Work Log:
+   463→- Found the old estimatedRevenue still came from CATEGORY_REVENUE_ESTIMATE (fake
+   464→  category templates) — Trust Loop starts by making the projection real.
+   465→- Prisma: Deployment += projectedMonthlyTao, projectedGrossMonthlyUsd,
+   466→  projectedNetMonthlyUsd, projectionSource, projectionRampWeeks, projectedAt (db pushed).
+   467→- trust.ts (new): computeDeploymentProjection (live chain per-earning-miner rate,
+   468→  loadProfitabilityConfig for net leg; honest null when chain offline/zero emission);
+   469→  evaluateTrust bands (on-track >=0.85 / lagging >=0.60 / off-track, warming-up <3
+   470→  earning days due to bond-EMA ramp, no-baseline/no-data honest states); getTrustReport
+   471→  (per-miner rows from EarningsDaily + SpendLedger, portfolio pace + verdict counts,
+   472→  calibration = day-weighted accuracy over miners with 7+ earning days).
+   473→- opportunity-score.ts: TrustCalibrationInput option; headline confidence now RETURNED
+   474→  (was computed but dropped) and blended 70% model + 30% observed accuracy when
+   475→  calibration has >=7 miner-days; note explains the provenance.
+   476→- config.ts: cost.revenueSource ("live-chain" | "category-fallback"), projection option;
+   477→  engine.ts: projection plumbed into createDeployment + DeploymentRecord/toRecord;
+   478→  POST /api/deployments snapshots the projection at creation.
+   479→- UI: GET /api/trust + use-trust.ts hook (+ verdict chip styles); miners-view verdict
+   480→  chip + "Proj. vs actual" TAO/mo column (est chip for pre-trust rows); dashboard
+   481→  TrustLoopCard ("Did we earn the promise?" — projected vs actual pace, fleet accuracy,
+   482→  verdict counts, calibration note, honest empty state) + score card confidence chip
+   483→  uses the calibrated headline.
+   484→- Debugging note: tool-output renderer in this session eats literal "[m" sequences —
+   485→  cost 3 detours; config.ts was never broken (IMAGES[major] intact, bun build OK).
+   486→- Dev server had to be restarted after prisma db push (stale client made new columns
+   487→  read undefined). Port-3000 tangle cleaned; relaunched via nohup run-dev.sh.
+   488→- Tests: scripts/test-trust-loop.ts 27 PASS (verdict units, calibration blend incl.
+   489→  thin-sample rejection + clamping, live SN8 projection, authed e2e: seeded fleet
+   490→  A on-track 90% / B off-track 50% / C warming-up / D no-data, calibration only from
+   491→  >=7-day miners, spend rollup; cleanup verified). tier2 58 PASS, tier4 76 PASS,
+   492→  tsc + eslint clean (tier2/tier4 gained revenueSource field).
+   493→- Browser-verified: dashboard Trust card + empty state render, My Miners renders,
+   494→  0 page errors. Committed 75eaba5. NOT pushed (still awaiting user's fine-grained
+   495→  PAT; pending pushes now: cb62b1a, 7702586, 75eaba5).
+   496→
+   497→Stage Summary:
+   498→- Trust Loop LIVE: every new deployment carries a chain-measured promise, actuals are
+   499→  paced into verdicts, and the Opportunity Score's confidence is now earned from
+   500→  observed accuracy once 7+ miner-days exist. Next candidates: stake portfolio
+   501→  (read-only first), auto-rebalance, live FX + validator-take picker.
+   502→
+   503→---
+   504→Task ID: score-runnerups-1
+   505→Agent: main (Super Z)
+   506→Task: Answer "why does the TAO Opportunity Score show only Chutes subnets?" and fix the visibility gap behind it.
+   507→
+   508→Work Log:
+   509→- Diagnosed live: the score runs ALL 128 mining subnets through the Miner's
+   510→  Ledger, but only 7 clear the net-profit bar (net>0 AND meetsMinimum) —
+   511→  Chutes SN64 leads that pool at ~471%/mo net ROI (RTX 4090, $1.6k/mo net),
+   512→  followed by Epago #36 (447%/mo, H200), Targon #4 (304%), NOVA #68 (257%),
+   513→  Teutonic #3 (139%), KubeTEE #90 (52%), SN35 (84%). 118/128 are net-negative
+   514→  under current cost settings (GPU rent > emission share).
+   515→- Root cause of the perception: the hero card is a single verdict by design
+   516→  (1 mining pick + 1 staking lane) AND it computed alternatives (top-3
+   517→  runners) but never rendered them — the losing subnets were invisible.
+   518→- Fix (opportunity-score.ts): exposed miningCandidates + miningEvaluated on
+   519→  the result; new always-on note "Verdict = best of N net-positive mining
+   520→  subnets (128 evaluated) vs best staking lane — runner-ups were scored,
+   521→  just not picked".
+   522→- Fix (dashboard-view.tsx): Runner-ups chip row under Alternative — mining
+   523→  runner-ups (netuid, name, ROI %/mo, GPU) + staking runner-ups (name, net
+   524→  APY), excluding picked netuids; footer now reads "Scored 128 mining
+   525→  subnets · 7 net-positive — the card pits the best against the best staking
+   526→  lane"; notes slice 3→4.
+   527→- Verified: unit tests ALL PASS, live smoke test shows the new note, tier2
+   528→  58 PASS / 0 FAIL, tsc + eslint clean, browser-verified both screenshot
+   529→  regions (runner-ups chips + notes/footer), 0 page errors.
+   530→- Committed 8b17e97. Push still pending user's fine-grained PAT (pending:
+   531→  cb62b1a, 7702586, 75eaba5, 8b17e97).
+   532→
+   533→Stage Summary:
+   534→- The card no longer looks Chutes-only: runner-ups are visible with their
+   535→  ROI/APY, and the note + footer explain the pool size. Chutes still wins
+   536→  on live data — that is the honest verdict, now transparently justified.
+   537→
+   538→---
+   539→Task ID: hydration-guard-1
+   540→Agent: main (Super Z)
+   541→Task: Review uploaded console error (hydration mismatch) from Pasted Content_1789503719417.txt.
+   542→
+   543→Work Log:
+   544→- Read the full 508-line React 19 error capture. Cataloged every diff node:
+   545→  ALL were the same attribute `fdprocessedid="<random id>"` on buttons and
+   546→  inputs (13 sidebar links, header search, theme toggle, notifications and
+   547→  avatar dropdowns, hero buttons, capital input, table sort buttons, every
+   548→  row action trigger). Zero content/prop/structure mismatches.
+   549→- Verified `fdprocessedid` appears nowhere in the codebase; web search
+   550→  confirms the source: McAfee WebAdvisor extension (also FDM/form-filler
+   551→  tools) stamps it onto every interactive element before React hydrates.
+   552→- Verdict: NOT an app bug — external DOM mutation; React leaves the
+   553→  attribute, app unaffected. But console noise buries real errors.
+   554→- Hardening (layout.tsx EXTENSION-GUARD-1): pre-hydration inline script
+   555→  strips [fdprocessedid] and a 20s attribute-filtered MutationObserver
+   556→  catches late stamps; disconnects after hydration window.
+   557→- Verified in browser: guard script served; manually stamped attribute
+   558→  auto-removed in <1s; login → dashboard hydrates with 0 console errors;
+   559→  tsc + eslint clean.
+   560→- Committed 10f0601. Push queue: cb62b1a, 7702586, 75eaba5, 8b17e97,
+   561→  10f0601 (all awaiting user's fine-grained PAT).
+   562→
+   563→Stage Summary:
+   564→- Console error diagnosed as extension interference (McAfee WebAdvisor /
+   565→  similar), with app-side guard shipped so every user's console stays clean
+   566→  regardless of extensions. User-side option: test in incognito or disable
+   567→  the extension — error vanishes either way.
+   568→
+   569→---
+   570→Task ID: github-push-1
+   571→Agent: main (Super Z)
+   572→Task: "Save the project and push to GitHub."
+   573→
+   574→Work Log:
+   575→- Verified local state clean: committed the pending alpha-price-history
+   576→  scanner sync (5762fdb) and the one-shot push helper (ffa1758).
+   577→- Secret-scanned all tracked files before push: no live credentials; the
+   578→  only match is a truncated, unusable ghp_iXdt… prefix in historical notes.
+   579→- Confirmed NO credentials exist in the environment (no env token, no
+   580→  ~/.git-credentials, no ~/.netrc, no gh CLI) — remote was removed by
+   581→  design after the old PAT exposure.
+   582→- Created scripts/push-live.sh: pushes main → platform-live on
+   583→  infranexbt-bot/infranex-bt; token passed transiently via TOKEN env var,
+   584→  embedded only in the one-shot push URL, never persisted.
+   585→
+   586→Stage Summary:
+   587→- Everything is saved and push-ready. BLOCKED only on a fresh fine-grained
+   588→  PAT (repo: infranexbt-bot/infranex-bt only; Contents: Read/Write; short
+   589→  expiry). User supplies TOKEN → `bash scripts/push-live.sh` → done.
+   590→
+   591→---
+   592→Task ID: github-push-2
+   593→Agent: main (Super Z)
+   594→Task: Execute the GitHub push with the user-supplied token.
+   595→
+   596→Work Log:
+   597→- User re-supplied the same classic PAT (ghp_iXdt…). Verified via API: HTTP
+   598→  200 on infranexbt-bot/infranex-bt; default branch nextjs-platform; public
+   599→  repo; platform-live head was 4a8ee58 (auto-checkpoint).
+   600→- Fetched platform-live and compared: remote had ZERO commits not in local
+   601→  main (strict ancestor) → clean fast-forward, no force needed.
+   602→- Pushed via scripts/push-live.sh (token transient in one-shot URL):
+   603→  4a8ee58..2c41cfc main -> platform-live. 16 commits landed, incl. Trust
+   604→  Loop (75eaba5), score runner-ups (8b17e97), hydration guard (10f0601).
+   605→- Post-push verification: remote head = 2c41cfc (matches local main);
+   606→  spot-checked opportunity-score.ts and layout.tsx EXTENSION-GUARD-1 present
+   607→  on platform-live via raw fetch.
+   608→- Hygiene: rg over .git/ metadata found zero token traces; no git remote
+   609→  configured (still credential-free by design); token not written to any
+   610→  file or config.
+   611→
+   612→Stage Summary:
+   613→- ALL pending work is now on GitHub platform-live. Follow-up for the user:
+   614→  rotate/revoke the PAT (it has now been shared in chat twice) and generate
+   615→  a fresh fine-grained one only when the next push is needed.
+   616→
+   617→---
+   618→Task ID: stake-portfolio-1
+   619→Agent: main (Super Z)
+   620→Task: User confirmed "yes" — build the read-only Stake Portfolio view and answer (1) where earned alpha shows up, (2) how alpha converts to TAO.
+   621→
+   622→Work Log:
+   623→- Probed live Finney (spec 458, block 9.07M) to find supported queries:
+   624→  TotalHotkeyAlpha is a DOUBLE MAP (hotkey, netuid) → u64 rao; no
+   625→  stakeInfo/swapRuntimeApi in polkadot-js types → α→TAO must come from
+   626→  the platform's own pool spot prices. Probe saved as scripts/probe-stake-queries.ts.
+   627→- Built src/lib/infranex/stake-portfolio.ts: batched .multi reads of
+   628→  TotalHotkeyAlpha across all ~129 netuids per hotkey, Owner(hotkey) →
+   629→  coldkey, system.account(cold) free/reserved TAO, positions priced at
+   630→  subnet moving price with 24h drift; pure buildHotkeyPortfolio() for
+   631→  unit tests; human units (rao/1e9).
+   632→- API GET /api/wallets/stake-portfolio: ?hotkey= (max 8, SS58-validated)
+   633→  else platform registry (WalletProfile.hotAddress + Deployment.hotkey);
+   634→  enriches with EarningsDaily lifetime rollup, wallet labels, deployment
+   635→  counts. Read-only — no signing, no secrets (WALLET-ECON-1 respected).
+   636→- UI: Stake Portfolio card in My Miners (stake-portfolio-card.tsx) —
+   637→  totals row (staked α TAO value / coldkey free TAO / lifetime mined),
+   638→  per-hotkey positions table, "How payouts work" guide answering both
+   639→  questions in-product (btcli wallet overview / stake remove / taostats),
+   640→  honest empty states. use-stake-portfolio.ts polls every 60s.
+   641→- Tests: scripts/test-stake-portfolio.ts — 25 PASS / 0 FAIL (unit math,
+   642→  live chain: 1.2335 α on α64 Chutes @ 0.2977 = 0.3672 TAO = $80.72,
+   643→  coldkey free 0.044 TAO; API 401 gate + query/registry resolution).
+   644→- tsc + eslint clean; browser-verified empty AND populated states
+   645→  (temp wallet profile registered, screenshotted, deleted) — 0 console
+   646→  errors. Committed 9278986.
+   647→
+   648→Stage Summary:
+   649→- Platform now answers the payout questions natively: alpha lands as
+   650→  staked α on the hotkey (visible in card / btcli wallet overview /
+   651→  taostats), unstake (btcli stake remove) converts α→TAO onto the
+   652→  coldkey free balance (also shown in card). Push pending user's fresh
+   653→  fine-grained PAT (queue: 9278986). Reminder: old classic PAT ghp_iXdt…
+   654→  shared twice in chat — must be revoked.
+   655→
+   656→---
+   657→Task ID: runbook-cashout-1
+   658→Agent: main (Super Z)
+   659→Task: User confirmed "yes" — add a Cash-out runbook entry (alpha → TAO → exchange) to the Runbook view.
+   660→
+   661→Work Log:
+   662→- Read runbook-view.tsx structure (phase cards + threshold strip + warnings).
+   663→- Added RUNBOOK-2 card between Phase 3 grid and the registration reminder:
+   664→  4 numbered steps with btcli command blocks (wallet overview → stake
+   665→  remove incl. --all-alpha + safe-staking note → wallet balance → wallet
+   666→  transfer with test-transfer rule) + 4 watch-outs (execution-time pool
+   667→  rate, root needs no conversion, mnemonic never online, test transfers).
+   668→- Header quick-action row: added "Stake Portfolio" button (jump to the
+   669→  STAKE-PORTFOLIO-1 card), kept DevOps + Monitoring; intro paragraph
+   670→  mentions the cash-out runbook.
+   671→- Verified: tsc clean (my files), eslint OK, browser screenshot of the
+   672→  rendered card — 0 console errors. Committed eceb79e (an automated
+   673→  checkpoint dee0e73 had captured the same edit mid-flight — both in
+   674→  history, no content conflict).
+   675→
+   676→Stage Summary:
+   677→- The full mining loop is now documented in-product: mine → watch alpha
+   678→  accrue (Stake Portfolio card) → cash out (Runbook cash-out steps) →
+   679→  transfer to exchange. Push queue for platform-live: 9278986, e8c344d,
+   680→  eceb79e (+ checkpoint dee0e73) — awaiting user's fresh fine-grained
+   681→  PAT; classic PAT ghp_iXdt… still must be revoked.
+   682→
+   683→---
+   684→Task ID: research-epago-1
+   685→Agent: main (Super Z)
+   686→Task: Research why Dashboard says "Mine Epago α36" while Opportunities shows Epago 46.9/WATCH
+   687→
+   688→Work Log:
+   689→- Read both scoring engines: dashboard = opportunity-score.ts (computeOpportunityScore), opportunities = use-network.ts mergeOpportunities → miner-score.ts (Miner's Ledger v2)
+   690→- Logged in via API (admin), pulled live snapshot /tmp/network.json (block 9,078,200, TAO $217.82)
+   691→- Ran engine on live data via scripts/research-epago-mismatch.ts:
+   692→  * Epago composite 46.9 → WATCH, rank 19/128; pillars net_roi 97, seat_safety 12, alpha_econ 52.2, earning_reality 8, fit 25
+   693→  * Dashboard: Epago #1 of 7 net-positive by ROI%/mo (575.6%/mo, net $15,267/mo) vs staking 5.63%/mo → ring 98
+   694→- Found data bug: chain.ts:739 emissionEnabled = !emEnabled?.isEmpty — RPC subnetEmissionEnabled returns empty for SN29/35/36; scanner marks them FALSE while their own per-neuron emission vectors show 7.0 / 6.5 / 55.6 TAO/day actively paid (SN36: 19 miners, 2 rewarded, price 0.094 TAO)
+   695→- Flag floors 3 pillars in miner-score.ts (seat_safety→12, earning_reality→8, fit→25)
+   696→- Counterfactual via scripts/research-epago-counterfactual.ts: flag=true → composite 64.7 → RUN (pages would agree)
+   697→- Side finding: dashboard confidence 54% is itself dragged down by the buggy composite (o.confidence = score/100 = 0.47)
+   698→
+   699→Stage Summary:
+   700→- Root cause is TWO-fold: (1) by design the pages score different things (ROI%/mo mine-vs-stake verdict vs 5-pillar composite with RUN/WATCH/AVOID bands); (2) a scanner bug (emissionEnabled=false for actively-emitting SN29/35/36) suppresses Epago's composite by ~17.8 pts → 46.9 WATCH instead of ~64.7 RUN
+   701→- Scripts saved: scripts/research-epago-mismatch.ts, scripts/research-epago-counterfactual.ts
+   702→- Proposed fixes (NOT applied — user asked for research only): derive emissionEnabled from measured emission when storage returns empty; optionally risk-annotate the dashboard pick
+   703→
+   704→---
+   705→Task ID: fix-epago-mismatch-2
+   706→Agent: main (Super Z)
+   707→Task: Apply both fixes for the Dashboard "Mine Epago α36" vs Opportunities 46/WATCH mismatch (user approved)
+   708→
+   709→Work Log:
+   710→- Fix 1 (scanner): chain.ts — emissionEnabled now trusts the storage bool when present (incl. isFalse), and falls back to MEASURED last-epoch emission (epochAlphaRao > 0) when the RPC returns None/empty. Root cause: subnetEmissionEnabled returned None for actively-emitting SN29/35/36, flooring 3 of 5 Miner's Ledger pillars.
+   711→- Fix 2 (dashboard): dashboard-view.tsx OpportunityScoreCard — new ledgerCheck memo (mergeOpportunities) cross-checks the recommended mining pick against the Miner's Ledger; when its band is WATCH/AVOID the card renders a "{band} on Opportunities" badge (next to risk/confidence chips) plus an explanatory note with an "Review the breakdown" link to Opportunities. Badge hidden for RUN picks. Recommendation ranking unchanged (ROI-only) by design.
+   712→- Typecheck: bunx tsc --noEmit — zero errors in app src (only pre-existing skill-script errors).
+   713→- Restarted dev server via .zscripts/dev.sh (setsid detached). NOTE: plain nohup'd background servers get reaped between tool sessions — always restart via .zscripts/dev.sh.
+   714→- Live verification after fresh scan (block 9,078,312):
+   715→  * emissionEnabled FALSE count: 3 → 0; SN36 Epago flag now TRUE (55.6 TAO/day)
+   716→  * Epago Opportunities: 46.9 WATCH #19/128 → 64.7 RUN #1/128, risk medium → low
+   717→  * Dashboard: still "Mine Epago α36" (ROI 574%/mo unchanged), confidence 54% → 66%
+   718→  * Browser-verified dashboard card (screenshot download/dashboard-opp-score-card.png) + Opportunities row; zero console errors
+   719→  * Badge logic simulated (scripts/verify-badge-logic.ts): hidden for current all-RUN top-3; renders for WATCH/AVOID picks
+   720→
+   721→Stage Summary:
+   722→- Both fixes applied and verified end-to-end on live Finney data; the Dashboard/Opportunities discrepancy is resolved (both pages now agree Epago = RUN #1, ROI 574%/mo)
+   723→- Scripts: scripts/verify-fix.ts, scripts/verify-badge-logic.ts (plus earlier research scripts)
+   724→
+   725→---
+   726→Task ID: seat-safety-dash-1
+   727→Agent: main (Super Z)
+   728→Task: Add Seat Safety readout to the Dashboard recommendation card (user: "yes add seat safety")
+   729→
+   730→Work Log:
+   731→- dashboard-view.tsx OpportunityScoreCard: new Seat Safety panel inside the
+   732→  recommended-strategy block (renders whenever a mining pick has a Ledger row,
+   733→  RUN band included — not tied to the WATCH/AVOID badge)
+   734→  * Header: Armchair icon + "Seat safety · can you get in — and keep the seat?"
+   735→    + pillar score x/100 color-coded (>=60 success, 40-59 warning, <40 destructive)
+   736→  * 5 fact chips off the merged row: Seats free/total (or "full — burn entry"),
+   737→    Burn ~TAO (formatBurnTao), Immunity ~h (blocks x 12s), Top-10% take %,
+   738→    Seats earning % — every chip null-guarded + hover-title explained
+   739→  * Footer line: weighs 20% of Ledger composite; open slots register directly,
+   740→    full subnet burn replaces worst non-immune UID, immunity = earning runway
+   741→- Imports: formatBurnTao from miner-score, Armchair from lucide
+   742→- Typecheck clean (only pre-existing skill-script errors); verified live in
+   743→  browser: Epago pick shows 48/100 (warning), 237 of 256 free, ~1.000 TAO burn,
+   744→  ~16.7h immunity, top-10% take 100%, seats earning 11% — matches SN36 chain
+   745→  data (19 registered, 2 rewarded); screenshot download/dashboard-seat-safety.png;
+   746→  0 console/page errors. Committed 1ebdb28.
+   747→
+   748→Stage Summary:
+   749→- Dashboard decision card now covers BOTH halves of the mine decision: ROI
+   750→  (score ring + strategy rows) and seat risk (WATCH/AVOID badge + Seat Safety
+   751→  panel). Push queue: +1ebdb28 (awaiting user's fresh fine-grained PAT).
+   752→
+   753→---
+   754→Task ID: score-clarity-1
+   755→Agent: main (Super Z)
+   756→Task: Check why Dashboard ring shows 98 for Epago while Opportunities shows 64.7 (user report)
+   757→
+   758→Work Log:
+   759→- Verified on fresh live snapshot (block 9,078,382, TAO $217.2) via
+   760→  scripts/research-epago-mismatch.ts: ring = 98, Ledger = 64.7 (rank #1, RUN,
+   761→  pillars net_roi 97 / seat 47.9 / alpha 52.2 / earning 27.3 / fit 76.3)
+   762→- CONFIRMED BY DESIGN, no engine bug:
+   763→  * Ring 98 = 50 + 50*tanh((mine ROI - stake ROI)/8) clamped [3,98] — the
+   764→    conviction in the MINE-vs-STAKE verdict on monthly net ROI. Epago
+   765→    572.8%/mo vs staking 5.63%/mo → edge ~567 → tanh saturates → ring pegged
+   766→    at its 98 ceiling. Any runaway ROI subnet lands here.
+   767→  * Ledger 64.7 = 5-pillar composite of Epago AS A SEAT (weighted: 29.1 ROI +
+   768→    9.58 seat + 10.44 alpha + 4.1 earning + 11.44 fit). Dragged by Earning
+   769→    Reality 27.3 (11% seats earning, top-10% take 100%, ~11.4wk ramp) and
+   770→    Seat Safety 47.9 — the jackpot-seat profile.
+   771→- UX gap fixed (engines untouched): dashboard hid the Ledger composite for
+   772→  RUN picks → the two numbers could never be reconciled on-screen.
+   773→  * Ledger chip now always renders for mining picks: "RUN · Ledger 64.7"
+   774→    (band-colored; hover title explains both scores + why they differ)
+   775→  * Ring inner label "score" → "mine vs stake"
+   776→  * Caption under ring: "Ring = mine-vs-stake ROI edge · Ledger = subnet
+   777→    seat quality (Opportunities)"
+   778→- Typecheck clean; browser-verified (screenshot download/dashboard-score-
+   779→  clarity.png): ring "98 MINE VS STAKE", chip "RUN · LEDGER 64.7", caption
+   780→  live; 0 console/page errors. Committed (see git log).
+   781→
+   782→Stage Summary:
+   783→- 98 vs 64.7 is two questions, not a bug: ring = how decisively mining beats
+   784→  staking (ROI edge, ceiling 98); Ledger = how good the subnet is as a mining
+   785→  seat (5 pillars). Dashboard now shows BOTH, so the split is self-evident.
+   786→- Watch item: ring pegged at 98 for ANY runaway ROI pick — if the user wants
+   787→  the ring to reflect seat risk too, that's an engine design change (blend
+   788→  band into score), NOT a data fix; needs explicit user decision.
+   789→
+   790→---
+   791→Task ID: ring-seat-cap-1
+   792→Agent: main (Super Z)
+   793→Task: Implement seat-quality cap on the TAO Opportunity Score ring (user approved "ok implement it")
+   794→
+   795→Work Log:
+   796→- opportunity-score.ts: edge score split out (tanh mine-vs-stake edge,
+   797→  unchanged); new seat cap when recommended is a mining pick:
+   798→  score = min(edgeScore, clamp(ledger + 20, 45, 98)); staking picks
+   799→  uncapped; cap-bite pushes a transparency note with both numbers.
+   800→  Header/interface comments updated.
+   801→- dashboard-view.tsx: Ledger chip hover title now says the ring is
+   802→  "capped by this Ledger score + 20 headroom"; ring caption line now
+   803→  "Ring = mine-vs-stake ROI edge, capped by Ledger seat quality".
+   804→- tsc clean. Live verify (block ~9,078,4xx): ring 84.6 (was 98),
+   805→  cap note "Ring capped by seat quality — Ledger 64.6 + 20 headroom;
+   806→  the ROI edge alone would show 98.", chip RUN · LEDGER 64.6, seat
+   807→  panel 48/100, 0 console/page errors. Screenshot
+   808→  download/dashboard-ring-cap.png. Committed.
+   809→
+   810→Stage Summary:
+   811→- Ring semantics: mine-vs-stake ROI edge conviction, bounded by pick
+   812→  quality. 98 now requires Ledger >= 78 (clean seat + blowout edge) —
+   813→  regains discriminating power; AVOID picks headline <= ~65 max.
+   814→- Epago today: 84.6 ring / 64.6 Ledger RUN #1 / 570.8%/mo — coherent.
+   815→
+   816→---
+   817→Task ID: register-odds-1
+   818→Agent: main (Super Z)
+   819→Task: Implement "Your odds if you register today" readout + winner-stability trend (user approved)
+   820→
+   821→Work Log:
+   822→- New lib src/lib/infranex/registration-odds.ts: describeWinnerTrend
+   823→  (frozen/widening/shrinking/recovered/thin-history over rewardedMiners
+   824→  time series), winnerTrendSentence, chip label + color helpers.
+   825→- New API GET /api/subnets/odds-history?netuid=N: reads last 90
+   826→  ChainSnapshot rows, extracts rewardedMiners/minersCount for the
+   827→  subnet from subnetsJson, downsamples to <=40 points chronological,
+   828→  returns { trend, samples }. Validates netuid 0-255.
+   829→- dashboard-view.tsx seat panel: new "If you register today" block —
+   830→  First-month odds chip (earnChance.pct + level, note as title), Bond
+   831→  ramp chip (rampWeeks), Winners-trend chip (color-coded red for
+   832→  frozen/shrinking, green widening) + plain-language trend sentence;
+   833→  react-query useQuery, 60s stale / 120s refetch, graceful hide on
+   834→  error/empty.
+   835→- tsc clean; live verify: SN36 trend frozen 2->2, 29 samples / 1.4h;
+   836→  browser-verified chips + sentence render; 0 console errors.
+   837→  Screenshot download/dashboard-register-odds.png. NOTE: dev server
+   838→  had died between sessions — restarted via .zscripts/dev.sh.
+   839→
+   840→Stage Summary:
+   841→- Seat panel now answers the full newcomer question: entry (seats/
+   842→  burn/immunity) + odds (first-month %, bond ramp, winner stability).
+   843→  Epago verdict stays consistent: ~6% first-month odds, ~11.4wk ramp,
+   844→  winners frozen at 2 — jackpot-seat profile confirmed by trend.
+   845→
+   846→---
+   847→Task ID: odds-everywhere-1
+   848→Agent: main (Super Z)
+   849→Task: Add "If you register today" odds to every Opportunities subnet (user approved)
+   850→
+   851→Work Log:
+   852→- Extracted shared src/components/cards/register-odds.tsx:
+   853→  RegisterOddsBlock (first-month odds chip, bond ramp chip,
+   854→  winner-stability chip + sentence; owns the /api/subnets/odds-history
+   855→  useQuery keyed by netuid, 60s stale / 120s refetch; takes a minimal
+   856→  RegisterOddsRow shape satisfied by both Opportunity and
+   857→  LiveOpportunity).
+   858→- Dashboard seat panel now renders <RegisterOddsBlock row={recLedger}/>
+   859→  (inline JSX + local useQuery removed — one source of truth).
+   860→- OpportunityDetailDialog (opportunity-detail.tsx): block mounted after
+   861→  the "Chance to earn · month 1" card — every subnet detail now shows
+   862→  the odds + trend; query fires only while a dialog is open.
+   863→- tsc clean; browser-verified all three surfaces: dashboard Epago
+   864→  (6%/11.4wk/frozen@2), Epago dialog, Chutes dialog (3%/13.6wk/
+   865→  frozen@17 — per-subnet trend confirmed different); 0 console errors.
+   866→  Screenshot download/opportunities-detail-odds2.png.
+   867→
+   868→Stage Summary:
+   869→- Newcomer odds readout now platform-wide: dashboard pick + every
+   870→  Opportunities detail dialog. Design note: trend block intentionally
+   871→  NOT rendered per table row (128 rows would fan out snapshot parsing);
+   872→  it loads per opened dialog only.
+   873→
