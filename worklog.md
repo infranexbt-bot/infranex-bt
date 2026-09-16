@@ -959,3 +959,22 @@ Stage Summary:
 - Verdict: app does NOT know the constraint, and is structurally worse than the reward-mechanics gap — the guided flow (GPU catalog -> deploy wizard -> RunPod/Vast) produces exactly the setup Chutes rejects (container, NAT IP, mapped ports) while showing "running".
 - SN64 Net ROI $1,958/mo is priced off $260/mo container rent — invalid for the only compliant hosting class (bare metal dedicated ~2-3x, or owned capex; owned mode + electricity line exists but nothing flips SN64 to it).
 - Fix path: requirements schema + hosting constraint fields (hosting: container-ok|bare-metal-vm, staticIpRequired, portMapping) -> Fit pillar warning chip, deploy-stepper gate, bare-metal cost column in GPU_TIERS.
+
+---
+Task ID: chutes-knowledge-3
+Agent: main (Super Z)
+Task: Fact-check the user's claim ("all servers must be bare metal/VM; RunPod/Vast not supported; unique static IPs + 1:1 port mapping") against the official chutesai/chutes-miner repo.
+
+Work Log:
+- Fetched https://raw.githubusercontent.com/chutesai/chutes-miner/main/README.md (534 lines, main branch, live).
+- VERIFIED verbatim at line 161: "ALL servers must be bare metal/VM, meaning it will not work on Runpod, Vast, etc., and we do not currently support shared or dynamic IPs - the IPs must be unique, static, and provide a 1:1 port mapping."
+- Found BIGGER current constraint the user's quote predated: network is now TEE-EXCLUSIVE — all GPU workers must be Intel TDX confidential VMs (sek8s host-tools), legacy GraVal verification dropped, node without chutes/tee=true label rejected at add-node.
+- sek8s README + docs/end-to-end-miner.md: TDX-capable host, Ubuntu 25.10/26.04, Intel PCCS attestation; validated topologies ONLY 8x H200 (NVSwitch) / 8x B200 / 8x RTX Pro 6000.
+- chutes-miner README extras: RAM >= VRAM per GPU; control plane = separate non-GPU server (4c/32GB min); k8s ephemeral ports 30000-32767 public; attestation NodePort 30443, agent 32000; TEE VMs have NO SSH access.
+- Supported GPU list lives in chutesai/chutes-api api/gpu.py.
+- Cached copies in /tmp/chutes-check/ for reference.
+
+Stage Summary:
+- Claim TRUE, confirmed word-for-word from primary source today (2026-09-16).
+- Reality is STRICTER than the claim: bare metal alone is insufficient — TDX confidential VMs + validated 8-GPU datacenter topologies. Our SN64 profile (RTX 4090, $260/mo container rent) is triply obsolete: wrong GPU class, wrong hosting class, wrong cost.
+- Practical entry ticket is now datacenter-class: TDX-capable 8xH200/B200/RTX Pro 6000 server + separate control-plane box + PCCS attestation. App should reflect this in Fit pillar + odds copy (odds for small operators effectively nil, app says ~3% LOW).
