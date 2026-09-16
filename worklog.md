@@ -679,3 +679,24 @@ Stage Summary:
   transfer to exchange. Push queue for platform-live: 9278986, e8c344d,
   eceb79e (+ checkpoint dee0e73) — awaiting user's fresh fine-grained
   PAT; classic PAT ghp_iXdt… still must be revoked.
+
+---
+Task ID: research-epago-1
+Agent: main (Super Z)
+Task: Research why Dashboard says "Mine Epago α36" while Opportunities shows Epago 46.9/WATCH
+
+Work Log:
+- Read both scoring engines: dashboard = opportunity-score.ts (computeOpportunityScore), opportunities = use-network.ts mergeOpportunities → miner-score.ts (Miner's Ledger v2)
+- Logged in via API (admin), pulled live snapshot /tmp/network.json (block 9,078,200, TAO $217.82)
+- Ran engine on live data via scripts/research-epago-mismatch.ts:
+  * Epago composite 46.9 → WATCH, rank 19/128; pillars net_roi 97, seat_safety 12, alpha_econ 52.2, earning_reality 8, fit 25
+  * Dashboard: Epago #1 of 7 net-positive by ROI%/mo (575.6%/mo, net $15,267/mo) vs staking 5.63%/mo → ring 98
+- Found data bug: chain.ts:739 emissionEnabled = !emEnabled?.isEmpty — RPC subnetEmissionEnabled returns empty for SN29/35/36; scanner marks them FALSE while their own per-neuron emission vectors show 7.0 / 6.5 / 55.6 TAO/day actively paid (SN36: 19 miners, 2 rewarded, price 0.094 TAO)
+- Flag floors 3 pillars in miner-score.ts (seat_safety→12, earning_reality→8, fit→25)
+- Counterfactual via scripts/research-epago-counterfactual.ts: flag=true → composite 64.7 → RUN (pages would agree)
+- Side finding: dashboard confidence 54% is itself dragged down by the buggy composite (o.confidence = score/100 = 0.47)
+
+Stage Summary:
+- Root cause is TWO-fold: (1) by design the pages score different things (ROI%/mo mine-vs-stake verdict vs 5-pillar composite with RUN/WATCH/AVOID bands); (2) a scanner bug (emissionEnabled=false for actively-emitting SN29/35/36) suppresses Epago's composite by ~17.8 pts → 46.9 WATCH instead of ~64.7 RUN
+- Scripts saved: scripts/research-epago-mismatch.ts, scripts/research-epago-counterfactual.ts
+- Proposed fixes (NOT applied — user asked for research only): derive emissionEnabled from measured emission when storage returns empty; optionally risk-annotate the dashboard pick

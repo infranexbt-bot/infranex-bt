@@ -1,0 +1,775 @@
+     1→     1→// ---------------------------------------------------------------------------
+     2→     2→// Miner's Ledger scoring v2 — models how an experienced GPU miner actually
+     3→     3→// picks a subnet. Research-backed (Bittensor docs, taostats miner guide,
+     4→     4→// miner-economics deep dives, dTAO analyst frameworks):
+     5→     5→//
+     6→     6→//   Q1 FIT        — can my hardware run this? (subnet type → GPU tier/cost)
+     7→     7→//   Q2 TOP LINE   — what does it pay? (emission × 41% miner share ÷ EARNING
+     8→     8→//                   miners, priced in alpha → TAO → USD)
+     9→     9→//   Q3 BOTTOM LINE— what do I keep? (minus GPU rental + infra → net monthly)
+    10→    10→//   Q4 SEAT SAFETY— can I keep the slot? (saturation, reward concentration,
+    11→    11→//                   burn cost, immunity runway)
+    12→    12→//   Q5 HOLD VALUE — will revenue persist? (alpha price trend, pool liquidity,
+    13→    13→//                   sell-pressure slippage, owner identity, maturity)
+    14→    14→//
+    15→    15→// Key constants from the chain: per-tempo split is 18% owner / 41% miners /
+    16→    16→// 41% validators+stakers. "Top 10-20% of miners take 60-80% of emissions;
+    17→    17→// median miners hover near breakeven" — so the ledger scores NET numbers,
+    18→    18→// not gross, and treats reward concentration as a first-class risk.
+    19→    19→// ---------------------------------------------------------------------------
+    20→    20→
+    21→    21→import type { LiveSubnetMetrics } from "./chain";
+    22→    22→import type { OpportunityFactor } from "./types";
+    23→    23→import { electricityMonthlyUsd } from "./profitability";
+    24→    24→
+    25→    25→const clampScore = (v: number, lo: number, hi: number) =>
+    26→    26→  Math.min(hi, Math.max(lo, v));
+    27→    27→
+    28→    28→// ---------------------------------------------------------------------------
+    29→    29→// Score primitives — 5 pillars, miner-first weights
+    30→    30→// ---------------------------------------------------------------------------
+    31→    31→
+    32→    32→export interface ScoreComponents {
+    33→    33→  /** Net ROI after GPU rental + infra costs (the bottom line). */
+    34→    34→  net_roi: number;
+    35→    35→  /** Seat safety — free slots, reward spread, burn cost, immunity runway. */
+    36→    36→  seat_safety: number;
+    37→    37→  /** Alpha economics — 24h price trend, pool liquidity, sell slippage. */
+    38→    38→  alpha_economics: number;
+    39→    39→  /** Earning reality — rewarded ratio, concentration, newcomer ramp penalty. */
+    40→    40→  earning_reality: number;
+    41→    41→  /** Fit & feasibility — emission on, validator coverage, identity, maturity. */
+    42→    42→  fit_feasibility: number;
+    43→    43→}
+    44→    44→
+    45→    45→export const SCORE_WEIGHTS: Record<keyof ScoreComponents, number> = {
+    46→    46→  net_roi: 0.3,
+    47→    47→  seat_safety: 0.2,
+    48→    48→  alpha_economics: 0.2,
+    49→    49→  earning_reality: 0.15,
+    50→    50→  fit_feasibility: 0.15,
+    51→    51→};
+    52→    52→
+    53→    53→const FACTOR_LABELS: Record<keyof ScoreComponents, string> = {
+    54→    54→  net_roi: "Net ROI (after GPU cost)",
+    55→    55→  seat_safety: "Seat Safety",
+    56→    56→  alpha_economics: "Alpha Economics",
+    57→    57→  earning_reality: "Earning Reality",
+    58→    58→  fit_feasibility: "Fit & Feasibility",
+    59→    59→};
+    60→    60→
+    61→    61→const FACTOR_DESC: Record<keyof ScoreComponents, string> = {
+    62→    62→  net_roi:
+    63→    63→    "Newcomer-adjusted mid-pack monthly USD (per-registered slot × reward spread) minus GPU rental + infra at market rates — the miner's bottom line, not gross emission.",
+    64→    64→  seat_safety:
+    65→    65→    "Free UID slots, reward spread (top-10% concentration), registration burn level and immunity runway — can you keep the seat?",
+    66→    66→  alpha_economics:
+    67→    67→    "dTAO hold value: alpha price 24h trend, TAO-side pool depth (exit liquidity) and slippage from converting daily earnings.",
+    68→    68→  earning_reality:
+    69→    69→    "Share of registered miners actually rewarded, top-10% emission concentration and the bond-EMA ramp penalty for newcomers.",
+    70→    70→  fit_feasibility:
+    71→    71→    "Emission enabled, validator coverage, on-chain identity/GitHub and subnet maturity — operational basics before committing hardware.",
+    72→    72→};
+    73→    73→
+    74→    74→export function deriveFactors(c: ScoreComponents): OpportunityFactor[] {
+    75→    75→  return (Object.keys(c) as (keyof ScoreComponents)[]).map((k) => {
+    76→    76→    const raw = c[k];
+    77→    77→    const weight = SCORE_WEIGHTS[k];
+    78→    78→    return {
+    79→    79→      name: FACTOR_LABELS[k],
+    80→    80→      value: Math.round(raw * weight * 100) / 100,
+    81→    81→      weight,
+    82→    82→      raw,
+    83→    83→      impact: raw >= 60 ? "positive" : raw <= 40 ? "negative" : "neutral",
+    84→    84→      description: FACTOR_DESC[k],
+    85→    85→    };
+    86→    86→  });
+    87→    87→}
+    88→    88→
+    89→    89→export function totalScore(c: ScoreComponents): number {
+    90→    90→  return Math.round(
+    91→    91→    (Object.keys(c) as (keyof ScoreComponents)[]).reduce(
+    92→    92→      (acc, k) => acc + c[k] * SCORE_WEIGHTS[k],
+    93→    93→      0
+    94→    94→    ) * 10
+    95→    95→  ) / 10;
+    96→    96→}
+    97→    97→
+    98→    98→export function riskLevel(score: number): "low" | "medium" | "high" {
+    99→    99→  if (score >= 60) return "low";
+   100→   100→  if (score >= 40) return "medium";
+   101→   101→  return "high";
+   102→   102→}
+   103→   103→
+   104→   104→// ---------------------------------------------------------------------------
+   105→   105→// GPU market cost table — 2026 rental rates (Vast/RunPod/Lambda-class).
+   106→   106→// What the subnet's WORK TYPE demands drives the cost, not reverse-engineered
+   107→   107→// revenue: "VRAM is the binding constraint" (70B @ FP8 ≈ 80GB).
+   108→   108→// ---------------------------------------------------------------------------
+   109→   109→
+   110→   110→export interface GpuTier {
+   111→   111→  label: string;
+   112→   112→  recommendedGpu: string;
+   113→   113→  minVramGb: number;
+   114→   114→  /** Monthly all-in rental at market rate (or power for owned-equivalent). */
+   115→   115→  monthlyRentUsd: number;
+   116→   116→  /** GPU board power draw in watts — drives the owned-hardware electricity line. */
+   117→   117→  powerWatts: number;
+   118→   118→}
+   119→   119→
+   120→   120→export const GPU_TIERS = {
+   121→   121→  h200: { label: "H200-class", recommendedGpu: "H200 141GB", minVramGb: 141, monthlyRentUsd: 2500, powerWatts: 700 },
+   122→   122→  h100: { label: "H100-class", recommendedGpu: "H100 80GB", minVramGb: 80, monthlyRentUsd: 1700, powerWatts: 700 },
+   123→   123→  a100: { label: "A100-class", recommendedGpu: "A100 80GB", minVramGb: 80, monthlyRentUsd: 950, powerWatts: 400 },
+   124→   124→  a6000: { label: "A6000-class", recommendedGpu: "RTX A6000 48GB", minVramGb: 48, monthlyRentUsd: 320, powerWatts: 300 },
+   125→   125→  consumer24: { label: "Consumer 24GB", recommendedGpu: "RTX 4090 24GB", minVramGb: 24, monthlyRentUsd: 260, powerWatts: 450 },
+   126→   126→  vram16: { label: "Consumer 16GB", recommendedGpu: "RTX 4060 Ti 16GB", minVramGb: 16, monthlyRentUsd: 150, powerWatts: 160 },
+   127→   127→  entry: { label: "Entry GPU", recommendedGpu: "Entry GPU 8GB", minVramGb: 8, monthlyRentUsd: 80, powerWatts: 100 },
+   128→   128→  cpu: { label: "CPU-only", recommendedGpu: "CPU VPS", minVramGb: 0, monthlyRentUsd: 50, powerWatts: 20 },
+   129→   129→} as const satisfies Record<string, GpuTier>;
+   130→   130→
+   131→   131→/** Infra cost on top of the GPU: VPS, monitoring, alerting. Scraping adds proxies. */
+   132→   132→const INFRA_BASE_USD = 40;
+   133→   133→const INFRA_SCRAPER_USD = 120; // + residential proxies
+   134→   134→
+   135→   135→// ---------------------------------------------------------------------------
+   136→   136→// Subnet work-type classifier — maps name/description keywords to the
+   137→   137→// hardware profile a miner would read off the subnet's min_compute.yml.
+   138→   138→// ---------------------------------------------------------------------------
+   139→   139→
+   140→   140→export interface SubnetHardwareProfile {
+   141→   141→  /** Human-readable work type, e.g. "Frontier inference". */
+   142→   142→  category: string;
+   143→   143→  tier: GpuTier;
+   144→   144→  minVramGb: number;
+   145→   145→  recommendedGpu: string;
+   146→   146→  monthlyCostUsd: number;
+   147→   147→  isGpuWorkload: boolean;
+   148→   148→  /** True when keywords matched a known work type (vs revenue fallback). */
+   149→   149→  classified: boolean;
+   150→   150→}
+   151→   151→
+   152→   152→/** Deterministic GPU tier from the reward stream — fallback for subnets
+   153→   153→ *  with no registered identity. What per-miner revenue can plausibly fund. */
+   154→   154→export function estimateGpuTierFromRevenue(monthlyUsdPerMiner: number): GpuTier {
+   155→   155→  if (monthlyUsdPerMiner >= 1200) return GPU_TIERS.h200;
+   156→   156→  if (monthlyUsdPerMiner >= 600) return GPU_TIERS.h100;
+   157→   157→  if (monthlyUsdPerMiner >= 300) return GPU_TIERS.a100;
+   158→   158→  if (monthlyUsdPerMiner >= 140) return GPU_TIERS.a6000;
+   159→   159→  if (monthlyUsdPerMiner >= 60) return GPU_TIERS.consumer24;
+   160→   160→  if (monthlyUsdPerMiner >= 25) return GPU_TIERS.vram16;
+   161→   161→  if (monthlyUsdPerMiner >= 8) return GPU_TIERS.entry;
+   162→   162→  return GPU_TIERS.cpu;
+   163→   163→}
+   164→   164→
+   165→   165→interface CategoryRule {
+   166→   166→  keywords: RegExp;
+   167→   167→  category: string;
+   168→   168→  tier: GpuTier;
+   169→   169→  infra?: number;
+   170→   170→}
+   171→   171→
+   172→   172→// Ordered — first match wins. Derived from how subnet teams describe their
+   173→   173→// incentive mechanism (on-chain SubnetIdentitiesV3 descriptions).
+   174→   174→const CATEGORY_RULES: CategoryRule[] = [
+   175→   175→  { keywords: /\b(frontier|llm|text.?gen|prompt|language model|chat|assistant|inference)\b/i, category: "Frontier inference", tier: GPU_TIERS.h100 },
+   176→   176→  { keywords: /\b(pretrain|pre-train|model training|training network|grpo|rlhf|post.?training)\b/i, category: "Model training", tier: GPU_TIERS.h200 },
+   177→   177→  { keywords: /\b(video|image|diffusion|vision|photo|generative media|3d|render)\b/i, category: "Media generation", tier: GPU_TIERS.consumer24 },
+   178→   178→  { keywords: /\b(audio|speech|voice|music|sound)\b/i, category: "Audio & speech", tier: GPU_TIERS.consumer24 },
+   179→   179→  { keywords: /\b(scrap|crawl|data collect|data index|social data|sentiment|feed|dataset)\b/i, category: "Data & scraping", tier: GPU_TIERS.cpu, infra: INFRA_SCRAPER_USD },
+   180→   180→  { keywords: /\b(storag|file|archiv|backup)\b/i, category: "Storage", tier: GPU_TIERS.cpu },
+   181→   181→  { keywords: /\b(prediction|market mak|trading|financ|quant|hedge|odds)\b/i, category: "Prediction & markets", tier: GPU_TIERS.cpu },
+   182→   182→  { keywords: /\b(agent|orchestrat|routing|logic|swarm|tool use|evm|smart contract|web3 infra)\b/i, category: "Agents & logic", tier: GPU_TIERS.cpu },
+   183→   183→  { keywords: /\b(protein|fold|bio|genom|drug|science|research|simulat)\b/i, category: "Science & simulation", tier: GPU_TIERS.a6000 },
+   184→   184→  { keywords: /\b(compute|gpu|depin|edge|latency|bandwidth|network shar)\b/i, category: "Compute sharing", tier: GPU_TIERS.consumer24 },
+   185→   185→  { keywords: /\b(moderat|detect|scan|verif|audit|secur|privacy|zero.?know)\b/i, category: "Verification & security", tier: GPU_TIERS.consumer24 },
+   186→   186→  { keywords: /\b(maps?|geo|weather|energy|robot|drone|iot)\b/i, category: "Real-world data", tier: GPU_TIERS.consumer24 },
+   187→   187→];
+   188→   188→
+   189→   189→export function classifySubnetHardware(
+   190→   190→  name: string | null | undefined,
+   191→   191→  description: string | null | undefined,
+   192→   192→  fallbacks?: {
+   193→   193→    /** Curated category text (e.g. "Inference") when the chain identity is absent. */
+   194→   194→    fallbackCategory?: string;
+   195→   195→    /** Curated/user GPU figures win when the classifier has no keyword match. */
+   196→   196→    fallbackVramGb?: number;
+   197→   197→    fallbackGpu?: string;
+   198→   198→    /** Per-earning-miner monthly USD — revenue-based fallback tier. */
+   199→   199→    fallbackMonthlyUsd?: number;
+   200→   200→  }
+   201→   201→): SubnetHardwareProfile {
+   202→   202→  const text = `${name ?? ""} ${description ?? ""} ${fallbacks?.fallbackCategory ?? ""}`;
+   203→   203→  for (const rule of CATEGORY_RULES) {
+   204→   204→    if (rule.keywords.test(text)) {
+   205→   205→      return {
+   206→   206→        category: rule.category,
+   207→   207→        tier: rule.tier,
+   208→   208→        minVramGb: rule.tier.minVramGb,
+   209→   209→        recommendedGpu: rule.tier.recommendedGpu,
+   210→   210→        monthlyCostUsd: rule.tier.monthlyRentUsd + (rule.infra ?? INFRA_BASE_USD),
+   211→   211→        isGpuWorkload: rule.tier.minVramGb > 0,
+   212→   212→        classified: true,
+   213→   213→      };
+   214→   214→    }
+   215→   215→  }
+   216→   216→  // No keyword match — fall back to curated VRAM data, else revenue tier.
+   217→   217→  if (fallbacks?.fallbackVramGb && fallbacks.fallbackVramGb > 0) {
+   218→   218→    const tier = Object.values(GPU_TIERS).find(
+   219→   219→      (t) => t.minVramGb === fallbacks.fallbackVramGb
+   220→   220→    ) ?? GPU_TIERS.consumer24;
+   221→   221→    return {
+   222→   222→      category: fallbacks.fallbackCategory || "Unclassified workload",
+   223→   223→      tier,
+   224→   224→      minVramGb: tier.minVramGb,
+   225→   225→      recommendedGpu: fallbacks.fallbackGpu ?? tier.recommendedGpu,
+   226→   226→      monthlyCostUsd: tier.monthlyRentUsd + INFRA_BASE_USD,
+   227→   227→      isGpuWorkload: true,
+   228→   228→      classified: false,
+   229→   229→    };
+   230→   230→  }
+   231→   231→  const tier = estimateGpuTierFromRevenue(fallbacks?.fallbackMonthlyUsd ?? 0);
+   232→   232→  return {
+   233→   233→    category: fallbacks?.fallbackCategory || "Unclassified workload",
+   234→   234→    tier,
+   235→   235→    minVramGb: tier.minVramGb,
+   236→   236→    recommendedGpu: tier.recommendedGpu,
+   237→   237→    monthlyCostUsd: tier.monthlyRentUsd + INFRA_BASE_USD,
+   238→   238→    isGpuWorkload: tier.minVramGb > 0,
+   239→   239→    classified: false,
+   240→   240→  };
+   241→   241→}
+   242→   242→
+   243→   243→// ---------------------------------------------------------------------------
+   244→   244→// The ledger — per-miner economics + 5-pillar scoring, uniform for ALL subnets
+   245→   245→// ---------------------------------------------------------------------------
+   246→   246→
+   247→   247→export interface MinerLedgerDiagnostics {
+   248→   248→  // Top line (per-EARNING-miner economics)
+   249→   249→  /** Mean over rewarded UIDs — the upside reference (what current earners get). */
+   250→   250→  perEarningDailyTao: number;
+   251→   251→  /** Newcomer-adjusted mid-pack revenue: per-registered slot × median share.
+   252→   252→   *  The miner-mindset number: "if I register today, what does a mid-pack seat pay?" */
+   253→   253→  expectedDailyTao: number;
+   254→   254→  rewardMedianShare: number | null;
+   255→   255→  perRegisteredDailyTao: number;
+   256→   256→  grossMonthlyUsd: number;
+   257→   257→  // Alpha conversion
+   258→   258→  alphaPriceTao: number;
+   259→   259→  alphaPriceUsd: number;
+   260→   260→  alphaChange24h: number | null;
+   261→   261→  liquidityTao: number;
+   262→   262→  slippagePct: number | null;
+   263→   263→  // Bottom line
+   264→   264→  category: string;
+   265→   265→  gpuLabel: string;
+   266→   266→  recommendedGpu: string;
+   267→   267→  minVramGb: number;
+   268→   268→  gpuPowerWatts: number;
+   269→   269→  gpuCostMonthlyUsd: number;
+   270→   270→  infraCostMonthlyUsd: number;
+   271→   271→  storageCostMonthlyUsd: number;
+   272→   272→  otherOpexMonthlyUsd: number;
+   273→   273→  amortizedBurnUsd: number;
+   274→   274→  totalCostMonthlyUsd: number;
+   275→   275→  netMonthlyUsd: number;
+   276→   276→  netDailyTao: number;
+   277→   277→  // Seat
+   278→   278→  freeSlots: number | null;
+   279→   279→  totalSlots: number | null;
+   280→   280→  rewardedRatio: number | null;
+   281→   281→  top10IncentiveShare: number | null;
+   282→   282→  burnCostTao: number | null;
+   283→   283→  immunityBlocks: number | null;
+   284→   284→  rampWeeks: number | null;
+   285→   285→  // Meta
+   286→   286→  emissionEnabled: boolean;
+   287→   287→  hardwareClassified: boolean;
+   288→   288→}
+   289→   289→
+   290→   290→export interface MinerLedger {
+   291→   291→  components: ScoreComponents;
+   292→   292→  factors: OpportunityFactor[];
+   293→   293→  diag: MinerLedgerDiagnostics;
+   294→   294→}
+   295→   295→
+   296→   296→/**
+   297→   297→ * Score one subnet the way a miner reads it. Deterministic per snapshot —
+   298→   298→ * the same inputs always produce the same score so ranks stay stable.
+   299→   299→ */
+   300→   300→export function scoreMinersLedger(inputs: {
+   301→   301→  live: LiveSubnetMetrics;
+   302→   302→  taoUsd: number;
+   303→   303→  hardware?: SubnetHardwareProfile | null;
+   304→   304→  taoChange24h?: number;
+   305→   305→  /** Blocks since the subnet was registered (for the maturity bonus). */
+   306→   306→  liveAgeBlocks?: number | null;
+   307→   307→  /** User-configurable cost lines (Profitability Engine settings). When
+   308→   308→   *  absent, market defaults apply — same engine, same shape. */
+   309→   309→  costs?: {
+   310→   310→    hardwareMode?: "rent" | "owned";
+   311→   311→    electricityUsdPerKwh?: number;
+   312→   312→    storageMonthlyUsd?: number;
+   313→   313→    /** 0/undefined = auto infra from the work-type classifier. */
+   314→   314→    infraMonthlyUsd?: number;
+   315→   315→    otherOpexMonthlyUsd?: number;
+   316→   316→    includeBurnAmortization?: boolean;
+   317→   317→    amortizeBurnMonths?: number;
+   318→   318→  };
+   319→   319→}): MinerLedger {
+   320→   320→  const { live, taoUsd } = inputs;
+   321→   321→  const usd = taoUsd || 0;
+   322→   322→
+   323→   323→  // --- Top line: newcomer-adjusted per-miner revenue ----------------------
+   324→   324→  // Miners get 41% of the subnet's emission (docs constant); the chain-
+   325→   325→  // measured minerEmissionTaoPerDay already reflects the realized split.
+   326→   326→  //
+   327→   327→  // The decision a miner makes is "if I register TODAY, what does a
+   328→   328→  // mid-pack seat pay?" — so the ledger starts from the per-REGISTERED
+   329→   329→  // slot (zero-earning seats included: on many subnets 250+ UIDs are
+   330→   330→  // registered and only a handful earn), then applies the median/mean
+   331→   331→  // spread share so a whale UID can't inflate the estimate.
+   332→   332→  // perEarningDailyTao (mean over rewarded UIDs) is kept as the upside
+   333→   333→  // reference — what current earners make.
+   334→   334→  const rewarded = Math.max(live.rewardedMiners ?? 0, 0);
+   335→   335→  const registered = Math.max(live.minersCount, 1);
+   336→   336→  const minerEmissionTaoPerDay = live.minerEmissionTaoPerDay ?? 0;
+   337→   337→  const perRegisteredDailyTao =
+   338→   338→    minerEmissionTaoPerDay > 0 ? minerEmissionTaoPerDay / registered : 0;
+   339→   339→  const perEarningDailyTao =
+   340→   340→    rewarded > 0 && minerEmissionTaoPerDay > 0
+   341→   341→      ? minerEmissionTaoPerDay / rewarded
+   342→   342→      : minerEmissionTaoPerDay > 0
+   343→   343→        ? perRegisteredDailyTao // vec unavailable — no zero-slot discount available
+   344→   344→        : 0;
+   345→   345→  const rewardMedianShare = live.incentiveMedianShare ?? 1;
+   346→   346→  // Newcomer-adjusted mid-pack revenue:
+   347→   347→  //  - reward vec available  → perRegistered × medianShare
+   348→   348→  //  - reward vec unavailable→ perRegistered × 0.6 (conservative)
+   349→   349→  const expectedDailyTao =
+   350→   350→    rewarded > 0 && minerEmissionTaoPerDay > 0
+   351→   351→      ? perRegisteredDailyTao * rewardMedianShare
+   352→   352→      : minerEmissionTaoPerDay > 0
+   353→   353→        ? perRegisteredDailyTao * 0.6
+   354→   354→        : 0;
+   355→   355→  const grossMonthlyUsd = Math.round(expectedDailyTao * 30 * usd);
+   356→   356→  const dailyAlpha = live.movingPrice > 0 ? expectedDailyTao / live.movingPrice : 0;
+   357→   357→
+   358→   358→  // --- Hardware profile (work type → GPU cost) ---------------------------
+   359→   359→  const fallbackMonthly = grossMonthlyUsd > 0 ? grossMonthlyUsd : undefined;
+   360→   360→  const hardware =
+   361→   361→    inputs.hardware ??
+   362→   362→    classifySubnetHardware(live.name, live.identityDescription, {
+   363→   363→      fallbackMonthlyUsd: fallbackMonthly,
+   364→   364→    });
+   365→   365→  // --- Cost stack (Profitability Engine lines) ----------------------------
+   366→   366→  const costs = inputs.costs ?? {};
+   367→   367→  const gpuCost =
+   368→   368→    costs.hardwareMode === "owned"
+   369→   369→      ? electricityMonthlyUsd(
+   370→   370→          hardware.tier.powerWatts,
+   371→   371→          costs.electricityUsdPerKwh ?? 0.12
+   372→   372→        )
+   373→   373→      : hardware.tier.monthlyRentUsd;
+   374→   374→  const infraCost =
+   375→   375→    costs.infraMonthlyUsd != null && costs.infraMonthlyUsd > 0
+   376→   376→      ? costs.infraMonthlyUsd
+   377→   377→      : Math.max(hardware.monthlyCostUsd - hardware.tier.monthlyRentUsd, INFRA_BASE_USD);
+   378→   378→  const storageCost = costs.storageMonthlyUsd ?? 0;
+   379→   379→  const otherOpex = costs.otherOpexMonthlyUsd ?? 0;
+   380→   380→  const burnUsd =
+   381→   381→    live.burnCostTao != null && costs.includeBurnAmortization
+   382→   382→      ? Math.max(live.burnCostTao, 0) * usd
+   383→   383→      : 0;
+   384→   384→  const amortizedBurn = burnUsd / Math.max(costs.amortizeBurnMonths ?? 3, 1);
+   385→   385→  const totalCosts = gpuCost + infraCost + storageCost + otherOpex + amortizedBurn;
+   386→   386→  // Zero-revenue subnets are honest losers: the cost stack still applies.
+   387→   387→  const netMonthlyUsd = grossMonthlyUsd > 0
+   388→   388→    ? Math.round(grossMonthlyUsd - totalCosts)
+   389→   389→    : -Math.round(totalCosts);
+   390→   390→
+   391→   391→  // --- Alpha economics ----------------------------------------------------
+   392→   392→  const alphaPriceTao = live.movingPrice;
+   393→   393→  const alphaPriceUsd = alphaPriceTao * usd;
+   394→   394→  const liquidityTao = live.subnetTao; // TAO side of the pool = exit liquidity
+   395→   395→  const slippagePct =
+   396→   396→    live.alphaOut > 0 && dailyAlpha > 0
+   397→   397→      ? Math.round((dailyAlpha / live.alphaOut) * 10000) / 100
+   398→   398→      : null;
+   399→   399→
+   400→   400→  // --- Seat safety inputs -------------------------------------------------
+   401→   401→  const maxUids = live.maxUids ?? 0;
+   402→   402→  const freeSlots = maxUids > 0 ? Math.max(0, maxUids - live.minersCount) : null;
+   403→   403→  const totalSlots = maxUids > 0 ? maxUids : null;
+   404→   404→  const rewardedRatio = live.rewardedMiners != null && live.rewardedMiners > 0
+   405→   405→    ? Math.min(1, live.rewardedMiners / registered)
+   406→   406→    : live.rewardedMiners === 0
+   407→   407→      ? 0
+   408→   408→      : null;
+   409→   409→  const top10 = live.top10IncentiveShare;
+   410→   410→
+   411→   411→  // Newcomer ramp: bonds build via EMA (α=0.1), and on concentrated subnets
+   412→   412→  // a fresh UID starts at zero. Research: 1-3 months of tuning is typical.
+   413→   413→  const rampWeeks =
+   414→   414→    3 +
+   415→   415→    (rewardedRatio != null ? (1 - rewardedRatio) * 6 : 3) +
+   416→   416→    (top10 != null && top10 > 0.7 ? 3 : 0) +
+   417→   417→    (freeSlots != null && freeSlots === 0 ? 2 : 0);
+   418→   418→
+   419→   419→  // --- Pillar 1: Net ROI --------------------------------------------------
+   420→   420→  // $0 → 10, +$100 → 54, +$500 → 69, +$1k → 76, +$5k → 92; losses slide to 2.
+   421→   421→  const netRoi =
+   422→   422→    netMonthlyUsd >= 0
+   423→   423→      ? clampScore(10 + 22 * Math.log10(netMonthlyUsd + 1), 2, 97)
+   424→   424→      : clampScore(10 + netMonthlyUsd / 100, 2, 10);
+   425→   425→
+   426→   426→  // --- Pillar 2: Seat safety ----------------------------------------------
+   427→   427→  const roomRatio = maxUids > 0 ? freeSlots! / maxUids : 0.5;
+   428→   428→  const scoreRoom = clampScore(10 + roomRatio * 45, 10, 55); // full subnet → 10
+   429→   429→  const scoreSpread =
+   430→   430→    top10 != null ? clampScore(100 - (top10 - 0.2) * 100, 10, 95) : 50;
+   431→   431→  const scoreBurn =
+   432→   432→    live.burnCostTao != null
+   433→   433→      ? clampScore(95 - Math.log10(live.burnCostTao + 1) * 25, 30, 95)
+   434→   434→      : 55;
+   435→   435→  const scoreImmunity =
+   436→   436→    live.immunityBlocks != null
+   437→   437→      ? clampScore(30 + (live.immunityBlocks / 7200) * 50, 30, 80)
+   438→   438→      : 45;
+   439→   439→  const seatSafety = !live.emissionEnabled
+   440→   440→    ? 12
+   441→   441→    : clampScore(
+   442→   442→        scoreRoom * 0.35 + scoreSpread * 0.35 + scoreBurn * 0.15 + scoreImmunity * 0.15,
+   443→   443→        5,
+   444→   444→        96
+   445→   445→      );
+   446→   446→
+   447→   447→  // --- Pillar 3: Alpha economics -------------------------------------------
+   448→   448→  const change = live.alphaPriceChange24h;
+   449→   449→  const scoreTrend = change != null ? clampScore(50 + change * 1.5, 10, 95) : 50;
+   450→   450→  const scoreLiq =
+   451→   451→    liquidityTao > 0
+   452→   452→      ? clampScore(20 + 19 * Math.log10(liquidityTao / 500 + 1), 10, 95)
+   453→   453→      : 10;
+   454→   454→  const scoreSlip =
+   455→   455→    slippagePct != null ? clampScore(95 - slippagePct * 1200, 15, 95) : 50;
+   456→   456→  const alphaEconomics = usd <= 0
+   457→   457→    ? 50
+   458→   458→    : clampScore(scoreTrend * 0.4 + scoreLiq * 0.3 + scoreSlip * 0.3, 5, 96);
+   459→   459→
+   460→   460→  // --- Pillar 4: Earning reality -------------------------------------------
+   461→   461→  const scoreRewarded =
+   462→   462→    rewardedRatio != null ? clampScore(15 + rewardedRatio * 70, 15, 85) : 50;
+   463→   463→  const scoreConc =
+   464→   464→    top10 != null ? clampScore(100 - (top10 - 0.2) * 90, 15, 92) : 50;
+   465→   465→  const scoreRamp = clampScore(90 - rampWeeks * 5, 20, 90);
+   466→   466→  const earningReality = !live.emissionEnabled
+   467→   467→    ? 8
+   468→   468→    : clampScore(scoreRewarded * 0.4 + scoreConc * 0.3 + scoreRamp * 0.3, 5, 96);
+   469→   469→
+   470→   470→  // --- Pillar 5: Fit & feasibility ------------------------------------------
+   471→   471→  let fitFeasibility = 25; // emission disabled base
+   472→   472→  if (live.emissionEnabled) {
+   473→   473→    fitFeasibility = 40;
+   474→   474→    const validators = live.validatorsCount ?? 0;
+   475→   475→    fitFeasibility += clampScore(validators * 2.5, 0, 20); // validator coverage
+   476→   476→    if (live.identityGithub) fitFeasibility += 12;
+   477→   477→    if (live.identityDescription) fitFeasibility += 6;
+   478→   478→    if (live.registeredAt != null && inputs.liveAgeBlocks != null) {
+   479→   479→      const ageDays = inputs.liveAgeBlocks / 7200;
+   480→   480→      fitFeasibility += clampScore(Math.min(ageDays / 30, 1) * 12, 0, 12); // maturity
+   481→   481→    }
+   482→   482→    if (live.immunityBlocks != null && live.immunityBlocks < 4096) fitFeasibility -= 5;
+   483→   483→  }
+   484→   484→  fitFeasibility = clampScore(fitFeasibility, 5, 92);
+   485→   485→
+   486→   486→  const components: ScoreComponents = {
+   487→   487→    net_roi: Math.round(netRoi * 10) / 10,
+   488→   488→    seat_safety: Math.round(seatSafety * 10) / 10,
+   489→   489→    alpha_economics: Math.round(alphaEconomics * 10) / 10,
+   490→   490→    earning_reality: Math.round(earningReality * 10) / 10,
+   491→   491→    fit_feasibility: Math.round(fitFeasibility * 10) / 10,
+   492→   492→  };
+   493→   493→
+   494→   494→  const diag: MinerLedgerDiagnostics = {
+   495→   495→    perEarningDailyTao: Math.round(perEarningDailyTao * 10000) / 10000,
+   496→   496→    expectedDailyTao: Math.round(expectedDailyTao * 10000) / 10000,
+   497→   497→    rewardMedianShare: live.incentiveMedianShare,
+   498→   498→    perRegisteredDailyTao: Math.round(perRegisteredDailyTao * 10000) / 10000,
+   499→   499→    grossMonthlyUsd,
+   500→   500→    alphaPriceTao,
+   501→   501→    alphaPriceUsd: Math.round(alphaPriceUsd * 1000) / 1000,
+   502→   502→    alphaChange24h: change ?? null,
+   503→   503→    liquidityTao: Math.round(liquidityTao),
+   504→   504→    slippagePct,
+   505→   505→    category: hardware.category,
+   506→   506→    gpuLabel: hardware.tier.label,
+   507→   507→    recommendedGpu: hardware.recommendedGpu,
+   508→   508→    minVramGb: hardware.minVramGb,
+   509→   509→    gpuCostMonthlyUsd: Math.round(gpuCost),
+   510→   510→    infraCostMonthlyUsd: Math.round(infraCost),
+   511→   511→    storageCostMonthlyUsd: Math.round(storageCost),
+   512→   512→    otherOpexMonthlyUsd: Math.round(otherOpex),
+   513→   513→    amortizedBurnUsd: Math.round(amortizedBurn),
+   514→   514→    totalCostMonthlyUsd: Math.round(totalCosts),
+   515→   515→    gpuPowerWatts: hardware.tier.powerWatts,
+   516→   516→    netMonthlyUsd,
+   517→   517→    netDailyTao:
+   518→   518→      usd > 0 ? Math.round((netMonthlyUsd / 30 / usd) * 10000) / 10000 : 0,
+   519→   519→    freeSlots,
+   520→   520→    totalSlots,
+   521→   521→    rewardedRatio: rewardedRatio != null ? Math.round(rewardedRatio * 1000) / 1000 : null,
+   522→   522→    top10IncentiveShare: top10,
+   523→   523→    burnCostTao: live.burnCostTao,
+   524→   524→    immunityBlocks: live.immunityBlocks,
+   525→   525→    rampWeeks: Math.round(rampWeeks * 10) / 10,
+   526→   526→    emissionEnabled: live.emissionEnabled,
+   527→   527→    hardwareClassified: hardware.classified,
+   528→   528→  };
+   529→   529→
+   530→   530→  return { components, factors: deriveFactors(components), diag };
+   531→   531→}
+   532→   532→
+   533→   533→// ---------------------------------------------------------------------------
+   534→   534→// Chance to earn · month 1 — a newcomer's honest odds of earning ANY reward
+   535→   535→// during their first month of continuous, good-uptime mining. Uptime alone
+   536→   536→// keeps the seat; the share of slots that actually earn decides whether the
+   537→   537→// wallet moves. Dominant factor: rewardedRatio (share of registered slots
+   538→   538→// that earned last epoch), discounted for whale dominance, full subnets
+   539→   539→// (must displace an incumbent) and long bond-EMA ramps.
+   540→   540→// ---------------------------------------------------------------------------
+   541→   541→
+   542→   542→export type EarnChanceLevel = "high" | "medium" | "low" | "none";
+   543→   543→
+   544→   544→export interface EarnChance {
+   545→   545→  level: EarnChanceLevel;
+   546→   546→  /** 0–100 modeled chance that a newcomer earns something in month 1. */
+   547→   547→  pct: number;
+   548→   548→  /** Human explanation of the dominant factors. */
+   549→   549→  note: string;
+   550→   550→}
+   551→   551→
+   552→   552→export function computeEarnChance(inputs: {
+   553→   553→  /** Share of registered slots that earned reward last epoch (0..1). */
+   554→   554→  rewardedRatio: number | null;
+   555→   555→  /** Free UID slots (null = unknown). 0 means you must displace an incumbent. */
+   556→   556→  freeSlots: number | null;
+   557→   557→  /** Top-10% share of epoch incentive (0..1) — whale dominance. */
+   558→   558→  top10IncentiveShare: number | null;
+   559→   559→  /** Newcomer bond-EMA ramp estimate in weeks. */
+   560→   560→  rampWeeks: number | null;
+   561→   561→}): EarnChance {
+   562→   562→  const { rewardedRatio, freeSlots, top10IncentiveShare, rampWeeks } = inputs;
+   563→   563→
+   564→   564→  // Base: the fraction of slots that actually earn — the single strongest
+   565→   565→  // predictor of whether a newcomer earns anything at all.
+   566→   566→  let pct = rewardedRatio != null ? rewardedRatio * 100 : 0;
+   567→   567→  const factors: string[] = [];
+   568→   568→
+   569→   569→  // Whale dominance: when the top 10% of UIDs take nearly everything, the
+   570→   570→  // rewarded tail is scraps — being "rewarded" still pays almost nothing.
+   571→   571→  if (top10IncentiveShare != null && top10IncentiveShare > 0.5) {
+   572→   572→    pct *= 1 - Math.min(1, top10IncentiveShare - 0.5) * 0.6;
+   573→   573→    factors.push(
+   574→   574→      `top-10% of UIDs take ${Math.round(top10IncentiveShare * 100)}% of rewards`
+   575→   575→    );
+   576→   576→  }
+   577→   577→
+   578→   578→  // Full subnet: no free seats — you must outperform an incumbent to get in,
+   579→   579→  // and you start from zero bonds against their established ones.
+   580→   580→  if (freeSlots === 0) {
+   581→   581→    pct *= 0.7;
+   582→   582→    factors.push("subnet full — must displace an incumbent");
+   583→   583→  }
+   584→   584→
+   585→   585→  // Long ramp: month 1 is mostly bond-building; long ramps leave little of it.
+   586→   586→  if (rampWeeks != null && rampWeeks > 8) {
+   587→   587→    pct *= 0.8;
+   588→   588→    factors.push(`~${Math.round(rampWeeks)} wk ramp to full bonds`);
+   589→   589→  }
+   590→   590→
+   591→   591→  pct = Math.round(Math.max(0, Math.min(100, pct)));
+   592→   592→  const level: EarnChanceLevel =
+   593→   593→    rewardedRatio != null && rewardedRatio <= 0
+   594→   594→      ? "none"
+   595→   595→      : pct >= 50
+   596→   596→        ? "high"
+   597→   597→        : pct >= 20
+   598→   598→          ? "medium"
+   599→   599→          : pct > 0
+   600→   600→            ? "low"
+   601→   601→            : "none";
+   602→   602→
+   603→   603→  const base = rewardedRatio != null
+   604→   604→    ? `${rewardedRatio < 0.1 && rewardedRatio > 0 ? (rewardedRatio * 100).toFixed(1) : Math.round(rewardedRatio * 100)}% of slots earned last epoch`
+   605→   605→    : "reward spread unknown";
+   606→   606→  const note =
+   607→   607→    factors.length > 0 ? `${base} · ${factors.join(" · ")}` : base;
+   608→   608→
+   609→   609→  return { level, pct, note };
+   610→   610→}
+   611→   611→
+   612→   612→// ---------------------------------------------------------------------------
+   613→   613→// Seat Chance — "can I actually GET IN?" (vs EarnChance's "will I earn?").
+   614→   614→//
+   615→   615→// Bittensor registration mechanics:
+   616→   616→//   • Subnets have a UID cap (maxUids). Free slots → register via burn or PoW.
+   617→   617→//   • FULL subnet → registration STILL works: a burn registration pays the
+   618→   618→//     dynamic recycle cost and the chain replaces the worst-performing
+   619→   619→//     NON-IMMUNE uid. PoW registrations compete for per-block slots the same
+   620→   620→//     way. You are only locked out if every uid is immune (rare — immunity
+   621→   621→//     covers ~14h by default) or registration is disabled on the subnet.
+   622→   622→//   • immunityBlocks = how long YOUR new seat cannot be deregistered — the
+   623→   623→//     runway to start earning before becoming replaceable yourself.
+   624→   624→// ---------------------------------------------------------------------------
+   625→   625→
+   626→   626→/**
+   627→   627→ * Burn-quote display precision — the chain's burn hyperparam can sit at the
+   628→   628→ * floor (e.g. Chutes ~0.0005 TAO); 3 decimals would show "0.001" — a 2x
+   629→   629→ * misquote shown to a user deciding whether to burn. <0.01 → 4 decimals,
+   630→   630→ * <1 → 3, else 2.
+   631→   631→ */
+   632→   632→export function formatBurnTao(n: number): string {
+   633→   633→  if (n < 0.01) return n.toFixed(4);
+   634→   634→  if (n < 1) return n.toFixed(3);
+   635→   635→  return n.toFixed(2);
+   636→   636→}
+   637→   637→
+   638→   638→export type SeatVerdict = "open" | "burn-entry" | "waitlist" | "unknown";
+   639→   639→
+   640→   640→export interface SeatChance {
+   641→   641→  verdict: SeatVerdict;
+   642→   642→  /** Registration is possible right now (burn path or free slot). */
+   643→   643→  canRegister: boolean;
+   644→   644→  slotsFree: number | null;
+   645→   645→  totalSlots: number | null;
+   646→   646→  /** 0–100 — how full the uid space is. */
+   647→   647→  fillPct: number | null;
+   648→   648→  burnCostTao: number | null;
+   649→   649→  /** Protection window for a NEW seat, in hours (blocks × 12s). */
+   650→   650→  immunityHours: number | null;
+   651→   651→  /** Share of uids that earned NOTHING last epoch — the replaceable bottom
+   652→   652→   *  a newcomer displaces from. High = churn churns in your favor. */
+   653→   653→  replaceableShare: number | null;
+   654→   654→  headline: string;
+   655→   655→  detail: string;
+   656→   656→}
+   657→   657→
+   658→   658→export function assessSeatChance(inputs: {
+   659→   659→  minersCount: number | null;
+   660→   660→  maxUids: number | null;
+   661→   661→  /** Already-computed free slots (skip when you only have counts). */
+   662→   662→  freeSlots?: number | null;
+   663→   663→  burnCostTao: number | null;
+   664→   664→  immunityBlocks: number | null;
+   665→   665→  /** Rewarded uids (either give the ratio directly or the absolute count). */
+   666→   666→  rewardedRatio?: number | null;
+   667→   667→  rewardedMiners?: number | null;
+   668→   668→}): SeatChance {
+   669→   669→  const { maxUids, burnCostTao, immunityBlocks } = inputs;
+   670→   670→  const minersCount = inputs.minersCount ?? 0;
+   671→   671→  const slotsFree =
+   672→   672→    inputs.freeSlots != null
+   673→   673→      ? Math.max(0, inputs.freeSlots)
+   674→   674→      : maxUids != null && maxUids > 0
+   675→   675→        ? Math.max(0, maxUids - minersCount)
+   676→   676→        : null;
+   677→   677→  const fillPct =
+   678→   678→    maxUids != null && maxUids > 0
+   679→   679→      ? Math.min(100, Math.round((minersCount / maxUids) * 100))
+   680→   680→      : null;
+   681→   681→  let replaceableShare: number | null = null;
+   682→   682→  if (inputs.rewardedRatio != null) {
+   683→   683→    replaceableShare = Math.max(0, Math.min(1, 1 - inputs.rewardedRatio));
+   684→   684→  } else if (inputs.rewardedMiners != null && minersCount > 0) {
+   685→   685→    replaceableShare = Math.max(0, Math.min(1, 1 - inputs.rewardedMiners / minersCount));
+   686→   686→  }
+   687→   687→  const immunityHours =
+   688→   688→    immunityBlocks != null && immunityBlocks > 0
+   689→   689→      ? Math.round(((immunityBlocks * 12) / 3600) * 10) / 10
+   690→   690→      : null;
+   691→   691→  const immunityNote = immunityHours != null
+   692→   692→    ? `a new seat is immune for ~${immunityHours}h — your runway to start earning before you're replaceable`
+   693→   693→    : null;
+   694→   694→  const deadNote = replaceableShare != null && replaceableShare > 0.05
+   695→   695→    ? `${Math.round(replaceableShare * 100)}% of uids earned nothing last epoch — a deep replaceable bottom`
+   696→   696→    : replaceableShare != null
+   697→   697→      ? "almost every seat earned last epoch — displacement targets are scarce and strong"
+   698→   698→      : null;
+   699→   699→
+   700→   700→  const unknown: SeatChance = {
+   701→   701→    verdict: "unknown",
+   702→   702→    canRegister: true,
+   703→   703→    slotsFree,
+   704→   704→    totalSlots: maxUids ?? null,
+   705→   705→    fillPct,
+   706→   706→    burnCostTao,
+   707→   707→    immunityHours,
+   708→   708→    replaceableShare,
+   709→   709→    headline: "slot data unavailable",
+   710→   710→    detail:
+   711→   711→      "UID capacity was not returned by the chain snapshot this pass — refresh the network data. " +
+   712→   712→      (burnCostTao != null ? `Burn registration quote: ~${formatBurnTao(burnCostTao)} TAO.` : ""),
+   713→   713→  };
+   714→   714→
+   715→   715→  if (slotsFree == null || maxUids == null || maxUids <= 0) return unknown;
+   716→   716→
+   717→   717→  // --- Open: free slots exist ---------------------------------------------
+   718→   718→  if (slotsFree > 0) {
+   719→   719→    return {
+   720→   720→      verdict: "open",
+   721→   721→      canRegister: true,
+   722→   722→      slotsFree,
+   723→   723→      totalSlots: maxUids,
+   724→   724→      fillPct,
+   725→   725→      burnCostTao,
+   726→   726→      immunityHours,
+   727→   727→      replaceableShare,
+   728→   728→      headline: `${slotsFree} of ${maxUids} slots free`,
+   729→   729→      detail:
+   730→   730→        `This subnet is NOT full — ${slotsFree} uid${slotsFree === 1 ? "" : "s"} open (${fillPct}% filled). ` +
+   731→   731→        `Register now via burn${burnCostTao != null ? ` (~${formatBurnTao(burnCostTao)} TAO)` : ""} or PoW. ` +
+   732→   732→        (immunityNote ? `${immunityNote}. ` : "") +
+   733→   733→        (deadNote ? `${deadNote}.` : ""),
+   734→   734→    };
+   735→   735→  }
+   736→   736→
+   737→   737→  // --- Full: burn-entry is the deterministic path ---------------------------
+   738→   738→  if (burnCostTao != null && burnCostTao > 0) {
+   739→   739→    return {
+   740→   740→      verdict: "burn-entry",
+   741→   741→      canRegister: true,
+   742→   742→      slotsFree: 0,
+   743→   743→      totalSlots: maxUids,
+   744→   744→      fillPct,
+   745→   745→      burnCostTao,
+   746→   746→      immunityHours,
+   747→   747→      replaceableShare,
+   748→   748→      headline: `full (${minersCount}/${maxUids}) — burn-entry ~${formatBurnTao(burnCostTao)} TAO`,
+   749→   749→      detail:
+   750→   750→        `Every uid is taken, but registration still works: paying the burn (~${formatBurnTao(burnCostTao)} TAO, floats with demand) ` +
+   751→   751→        `immediately replaces the WORST-performing non-immune uid. ` +
+   752→   752→        (deadNote ? `${deadNote}. ` : "The bottom of this cohort is well-defended — displacement may take several attempts. ") +
+   753→   753→        (immunityNote ? `${immunityNote}.` : ""),
+   754→   754→    };
+   755→   755→  }
+   756→   756→
+   757→   757→  // --- Full, no burn quote: PoW/competitive path ----------------------------
+   758→   758→  return {
+   759→   759→    verdict: "waitlist",
+   760→   760→    canRegister: true,
+   761→   761→    slotsFree: 0,
+   762→   762→    totalSlots: maxUids,
+   763→   763→    fillPct,
+   764→   764→    burnCostTao: null,
+   765→   765→    immunityHours,
+   766→   766→    replaceableShare,
+   767→   767→    headline: `full (${minersCount}/${maxUids}) — entry is competitive`,
+   768→   768→    detail:
+   769→   769→      `No free slots and no burn quote from this snapshot. Entry means winning a PoW registration ` +
+   770→   770→      `and replacing a zero-earning uid — expect per-block competition. ` +
+   771→   771→      (deadNote ? `${deadNote}. ` : "") +
+   772→   772→      (immunityNote ? `${immunityNote}.` : ""),
+   773→   773→  };
+   774→   774→}
+   775→   775→
