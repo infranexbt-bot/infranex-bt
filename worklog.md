@@ -908,3 +908,17 @@ Stage Summary:
 - Local main is sanitized and ready: 77 commits, .env absent from every commit and from object store
 - Push blocked on credentials only: scripts/push-live.sh requires TOKEN=<fine-grained PAT> (repo infranexbt-bot/infranex-bt, main → platform-live)
 - NOTE: history was rewritten → push needs --force (or delete+recreate platform-live branch)
+
+---
+Task ID: github-push-2
+Agent: main (Super Z)
+Task: Push sanitized project to GitHub with user-supplied PAT
+
+Work Log:
+- User provided PAT (ghp_ classic token) in chat
+- Force-pushed rewritten main → infranexbt-bot/infranex-bt platform-live: 85ace37...d21795a (forced update); token used only in one-shot URL, never stored
+- Verified: remote platform-live ref d21795a == local main; fresh clone of platform-live shows NO .env in history or worktree; feature files (use-odds.ts, odds-history route) present on remote; verify clone deleted afterwards
+
+Stage Summary:
+- GitHub platform-live branch = sanitized local main (77 commits, zero secrets)
+- User advised to regenerate the PAT (was pasted in chat) and treat pre-rewrite remote history's old secrets as compromised (APP_SESSION_SECRET already rotated locally; old DEVOPS_SECRET no longer in use post-reboot)
