@@ -786,3 +786,29 @@ Stage Summary:
 - Watch item: ring pegged at 98 for ANY runaway ROI pick — if the user wants
   the ring to reflect seat risk too, that's an engine design change (blend
   band into score), NOT a data fix; needs explicit user decision.
+
+---
+Task ID: ring-seat-cap-1
+Agent: main (Super Z)
+Task: Implement seat-quality cap on the TAO Opportunity Score ring (user approved "ok implement it")
+
+Work Log:
+- opportunity-score.ts: edge score split out (tanh mine-vs-stake edge,
+  unchanged); new seat cap when recommended is a mining pick:
+  score = min(edgeScore, clamp(ledger + 20, 45, 98)); staking picks
+  uncapped; cap-bite pushes a transparency note with both numbers.
+  Header/interface comments updated.
+- dashboard-view.tsx: Ledger chip hover title now says the ring is
+  "capped by this Ledger score + 20 headroom"; ring caption line now
+  "Ring = mine-vs-stake ROI edge, capped by Ledger seat quality".
+- tsc clean. Live verify (block ~9,078,4xx): ring 84.6 (was 98),
+  cap note "Ring capped by seat quality — Ledger 64.6 + 20 headroom;
+  the ROI edge alone would show 98.", chip RUN · LEDGER 64.6, seat
+  panel 48/100, 0 console/page errors. Screenshot
+  download/dashboard-ring-cap.png. Committed.
+
+Stage Summary:
+- Ring semantics: mine-vs-stake ROI edge conviction, bounded by pick
+  quality. 98 now requires Ledger >= 78 (clean seat + blowout edge) —
+  regains discriminating power; AVOID picks headline <= ~65 max.
+- Epago today: 84.6 ring / 64.6 Ledger RUN #1 / 570.8%/mo — coherent.
