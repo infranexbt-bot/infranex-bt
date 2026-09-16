@@ -146,6 +146,23 @@ export interface Opportunity {
   } | null;
   /** Repo URL the hosting/GPU requirements came from. */
   requirementsSource?: string | null;
+  /** Curated official mechanics (mechanics.ts) — null when none verified. */
+  mechanics?: {
+    netuid: number;
+    subnetName: string;
+    sources: { label: string; url: string }[];
+    rewardWindowDays?: number;
+    rewardWindowQuote?: string;
+    bountyQuote?: string;
+    gpuVariety?: { quote: string; catalog: string[] };
+    validatedTopologies?: string[];
+    optimizationTargets: string[];
+    operations: { title: string; detail: string; quote?: string }[];
+    controlPlaneMonthlyUsd?: number;
+    curatedAt: string;
+  } | null;
+  /** Hosting-aware cost class: bare-metal dedicated vs container rental. */
+  costClass?: "container" | "bare-metal" | null;
   /** Gross per-EARNING-miner monthly USD (before GPU + infra costs). */
   grossMonthlyUsd?: number;
   /** Net monthly USD after GPU rental + infra — the miner's bottom line. */

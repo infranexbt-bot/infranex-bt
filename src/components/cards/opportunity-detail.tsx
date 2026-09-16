@@ -17,6 +17,7 @@ import { formatNumber } from "@/lib/utils";
 import { assessSeatChance, formatBurnTao } from "@/lib/infranex/miner-score";
 import { RegisterOddsBlock, RegisterOddsInline } from "@/components/cards/register-odds";
 import { HostingWarningBlock, HostingChips } from "@/components/cards/hosting-requirements";
+import { OfficialMechanicsBlock, MechanicsChips, rampWeeksSourceNote } from "@/components/cards/mechanics-block";
 import { useOddsTrends } from "@/lib/infranex/use-odds";
 import type { Opportunity } from "@/lib/infranex/types";
 
@@ -509,18 +510,30 @@ export function OpportunityDetailDialog({
             <div>
               <p className="text-xs text-muted-foreground">Ramp-up estimate</p>
               <p className="tabular font-medium">
-                {o.rampWeeks != null ? `~${o.rampWeeks.toFixed(0)} weeks` : "—"}
+                {o.rampWeeks != null
+                  ? `~${o.rampWeeks.toFixed(0)} week${o.rampWeeks >= 1.5 ? "s" : ""}`
+                  : "—"}
                 {o.immunityBlocks != null && (
                   <span className="ml-1.5 text-xs text-muted-foreground">
                     {Math.round((o.immunityBlocks * 12) / 3600)}h immunity
                   </span>
                 )}
               </p>
+              {rampWeeksSourceNote(o.mechanics ?? null) && (
+                <p className="text-[10px] text-muted-foreground">
+                  {rampWeeksSourceNote(o.mechanics ?? null)}
+                </p>
+              )}
             </div>
           </div>
           {o.hosting && (
             <div className="mt-3">
               <HostingWarningBlock hosting={o.hosting} source={o.requirementsSource} />
+            </div>
+          )}
+          {o.mechanics && (
+            <div className="mt-3">
+              <OfficialMechanicsBlock mechanics={o.mechanics} />
             </div>
           )}
         </div>
@@ -690,6 +703,9 @@ export function OpportunityCard({ opportunity: o }: { opportunity: Opportunity }
             </p>
             {o.hosting && (
               <HostingChips hosting={o.hosting} source={o.requirementsSource} className="mt-1" />
+            )}
+            {o.mechanics && (
+              <MechanicsChips mechanics={o.mechanics} className="mt-1" />
             )}
           </div>
           <div>

@@ -45,6 +45,9 @@ import { WalletRegistrationDialog } from "@/components/devops/wallet-registratio
 import { DaemonInstallDialog } from "@/components/deployments/daemon-install-dialog";
 import { takeDeployPreselect } from "@/components/deployments/deploy-preselect";
 import { assessSeatChance } from "@/lib/infranex/miner-score";
+import { useSubnetOverrides } from "@/lib/infranex/use-subnet-overrides";
+import { hostingFlags } from "@/components/cards/hosting-requirements";
+import type { HostingRequirements } from "@/lib/infranex/github-scraper";
 import type { SubnetRequirementsProfile } from "@/lib/devops/subnet-requirements";
 import { useToast } from "@/hooks/use-toast";
 
@@ -83,6 +86,11 @@ export function DeployStepper() {
   const [regCtx, setRegCtx] = useState<RegistrationWizardContext | null>(null);
   const [regOpen, setRegOpen] = useState(false);
   const [daemonOpen, setDaemonOpen] = useState(false);
+  // MECHANICS-1 — hosting-compliance gate: subnets whose own repo README
+  // rejects container clouds (Chutes: "will not work on Runpod, Vast") must
+  // not sail through a RunPod/Vast rental wizard unnoticed. Ack is scoped to
+  // the netuid so switching subnets re-arms the gate.
+  const [hostingAckUid, setHostingAckUid] = useState<number | null>(null);
   const { toast } = useToast();
   const qc = useQueryClient();
 
@@ -167,6 +175,19 @@ export function DeployStepper() {
   const realMode: "runpod" | "vast" =
     offer?.provider && offer.provider.toLowerCase().includes("vast") ? "vast" : "runpod";
   const realConfigured = realMode === "vast" ? vastReady : runpodReady;
+
+  // --- Hosting compliance (scraped SubnetOverride.hostingRequirements) -----
+  const { data: subnetOverrides } = useSubnetOverrides();
+  const selectedHosting: HostingRequirements | null =
+    netuid != null
+      ? ((subnetOverrides?.get(netuid)?.hosting as HostingRequirements | null) ?? null)
+      : null;
+  const hostingRestricted =
+    selectedHosting != null &&
+    (selectedHosting.bareMetalOnly ||
+      selectedHosting.teeRequired ||
+      selectedHosting.staticIpRequired);
+  const hostingAck = hostingAckUid != null && hostingAckUid === netuid;
 
   // --- Step 3/4 data: the deployment record --------------------------------
   const detail = useDeploymentDetail(depId);
@@ -454,6 +475,63 @@ export function DeployStepper() {
                   </div>
                 )}
 
+                {/* MECHANICS-1 — hosting-compliance gate */}
+                {hostingRestricted && selectedHosting && (
+                  <div className="rounded-lg border border-destructive/40 bg-destructive/[0.05] p-3 text-xs">
+                    <p className="flex items-center gap-1.5 font-medium text-destructive">
+                      <XCircle className="h-3.5 w-3.5 shrink-0" />
+                      Hosting restriction — rented containers will be REJECTED by this subnet
+                    </p>
+                    <div className="mt-1.5 flex flex-wrap gap-1">
+                      {hostingFlags(selectedHosting).map((f) => (
+                        <Badge
+                          key={f}
+                          variant="outline"
+                          className="border-destructive/40 bg-background/60 px-1.5 py-0 text-[10px] font-medium text-destructive"
+                        >
+                          {f}
+                        </Badge>
+                      ))}
+                    </div>
+                    {selectedHosting.notes?.length > 0 && (
+                      <p className="mt-1.5 border-l-2 border-destructive/40 pl-2 text-[11px] italic text-muted-foreground">
+                        &ldquo;{selectedHosting.notes[0]}&rdquo;
+                      </p>
+                    )}
+                    <p className="mt-1.5 leading-relaxed text-muted-foreground">
+                      Every offer below is a RunPod/Vast <span className="font-medium text-foreground">container</span> —
+                      the subnet&apos;s validator will not accept it. The compliant path is
+                      bare-metal/VM hardware with a unique static IP, connected through the
+                      <span className="font-medium text-foreground"> DevOps Engine</span> (BYO host),
+                      then registered here or directly on-chain.
+                      {selectedHosting.bareMetalOnly &&
+                        " The subnet also requires Intel TDX confidential-VM workers (sek8s) — validated topologies only."}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setHostingAckUid((v) => (v === netuid ? null : netuid))
+                      }
+                      className={cn(
+                        "mt-2 flex w-full items-center gap-2 rounded-lg border p-2 text-left transition-colors",
+                        hostingAck
+                          ? "border-success/50 bg-success/[0.06]"
+                          : "border-border/60 bg-card/40 hover:border-border"
+                      )}
+                    >
+                      {hostingAck ? (
+                        <CheckCircle2 className="h-4 w-4 shrink-0 text-success" />
+                      ) : (
+                        <AlertTriangle className="h-4 w-4 shrink-0 text-warning" />
+                      )}
+                      <span className="text-muted-foreground">
+                        I understand the rented container will not earn on this subnet — I will
+                        connect compliant bare-metal/VM infrastructure via the DevOps Engine.
+                      </span>
+                    </button>
+                  </div>
+                )}
+
                 <p className="text-xs text-muted-foreground">
                   Offers meeting the requirement, cheapest first.
                 </p>
@@ -491,6 +569,14 @@ export function DeployStepper() {
                           </div>
                         </div>
                         <div className="flex shrink-0 items-center gap-2">
+                          {hostingRestricted && (
+                            <Badge
+                              variant="outline"
+                              className="border-destructive/40 px-1.5 py-0 text-[9px] text-destructive"
+                            >
+                              container — rejected
+                            </Badge>
+                          )}
                           {o.live && (
                             <Badge variant="outline" className="border-success/30 text-[9px] text-success">
                               live
@@ -576,8 +662,14 @@ export function DeployStepper() {
                   <Button variant="outline" onClick={() => setStep(1)}>
                     Back
                   </Button>
-                  <Button disabled={!offerId} onClick={() => setStep(3)} className="gap-1.5">
-                    Continue — review &amp; deploy
+                  <Button
+                    disabled={!offerId || (hostingRestricted && !hostingAck)}
+                    onClick={() => setStep(3)}
+                    className="gap-1.5"
+                  >
+                    {hostingRestricted && !hostingAck
+                      ? "Acknowledge hosting restriction to continue"
+                      : "Continue — review & deploy"}
                   </Button>
                 </div>
               </div>

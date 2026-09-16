@@ -7,6 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import {
   AlertTriangle,
   ArrowRight,
+  BookOpen,
   CheckCircle2,
   Clock,
   Coins,
@@ -21,10 +22,14 @@ import {
   Wallet,
 } from "lucide-react";
 import type { ViewKey } from "@/lib/infranex/types";
+import { listCuratedMechanics } from "@/lib/infranex/mechanics";
+import { OfficialMechanicsBlock } from "@/components/cards/mechanics-block";
 
 interface RunbookViewProps {
   onNavigate: (v: ViewKey) => void;
 }
+
+const CURATED_MECHANICS = listCuratedMechanics();
 
 /**
  * RUNBOOK-1 — the operator's reference for "a GPU miner just started — now what?"
@@ -257,6 +262,30 @@ export function RunbookView({ onNavigate }: RunbookViewProps) {
           </div>
         </CardContent>
       </Card>
+
+      {/* MECHANICS-1 — official reward rules for curated subnets */}
+      {CURATED_MECHANICS.length > 0 && (
+        <div className="grid gap-6 lg:grid-cols-2">
+          {CURATED_MECHANICS.map((m) => (
+            <Card key={m.netuid} className="border-border/60">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <BookOpen className="h-4 w-4 text-primary" aria-hidden="true" />
+                  Subnet mechanics · {m.subnetName} (α{m.netuid})
+                </CardTitle>
+                <p className="text-xs text-muted-foreground">
+                  The official reward rules the scoring engine now uses — ramp windows,
+                  bounties and optimization targets come from the subnet&apos;s own repos,
+                  not the generic bond-EMA heuristic.
+                </p>
+              </CardHeader>
+              <CardContent>
+                <OfficialMechanicsBlock mechanics={m} />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
 
       {/* Registration reminder */}
       <Card className="border-border/60">

@@ -1058,3 +1058,25 @@ Stage Summary:
 - App RUNNING on port 3000, keepalive supervisor (pid ~3548, PPID 1) immune to the tool-call reaper; workers active (SubnetOverride upserts flowing).
 - Login: admin / BRJ2-W2GT-WJNF-97VC (ops01/ops02/analyst01/viewer01 in scripts/users.local.json — recreated).
 - KEY ENV KNOWLEDGE for future agents: to start persistent processes, use the double-fork pattern `( setsid nohup cmd & )`; plain `nohup cmd &` or `setsid cmd &` dies when the spawning tool call ends.
+
+---
+Task ID: mechanics-build-1
+Agent: main (Super Z)
+Task: "yes and complete the build" — per-subnet mechanics knowledge layer + rampWeeks fix + bare-metal cost class + deploy gate (completing the chutes-knowledge follow-ups).
+
+Work Log:
+- Re-fetched official docs (sandbox reset had wiped /tmp/chutes-check): chutes-miner README (534 lines), sek8s host-tools README, chutes-api gpu.py. All quotes re-verified verbatim.
+- NEW src/lib/infranex/mechanics.ts: SubnetMechanics type + CURATED_MECHANICS (SN64: 7-day reward window, first-inference bounty quote, GPU-variety quote + 26-model catalog, 3 validated topologies, 5 optimization targets, 4 operational rules incl. one-UID + TEE, controlPlaneMonthlyUsd 120) + conservative keyword extractor (extractMechanicsFromText) for future auto-discovery; curated always wins.
+- miner-score.ts: GpuTier += bareMetalMonthlyUsd (dedicated-market estimates ~2.5-2.8x container rent, h200=7000); classifySubnetHardware fallbacks += mechanics, hosting-aware unitRentUsd + costClass, control-plane infra baked into monthlyCostUsd; scoreMinersLedger inputs += mechanics — rampWeeks = rewardWindowDays/7 (SN64: 1.0wk) REPLACING the 13.6wk heuristic, diag += rampWeeksSource/costClass/unitRentUsd/mechanicsApplied; gpuCost uses unitRent.
+- use-network.ts: mergeOpportunities passes getMechanics(netuid) into classifier + ledger; profitability engine now gets gpuRentMonthlyUsd = unitRent × gpuCount (TOTAL on the GPU line — fixed misleading 8x split where infra absorbed the fleet cost) and autoInfra = monthlyCost − gpuTotal; LiveOpportunity += mechanics/costClass.
+- types.ts: Opportunity += mechanics (structural) + costClass.
+- UI: new cards/mechanics-block.tsx (OfficialMechanicsBlock evidence block + MechanicsChips + rampWeeksSourceNote); opportunity-detail dialog shows ramp "1 week" annotation + full mechanics block under hosting block; runbook-view gets "Subnet mechanics · Chutes (α64)" reference card; deploy-stepper step 2 gets hosting-compliance gate — red block with flags + README quote + "container — rejected" badge on every offer + explicit acknowledge toggle; Continue disabled until acknowledged (ack scoped per netuid).
+- Stepper edit mishap: a MultiEdit batch partially applied leaving a duplicate gate block + stale setHostingAck ref — repaired (sed line delete + edits), verified by grep.
+- Verification: tsc src/ clean; eslint 0 errors (3 pre-existing warnings in untouched files); scripts/test-mechanics.ts 29/29 (ramp 1.0wk + source labels, bare-metal cost 8×$7000, infra $160 incl control plane, container path unchanged, earn-chance penalty removed, extractor precision + benign negatives, SN64 net −$56,160/mo stays honestly AVOID).
+- Browser-verified live: SN64 dialog P&L now GPU −$56,000 / Infra −$160 / net −$53,929 AVOID (revenue $2,271); mechanics block renders (window/bounties/variety catalog/topologies/targets/rules + repo links); runbook card renders; deploy gate renders + Continue disabled:true until acknowledged. Zero console errors.
+- Screenshots: download/mechanics-block-verified.png, download/runbook-mechanics.png, download/deploy-gate-verified.png.
+
+Stage Summary:
+- The app now KNOWS the official Chutes mechanics: ramp corrected 13.6wk → 1wk (official 7-day compute-sum window), costs priced for the only compliant hosting class (bare-metal dedicated 8×$7,000 + $120 control plane), and the deploy flow refuses to wave container rentals through for SN64.
+- Score honesty preserved: SN64 38.3 → 41.1 (ramp relief only), still AVOID — seat safety (17/256 rewarded, top-10% take 100%) dominates, exactly as the audit predicted.
+- Mechanics layer is extensible: add entries to CURATED_MECHANICS per verified subnet; extractor exists for future scraper integration (deliberately NOT auto-wired).

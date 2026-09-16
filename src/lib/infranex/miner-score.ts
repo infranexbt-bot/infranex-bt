@@ -22,6 +22,8 @@ import type { LiveSubnetMetrics } from "./chain";
 import type { OpportunityFactor } from "./types";
 import { electricityMonthlyUsd } from "./profitability";
 import type { HostingRequirements } from "./github-scraper";
+import type { SubnetMechanics } from "./mechanics";
+import { mechanicsOverridesRamp } from "./mechanics";
 
 const clampScore = (v: number, lo: number, hi: number) =>
   Math.min(hi, Math.max(lo, v));
@@ -114,21 +116,30 @@ export interface GpuTier {
   minVramGb: number;
   /** Monthly all-in rental at market rate (or power for owned-equivalent). */
   monthlyRentUsd: number;
+  /**
+   * Monthly dedicated/bare-metal server rate ($/mo per GPU node slot).
+   * MECHANICS-1: subnets whose docs reject container clouds (SN64 Chutes:
+   * "ALL servers must be bare metal/VM... will not work on Runpod, Vast")
+   * can ONLY be served from the dedicated market — whole-server leases with
+   * static IPs — which runs ~2.5-2.8× container rent (no contention, pinned
+   * hardware, IP 1:1). Documented market estimates, 2026 dedicated pricing.
+   */
+  bareMetalMonthlyUsd: number;
   /** GPU board power draw in watts — drives the owned-hardware electricity line. */
   powerWatts: number;
 }
 
 export const GPU_TIERS = {
-  b200: { label: "B200-class", recommendedGpu: "B200 180GB", minVramGb: 180, monthlyRentUsd: 3200, powerWatts: 1000 },
-  h200: { label: "H200-class", recommendedGpu: "H200 141GB", minVramGb: 141, monthlyRentUsd: 2500, powerWatts: 700 },
-  h100: { label: "H100-class", recommendedGpu: "H100 80GB", minVramGb: 80, monthlyRentUsd: 1700, powerWatts: 700 },
-  pro6000: { label: "RTX Pro 6000", recommendedGpu: "RTX Pro 6000 96GB", minVramGb: 96, monthlyRentUsd: 1100, powerWatts: 600 },
-  a100: { label: "A100-class", recommendedGpu: "A100 80GB", minVramGb: 80, monthlyRentUsd: 950, powerWatts: 400 },
-  a6000: { label: "A6000-class", recommendedGpu: "RTX A6000 48GB", minVramGb: 48, monthlyRentUsd: 320, powerWatts: 300 },
-  consumer24: { label: "Consumer 24GB", recommendedGpu: "RTX 4090 24GB", minVramGb: 24, monthlyRentUsd: 260, powerWatts: 450 },
-  vram16: { label: "Consumer 16GB", recommendedGpu: "RTX 4060 Ti 16GB", minVramGb: 16, monthlyRentUsd: 150, powerWatts: 160 },
-  entry: { label: "Entry GPU", recommendedGpu: "Entry GPU 8GB", minVramGb: 8, monthlyRentUsd: 80, powerWatts: 100 },
-  cpu: { label: "CPU-only", recommendedGpu: "CPU VPS", minVramGb: 0, monthlyRentUsd: 50, powerWatts: 20 },
+  b200: { label: "B200-class", recommendedGpu: "B200 180GB", minVramGb: 180, monthlyRentUsd: 3200, bareMetalMonthlyUsd: 9000, powerWatts: 1000 },
+  h200: { label: "H200-class", recommendedGpu: "H200 141GB", minVramGb: 141, monthlyRentUsd: 2500, bareMetalMonthlyUsd: 7000, powerWatts: 700 },
+  h100: { label: "H100-class", recommendedGpu: "H100 80GB", minVramGb: 80, monthlyRentUsd: 1700, bareMetalMonthlyUsd: 4800, powerWatts: 700 },
+  pro6000: { label: "RTX Pro 6000", recommendedGpu: "RTX Pro 6000 96GB", minVramGb: 96, monthlyRentUsd: 1100, bareMetalMonthlyUsd: 2900, powerWatts: 600 },
+  a100: { label: "A100-class", recommendedGpu: "A100 80GB", minVramGb: 80, monthlyRentUsd: 950, bareMetalMonthlyUsd: 2400, powerWatts: 400 },
+  a6000: { label: "A6000-class", recommendedGpu: "RTX A6000 48GB", minVramGb: 48, monthlyRentUsd: 320, bareMetalMonthlyUsd: 850, powerWatts: 300 },
+  consumer24: { label: "Consumer 24GB", recommendedGpu: "RTX 4090 24GB", minVramGb: 24, monthlyRentUsd: 260, bareMetalMonthlyUsd: 700, powerWatts: 450 },
+  vram16: { label: "Consumer 16GB", recommendedGpu: "RTX 4060 Ti 16GB", minVramGb: 16, monthlyRentUsd: 150, bareMetalMonthlyUsd: 400, powerWatts: 160 },
+  entry: { label: "Entry GPU", recommendedGpu: "Entry GPU 8GB", minVramGb: 8, monthlyRentUsd: 80, bareMetalMonthlyUsd: 220, powerWatts: 100 },
+  cpu: { label: "CPU-only", recommendedGpu: "CPU VPS", minVramGb: 0, monthlyRentUsd: 50, bareMetalMonthlyUsd: 90, powerWatts: 20 },
 } as const satisfies Record<string, GpuTier>;
 
 /**
@@ -182,6 +193,13 @@ export interface SubnetHardwareProfile {
   requirementsSource?: string | null;
   /** True when the profile came from the repo README (vs classifier). */
   sourceScraped?: boolean;
+  /**
+   * Effective per-GPU monthly cost used downstream (bare-metal dedicated
+   * rate when hosting requires it, else container rent). MECHANICS-1.
+   */
+  unitRentUsd?: number;
+  /** "bare-metal" when the subnet's docs reject container clouds. */
+  costClass?: "container" | "bare-metal";
 }
 
 /** Deterministic GPU tier from the reward stream — fallback for subnets
@@ -240,6 +258,8 @@ export function classifySubnetHardware(
       hosting?: HostingRequirements | null;
       requirementsSource?: string | null;
     } | null;
+    /** Curated official mechanics (mechanics.ts) — reward window + ops costs. */
+    mechanics?: SubnetMechanics | null;
   }
 ): SubnetHardwareProfile {
   // --- Base classification: work-type keywords → tier (existing logic) ----
@@ -306,19 +326,32 @@ export function classifySubnetHardware(
 
   const count = scraped.gpuCount && scraped.gpuCount > 1 ? scraped.gpuCount : 1;
   const tier = scrapedTier ?? base.profile.tier;
+  // MECHANICS-1 — hosting-aware cost class: a subnet whose own README rejects
+  // container clouds (bareMetalOnly) can only be served from the dedicated
+  // market, so the per-GPU unit rent switches to the bare-metal rate.
+  const bareMetal = scraped.hosting?.bareMetalOnly === true;
+  const unitRent = bareMetal ? tier.bareMetalMonthlyUsd : tier.monthlyRentUsd;
   // The scraper's raw string already carries the count prefix ("8x H200").
   const gpuLabel = scraped.recommendedGpu?.trim() ?? base.profile.recommendedGpu;
+  // Official mechanics may demand extra always-on infra (Chutes: a separate
+  // non-GPU control-plane server for the miner API/gepetto/postgres).
+  const controlPlaneUsd =
+    bareMetal && fallbacks?.mechanics?.controlPlaneMonthlyUsd
+      ? fallbacks.mechanics.controlPlaneMonthlyUsd
+      : 0;
   return {
     ...base.profile,
     tier,
     minVramGb: tier.minVramGb,
     recommendedGpu: gpuLabel,
-    monthlyCostUsd: tier.monthlyRentUsd * count + base.infraUsd,
+    monthlyCostUsd: unitRent * count + base.infraUsd + controlPlaneUsd,
     isGpuWorkload: tier.minVramGb > 0,
     gpuCount: count,
     hosting: scraped.hosting ?? null,
     requirementsSource: scraped.requirementsSource ?? null,
     sourceScraped: true,
+    unitRentUsd: unitRent,
+    costClass: bareMetal ? "bare-metal" : "container",
   };
 }
 
@@ -355,6 +388,10 @@ export interface MinerLedgerDiagnostics {
   hosting?: HostingRequirements | null;
   /** Repo URL the requirements came from (when scraped). */
   requirementsSource?: string | null;
+  /** "bare-metal" when the subnet's docs reject container clouds. */
+  costClass?: "container" | "bare-metal";
+  /** Effective per-GPU rent actually charged in this ledger (MECHANICS-1). */
+  unitRentUsd?: number;
   infraCostMonthlyUsd: number;
   storageCostMonthlyUsd: number;
   otherOpexMonthlyUsd: number;
@@ -370,6 +407,10 @@ export interface MinerLedgerDiagnostics {
   burnCostTao: number | null;
   immunityBlocks: number | null;
   rampWeeks: number | null;
+  /** Where the ramp figure came from: official docs window vs heuristic. */
+  rampWeeksSource: "official-reward-window" | "bond-ema-heuristic";
+  /** Curated mechanics applied (source labels) when present. */
+  mechanicsApplied?: string[] | null;
   // Meta
   emissionEnabled: boolean;
   hardwareClassified: boolean;
@@ -392,6 +433,8 @@ export function scoreMinersLedger(inputs: {
   taoChange24h?: number;
   /** Blocks since the subnet was registered (for the maturity bonus). */
   liveAgeBlocks?: number | null;
+  /** Curated official mechanics (mechanics.ts) — ramp window + infra. */
+  mechanics?: SubnetMechanics | null;
   /** User-configurable cost lines (Profitability Engine settings). When
    *  absent, market defaults apply — same engine, same shape. */
   costs?: {
@@ -453,19 +496,25 @@ export function scoreMinersLedger(inputs: {
   // --- Cost stack (Profitability Engine lines) ----------------------------
   // gpuCount > 1 (scraped, e.g. "8x H200") scales the GPU line: the requirement
   // is a multi-GPU server, not one card. Owned mode scales the power draw.
+  // MECHANICS-1: unitRent switches to the dedicated rate when the subnet's
+  // hosting rules reject containers — the ONLY compliant hosting class.
   const costs = inputs.costs ?? {};
   const gpuCount = hardware.gpuCount && hardware.gpuCount > 1 ? hardware.gpuCount : 1;
+  const unitRent = hardware.unitRentUsd ??
+    (hardware.hosting?.bareMetalOnly
+      ? hardware.tier.bareMetalMonthlyUsd
+      : hardware.tier.monthlyRentUsd);
   const gpuCost =
     costs.hardwareMode === "owned"
       ? electricityMonthlyUsd(
           hardware.tier.powerWatts * gpuCount,
           costs.electricityUsdPerKwh ?? 0.12
         )
-      : hardware.tier.monthlyRentUsd * gpuCount;
+      : unitRent * gpuCount;
   const infraCost =
     costs.infraMonthlyUsd != null && costs.infraMonthlyUsd > 0
       ? costs.infraMonthlyUsd
-      : Math.max(hardware.monthlyCostUsd - hardware.tier.monthlyRentUsd * gpuCount, INFRA_BASE_USD);
+      : Math.max(hardware.monthlyCostUsd - unitRent * gpuCount, INFRA_BASE_USD);
   const storageCost = costs.storageMonthlyUsd ?? 0;
   const otherOpex = costs.otherOpexMonthlyUsd ?? 0;
   const burnUsd =
@@ -499,13 +548,24 @@ export function scoreMinersLedger(inputs: {
       : null;
   const top10 = live.top10IncentiveShare;
 
-  // Newcomer ramp: bonds build via EMA (α=0.1), and on concentrated subnets
-  // a fresh UID starts at zero. Research: 1-3 months of tuning is typical.
+  // Newcomer ramp. Default: bonds build via EMA (α=0.1), and on concentrated
+  // subnets a fresh UID starts at zero. Research: 1-3 months of tuning typical.
+  // MECHANICS-1: when the subnet's OFFICIAL docs define the reward metric as a
+  // rolling N-day window (Chutes: "7 day sum of compute"), the official window
+  // replaces the heuristic — a stable newcomer reaches full weight within it.
+  const mechanics = inputs.mechanics ?? null;
+  const mechanicsRampWeeks =
+    mechanics?.rewardWindowDays != null
+      ? Math.max(0.5, mechanics.rewardWindowDays / 7)
+      : null;
   const rampWeeks =
-    3 +
-    (rewardedRatio != null ? (1 - rewardedRatio) * 6 : 3) +
-    (top10 != null && top10 > 0.7 ? 3 : 0) +
-    (freeSlots != null && freeSlots === 0 ? 2 : 0);
+    mechanicsRampWeeks ??
+    (3 +
+      (rewardedRatio != null ? (1 - rewardedRatio) * 6 : 3) +
+      (top10 != null && top10 > 0.7 ? 3 : 0) +
+      (freeSlots != null && freeSlots === 0 ? 2 : 0));
+  const rampWeeksSource: MinerLedgerDiagnostics["rampWeeksSource"] =
+    mechanicsRampWeeks != null ? "official-reward-window" : "bond-ema-heuristic";
 
   // --- Pillar 1: Net ROI --------------------------------------------------
   // $0 → 10, +$100 → 54, +$500 → 69, +$1k → 76, +$5k → 92; losses slide to 2.
@@ -601,6 +661,8 @@ export function scoreMinersLedger(inputs: {
     gpuCount: hardware.gpuCount ?? null,
     hosting: hardware.hosting ?? null,
     requirementsSource: hardware.requirementsSource ?? null,
+    costClass: hardware.costClass ?? (hardware.hosting?.bareMetalOnly ? "bare-metal" : "container"),
+    unitRentUsd: Math.round(unitRent),
     infraCostMonthlyUsd: Math.round(infraCost),
     storageCostMonthlyUsd: Math.round(storageCost),
     otherOpexMonthlyUsd: Math.round(otherOpex),
@@ -617,6 +679,11 @@ export function scoreMinersLedger(inputs: {
     burnCostTao: live.burnCostTao,
     immunityBlocks: live.immunityBlocks,
     rampWeeks: Math.round(rampWeeks * 10) / 10,
+    rampWeeksSource,
+    mechanicsApplied:
+      mechanics && mechanicsOverridesRamp(mechanics)
+        ? mechanics.sources.map((s) => s.label)
+        : null,
     emissionEnabled: live.emissionEnabled,
     hardwareClassified: hardware.classified,
   };

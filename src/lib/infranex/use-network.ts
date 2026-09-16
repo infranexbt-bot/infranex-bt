@@ -17,6 +17,8 @@ import {
   DEFAULT_PROFITABILITY_CONFIG,
   type ProfitabilityConfig,
 } from "./profitability";
+import { getMechanics } from "./mechanics";
+import type { SubnetMechanics } from "./mechanics";
 import type {
   LiveNetworkSnapshot,
   LiveSubnetMetrics,
@@ -69,6 +71,10 @@ export interface LiveOpportunity extends Opportunity {
   hosting?: HostingRequirements | null;
   /** Repo URL the requirements came from. */
   requirementsSource?: string | null;
+  /** Curated official mechanics (mechanics.ts) — null when none verified. */
+  mechanics?: SubnetMechanics | null;
+  /** "bare-metal" when the subnet's docs reject container clouds. */
+  costClass?: "container" | "bare-metal" | null;
 }
 
 /** Merge live chain metrics + user overrides into the curated subnet list.
@@ -266,7 +272,15 @@ export function mergeOpportunities(
       fallbackGpu: curated?.recommendedGpu,
       fallbackMonthlyUsd: grossMonthlyUsd,
       scraped,
+      mechanics: getMechanics(live.netuid),
     });
+    // MECHANICS-1: hosting-aware per-GPU rent (dedicated rate for
+    // bare-metal-only subnets) — used by the Profitability Engine P&L.
+    const unitRent =
+      hardware.unitRentUsd ??
+      (hardware.hosting?.bareMetalOnly
+        ? hardware.tier.bareMetalMonthlyUsd
+        : hardware.tier.monthlyRentUsd);
 
     const liveAgeBlocks =
       live.registeredAt != null && snap.blockNumber > live.registeredAt
@@ -278,6 +292,7 @@ export function mergeOpportunities(
       taoUsd: usd,
       hardware,
       liveAgeBlocks,
+      mechanics: getMechanics(live.netuid),
       costs: {
         hardwareMode: config.hardwareMode,
         electricityUsdPerKwh: config.electricityUsdPerKwh,
@@ -291,12 +306,18 @@ export function mergeOpportunities(
     const score = totalScore(components);
 
     // --- Profitability Engine: full P&L + minimum entry rule ---------------
+    // MECHANICS-1: the engine's GPU line is the WHOLE fleet (unit rent ×
+    // count) — for 8x-H200-class subnets the bare-metal dedicated rate × 8
+    // lands on the GPU line, infra stays its own honest line.
+    const gpuCountForCost =
+      hardware.gpuCount && hardware.gpuCount > 1 ? hardware.gpuCount : 1;
+    const gpuTotalMonthlyUsd = unitRent * gpuCountForCost;
     const profitability = computeProfitabilityReport({
       grossMonthlyUsd: diag.grossMonthlyUsd,
-      gpuRentMonthlyUsd: hardware.tier.monthlyRentUsd,
+      gpuRentMonthlyUsd: gpuTotalMonthlyUsd,
       gpuPowerWatts: diag.gpuPowerWatts,
       autoInfraMonthlyUsd: Math.max(
-        hardware.monthlyCostUsd - hardware.tier.monthlyRentUsd,
+        hardware.monthlyCostUsd - gpuTotalMonthlyUsd,
         0
       ),
       burnCostTao: live.burnCostTao,
@@ -364,6 +385,8 @@ export function mergeOpportunities(
       gpuCount: diag.gpuCount ?? null,
       hosting: diag.hosting ?? null,
       requirementsSource: diag.requirementsSource ?? null,
+      mechanics: getMechanics(live.netuid),
+      costClass: diag.costClass ?? null,
       workType: diag.category,
       grossMonthlyUsd: diag.grossMonthlyUsd,
       netMonthlyUsd: profitability.netMonthlyUsd,
