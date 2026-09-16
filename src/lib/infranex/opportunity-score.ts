@@ -13,7 +13,9 @@ import { mergeOpportunities, type LiveOpportunity } from "./use-network";
 //   mining  → profitability report's roiMonthlyPct (net of GPU + infra)
 //   staking → net APY / 12 (after validator take + pool fees)
 // The score itself measures the EDGE of the recommendation (tanh-mapped
-// 0–100), and confidence reflects how much live data backs both sides.
+// 0–100) — capped by the recommended pick's Miner's Ledger seat quality
+// (+20 headroom), so a jackpot-seat subnet can't headline at the ceiling
+// on ROI alone. Confidence reflects how much live data backs both sides.
 // ---------------------------------------------------------------------------
 
 export interface ScoredStrategy {
@@ -42,7 +44,7 @@ export interface OpportunityScoreResult {
   taoPriceUsd: number;
   usdInr: number;
   capitalTao: number;
-  score: number; // 0–100 — conviction in the recommendation
+  score: number; // 0–100 — conviction in the recommendation (edge, capped by seat quality)
   /** Headline confidence 0–1 — model blend, or 70% model + 30% observed
    *  accuracy when a real TRUST-LOOP calibration sample exists. */
   confidence: number;
@@ -219,7 +221,8 @@ export function computeOpportunityScore(
     );
   }
 
-  const score = clamp(
+  // Edge conviction — how decisively the verdict wins on monthly net ROI.
+  const edgeScore = clamp(
     Math.round(
       50 +
         50 *
@@ -230,6 +233,25 @@ export function computeOpportunityScore(
     3,
     98
   );
+
+  // Seat-quality cap — the ring can't outrun the due diligence. A blowout
+  // ROI edge on a jackpot-seat subnet is a riskier play than the raw edge
+  // suggests, so the recommended pick's Miner's Ledger composite bounds the
+  // headline: cap = ledger + 20 headroom. "Clean seat + big edge" (ledger
+  // ≥ 78) still reaches the 98 ceiling; a weak composite drags the headline
+  // down toward it. Floor 45 keeps even an AVOID pick above trivial. Staking
+  // picks have no seat to rate — uncapped.
+  let score = edgeScore;
+  if (recommended.strategy === "mine" && bestMiner) {
+    const SEAT_CAP_HEADROOM = 20;
+    const cap = clamp(bestMiner.score + SEAT_CAP_HEADROOM, 45, 98);
+    if (cap < edgeScore) {
+      score = cap;
+      notes.push(
+        `Ring capped by seat quality — Ledger ${bestMiner.score.toFixed(1)} + ${SEAT_CAP_HEADROOM} headroom; the ROI edge alone would show ${edgeScore}.`
+      );
+    }
+  }
 
   let confidence =
     Math.round(

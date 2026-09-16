@@ -889,7 +889,7 @@ function OpportunityScoreCard({ onNavigate }: { onNavigate: (v: ViewKey) => void
                 {recBand && (
                   <span
                     className={cn("rounded-full px-2 py-0.5 text-[10px] uppercase tracking-wide", recBand.bg, recBand.color)}
-                    title={`Miner's Ledger composite ${recLedger!.score.toFixed(1)}/100 — the Opportunities page's 5-pillar score of this subnet as a mining seat (net ROI, seat safety, alpha economics, earning reality, fit). The ring is a different question: how decisively mining beats staking on monthly net ROI — with ${score.recommended.roiMonthlyPct.toFixed(0)}%/mo vs ${score.alternative.roiMonthlyPct.toFixed(2)}%/mo the edge maxes the ring out. The two scores are not meant to match.`}
+                    title={`Miner's Ledger composite ${recLedger!.score.toFixed(1)}/100 — the Opportunities page's 5-pillar score of this subnet as a mining seat (net ROI, seat safety, alpha economics, earning reality, fit). The ring measures how decisively mining beats staking on monthly net ROI (${score.recommended.roiMonthlyPct.toFixed(0)}%/mo vs ${score.alternative.roiMonthlyPct.toFixed(2)}%/mo here), capped by this Ledger score + 20 headroom — related, but not meant to match.`}
                   >
                     {recBand.label} · Ledger {recLedger!.score.toFixed(1)}
                   </span>
@@ -901,7 +901,7 @@ function OpportunityScoreCard({ onNavigate }: { onNavigate: (v: ViewKey) => void
               <p className="text-center text-[10px] leading-relaxed text-muted-foreground">
                 {score.liveData ? "Live chain data" : "Curated fallback"} · TAO ${score.taoPriceUsd.toFixed(0)} · ₹{score.usdInr}/$
                 <br />
-                Ring = mine-vs-stake ROI edge · Ledger = subnet seat quality (Opportunities)
+                Ring = mine-vs-stake ROI edge, capped by Ledger seat quality
               </p>
             </div>
             <div className="min-w-0 flex-1 space-y-3">
