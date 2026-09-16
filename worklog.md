@@ -721,3 +721,31 @@ Work Log:
 Stage Summary:
 - Both fixes applied and verified end-to-end on live Finney data; the Dashboard/Opportunities discrepancy is resolved (both pages now agree Epago = RUN #1, ROI 574%/mo)
 - Scripts: scripts/verify-fix.ts, scripts/verify-badge-logic.ts (plus earlier research scripts)
+
+---
+Task ID: seat-safety-dash-1
+Agent: main (Super Z)
+Task: Add Seat Safety readout to the Dashboard recommendation card (user: "yes add seat safety")
+
+Work Log:
+- dashboard-view.tsx OpportunityScoreCard: new Seat Safety panel inside the
+  recommended-strategy block (renders whenever a mining pick has a Ledger row,
+  RUN band included — not tied to the WATCH/AVOID badge)
+  * Header: Armchair icon + "Seat safety · can you get in — and keep the seat?"
+    + pillar score x/100 color-coded (>=60 success, 40-59 warning, <40 destructive)
+  * 5 fact chips off the merged row: Seats free/total (or "full — burn entry"),
+    Burn ~TAO (formatBurnTao), Immunity ~h (blocks x 12s), Top-10% take %,
+    Seats earning % — every chip null-guarded + hover-title explained
+  * Footer line: weighs 20% of Ledger composite; open slots register directly,
+    full subnet burn replaces worst non-immune UID, immunity = earning runway
+- Imports: formatBurnTao from miner-score, Armchair from lucide
+- Typecheck clean (only pre-existing skill-script errors); verified live in
+  browser: Epago pick shows 48/100 (warning), 237 of 256 free, ~1.000 TAO burn,
+  ~16.7h immunity, top-10% take 100%, seats earning 11% — matches SN36 chain
+  data (19 registered, 2 rewarded); screenshot download/dashboard-seat-safety.png;
+  0 console/page errors. Committed 1ebdb28.
+
+Stage Summary:
+- Dashboard decision card now covers BOTH halves of the mine decision: ROI
+  (score ring + strategy rows) and seat risk (WATCH/AVOID badge + Seat Safety
+  panel). Push queue: +1ebdb28 (awaiting user's fresh fine-grained PAT).
