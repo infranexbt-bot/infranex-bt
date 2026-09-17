@@ -1321,3 +1321,21 @@ Stage Summary:
 - CPU Catalog is live at parity with GPU Catalog: paste a Hetzner Cloud or DigitalOcean API key → live VPS offers flow in; pick a CPU-classified subnet → the engine pulls that subnet's requirements from its git repo; "Rent & auto-install" rents the exact box, cloud-init auto-installs the mining base (docker/python/bittensor), and the subnet install lands in DevOps with wallet+launch approval gates (hotkey-only policy preserved).
 - Uncommitted (with prior session's epago-gpu-label-1 files): cpu-providers.ts, cpu-offers/cpu-provision routes, cpus-view, provision-dialog, use-cpu-offers, providers.ts, keys routes, provider-keys-dialog, types.ts, sidebar, page, verify-cpu-catalog.ts, test-cpu-adapters.ts. Awaiting user instruction to commit/push.
 - To activate: CPU Catalog → Provider API keys → paste Hetzner/DO key (Hetzner: console.hetzner.cloud → Security → API tokens; DO: API → Generate full-access token). Cheapest RedTeam-class box at fixture-verified Hetzner pricing: CX32 4vCPU/8GB/80GB ≈ $8.09/mo (~95% cheaper than $161/mo RTX 3090).
+
+---
+Task ID: cpu-catalog-verify-2
+Agent: main
+Task: Post-restore re-verification of CPU Catalog (user follow-up: "please do not use chinese, use english")
+
+Work Log:
+- Environment restored again; ran fullstack init; dev server healthy on :3000.
+- DB survived this restore: AppUser=5 (no re-seed needed), ProviderKeys=[runpod valid], GpuHost=0.
+- Discovered prior session's cpu-catalog-1 work is COMMITTED in local main HEAD (411692f, platform UUID snapshot line) — working tree clean except .zscripts/dev.pid.
+- Git state: origin/nextjs-platform tracking ref stale at 3dab7af; last pushed tip 8c6bce4 (ridges-sync) does NOT contain src/lib/infranex/cpu-providers.ts — CPU Catalog is local-only, never pushed. No tokens in .git/config. Push needs a fresh PAT from user.
+- Re-ran all suites post-restore: verify-cpu-catalog 16/16, test-cpu-adapters 16/16 (Hetzner CX22 fixture math, DO exclusions, SN5 GPU-refusal, SN61 honest 409), verify-ridges-fix 14/14.
+- Browser-verified: login OK → CPU Catalog 06b renders honest empty state (0 offers, "Hetzner Cloud: not connected · DigitalOcean: not connected", no synthetic fallback); Provider API keys dialog shows exactly Hetzner + DigitalOcean (GPU providers excluded). Screenshot: download/cpu-catalog-postrestore-verify.png.
+
+Stage Summary:
+- CPU Catalog feature COMPLETE and VERIFIED post-restore; nothing code-wise left to build for the user's request.
+- Activation is user-side: paste Hetzner Cloud API token (console.hetzner.cloud → Security → API tokens) and/or DigitalOcean token (API → Generate token) in CPU Catalog → Provider API keys.
+- Pending: push main (incl. CPU Catalog + epago label fix) to nextjs-platform — needs fresh PAT.
