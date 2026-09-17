@@ -1357,3 +1357,24 @@ Stage Summary:
 - Deliverables in download/cpu-miner-setup-guide/: cpu-miner-setup-guide.pdf (20pp, 2.9MB, QA PASS) + cpu-miner-setup-guide.html (editable source) + images/ (9 live screenshots).
 - Guide numbers are live and dated (block 9,088,338, Sep 17 2026); regeneration path = edit HTML → re-run README-style command chain.
 - Not yet done: git push to nextjs-platform (needs fresh PAT from user) — guide files currently local-only alongside the CPU Catalog code.
+
+---
+Task ID: load-project-postrestore
+Agent: Super Z (main)
+Task: Load the project after environment restore (user: "load the project")
+
+Work Log:
+- Ran fullstack init script; platform dev server auto-started on :3000 (PID 1567)
+- Found DB file db/custom.db intact (811KB) but user data wiped: AppUsers=0, ProviderKeys=0 (ChainSnapshot=6, SubnetOverride=8, WorkerStatus=95 survived)
+- Re-ran scripts/seed-users.ts -> restored all 5 users with SAME codes from /tmp/my-project/infranex-users.local.json (admin/BRJ2-W2GT-WJNF-97VC preserved)
+- Login POST hung -> diagnosed: every request through proxy NextResponse.next() hung (login page, login API, logout); deny-paths (307/401) worked. Stale .next cache after restore.
+- Killed wedged server, rm -rf .next, restarts from Bash tool got reaped when session ended
+- Fixed by re-running platform init script (curl init-fullstack.sh | bash) -> server PID 2956, survives across tool calls
+- Browser verified: login page renders, admin login 200 in 0.62s, dashboard live (opportunities table populated), CPU Catalog 06b renders honest empty state ("Connect a CPU provider"), CPU Guide 05 view present
+
+Stage Summary:
+- Project loaded & verified. Login: admin / BRJ2-W2GT-WJNF-97VC (all 5 codes restored unchanged)
+- Provider keys WIPED (RunPod key gone) - user must re-add for GPU/CPU catalog live offers
+- Root-cause note for future restores: stale .next cache wedges proxy->handler handoff; fix = kill server + rm -rf .next + restart via platform init script (NOT from Bash tool directly)
+- Screenshots: download/app-loaded-verify.png, download/cpu-catalog-loaded.png
+- PENDING: CPU miners guide PDF (user request, answers lost to compression, proceeding with defaults next)
