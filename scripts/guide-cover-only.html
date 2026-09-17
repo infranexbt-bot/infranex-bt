@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>The DevOps Engine — GPU Miner Operations Handbook</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+@page { size: 720px 1020px; margin: 0; }
+:root{
+  --ink:#0f172a;          /* darkest — cover/ending bg, command blocks */
+  --paper:#f7f9fc;        /* body page bg */
+  --card:#ffffff;
+  --primary:#1e3a8a;      /* headings */
+  --primary-mid:#30425a;  /* table header fill (M tier, low sat) */
+  --accent:#2563eb;       /* accent, same blue family */
+  --accent-soft:#e8effc;  /* light tint */
+  --text:#334155;
+  --muted:#64748b;
+  --border:#dbe3ee;
+  --stripe:#f1f5f9;
+  --ok:#1a6b3c; --ok-bg:#e9f4ed;
+  --warn:#9a5b10; --warn-bg:#faf1e2;
+  --crit:#9f2d2d; --crit-bg:#f9e9e9;
+  --info:#41586e; --info-bg:#edf1f6;
+}
+html,body{
+  margin:0; padding:0; width:720px;
+  background:var(--paper);
+  color:var(--text);
+  font-family:'Inter',sans-serif;
+  line-break:strict; word-break:normal; overflow-wrap:break-word;
+  -webkit-print-color-adjust:exact; print-color-adjust:exact;
+}
+@media screen{
+  html{height:auto; display:flex; justify-content:center; background:#1a2436;}
+  body{transform-origin:top center; margin:20px auto; box-shadow:0 8px 40px rgba(0,0,0,.4);}
+}
+*{box-sizing:border-box;}
+p{margin:0 0 12px 0;}
+
+/* ============ COVER ============ */
+.front{
+  width:720px; height:1020px; break-after:page; overflow:hidden;
+  background:var(--ink); color:#e9eef7;
+  display:flex; flex-direction:column; justify-content:center;
+  padding:64px; position:relative;
+}
+.front-grid{
+  position:absolute; inset:0; z-index:1; overflow:hidden;
+  background-image:
+    linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+  background-size:60px 60px;
+}
+.front-glow{
+  position:absolute; top:0; right:0; transform:translate(30%,-38%); width:380px; height:380px; z-index:1;
+  background:radial-gradient(circle, rgba(37,99,235,.22), transparent 65%);
+}
+.front-inner{position:relative; z-index:3;}
+.front-tag{
+  font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:4px;
+  color:#7ea6f5; text-transform:uppercase; margin-bottom:0;
+}
+.front-tag::after{
+  content:""; display:block; width:52px; height:3px;
+  background:var(--accent); margin-top:16px;
+}
+.front-title{
+  font-size:66px; font-weight:900; line-height:1.04; color:#ffffff;
+  letter-spacing:-1.5px; margin-top:34px; margin-bottom:18px;
+}
+.front-sub{
+  font-size:19px; font-weight:400; line-height:1.45; color:#c3cee2;
+  margin-bottom:34px; max-width:560px;
+}
+.front-summary{
+  font-size:14.5px; line-height:1.7; color:#9fb0cc; max-width:545px;
+  border-left:2px solid var(--accent); padding-left:18px; margin-bottom:42px;
+}
+.front-chips{display:flex; flex-wrap:wrap; gap:10px; max-width:100%;}
+.chip{
+  font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:1.2px;
+  color:#aebddb; border:1px solid rgba(255,255,255,.22); border-radius:999px;
+  padding:7px 14px; flex:0 1 auto; min-width:0;
+}
+.front-meta{
+  position:absolute; left:64px; right:64px; bottom:52px; z-index:3;
+  display:flex; justify-content:space-between; align-items:center;
+  font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:2px;
+  color:#66799a; text-transform:uppercase;
+}
+.front-meta .dot{color:var(--accent);}
+
+/* ============ FLOWING BODY ============ */
+.main-content{ padding:58px 64px 44px 64px; }
+.chapter-header{ break-after:avoid; break-inside:avoid; margin-top:26px; }
+.chapter-header.first{ margin-top:0; }
+.section-tag{
+  font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:3px;
+  text-transform:uppercase; color:var(--accent); font-weight:700;
+}
+.section-title{
+  font-size:25px; font-weight:800; color:var(--primary);
+  letter-spacing:-.4px; margin:7px 0 12px 0; line-height:1.2;
+}
+.section-title::after{
+  content:""; display:block; width:46px; height:3px;
+  background:var(--accent); margin-top:9px;
+}
+.body-text{ font-size:13.5px; line-height:1.7; color:var(--text); margin-bottom:12px; text-align:left; }
+.body-text strong{ color:var(--primary); font-weight:700; }
+.body-text code, .card-desc code, .check-desc code{
+  font-family:'JetBrains Mono',monospace; font-size:.92em; color:var(--primary);
+  background:var(--accent-soft); border-radius:4px; padding:1px 5px;
+}
+
+/* component cards */
+.comp-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:4px 0 14px 0; max-width:100%;}
+.comp-card{
+  background:var(--card); border:1px solid var(--border); border-top:3px solid var(--accent);
+  border-radius:10px; padding:15px 17px; break-inside:avoid;
+}
+.comp-card.span2{ grid-column:span 2; }
+.comp-role{
+  font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:1.6px;
+  text-transform:uppercase; color:var(--accent); font-weight:700; margin-bottom:5px;
+}
+.comp-name{ font-size:14px; font-weight:800; color:var(--primary); margin-bottom:6px; }
+.comp-desc{ font-size:12px; line-height:1.62; color:var(--muted); }
+
+/* never-does card */
+.never-card{
+  background:var(--accent-soft); border:1px solid #cfdcf5; border-left:3px solid var(--accent);
+  border-radius:8px; padding:15px 18px; break-inside:avoid; margin-bottom:14px;
+}
+.never-title{ font-size:13px; font-weight:800; color:var(--primary); margin-bottom:8px; }
+.never-item{ font-size:12.3px; line-height:1.6; color:var(--text); padding-left:16px; position:relative; margin-bottom:5px;}
+.never-item::before{ content:"×"; position:absolute; left:0; color:var(--crit); font-weight:700; }
+
+/* journey step rows */
+.step-row{ display:flex; gap:14px; break-inside:avoid; margin-bottom:13px; max-width:100%;}
+.step-num{
+  width:30px; height:30px; border-radius:50%; background:var(--accent); color:#fff;
+  font-size:13.5px; font-weight:800; display:flex; align-items:center; justify-content:center;
+  flex-shrink:0; margin-top:1px;
+}
+.step-body{ flex:1 1 auto; min-width:0;}
+.step-title{ font-size:13.8px; font-weight:800; color:var(--primary); margin-bottom:4px;}
+.step-desc{ font-size:12.3px; line-height:1.62; color:var(--muted); margin-bottom:4px;}
+.step-verify{ font-size:12.3px; line-height:1.6; color:var(--text);}
+.step-verify .vlabel{ font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:1.2px; color:var(--accent); font-weight:700; text-transform:uppercase; margin-right:5px;}
+
+/* tables */
+table{ width:100%; border-collapse:collapse; table-layout:fixed; margin:4px 0 14px 0; }
+thead{ display:table-header-group; }
+tr{ break-inside:avoid; }
+th{
+  background:var(--primary-mid); color:#ffffff; font-size:11px; font-weight:700;
+  text-align:left; padding:9px 11px; letter-spacing:.4px; line-height:1.4;
+}
+th:first-child{ border-radius:7px 0 0 0; }
+th:last-child{ border-radius:0 7px 0 0; }
+td{
+  font-size:11.8px; line-height:1.58; color:var(--text); padding:9px 11px;
+  border-bottom:1px solid var(--border); vertical-align:top; overflow-wrap:break-word;
+}
+tbody tr:nth-child(odd) td{ background:var(--stripe); }
+tbody tr:nth-child(even) td{ background:var(--card); }
+td .mono, th .mono{ font-family:'JetBrains Mono',monospace; font-size:10.6px; }
+.keep{ break-inside:avoid; }
+
+/* badges */
+.badge{
+  display:inline-block; font-family:'JetBrains Mono',monospace; font-size:10px;
+  letter-spacing:1.2px; font-weight:700; padding:3px 9px; border-radius:4px;
+  text-transform:uppercase; margin-right:6px;
+}
+.b-ok{ color:var(--ok); background:var(--ok-bg); border:1px solid #bcdcc8; }
+.b-warn{ color:var(--warn); background:var(--warn-bg); border:1px solid #e6cf9e; }
+.b-crit{ color:var(--crit); background:var(--crit-bg); border:1px solid #e7bcbc; }
+.b-info{ color:var(--info); background:var(--info-bg); border:1px solid #c9d4e0; }
+.badge-row{ margin:2px 0 12px 0; }
+
+/* command blocks */
+.cmd{
+  display:block; background:var(--ink); color:#d7e2f2;
+  font-family:'JetBrains Mono',monospace; font-size:10.8px; line-height:1.6;
+  padding:10px 14px; border-radius:8px; margin:8px 0 10px 0;
+  white-space:pre-wrap; overflow-wrap:anywhere; break-inside:avoid;
+}
+.cmd .c{ color:#7d93b8; }
+
+/* gate cards */
+.gate-grid{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin:2px 0 14px 0; max-width:100%;}
+.gate-card{
+  background:var(--card); border:1px solid var(--border); border-radius:10px;
+  padding:14px 15px; break-inside:avoid;
+}
+.gate-name{
+  font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:1.8px;
+  font-weight:700; text-transform:uppercase; margin-bottom:7px; display:inline-block;
+  padding:3px 9px; border-radius:4px;
+}
+.g-auto{ color:var(--ok); background:var(--ok-bg); }
+.g-manual{ color:var(--warn); background:var(--warn-bg); }
+.g-approval{ color:var(--crit); background:var(--crit-bg); }
+.gate-desc{ font-size:11.8px; line-height:1.6; color:var(--muted); }
+
+/* checklist (first 30 minutes) */
+.check-item{ display:flex; gap:12px; break-inside:avoid; margin-bottom:11px; max-width:100%;}
+.check-box{
+  width:17px; height:17px; border:2px solid var(--accent); border-radius:4px;
+  flex-shrink:0; margin-top:2px;
+}
+.check-body{ flex:1 1 auto; min-width:0;}
+.check-title{ font-size:13.2px; font-weight:800; color:var(--primary); margin-bottom:3px;}
+.check-desc{ font-size:12.2px; line-height:1.62; color:var(--muted);}
+
+/* callout */
+.callout{
+  background:var(--card); border:1px solid var(--border); border-left:3px solid var(--accent);
+  border-radius:8px; padding:13px 16px; font-size:12.3px; line-height:1.65;
+  color:var(--text); break-inside:avoid; margin-bottom:14px;
+}
+.callout.warn{ border-left-color:var(--warn); }
+.callout .ct{ font-weight:800; color:var(--primary); }
+
+/* ============ ENDING ============ */
+.ending{
+  width:720px; height:1020px; break-before:page; overflow:hidden;
+  background:var(--ink); color:#e9eef7;
+  display:flex; flex-direction:column; justify-content:center; padding:64px; position:relative;
+}
+.end-tag{
+  font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:4px;
+  color:#7ea6f5; text-transform:uppercase; margin-bottom:26px;
+}
+.end-title{ font-size:40px; font-weight:900; color:#fff; line-height:1.15; letter-spacing:-.8px; margin-bottom:34px;}
+.pk{ display:flex; gap:16px; margin-bottom:15px; align-items:flex-start;}
+.pk-num{
+  font-family:'JetBrains Mono',monospace; font-size:12px; color:#7ea6f5; font-weight:700;
+  border:1px solid rgba(126,166,245,.4); border-radius:6px; padding:4px 9px; flex-shrink:0;
+}
+.pk-body{ min-width:0;}
+.pk-t{ font-size:14.5px; font-weight:800; color:#fff; margin-bottom:3px;}
+.pk-d{ font-size:12.3px; line-height:1.6; color:#93a5c4;}
+.end-tagline{
+  margin-top:44px; padding-top:26px; border-top:1px solid rgba(255,255,255,.14);
+  font-size:16.5px; font-weight:600; color:#c3cee2; line-height:1.5;
+}
+.end-meta{
+  position:absolute; left:64px; right:64px; bottom:52px;
+  display:flex; justify-content:space-between;
+  font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:2px;
+  color:#66799a; text-transform:uppercase;
+}
+</style>
+</head>
+<body>
+<div class="front">
+  <div class="front-grid"></div>
+  <div class="front-glow"></div>
+  <div class="front-inner">
+    <div class="front-tag">GPU Miner Operations Handbook</div>
+    <div class="front-title">The DevOps<br>Engine</div>
+    <div class="front-sub">What the engine does — and what you, the miner, should check once your GPU miner is started.</div>
+    <div class="front-summary">
+      This handbook explains the operations engine behind every InfraNex miner: how it
+      validates a GPU host with a ten-step inspection pipeline, installs a subnet's real
+      requirements from its official repository, launches the workload behind explicit
+      approval gates, and keeps a ninety-second watch on hardware, telemetry and chain
+      drift. It closes with the checks that matter most — the first thirty minutes after
+      launch, and the steady-state rhythm that keeps a miner earning.
+    </div>
+    <div class="front-chips">
+      <span class="chip">Bittensor Subnets</span>
+      <span class="chip">SSH Control Plane</span>
+      <span class="chip">Approval-Gated Ops</span>
+      <span class="chip">90s Monitor Pass</span>
+    </div>
+  </div>
+  <div class="front-meta">
+    <span>InfraNex <span class="dot">·</span> DevOps Engine</span>
+    <span>Edition 2026-09</span>
+  </div>
+</div>
+
+
+</body>
+</html>
