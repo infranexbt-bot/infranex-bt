@@ -1516,3 +1516,51 @@ Stage Summary:
   (user-facing) and broken mock harness (test infra). DB left clean (0 rows).
   Note: real rentals blocked until provider keys are re-added (honest gating,
   not a bug); screenshots in download/audit-07-deployments-*.png
+
+---
+Task ID: devops-engine-audit-1
+Agent: main (Super Z)
+Task: Audit the DevOps Engine — verify everything is working correctly
+
+Work Log:
+- Read full engine surface: transport.ts (real-SSH only, mock removed),
+  installer.ts (9-step plan builder + executor), inspector.ts (10-step
+  pipeline), crypto.ts (AES-256-GCM at rest), all /api/devops/* routes
+  (hosts, validate, fix, install, steps, stop, monitor, subnet-options,
+  subnet-requirements, wallet-registration), providers/keys, use-devops hook
+- Verified Prisma schema models GpuHost/HostInstall/HostCheck: DB indexes
+  correct (hostId); suspected schema corruption was a FALSE ALARM — output
+  channel strips '[h' from displayed text ('[hostId' -> 'ostId'); file/git/
+  DB all healthy (confirmed via node in-memory checks, od byte reads,
+  prisma migrate diff DDL)
+- Live API audit (scripts/audit-devops-engine.ts): 28/28 PASS — GET sweep
+  (hosts/monitor/subnet-options/requirements/keys), 8 auth gates 401,
+  input validation 400s, secret never echoed (shape hint only), create->
+  validate->stage->step->fix->stop->delete lifecycle on throwaway host
+- BUG #1 (user-facing): applyStepFix opened a fresh SSH transport but never
+  connect()ed — every one-click Fix failed 'SSH not connected' even on
+  healthy hosts. Fixed: connect first, honest per-step fail on connect error
+- BUG #2 (data hygiene): host DELETE left orphaned HostInstall rows (no FK
+  cascade). Fixed: installs deleted with the host; cleaned 2 legacy orphans
+- Honest-failure proofs: unreachable host -> step1 fail ECONNREFUSED, 9/9
+  skipped, host status=failed; step s2 fail recorded on step + install=failed;
+  fix step5 now 'Fix failed: SSH 127.0.0.1:1 — connect ECONNREFUSED'
+- Install plan provenance: sn1 stage builds from chain-correct repo
+  (macrocosm-os/apex), 9 steps, gates auto×6/manual(wallet)/approval(launch)/auto
+- Engine proof-of-life: devops-monitor worker passes every ~90s (fresh rows),
+  'Run pass now' triggers real pass (255ms), monitor payload 200 with
+  summary/thresholds; 128 live subnets in subnet-options
+- Browser walkthrough (admin): view renders (stats cards, engine bar,
+  autopilot, benchmarks, ops agent, alerting, board); Ops Agent answered a
+  custom question end-to-end (Q persisted, 1.5s LLM, [auto-safe]/
+  [needs-approval] tags, earlier analyses kept); honest empty states
+  ('No running miners to monitor yet' + Go to Deployments CTA); zero console
+  errors / page errors; screenshots download/audit-08-devops-engine-*.png
+- Committed 544399d on local main
+
+Stage Summary:
+- DevOps Engine: WORKING end-to-end. 2 defects fixed (fix-flow connect,
+  orphan cleanup), both committed. Real rentals still gated on provider keys
+  being re-added (honest 400s, config not code). DB left clean (0 hosts).
+  Note: browser 'click by ref' can silently no-op after re-render — use
+  Enter-key submit or re-snapshot (automation artifact, not an app bug).
