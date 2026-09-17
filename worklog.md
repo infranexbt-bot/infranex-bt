@@ -1251,3 +1251,21 @@ Work Log:
 Stage Summary:
 - GitHub infranexbt-bot/infranex-bt nextjs-platform tip = 8c6bce4 with all post-restore work (infra audit, subnetalpha eval, both audits, RIDGES-FIX + verify script).
 - Recommend: user rotates the PAT since it was pasted in chat.
+
+---
+Task ID: webapp-load-1
+Agent: main
+Task: "load the web app" + user-reported login failure "Invalid user ID or access code" for code BRJ2-W2GT-WJNF-97VC
+
+Work Log:
+- Dev server confirmed up on :3000 (307 redirect to /login).
+- User's code BRJ2-W2GT-WJNF-97VC IS the correct admin code per /tmp mirror — root cause was DB: AppUser table had 0 rows (environment wipe after sandbox restore, users never re-seeded).
+- POST /api/auth/login with mirror credentials returned 401 → confirmed db vs mirror desync.
+- Restored via `bun scripts/seed-users.ts` (idempotent; loads from wipe-proof /tmp/my-project/infranex-users.local.json) — 5 users seeded with IDENTICAL codes, both mirrors refreshed. APP_SESSION_SECRET regenerated in .env.
+- Verified: API login 200 + session cookie validates (/api/auth/session), browser login via agent-browser succeeds, dashboard renders, Opportunities loads 128 subnets.
+- Regression spot-check: Ridges α62 = "Software engineering agents / 0 GB / CPU VPS / $10.60▲1.0% / 30,414 TAO" — ridges fix intact in live app.
+
+Stage Summary:
+- Login credentials are UNCHANGED: admin / BRJ2-W2GT-WJNF-97VC (plus ops01, ops02, analyst01, viewer01 — see scripts/users.local.json).
+- Root cause was empty AppUser table post-wipe, not a bad code. users.local.json mirror restored to scripts/ (0600, gitignored).
+- Web app fully loaded and operational on port 3000.
