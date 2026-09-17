@@ -309,11 +309,28 @@ export async function pullSubnetRequirements(
   netuid: number,
   opts?: { refresh?: boolean }
 ): Promise<{ profile: SubnetRequirementsProfile; cached: boolean }> {
-  // 1) DB cache
+  // 1) DB cache — 6h TTL, plus TWO structural invalidation triggers:
+  //    (a) the SubnetOverride repo for this netuid no longer matches the
+  //        repo the cached profile was built from (sync-all / chain
+  //        reconciliation repointed the repo — a cached install plan must
+  //        never reference the old repo), or
+  //    (b) the override was re-scraped from GitHub after the profile was
+  //        cached (fresh requirements landed in the override row).
   if (!opts?.refresh) {
     const row = await db.subnetRequirements.findUnique({ where: { netuid } });
     if (row && Date.now() - row.fetchedAt.getTime() < CACHE_TTL_MS) {
-      return { profile: JSON.parse(row.profileJson) as SubnetRequirementsProfile, cached: true };
+      const cachedProfile = JSON.parse(row.profileJson) as SubnetRequirementsProfile;
+      const ovr = await db.subnetOverride.findUnique({ where: { netuid } });
+      const norm = (u: string | null | undefined) => (u ? u.trim().replace(/\/+$/, "") : null);
+      const ovrRepo = norm(ovr?.githubUrl ?? null);
+      const cacheRepo = norm(cachedProfile.repoUrl ?? null);
+      const repoChanged = ovrRepo !== null && ovrRepo !== cacheRepo;
+      const rescrapedAfterCache =
+        ovr?.requirementsScrapedAt != null &&
+        ovr.requirementsScrapedAt.getTime() > row.fetchedAt.getTime() + 1_000;
+      if (!repoChanged && !rescrapedAfterCache) {
+        return { profile: cachedProfile, cached: true };
+      }
     }
   }
 

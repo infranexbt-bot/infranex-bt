@@ -430,27 +430,31 @@ async function runGithubWorker(): Promise<WorkerRunResult> {
   const workerName = "github-analyzer";
   let tasksProcessed = 0;
   try {
-    // Universe: curated seed repos ∪ existing overrides ∪ live chain identity
-    // repos — so requirements coverage spans ALL subnets (raw.githubusercontent
-    // has no API quota; hourly is safe).
+    // Universe: curated seed repos ∪ live chain identity repos ∪ existing
+    // overrides — so requirements coverage spans ALL subnets
+    // (raw.githubusercontent has no API quota; hourly is safe).
+    // PRECEDENCE (DATA-AUDIT-1 doctrine): a curated seed is bootstrap-only;
+    // the on-chain identity beats a seed; a user override beats both.
+    // (Previously seeds were inserted FIRST and chain/overrides only filled
+    // gaps — so a stale seed kept repointing live subnets at dead repos.)
     const seen = new Map<number, string>();
     for (const seed of curatedSubnetSeeds) {
       seen.set(seed.netuid, seed.githubUrl);
-    }
-    const existing = await db.subnetOverride.findMany();
-    for (const o of existing) {
-      if (o.githubUrl && !seen.has(o.netuid)) seen.set(o.netuid, o.githubUrl);
     }
     const snapRow = await db.chainSnapshot.findFirst({ orderBy: { id: "desc" } });
     if (snapRow?.subnetsJson) {
       try {
         const live = JSON.parse(snapRow.subnetsJson) as Array<{ netuid: number; identityGithub?: string | null }>;
         for (const s of live) {
-          if (s.identityGithub && !seen.has(s.netuid)) seen.set(s.netuid, s.identityGithub);
+          if (s.identityGithub) seen.set(s.netuid, s.identityGithub);
         }
       } catch {
         // corrupt snapshot JSON — curated + overrides still covered
       }
+    }
+    const existing = await db.subnetOverride.findMany();
+    for (const o of existing) {
+      if (o.githubUrl) seen.set(o.netuid, o.githubUrl);
     }
 
     for (const [netuid, githubUrl] of seen) {

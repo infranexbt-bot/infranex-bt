@@ -24,14 +24,17 @@ export interface CuratedSubnetSeed {
 }
 
 export const curatedSubnetSeeds: CuratedSubnetSeed[] = [
-  { netuid: 1, githubUrl: "https://github.com/opentensor/text-prompting" },
-  { netuid: 3, githubUrl: "https://github.com/omegalabsinc/omegalabs-bittensor-subnet" },
-  { netuid: 7, githubUrl: "https://github.com/macrocosm-os/apex" },
-  { netuid: 9, githubUrl: "https://github.com/macrocosm-os/pretraining" },
-  { netuid: 11, githubUrl: "https://github.com/UncleTensor/BittAudio" },
-  { netuid: 19, githubUrl: "https://github.com/omegalabsinc/omegalabs-bittensor-subnet" },
-  { netuid: 23, githubUrl: "https://github.com/omegalabsinc/omegalabs-bittensor-subnet" },
-  { netuid: 25, githubUrl: "https://github.com/macrocosm-os/mainframe" },
+  // Bootstrap-only fallbacks — the on-chain SubnetIdentitiesV3.githubRepo and
+  // user overrides always take precedence (see runGithubWorker precedence).
+  // Re-verified against live chain identity 2026-09-18 (prod audit).
+  { netuid: 1, githubUrl: "https://github.com/macrocosm-os/apex" },
+  { netuid: 3, githubUrl: "https://github.com/unarbos/teutonic" },
+  { netuid: 7, githubUrl: "https://github.com/entrius/allways" },
+  { netuid: 9, githubUrl: "https://github.com/macrocosm-os/iota" },
+  { netuid: 11, githubUrl: "https://github.com/trajectoryRL/trajectoryRL" },
+  { netuid: 19, githubUrl: "https://github.com/taostat/blockmachine" },
+  { netuid: 23, githubUrl: "https://github.com/TrishoolAI/trishool-phase2" },
+  { netuid: 25, githubUrl: "https://github.com/urfoundation/sn" },
 ];
 
 /** Repo URL seed for a netuid (null when none curated). */
