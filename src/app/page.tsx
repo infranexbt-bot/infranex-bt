@@ -8,6 +8,7 @@ import { SubnetsView } from "@/components/views/subnets-view";
 import { JudgeView } from "@/components/views/judge-view";
 import { CpuGuideView } from "@/components/views/cpu-guide-view";
 import { GpusView } from "@/components/views/gpus-view";
+import { CpusView } from "@/components/views/cpus-view";
 import { MinersView } from "@/components/views/miners-view";
 import { DeploymentsView } from "@/components/views/deployments-view";
 import { DevopsView } from "@/components/views/devops-view";
@@ -31,6 +32,7 @@ const VIEW_META: Record<
   judge: { title: "Validator Lab", eyebrow: "Section · 04 · Validator intelligence" },
   "cpu-guide": { title: "CPU Guide", eyebrow: "Section · 05 · Harnyx SN67 mining path" },
   gpus: { title: "GPU Catalog", eyebrow: "Section · 06 · Infrastructure" },
+  cpus: { title: "CPU Catalog", eyebrow: "Section · 06b · CPU infrastructure" },
   miners: { title: "My Miners", eyebrow: "Section · 09 · Portfolio" },
   deployments: { title: "Deployments", eyebrow: "Section · 07 · Deployment engine" },
   devops: { title: "DevOps Engine", eyebrow: "Section · 08 · Live operations" },
@@ -95,6 +97,7 @@ export default function Home() {
           }}
         />
       )}
+      {view === "cpus" && <CpusView onNavigate={setView} />}
       {view === "miners" && <MinersView onNavigate={setView} />}
       {view === "deployments" && <DeploymentsView />}
       {view === "devops" && <DevopsView onNavigate={setView} />}

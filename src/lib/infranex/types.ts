@@ -197,6 +197,27 @@ export interface GPUOffer {
   cpuCores: number;
 }
 
+// ---------------------------------------------------------------------------
+// CPU-CATALOG-1 — the CPU VPS side of the catalogue, mirroring GPUOffer.
+// A CPUOffer is one live rentable box from a CPU provider (Hetzner Cloud,
+// DigitalOcean): no GPU, priced per month (hourly derived = monthly / 730).
+// Client-safe — imported by the /api/cpu-offers route, the cpu-provision
+// route and the CPU Catalog view alike.
+// ---------------------------------------------------------------------------
+export interface CPUOffer {
+  id: string; // "hetzner-cx32" | "do-s-4vcpu-8gb"
+  model: string; // "CX32" | "s-4vcpu-8gb"
+  provider: string; // "Hetzner Cloud" | "DigitalOcean"
+  region: string; // "fsn1" | "global"
+  cpuCores: number; // vCPU count
+  ramGb: number;
+  diskGb: number;
+  cpuType: "shared" | "dedicated";
+  hourlyPrice: number;
+  monthlyPrice: number;
+  availability: "available" | "limited";
+}
+
 export interface EmissionShare {
   name: string;
   symbol: string;
@@ -211,6 +232,7 @@ export type ViewKey =
   | "subnets"
   | "judge"
   | "cpu-guide"
+  | "cpus"
   | "gpus"
   | "miners"
   | "deployments"

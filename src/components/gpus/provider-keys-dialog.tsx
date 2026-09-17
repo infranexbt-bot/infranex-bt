@@ -37,6 +37,8 @@ interface ProviderKeyEntry {
   id: string;
   provider: string;
   label: string;
+  /** Which catalog owns this provider: "gpu" | "cpu" (CPU-CATALOG-1). */
+  kind: string;
   offers: boolean;
   rent: boolean;
   keyHint: string;
@@ -88,9 +90,12 @@ function StatusPill({ status }: { status: string | null }) {
 export function ProviderKeysDialog({
   open,
   onOpenChange,
+  /** Which market to show: "gpu" (GPU Catalog, default) or "cpu" (CPU Catalog). */
+  kind = "gpu",
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
+  kind?: "gpu" | "cpu";
 }) {
   const { toast } = useToast();
   const qc = useQueryClient();
@@ -109,6 +114,8 @@ export function ProviderKeysDialog({
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["provider-keys"] });
     qc.invalidateQueries({ queryKey: ["gpu-offers"] });
+    // CPU-CATALOG-1 — CPU providers feed the CPU catalog too.
+    qc.invalidateQueries({ queryKey: ["cpu-offers"] });
   };
 
   const saveMut = useMutation({
@@ -183,7 +190,9 @@ export function ProviderKeysDialog({
             <KeyRound className="h-4 w-4 text-primary" /> Provider API keys
           </DialogTitle>
           <DialogDescription>
-            Connect GPU marketplaces to pull live pricing into the catalog and the deploy wizard.
+            {kind === "cpu"
+              ? "Connect CPU VPS providers (Hetzner Cloud, DigitalOcean) to pull live pricing into the CPU catalog and rent boxes with one click."
+              : "Connect GPU marketplaces to pull live pricing into the catalog and the deploy wizard."}{" "}
             Each key is validated the moment you save it.
           </DialogDescription>
         </DialogHeader>
@@ -194,7 +203,9 @@ export function ProviderKeysDialog({
           </div>
         ) : (
           <div className="space-y-3">
-            {(keysQuery.data?.keys ?? []).map((entry) => {
+            {(keysQuery.data?.keys ?? [])
+              .filter((entry) => entry.kind === kind)
+              .map((entry) => {
               const connectable = entry.offers || entry.rent;
               const draft = drafts[entry.id] ?? "";
               return (
@@ -321,7 +332,7 @@ export function ProviderKeysDialog({
         <p className="flex items-start gap-2 text-xs text-muted-foreground">
           <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0" />
           Keys live in this platform only — they are never sent to the browser, never
-          logged, and never shared with the GPU machines you rent.
+          logged, and never shared with the machines you rent.
         </p>
       </DialogContent>
     </Dialog>

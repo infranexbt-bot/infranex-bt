@@ -10,6 +10,7 @@ import {
   invalidateProvidersCache,
   type ProviderId,
 } from "@/lib/infranex/providers";
+import { invalidateCpuProvidersCache } from "@/lib/infranex/cpu-providers";
 import { logAudit } from "@/lib/infranex/audit";
 
 // Provider API keys — manage from the GPU catalog. The plaintext key NEVER
@@ -53,6 +54,9 @@ export async function GET() {
     const row = rows.find((r) => r.provider === meta.id);
     return {
       id: meta.id,
+      // CPU-CATALOG-1 — which catalog owns this provider (the dialogs filter
+      // on kind so the GPU dialog shows GPU markets and vice versa).
+      kind: meta.kind,
       offers: meta.offers,
       rent: meta.rent,
       keyHint: meta.keyHint,
@@ -114,6 +118,7 @@ export async function PUT(req: NextRequest) {
     },
   });
   invalidateProvidersCache();
+  invalidateCpuProvidersCache();
 
   // WALLET-ECON-1 — credential lifecycle audit (never the key itself).
   await logAudit({
@@ -140,6 +145,7 @@ export async function DELETE(req: NextRequest) {
   }
   const removed = await db.providerKey.deleteMany({ where: { provider } });
   invalidateProvidersCache();
+  invalidateCpuProvidersCache();
   await logAudit({
     action: "provider-key.removed",
     actor: gate.session.uid,

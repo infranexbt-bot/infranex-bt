@@ -24,6 +24,7 @@ import {
   ShieldCheck,
   BookOpen,
   ListChecks,
+  Server,
 } from "lucide-react";
 import type { ViewKey } from "@/lib/infranex/types";
 
@@ -51,6 +52,7 @@ const NAV_GROUPS: { label: string; items: { key: ViewKey; label: string; icon: t
     label: "Operations",
     items: [
       { key: "gpus", label: "GPU Catalog", icon: Cpu, hint: "06" },
+      { key: "cpus", label: "CPU Catalog", icon: Server, hint: "06b" },
       { key: "deployments", label: "Deployments", icon: Rocket, hint: "07" },
       { key: "devops", label: "DevOps Engine", icon: Radar, hint: "08" },
       { key: "miners", label: "My Miners", icon: Coins, hint: "09" },

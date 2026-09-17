@@ -8,6 +8,7 @@ import {
   validateProviderKey,
   invalidateProvidersCache,
 } from "@/lib/infranex/providers";
+import { invalidateCpuProvidersCache } from "@/lib/infranex/cpu-providers";
 
 // POST /api/providers/keys/test — re-validate a provider API key on demand
 // (the GPU catalog dialog's "Test" button). ADMIN-ONLY (WINDUP-1): stored-key
@@ -84,6 +85,7 @@ export async function POST(req: NextRequest) {
       data: { status: check.status, statusMessage: check.message, lastCheckedAt: new Date() },
     }).catch(() => undefined);
     invalidateProvidersCache();
+    invalidateCpuProvidersCache();
   }
 
   return NextResponse.json({ check });

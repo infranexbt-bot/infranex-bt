@@ -1,14 +1,18 @@
 // ---------------------------------------------------------------------------
 // Provider API Keys — the server-side key vault + multi-provider offer engine.
 //
-// Users manage their GPU-marketplace API keys (RunPod, Vast.ai, Lambda Labs)
-// from the GPU catalog UI. Keys are stored AES-256-GCM encrypted (same scheme
-// as DevOps host secrets), never returned to the client (masked hint only),
-// and used here to:
+// Users manage their marketplace API keys (GPU: RunPod, Vast.ai, Lambda Labs;
+// CPU: Hetzner Cloud, DigitalOcean) from the GPU / CPU catalog UIs. Keys are
+// stored AES-256-GCM encrypted (same scheme as DevOps host secrets), never
+// returned to the client (masked hint only), and used here to:
 //   1. validate the key against the provider,
-//   2. pull LIVE GPU offers into the catalog and the deploy wizard,
+//   2. pull LIVE offers into the catalogs and the deploy wizard,
 //   3. power real RunPod rentals + pod monitoring (getProviderKey replaces
 //      the old process.env.RUNPOD_API_KEY reads everywhere).
+//
+// CPU-CATALOG-1 — providers carry a kind ("gpu" | "cpu") so each catalog
+// pulls only its own market: the GPU snapshot filters kind==="gpu" adapters,
+// the CPU snapshot (cpu-providers.ts) filters kind==="cpu".
 //
 // CLIENT-SAFETY: this module imports the db + crypto — server only. The
 // client-safe primitives (normalizeModel, fetchRunpodGpus) live in runpod.ts
@@ -22,11 +26,19 @@ import type { GPUOffer } from "./types";
 
 // --- Provider registry ------------------------------------------------------
 
-export type ProviderId = "runpod" | "vast" | "lambda" | "nvidia";
+export type ProviderId =
+  | "runpod"
+  | "vast"
+  | "lambda"
+  | "nvidia"
+  | "hetzner"
+  | "digitalocean";
 
 export interface ProviderMeta {
   id: ProviderId;
   label: string;
+  /** Which catalog this provider belongs to. */
+  kind: "gpu" | "cpu";
   /** Live offer pull is implemented for this provider. */
   offers: boolean;
   /** Real rental adapter exists (wizard "RunPod (real)" mode). */
@@ -40,6 +52,7 @@ export const PROVIDER_META: ProviderMeta[] = [
   {
     id: "runpod",
     label: "RunPod",
+    kind: "gpu",
     offers: true,
     rent: true,
     keyHint: "runpod.io → Settings → API Keys → Create API Key",
@@ -48,6 +61,7 @@ export const PROVIDER_META: ProviderMeta[] = [
   {
     id: "vast",
     label: "Vast.ai",
+    kind: "gpu",
     offers: true,
     // TIER4 — rental adapter is live (deployment mode "vast"): provisions a
     // real instance from the chosen bundle and injects the SSH key via onstart.
@@ -58,6 +72,7 @@ export const PROVIDER_META: ProviderMeta[] = [
   {
     id: "lambda",
     label: "Lambda Labs",
+    kind: "gpu",
     offers: true,
     rent: false,
     keyHint: "cloud.lambdalabs.com → API keys → Add API key",
@@ -66,10 +81,31 @@ export const PROVIDER_META: ProviderMeta[] = [
   {
     id: "nvidia",
     label: "NVIDIA",
+    kind: "gpu",
     offers: false,
     rent: false,
     keyHint: "No public self-serve marketplace API yet",
     note: "NVIDIA's H100/H200/B200 capacity appears through the other providers — their keys already cover it.",
+  },
+  {
+    // CPU-CATALOG-1 — Hetzner Cloud: the cheapest x86 VPS market that matters
+    // for CPU-classified subnets (CX22 = 2 vCPU / 4 GB / 40 GB for ~€4.5).
+    id: "hetzner",
+    label: "Hetzner Cloud",
+    kind: "cpu",
+    offers: true,
+    rent: true,
+    keyHint: "console.hetzner.cloud → Project → Security → API tokens → Generate API token",
+    note: "Live pricing AND one-click CPU provisioning — rent from the CPU Catalog and the box lands in DevOps with the subnet install pre-staged.",
+  },
+  {
+    id: "digitalocean",
+    label: "DigitalOcean",
+    kind: "cpu",
+    offers: true,
+    rent: true,
+    keyHint: "cloud.digitalocean.com → API → Generate Token (Full access for droplet creation)",
+    note: "Live pricing AND one-click CPU provisioning — worldwide regions, Ubuntu 22.04 droplets with cloud-init auto-setup.",
   },
 ];
 
@@ -183,6 +219,40 @@ export async function validateProviderKey(providerId: ProviderId, key: string): 
         status: "valid",
         message: count > 0 ? `Key valid — ${count} Lambda instance types visible.` : "Key valid — Lambda returned no instance types yet.",
       };
+    }
+
+    // CPU-CATALOG-1 — key validation for the CPU providers (read-only calls).
+    if (providerId === "hetzner") {
+      const res = await fetch("https://api.hetzner.cloud/v1/ssh_keys?per_page=1", {
+        headers: { Authorization: `Bearer ${key}` },
+        cache: "no-store",
+        signal: AbortSignal.timeout(HTTP_TIMEOUT_MS),
+      });
+      if (res.status === 401 || res.status === 403) {
+        return { ok: false, status: "invalid", message: "Key rejected by Hetzner (401) — double-check the API token (needs read/write for provisioning)." };
+      }
+      if (!res.ok) return { ok: false, status: "error", message: `Hetzner API HTTP ${res.status}` };
+      return { ok: true, status: "valid", message: "Key valid — Hetzner Cloud project verified." };
+    }
+
+    if (providerId === "digitalocean") {
+      const res = await fetch("https://api.digitalocean.com/v2/account", {
+        headers: { Authorization: `Bearer ${key}` },
+        cache: "no-store",
+        signal: AbortSignal.timeout(HTTP_TIMEOUT_MS),
+      });
+      if (res.status === 401 || res.status === 403) {
+        return { ok: false, status: "invalid", message: "Key rejected by DigitalOcean (401) — the token needs full-access scope for provisioning." };
+      }
+      if (!res.ok) return { ok: false, status: "error", message: `DigitalOcean API HTTP ${res.status}` };
+      const j = (await res.json().catch(() => null)) as
+        | { account?: { status?: string; email?: string } }
+        | null;
+      const status = j?.account?.status;
+      if (status && status !== "active") {
+        return { ok: false, status: "invalid", message: `DigitalOcean account is "${status}" — provisioning needs an active account.` };
+      }
+      return { ok: true, status: "valid", message: "Key valid — DigitalOcean account verified." };
     }
 
     return { ok: false, status: "error", message: "This provider has no API to validate against." };
@@ -375,7 +445,9 @@ export async function fetchAllLiveOffers(force = false): Promise<MultiProviderSn
   const now = Date.now();
   if (!force && cachedSnapshot && now < snapshotExpiresAt) return cachedSnapshot;
 
-  const liveProviders = PROVIDER_META.filter((p) => p.offers);
+  // CPU-CATALOG-1 — GPU catalog pulls GPU providers only (hetzner/do are
+  // served by fetchAllLiveCpuOffers in cpu-providers.ts).
+  const liveProviders = PROVIDER_META.filter((p) => p.offers && p.kind === "gpu");
   const results = await Promise.all(
     liveProviders.map(async (p): Promise<{ status: ProviderStatus; offers: LiveOffer[] }> => {
       const resolved = await getProviderKey(p.id).catch(() => null);
