@@ -1418,3 +1418,16 @@ Stage Summary:
 - Deliverables: docs/setup-guide/cpu-miner-setup-guide.pdf (23pp, 2.2MB, ~4,939 words) + .html source + cpu-images/ (12 PNGs); mirrored to download/cpu-miner-setup-guide/
 - Design matches GPU guide precedent exactly (navy #1a365d family, Carlito/DejaVu Mono, same class system) for a consistent handbook shelf
 - Figure honesty: figs 1-5,8-12 untouched live captures; figs 6-7 (catalog-offers, rent dialog, success) labeled "example data"
+
+---
+Task ID: cpu-guide-delivery
+Agent: main
+Task: Deliver CPU miner setup guide PDF to user-facing download directory
+
+Work Log:
+- Verified docs/setup-guide/cpu-miner-setup-guide.pdf (23 pages, 0 empty, 10 embedded screenshots, metadata intact)
+- Spot-rendered pages with pymupdf — layout, tables, screenshots all render cleanly
+- Copied to /home/z/my-project/download/cpu-miner-setup-guide.pdf (2.3MB)
+
+Stage Summary:
+- CPU miner guide PDF delivered at download/cpu-miner-setup-guide.pdf; source HTML + images remain in docs/setup-guide/
