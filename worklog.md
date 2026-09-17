@@ -1286,3 +1286,17 @@ Work Log:
 Stage Summary:
 - Root cause: hardcoded dashboard label, not data. All three surfaces (detail dialog, table, dashboard home card) now share the same honest GPU-sourcing semantics.
 - Uncommitted: opportunity-score.ts, dashboard-view.tsx, verify-ridges-fix.ts, scripts/check-epago.ts (diagnostic), users.local.json restored (0600, gitignored). Awaiting user instruction to commit/push.
+
+---
+Task ID: webapp-load-2
+Agent: main
+Task: "load the web app" (second time)
+
+Work Log:
+- Server up on :3000 but login 401 — AppUser table wiped to 0 rows again (second environment restore since seed-users was built; confirms /tmp mirror + idempotent seed script recovery flow).
+- Re-ran `bun scripts/seed-users.ts` — 5 users restored with identical codes from /tmp/my-project/infranex-users.local.json.
+- Verified: API login 200; browser login → dashboard rendered; score ring + RECOMMENDED STRATEGY live (Epago α36, TYPICAL GPU label intact, seat-safety panel shows Top-10% take 100% / first-month odds ~6%).
+
+Stage Summary:
+- Web app fully loaded and healthy on port 3000. Credentials unchanged (admin / mirror file).
+- Note for hardening: consider auto-seed on boot (detect empty AppUser and run seed-users) — recurrence now observed twice.
