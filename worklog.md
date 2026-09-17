@@ -1431,3 +1431,22 @@ Work Log:
 
 Stage Summary:
 - CPU miner guide PDF delivered at download/cpu-miner-setup-guide.pdf; source HTML + images remain in docs/setup-guide/
+
+---
+Task ID: prod-audit
+Agent: main
+Task: Full pre-production audit — live data sources, DevOps engine, all menus/engines
+
+Work Log:
+- API sweep (31 GET endpoints): 27 OK, EMPTY states legit (fresh fleet), daemon 405s are POST-only, bare /api/subnets 404 unused by frontend
+- Verified live sources: finney WSS/RPC entrypoint, CoinGecko/CoinBase, raw.githubusercontent scraper (no API quota), SN61/64/18/1 profiles resolved from real repos
+- FOUND+FIXED BUG 1: all 8 curatedSubnetSeeds stale (SN1->text-prompting etc.) — re-pointed to live chain identity
+- FOUND+FIXED BUG 2: github-analyzer worker precedence seed>chain>override repointed overrides to dead repos hourly; flipped to chain>seed, override>chain
+- FOUND+FIXED BUG 3: SubnetRequirements 6h cache ignored override repo changes; added structural invalidation (repoChanged || rescrapedAfterCache)
+- Reconciled 110 overrides from chain identity, re-scraped all from real GitHub (106 OK, 4 honest no-README rows: sn39 deprecated, sn47/95/126)
+- Browser walkthrough: all 16 views render, zero unexpected console errors; System health: 3/4 PASS (RunPod FAIL = no key, config not code)
+- Committed as e7d4b10 (local main)
+
+Stage Summary:
+- App is production-ready pending: user re-adds provider keys (RunPod/Hetzner/DO); force-sync UX note (>60s for 106 repos, consider background job)
+- Known honest empty states: wallets/hosts/deployments/keys = 0 until operator onboards
