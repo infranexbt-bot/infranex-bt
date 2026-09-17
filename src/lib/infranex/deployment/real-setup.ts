@@ -35,7 +35,7 @@ import {
   type SubnetRequirementsProfile,
 } from "@/lib/devops/subnet-requirements";
 import { openTransport } from "@/lib/devops/transport";
-import type { Transport } from "@/lib/devops/transport";
+import type { Transport, ExecResult } from "@/lib/devops/transport";
 import { decryptSecret } from "@/lib/devops/crypto";
 import type { HostFacts } from "@/lib/devops/inspector";
 import type { DeploymentConfig } from "./config";
@@ -63,11 +63,42 @@ async function loadRec(id: string) {
   return row;
 }
 
-/** Open the transport for a deployment (SSH to the pod, or mock). */
+/**
+ * ENGINE-TEST-HARNESS transport — mode:"mock" deployments only.
+ *
+ * MOCK-PURGE kept the mock deployment mode as an explicit engine test
+ * harness (POST /api/deployments rejects it; only test scripts seed it),
+ * but DATA-AUDIT-1 (M3) removed the DevOps MockTransport — which silently
+ * broke this harness: mock deployments provisioned fine, then EVERY install
+ * command died with "Mock transport removed" and the lifecycle hung at
+ * setup/deploy with installStatus=failed forever.
+ *
+ * This harness-scoped transport restores the contract without touching the
+ * DevOps engine (openTransport stays strict — real SSH hosts only): the
+ * plan's commands run against a scripted pod and every returned line is
+ * labeled "(mock pod)" so harness output can never pass for real.
+ */
+class MockDeploymentTransport implements Transport {
+  readonly kind = "mock" as const;
+  async connect(): Promise<void> {}
+  async exec(command: string, timeoutMs = 30_000): Promise<ExecResult> {
+    const started = Date.now();
+    const head = command.replace(/\s+/g, " ").trim().slice(0, 120);
+    return {
+      code: 0,
+      stdout: `(mock pod) ok — ${head}`,
+      stderr: "",
+      durationMs: Date.now() - started,
+    };
+  }
+  close(): void {}
+}
+
+/** Open the transport for a deployment (SSH to the pod, or mock harness). */
 export async function transportFor(id: string): Promise<Transport> {
   const row = await loadRec(id);
   if (row.mode === "mock") {
-    return openTransport({ kind: "mock", hostId: `deployment-${id}` });
+    return new MockDeploymentTransport();
   }
   if (!row.sshHost || !row.sshPrivKeyEnc) {
     throw new Error(
