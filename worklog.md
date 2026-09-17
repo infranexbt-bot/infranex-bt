@@ -1378,3 +1378,23 @@ Stage Summary:
 - Root-cause note for future restores: stale .next cache wedges proxy->handler handoff; fix = kill server + rm -rf .next + restart via platform init script (NOT from Bash tool directly)
 - Screenshots: download/app-loaded-verify.png, download/cpu-catalog-loaded.png
 - PENDING: CPU miners guide PDF (user request, answers lost to compression, proceeding with defaults next)
+
+---
+Task ID: cpu-miner-guide-pdf
+Agent: Super Z (main)
+Task: Build the CPU miners step-by-step guide PDF with screenshots (user: "tell me how to do CPU miner, provide me step by step guide pdf with clear instructions with screenshot")
+
+Work Log:
+- Loaded pdf skill; read full chain: SKILL.md, configs/fonts.md, briefs/report.md (complete), typesetting/cover.md, overflow.md, pagination.md, palette.md, typography.md, fill-engine.md
+- Matched GPU guide precedent: Report route (ReportLab body + Playwright Template-01 cover), Template 07 blue body palette
+- Captured 8 fresh live-app screenshots at 1440x900 (login, dashboard, subnets, CPU Guide view, CPU Catalog empty state, provider keys dialog, connect-provider dialog, DevOps Engine)
+- Wrote scripts/cpu-guide-content.py: 78 blocks, 12 chapters, ~5,500 words, 9 tables/statbands/callouts, 6 code blocks, 7 figures. Worked example: RedTeam netuid 61 (2 vCPU/8GB/50GB, Ubuntu 22.04, no GPU)
+- Wrote scripts/gen-cpu-guide-pdf.py: TocDocTemplate + multiBuild (clickable TOC), roman front-matter / arabic body numbering via BodyStartMarker, code panels (DejaVuSansMono on deep-blue), fit-image screenshots with caption+frame, safe_keep_together, CondPageBreak 25% rule
+- Wrote scripts/cpu-guide-cover.html (Template 01 HUD, blue family); poster_validate + cover_validate both pass; rendered via html2poster.js --width 794px
+- Fixed during build: env lost static NotoSansSC (aliased to NotoSerifSC static like GPU guide), "bullets" kind alias, 2 em-dash line-start warnings (nbsp-bound), ufw typo in 8.2 code
+- QA chain all green: meta.brand, font.check (0 issues), toc.check (0 errors), pages.clean (no blanks), pdf_qa (11 passed; only by-design cover left-anchor margin warning)
+
+Stage Summary:
+- DELIVERABLE: /home/z/my-project/download/cpu-miner-setup-guide/cpu-miner-setup-guide.pdf (18 pages, 1.8MB, vector, clickable TOC)
+- Also delivered: cover-source.html (editable cover) + images/ (8 live screenshots)
+- Rebuild command: python3 scripts/gen-cpu-guide-pdf.py (after cover render)

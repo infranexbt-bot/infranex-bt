@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=Playfair+Display:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --c-bg: #f5f8fc;
+    --c-accent: #1a4a7a;
+    --c-glow: #2d7ab3;
+    --c-text: #142840;
+    --c-muted: #5a7a96;
+    --c-mid: #1a4a7a;
+    --c-surface: #e4ecf5;
+    --c-border: #c0d0e2;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  @page { size: 794px 1123px; margin: 0; }
+  html, body { width: 794px; height: 1123px; background: var(--c-bg); }
+  body { font-family: 'Inter', sans-serif; overflow: hidden; }
+  @media screen {
+    html { height: auto; display: flex; justify-content: center; min-height: 100vh; background: var(--c-bg); }
+    body { transform-origin: top center; scale: min(1, calc(100vw / 794), calc(100vh / 1123)); margin: 0 auto; box-shadow: 0 0 60px rgba(20, 40, 64, 0.18); }
+  }
+
+  /* Layer 1: background grid (2% opacity) */
+  .layer1 {
+    position: absolute; inset: 0; overflow: hidden; z-index: 1;
+    background-image:
+      linear-gradient(rgba(26, 74, 122, 0.05) 0.5px, transparent 0.5px),
+      linear-gradient(90deg, rgba(26, 74, 122, 0.05) 0.5px, transparent 0.5px);
+    background-size: 50px 50px;
+  }
+  /* Layer 2: structure — ultra-thick left anchor line */
+  .layer2 { position: absolute; inset: 0; z-index: 2; }
+  .anchor-line {
+    position: absolute;
+    left: 95px;              /* 0.12 * 794 */
+    top: 112px;              /* 0.10 * 1123 */
+    height: 899px;           /* to 0.90 * 1123 */
+    width: 6px;
+    background: var(--c-accent);
+  }
+  /* Layer 3: content — left edge = 0.12W + 30pt(40px) = 135px */
+  .layer3 { position: absolute; inset: 0; z-index: 3; }
+  .kicker {
+    position: absolute; left: 152px; top: 168px;   /* 0.15 * H */
+    font-size: 16px; font-weight: 400; letter-spacing: 4px;
+    color: var(--c-muted); text-transform: uppercase;
+  }
+  .hero {
+    position: absolute; left: 152px; top: 320px;   /* ~0.30 * H */
+    max-width: 560px;
+    font-family: 'Playfair Display', 'Inter', serif;
+    font-size: 58px; font-weight: 900; line-height: 1.15;
+    color: var(--c-text);
+  }
+  .summary {
+    position: absolute; left: 152px; top: 560px;   /* ~0.50 * H */
+    max-width: 470px;
+    font-size: 17px; font-weight: 400; line-height: 1.6;
+    color: var(--c-text); opacity: 0.85;
+  }
+  .stat-strip {
+    position: absolute; left: 152px; top: 745px;
+    display: flex; gap: 44px;
+  }
+  .stat .num { font-size: 30px; font-weight: 700; color: var(--c-glow); }
+  .stat .lbl { font-size: 11px; font-weight: 500; letter-spacing: 1.5px; color: var(--c-muted); text-transform: uppercase; margin-top: 4px; }
+  .meta {
+    position: absolute; left: 152px; top: 900px;   /* ~0.80 * H */
+    font-size: 16px; font-weight: 400; line-height: 1.7; color: var(--c-text);
+  }
+  .meta .sub { color: var(--c-muted); font-size: 14px; }
+  .footer {
+    position: absolute; left: 152px; top: 1035px;
+    font-size: 13px; font-weight: 400; letter-spacing: 2px;
+    color: var(--c-muted); text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+  <div class="layer1"></div>
+  <div class="layer2"><div class="anchor-line"></div></div>
+  <div class="layer3">
+    <div class="kicker">Operator Setup Guide &middot; Bittensor CPU Path</div>
+    <div class="hero">CPU Miner<br>Setup Guide</div>
+    <div class="summary">
+      Run a Bittensor miner on a cheap CPU VPS &mdash; from wallet creation to a
+      scored UID. Two complete paths: one-click Rent &amp; auto-install through
+      the Infranex BT CPU Catalog, and the fully manual SSH route. Worked
+      example throughout: RedTeam (netuid 61) on a 2&nbsp;vCPU / 8&nbsp;GB / 50&nbsp;GB box.
+    </div>
+    <div class="stat-strip">
+      <div class="stat"><div class="num">$5-9/mo</div><div class="lbl">Host cost</div></div>
+      <div class="stat"><div class="num">15 min</div><div class="lbl">Setup (Path A)</div></div>
+      <div class="stat"><div class="num">No GPU</div><div class="lbl">Required</div></div>
+      <div class="stat"><div class="num">&alpha;61</div><div class="lbl">Worked example</div></div>
+    </div>
+    <div class="meta">
+      Infranex BT &middot; Bittensor Subnet Intelligence Platform
+      <div class="sub">Companion to the GPU Miner Setup Guide</div>
+    </div>
+    <div class="footer">September 2026 &middot; English Edition</div>
+  </div>
+</body>
+</html>
