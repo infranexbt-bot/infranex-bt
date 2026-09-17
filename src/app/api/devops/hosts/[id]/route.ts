@@ -65,6 +65,9 @@ export async function DELETE(
   const { id } = await ctx.params;
   try {
     await db.hostCheck.deleteMany({ where: { hostId: id } });
+    // AUDIT-DEVOPS-2 — installs have no FK cascade on GpuHost (loose hostId
+    // string), so the job rows must be cleaned explicitly or they orphan.
+    await db.hostInstall.deleteMany({ where: { hostId: id } });
     await db.gpuHost.delete({ where: { id } });
     return NextResponse.json({ ok: true });
   } catch (e) {

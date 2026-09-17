@@ -481,6 +481,24 @@ export async function applyStepFix(
   const started = Date.now();
   let result: StepResult;
   try {
+    // AUDIT-DEVOPS-1 — connect before exec. runValidation gets its connection
+    // from step 1, but applyStepFix starts from a FRESH transport: without an
+    // explicit connect(), every exec threw "SSH not connected" and the
+    // one-click Fix buttons could never succeed, even on healthy hosts.
+    try {
+      await transport.connect();
+    } catch (e) {
+      result = {
+        step,
+        name: def.name,
+        status: "fail",
+        output: `Fix failed: ${e instanceof Error ? e.message : String(e)}`,
+        remediation: "Transport error — verify the host is reachable and credentials are valid, then retry.",
+        durationMs: Date.now() - started,
+      };
+      await persist(host.id, result);
+      return result;
+    }
     try {
       await def.fix(transport, facts);
     } catch (e) {
