@@ -1,0 +1,112 @@
+"""
+Main FastAPI application entry point.
+"""
+import os
+import sys
+
+# Add backend directory to Python path for Vercel deployment
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
+
+from app.api import api_router
+from app.core.config import settings
+from app.core.exceptions import register_exception_handlers
+from app.core.logging import RequestLoggingMiddleware, configure_logging
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Application lifespan manager."""
+    # Startup
+    configure_logging()
+
+    # Initialize database connections (non-fatal)
+    try:
+        from app.core.database import close_database, init_database
+        await init_database()
+    except Exception as e:
+        import logging
+        logging.warning(f"Database initialization failed: {e}")
+
+    yield
+
+    # Shutdown
+    try:
+        from app.core.database import close_database
+        await close_database()
+    except Exception:
+        pass
+
+
+def create_app() -> FastAPI:
+    """Create and configure the FastAPI application."""
+    app = FastAPI(
+        title=settings.APP_NAME,
+        description="Infranex BT - Bittensor Subnet Analytics & GPU Marketplace",
+        version="1.0.0",
+        docs_url="/docs" if settings.DEBUG else None,
+        redoc_url="/redoc" if settings.DEBUG else None,
+        openapi_url="/openapi.json" if settings.DEBUG else None,
+        lifespan=lifespan,
+    )
+
+    # CORS middleware
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.cors_origins_list,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+    # Trusted host middleware (security)
+    if settings.APP_ENV == "production":
+        app.add_middleware(
+            TrustedHostMiddleware,
+            allowed_hosts=["*.infranex.com", "infranex.com", "*.vercel.app"],
+        )
+
+    # Request logging middleware
+    app.add_middleware(RequestLoggingMiddleware)
+
+    # Register exception handlers
+    register_exception_handlers(app)
+
+    # Include GPU engine router (before api_router so paths are /api/gpu-engine/...)
+    from app.api.routes.gpu_install import router as gpu_install_router
+    app.include_router(gpu_install_router)
+
+    # Include API router
+    app.include_router(api_router)
+
+    # Root endpoint
+    @app.get("/")
+    async def root():
+        return {
+            "name": settings.APP_NAME,
+            "version": "1.0.0",
+            "description": "Bittensor Subnet Analytics & GPU Marketplace API",
+            "docs": "/docs",
+            "health": "/api/health",
+        }
+
+    return app
+
+
+app = create_app()
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(
+        "app.main:app",
+        host="0.0.0.0",
+        port=8000,
+        reload=settings.DEBUG,
+        log_level=settings.LOG_LEVEL.lower(),
+    )

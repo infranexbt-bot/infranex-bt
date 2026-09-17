@@ -1,0 +1,47 @@
+[
+  {
+    "url": "https://blog.bittensor.com",
+    "name": "TAO Token Economy Explained - Medium - Bittensor",
+    "snippet": "Sep 20, 2023 — Each block grants a 1 TAO reward , shared equally between miners and validators. The Bittensor protocol is designed in such a way that new tokens ...",
+    "host_name": "blog.bittensor.com",
+    "rank": 0,
+    "date": "Sep 20, 2023",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.binance.com",
+    "name": "Bittensor (TAO) Bearish Logic: The Income Desert Beneath",
+    "snippet": "Mar 24, 2026 — TAO is currently priced at approximately $275 , Miners execute AI tasks (inference, training, data processing) and receive 41%, totaling about ...",
+    "host_name": "www.binance.com",
+    "rank": 1,
+    "date": "Mar 24, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://learn.backpack.exchange",
+    "name": "What Is Bittensor (TAO)? Decentralized AI Explained",
+    "snippet": "Feb 24, 2026 — A detailed guide to Bittensor ( TAO ), covering subnet architecture, tokenomics, halving, Taoflow emissions, and staking.",
+    "host_name": "learn.backpack.exchange",
+    "rank": 2,
+    "date": "Feb 24, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://arxiv.org",
+    "name": "Bittensor Protocol: The Bitcoin in Decentralized Artificial",
+    "snippet": "Jun 29, 2025 — This paper investigates whether Bittensor can be considered the “Bitcoin of decentralized Artificial Intelligence”",
+    "host_name": "arxiv.org",
+    "rank": 3,
+    "date": "Jun 29, 2025",
+    "favicon": ""
+  },
+  {
+    "url": "https://m.techflowpost.com",
+    "name": "Bittensor (TAO) Bearish Thesis: An Income Desert Beneath",
+    "snippet": "Mar 24, 2026 — Miners execute AI tasks (inference, training, data processing) and earn 41%—approximately 1,476 TAO per day, worth roughly $148 million ...",
+    "host_name": "m.techflowpost.com",
+    "rank": 4,
+    "date": "Mar 24, 2026",
+    "favicon": ""
+  }
+]

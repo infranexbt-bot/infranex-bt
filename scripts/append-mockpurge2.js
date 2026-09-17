@@ -1,0 +1,25 @@
+#!/usr/bin/env node
+/* Worklog append — MOCK-PURGE-2 */
+const fs = require("fs");
+const entry = `
+---
+Task ID: MOCK-PURGE-2
+Agent: main (Super Z)
+Task: User report — "check my miners side bar, it still shows some data" after MOCK-PURGE-1. Sweep and remove every remaining product-facing mock surface; make the app production-honest.
+
+Work Log:
+- ROOT CAUSE: MOCK-PURGE-1 purged DB rows + engine mock paths but MISSED the static mock-data layer in src/lib/infranex/data.ts that still fed 7 views and 3 API routes. "My Miners" (Section 08) rendered a fabricated portfolio (userMiners m1-m5 with invented earnings/rank/uptime) + fake deployments (d1-d3).
+- DATA STRIP (data.ts 31.9KB -> 21.3KB): deleted gpuOffers o1-o14 (fabricated marketplace prices), userMiners, deployments, revenueSeries (Math.random chart), emissionShares, workers (fake statuses). KEPT as legit reference: subnets (curated catalog = scraping seed + live-merge base, comment reworded), opportunities (documented offline fallback base for mergeOpportunities, source-labeled), gpuModels/gpuProviders (hardware spec reference; briefly lost to an over-wide truncation, restored).
+- VIEW REBUILDS: miners-view.tsx rebuilt on real useDeployments() — tiles (Running x/y, Infra $/mo, Est. rev/mo) computed from DB deployments, real DeploymentCards (status/gpu/provider/hotkey/progress/steps), honest "No miners yet — your fleet is honestly empty" empty state. dashboard-view.tsx: Workers card now reads REAL /api/workers/status via useWorkerStatus(); Portfolio revenue card honest empty state (fake RevenueChart removed); emission donut derived from LIVE chain snapshot via new buildEmissionShares() in use-network.ts. analytics-view.tsx rebuilt live-first (live score bars, category breakdown, emission donut, network totals via getLiveDashboardMetrics + DataSourceBanner; honest empty states). gpus-view.tsx: recommendation card live-only (indicative fallback deleted), hardcoded "best fit for subnets 3,7,9,19,23" copy replaced, indicative badges removed.
+- MOCK-CODE REMOVAL: runpod.ts mergeGpuOffers live-only (no synthetic "indicative" merge); POST /api/deployments curated-offer fast-path deleted (offers resolve from live provider catalogs only; honest 400 with "connect a provider API key" guidance); optimization.ts findAlternativeGpus now consumes live offers (computeOptimizations async, single fetch per pass, /api/monitoring awaited); provider-keys-dialog + system-view copy de-mocked; types.ts orphan cleanup (UserMiner, Deployment, WorkerStatus, RevenuePoint removed); charts/revenue-chart.tsx deleted.
+- PRODUCTION BUG FOUND BY SUITES (fixed): Next standalone server.js chdirs into .next/standalone, so 4 process.cwd()-relative paths forked shadow files wiped by every rebuild — .devops-secret (silently ROTATED THE ENCRYPTION KEY each build!), scripts/users.local.json (credential re-mirrors lost), .chain-metadata.json, .alpha-price-history.json. Fix: REPO_ROOT anchor (process.env.INFRANEX_REPO_ROOT ?? process.cwd()) in crypto.ts/auth-users.ts/chain.ts + INFRANEX_REPO_ROOT pinned in package.json start script. Stale demo webhook channel deleted (its urlEnc was encrypted under a dead key).
+- TEST HARNESSES: tier4 tenancy block adapted — fabricated offer id o2 now expected to 400 with "GPU offer not found" (regression-pins the live-only policy); attribution exercised via engine createDeployment, ?scope=mine stays API-tested; BASE now TEST_BASE_URL-overridable (suite requires dev-mode server for loopback webhook checks — production SSRF policy blocks them by design, WINDUP-1).
+- GATES: tsc 0 errors (server down); bun run build green (29.4s); prod standalone restarted with pinned env (Ready 317ms); gates 307/200/401.
+- SUITES: ALL 11 GREEN — tier1 29, tier2 59, tier3 66, tier4 76 (dev server :3001 via TEST_BASE_URL), mindset 38 (battery run vs standing server showed 2 order-flakes from the 90s worker pass interleaving; green standalone), monitor 20, apply 22, service-health 31, auth 17, admin-users 21 (mirror check now passes = shadow-file bug fixed), provider-keys 34.
+- BROWSER-VERIFIED (admin, prod): My Miners shows honest empty state (no apex-prod-01/vision-edge-02/mosaic-fusion-03/fake earnings; "Running miners" + "Infra cost" tiles); Dashboard workers/revenue/emission honest; GPU Catalog zero "indicative" strings; 0 page errors, 0 console errors. Screenshots: download/mockpurge2-miners.png, download/mockpurge2-devops.png.
+
+Stage Summary:
+- The ENTIRE static mock-data layer is gone: no fabricated miners, earnings, deployments, marketplace offers, revenue charts, emission donuts, or worker statuses anywhere in the product. Every number is DB-derived, chain-derived, provider-derived, or honestly empty. Bonus: a silent production key-rotation/mirror-loss bug (standalone chdir shadow files) is fixed structurally. Suites re-baselined all-green with the live-only offer policy regression-pinned. The board is ready for the first real miner (needs the user's RunPod/Vast key + Node Daemon).
+`;
+fs.appendFileSync("/home/z/my-project/worklog.md", entry);
+console.log("worklog appended, bytes:", entry.length);

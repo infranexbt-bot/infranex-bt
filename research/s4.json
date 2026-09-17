@@ -1,0 +1,92 @@
+[
+  {
+    "url": "https://www.bittensor.com/docs/guides/mining",
+    "name": "Mining — Bittensor Docs",
+    "snippet": "Validators' bonds toward a miner build up as an exponential moving average, so an established miner out-earns an identical newcomer until the newcomer's bonds ...",
+    "host_name": "www.bittensor.com",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://arxiv.org/html/2507.02951v1",
+    "name": "Bittensor Protocol: The Bitcoin in Decentralized Artificial Intelligence",
+    "snippet": "Jun 29, 2025 · Validator Assesses miners' work according to the subnet's rules, assigning scores that are later combined via YC. trust: A score assigned by  ...",
+    "host_name": "arxiv.org",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.bittensor.com/docs/guides/validating",
+    "name": "Validating — Bittensor Docs",
+    "snippet": "A validator is a hotkey that scores miners. It needs enough stake behind it to hold a validator permit on the subnet, and it earns dividends (shared with ...",
+    "host_name": "www.bittensor.com",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://docs.taostats.io/docs/validator",
+    "name": "Subnet Validation - Getting Started with Bittensor - Taostats",
+    "snippet": "Many subnets have minimum stake requirements — a hard floor of 1k tao, with a generally accepted competitive functional floor of around 20k tao.",
+    "host_name": "docs.taostats.io",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.youtube.com/watch?v=s5rEKeLIBWw",
+    "name": "Bittensor TAO - How to Research Subnets [1/2] - YouTube",
+    "snippet": "Jun 19, 2025 · We research 3 potentially undervalued Bittensor subnets: Sounds Right (105), Checker Chain (87), and BitCast (93).",
+    "host_name": "www.youtube.com",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://blog.onfinality.io/register-a-bittensor-miner-in-competitive-subnets",
+    "name": "How to Register a Bittensor Miner: Competitive Subnet Mining",
+    "snippet": "Sep 5, 2025 · Learn how to register a Bittensor miner, compete on subnets, and earn TAO rewards with reliable infrastructure for successful Bittensor ...",
+    "host_name": "blog.onfinality.io",
+    "rank": 5,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://oakresearch.io/en/analyses/innovations/bittensor-subnets-best-opportunities-investing-tao",
+    "name": "Bittensor subnets: The best opportunities for investing in TAO",
+    "snippet": "Apr 8, 2025 · Bittensor's governance was centralized around the Root Subnet with only 64 validators responsible for distributing rewards. compete to attract ...",
+    "host_name": "oakresearch.io",
+    "rank": 6,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.bittensor.com/content/subnets-dive",
+    "name": "to determine the proportion of emission that miners and validators",
+    "snippet": "Subnetworks are self-contained incentive systems. These systems run on the Bitensor Blockchains and incentivize value creation between validators and miners ...",
+    "host_name": "www.bittensor.com",
+    "rank": 7,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://docs.vast.ai/mining-on-bittensor",
+    "name": "Mining on Bittensor - Vast.ai Documentation: Affordable GPU Cloud",
+    "snippet": "Vast internal guide to test subnets inside the Opentensor image. This tutorial shows how to use the Bittensor testnet to create a subnet and run your ...",
+    "host_name": "docs.vast.ai",
+    "rank": 8,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.datawallet.com/crypto/what-is-bittensor",
+    "name": "What is Bittensor (TAO)? Subnets, dTAO & Staking - Datawallet",
+    "snippet": "Summary: Bittensor is a blockchain that rewards contributors for producing machine intelligence. Miners run models or provide compute, while validators ...",
+    "host_name": "www.datawallet.com",
+    "rank": 9,
+    "date": "",
+    "favicon": ""
+  }
+]

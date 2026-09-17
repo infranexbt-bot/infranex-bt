@@ -1,0 +1,131 @@
+- generic
+  - generic
+    - complementary
+      - paragraph
+        - StaticText "Infranex BT"
+      - paragraph
+        - StaticText "SUBNET INTELLIGENCE"
+      - LayoutTable
+        - navigation "Primary" [ref=e24]
+          - button "Dashboard 01" [ref=e26]
+          - button "Opportunities 02" [ref=e27]
+          - button "Subnets 03" [ref=e28]
+          - button "Judge Lab 04" [ref=e29]
+          - button "GPU Catalog 05" [ref=e30]
+          - button "Deployments 06" [ref=e31]
+          - button "DevOps Engine 07" [ref=e32]
+          - button "My Miners 08" [ref=e33]
+          - button "Monitoring 09" [ref=e34]
+          - button "Optimization 10" [ref=e35]
+          - button "Analytics 11" [ref=e36]
+          - button "System & Errors 12" [ref=e37]
+          - button "Runbook 13" [ref=e38]
+          - button "Access Control 14" [ref=e39]
+        - generic
+    - banner
+      - paragraph
+        - StaticText "SECTION · 04 · JUDGE INTELLIGENCE"
+      - heading "Judge Lab" [level=2, ref=e2]
+      - generic
+        - textbox "Search" [ref=e17]
+        - StaticText "⌘K"
+      - button "Network status" [ref=e3]
+      - button "Toggle theme" [ref=e4]
+      - button "Notifications" [expanded=false, ref=e5]
+      - button "A" [expanded=false, ref=e6]
+        - StaticText "A"
+      - paragraph
+        - StaticText "Sun, Sep 13"
+      - paragraph
+        - StaticText "09:46:34 PM"
+    - main
+      - paragraph
+        - StaticText "JUDGE INTELLIGENCE"
+      - heading "Judge Lab" [level=2, ref=e7]
+      - paragraph
+        - StaticText "Deconstruct each subnet's validator scoring BEFORE spending on hardware, then simulate your miner against it. Evidence-cited, cohort-aware, honestly uncertain."
+      - combobox [expanded=false, ref=e8]: α64 · Chutes · profiled
+        - generic [ref=e18] clickable [onclick]
+      - button "Re-mine profile" [ref=e9]
+      - StaticText "Judge profile · α"
+      - StaticText "64"
+      - StaticText " "
+      - StaticText "Chutes"
+      - StaticText "Market Clearing"
+      - paragraph
+        - StaticText "Judge for Chutes classified as market clearing from 24 evidence hits. Dominant axes: Price Competitiveness (58%) and Throughput (17%)."
+      - StaticText "PROFILE CONFIDENCE"
+      - StaticText "66"
+      - StaticText "%"
+      - progressbar
+      - paragraph
+        - StaticText "COHORT BRUTALITY"
+      - StaticText "Brutal"
+      - StaticText "62"
+      - StaticText "/ 100"
+      - progressbar
+      - StaticText "256"
+      - StaticText "registered"
+      - StaticText "17"
+      - StaticText "earning"
+      - StaticText "6.6"
+      - StaticText "%"
+      - StaticText "earn ratio"
+      - StaticText "30"
+      - StaticText "%"
+      - StaticText "top-10% take"
+      - paragraph
+        - StaticText "COMPOSITE WEIGHTS"
+      - button "Price Competitiveness 58%" [ref=e10]
+        - StaticText "Price Competitiveness"
+        - StaticText "58"
+        - StaticText "%"
+      - button "Throughput 17%" [ref=e11]
+        - StaticText "Throughput"
+        - StaticText "17"
+        - StaticText "%"
+      - button "Response Speed 12%" [ref=e12]
+        - StaticText "Response Speed"
+        - StaticText "12"
+        - StaticText "%"
+      - button "Uptime / Availability 7%" [ref=e13]
+        - StaticText "Uptime / Availability"
+        - StaticText "7"
+        - StaticText "%"
+      - button "Response Quality 5%" [ref=e14]
+        - StaticText "Response Quality"
+        - StaticText "5"
+        - StaticText "%"
+      - button "Resource Fit 2%" [ref=e15]
+        - StaticText "Resource Fit"
+        - StaticText "2"
+        - StaticText "%"
+      - paragraph
+        - StaticText "SOURCES"
+      - list
+        - listitem [level=1]
+        - listitem [level=1]
+          - link "chutesai/chutes/blob/main/README.md" [ref=e25]
+      - StaticText "Mock-validator simulator"
+      - StaticText "RESPONSE LATENCY"
+      - StaticText "2.00s"
+      - generic
+        - slider [ref=e19]: 3.301029920578003
+      - StaticText "UPTIME"
+      - StaticText "99.50%"
+      - generic
+        - slider [ref=e20]: 99.5
+      - StaticText "RESPONSE QUALITY"
+      - StaticText "80%"
+      - generic
+        - slider [ref=e21]: 80
+      - StaticText "THROUGHPUT"
+      - StaticText "25 units/s"
+      - generic
+        - slider [ref=e22]: 25
+      - StaticText "PRICE / 1M TOKENS"
+      - StaticText "$0.50"
+      - generic
+        - slider [ref=e23]: 0.5
+      - button "Run simulation" [ref=e16]
+  - region "Notifications (F8)" [ref=e1]

@@ -1,0 +1,38 @@
+[
+  {
+    "url": "https://docs.vast.ai",
+    "name": "Mining on Bittensor",
+    "snippet": "This tutorial shows how to use the Bittensor testnet to create a subnet and run your incentive mechanism on it.",
+    "host_name": "docs.vast.ai",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://oakresearch.io",
+    "name": "Bittensor subnets: The best opportunities for investing in TAO",
+    "snippet": "Apr 8, 2025 — 1. The Conservative Approach: Staking on the Root Subnet (SN0). This is the simplest and least risky strategy: staking your TAO on subnet 0 ...",
+    "host_name": "oakresearch.io",
+    "rank": 1,
+    "date": "Apr 8, 2025",
+    "favicon": ""
+  },
+  {
+    "url": "https://docs.taostats.io",
+    "name": "taostats-for-miners",
+    "snippet": "High-emission subnets are more profitable , but also more competitive. Miners receive 41% of the emission for the subnet. The emission for each subnet can be ...",
+    "host_name": "docs.taostats.io",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://tokenomist.ai",
+    "name": "Bittensor and Subnets: How the Emission Engine Works",
+    "snippet": "Apr 2, 2026 — Since February 14, 2025 , every subnet has its own alpha token, a subnet -specific currency built on top of TAO. The pool mechanics are simple ...",
+    "host_name": "tokenomist.ai",
+    "rank": 3,
+    "date": "Apr 2, 2026",
+    "favicon": ""
+  }
+]

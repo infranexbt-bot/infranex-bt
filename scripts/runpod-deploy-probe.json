@@ -1,0 +1,22 @@
+{
+  "query": "mutation Deploy($input: PodFindAndDeployOnDemandInput!) { podFindAndDeployOnDemand(input: $input) { id desiredStatus lastStatus machineId } }",
+  "variables": {
+    "input": {
+      "name": "infranex-probe",
+      "imageName": "bittensor/subnet:latest",
+      "gpuTypeId": "NVIDIA GeForce RTX 4090",
+      "cloudType": "ALL",
+      "containerDiskInGb": 20,
+      "volumeInGb": 100,
+      "volumeMountPath": "/workspace",
+      "minMemoryInGb": 64,
+      "minVcpuCount": 8,
+      "ports": "8091/http,8092/http",
+      "env": "BT_NETWORK=finney\nBT_NETUID=1",
+      "dockerArgs": "sleep 3600",
+      "supportPublicIp": true,
+      "publicKey": "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOnQj/0YcHdWF7b3di3BCHXn5I9hhN5WYJgr0dbgXUBA infranex-ssi0a3a6",
+      "startSsh": true
+    }
+  }
+}

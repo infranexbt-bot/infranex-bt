@@ -1,0 +1,29 @@
+[
+  {
+    "url": "https://www.bittensor.com",
+    "name": "Bittensor Documentation",
+    "snippet": "Bittensor is an open network where independent subnets produce digital commodities. Miners produce the commodity, validators score the miners , subnet creators ...",
+    "host_name": "www.bittensor.com",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://onfinality.io",
+    "name": "How to Mine Bittensor: TAO, Subnets, and RPC Setup",
+    "snippet": "Aug 1, 2026 — How do I mine Bittensor and keep my miner connected?",
+    "host_name": "onfinality.io",
+    "rank": 1,
+    "date": "Aug 1, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://docs.vast.ai",
+    "name": "Mining on Bittensor",
+    "snippet": "This tutorial shows how to use the Bittensor testnet to create a subnet and run your incentive mechanism on it. wallets for subnet owner, subnet validator and ...",
+    "host_name": "docs.vast.ai",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  }
+]

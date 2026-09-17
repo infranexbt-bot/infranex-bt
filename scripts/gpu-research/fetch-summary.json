@@ -1,0 +1,526 @@
+{
+  "statuses": [
+    {
+      "netuid": 0,
+      "status": "no-repo"
+    },
+    {
+      "netuid": 6,
+      "status": "ok"
+    },
+    {
+      "netuid": 1,
+      "status": "ok"
+    },
+    {
+      "netuid": 5,
+      "status": "ok"
+    },
+    {
+      "netuid": 2,
+      "status": "ok"
+    },
+    {
+      "netuid": 3,
+      "status": "ok"
+    },
+    {
+      "netuid": 4,
+      "status": "ok"
+    },
+    {
+      "netuid": 7,
+      "status": "ok"
+    },
+    {
+      "netuid": 8,
+      "status": "ok"
+    },
+    {
+      "netuid": 11,
+      "status": "ok"
+    },
+    {
+      "netuid": 10,
+      "status": "ok"
+    },
+    {
+      "netuid": 16,
+      "status": "bad-url"
+    },
+    {
+      "netuid": 13,
+      "status": "ok"
+    },
+    {
+      "netuid": 9,
+      "status": "ok"
+    },
+    {
+      "netuid": 12,
+      "status": "ok"
+    },
+    {
+      "netuid": 14,
+      "status": "ok"
+    },
+    {
+      "netuid": 18,
+      "status": "ok"
+    },
+    {
+      "netuid": 15,
+      "status": "ok"
+    },
+    {
+      "netuid": 17,
+      "status": "ok"
+    },
+    {
+      "netuid": 19,
+      "status": "ok"
+    },
+    {
+      "netuid": 20,
+      "status": "ok"
+    },
+    {
+      "netuid": 23,
+      "status": "ok"
+    },
+    {
+      "netuid": 22,
+      "status": "ok"
+    },
+    {
+      "netuid": 21,
+      "status": "ok"
+    },
+    {
+      "netuid": 26,
+      "status": "ok"
+    },
+    {
+      "netuid": 30,
+      "status": "bad-url"
+    },
+    {
+      "netuid": 31,
+      "status": "bad-url"
+    },
+    {
+      "netuid": 24,
+      "status": "ok"
+    },
+    {
+      "netuid": 25,
+      "status": "ok"
+    },
+    {
+      "netuid": 27,
+      "status": "ok"
+    },
+    {
+      "netuid": 32,
+      "status": "ok"
+    },
+    {
+      "netuid": 33,
+      "status": "ok"
+    },
+    {
+      "netuid": 29,
+      "status": "ok"
+    },
+    {
+      "netuid": 28,
+      "status": "ok"
+    },
+    {
+      "netuid": 34,
+      "status": "ok"
+    },
+    {
+      "netuid": 35,
+      "status": "ok"
+    },
+    {
+      "netuid": 36,
+      "status": "ok"
+    },
+    {
+      "netuid": 42,
+      "status": "bad-url"
+    },
+    {
+      "netuid": 38,
+      "status": "ok"
+    },
+    {
+      "netuid": 37,
+      "status": "ok"
+    },
+    {
+      "netuid": 43,
+      "status": "ok"
+    },
+    {
+      "netuid": 39,
+      "status": "not-found"
+    },
+    {
+      "netuid": 45,
+      "status": "ok"
+    },
+    {
+      "netuid": 41,
+      "status": "ok"
+    },
+    {
+      "netuid": 40,
+      "status": "ok"
+    },
+    {
+      "netuid": 44,
+      "status": "ok"
+    },
+    {
+      "netuid": 48,
+      "status": "ok"
+    },
+    {
+      "netuid": 50,
+      "status": "ok"
+    },
+    {
+      "netuid": 46,
+      "status": "ok"
+    },
+    {
+      "netuid": 47,
+      "status": "ok"
+    },
+    {
+      "netuid": 49,
+      "status": "ok"
+    },
+    {
+      "netuid": 51,
+      "status": "ok"
+    },
+    {
+      "netuid": 57,
+      "status": "no-repo"
+    },
+    {
+      "netuid": 54,
+      "status": "ok"
+    },
+    {
+      "netuid": 59,
+      "status": "no-repo"
+    },
+    {
+      "netuid": 55,
+      "status": "ok"
+    },
+    {
+      "netuid": 53,
+      "status": "ok"
+    },
+    {
+      "netuid": 52,
+      "status": "ok"
+    },
+    {
+      "netuid": 60,
+      "status": "ok"
+    },
+    {
+      "netuid": 56,
+      "status": "ok"
+    },
+    {
+      "netuid": 63,
+      "status": "ok"
+    },
+    {
+      "netuid": 58,
+      "status": "ok"
+    },
+    {
+      "netuid": 62,
+      "status": "ok"
+    },
+    {
+      "netuid": 61,
+      "status": "ok"
+    },
+    {
+      "netuid": 64,
+      "status": "ok"
+    },
+    {
+      "netuid": 70,
+      "status": "no-repo"
+    },
+    {
+      "netuid": 65,
+      "status": "ok"
+    },
+    {
+      "netuid": 66,
+      "status": "ok"
+    },
+    {
+      "netuid": 73,
+      "status": "bad-url"
+    },
+    {
+      "netuid": 67,
+      "status": "ok"
+    },
+    {
+      "netuid": 69,
+      "status": "ok"
+    },
+    {
+      "netuid": 76,
+      "status": "no-repo"
+    },
+    {
+      "netuid": 71,
+      "status": "ok"
+    },
+    {
+      "netuid": 68,
+      "status": "ok"
+    },
+    {
+      "netuid": 72,
+      "status": "ok"
+    },
+    {
+      "netuid": 74,
+      "status": "ok"
+    },
+    {
+      "netuid": 75,
+      "status": "ok"
+    },
+    {
+      "netuid": 78,
+      "status": "ok"
+    },
+    {
+      "netuid": 79,
+      "status": "ok"
+    },
+    {
+      "netuid": 84,
+      "status": "no-repo"
+    },
+    {
+      "netuid": 77,
+      "status": "ok"
+    },
+    {
+      "netuid": 86,
+      "status": "no-repo"
+    },
+    {
+      "netuid": 87,
+      "status": "bad-url"
+    },
+    {
+      "netuid": 80,
+      "status": "ok"
+    },
+    {
+      "netuid": 81,
+      "status": "ok"
+    },
+    {
+      "netuid": 85,
+      "status": "ok"
+    },
+    {
+      "netuid": 88,
+      "status": "ok"
+    },
+    {
+      "netuid": 82,
+      "status": "ok"
+    },
+    {
+      "netuid": 83,
+      "status": "ok"
+    },
+    {
+      "netuid": 93,
+      "status": "ok"
+    },
+    {
+      "netuid": 94,
+      "status": "ok"
+    },
+    {
+      "netuid": 90,
+      "status": "ok"
+    },
+    {
+      "netuid": 92,
+      "status": "ok"
+    },
+    {
+      "netuid": 89,
+      "status": "ok"
+    },
+    {
+      "netuid": 99,
+      "status": "bad-url"
+    },
+    {
+      "netuid": 91,
+      "status": "ok"
+    },
+    {
+      "netuid": 96,
+      "status": "ok"
+    },
+    {
+      "netuid": 98,
+      "status": "ok"
+    },
+    {
+      "netuid": 101,
+      "status": "ok"
+    },
+    {
+      "netuid": 100,
+      "status": "ok"
+    },
+    {
+      "netuid": 95,
+      "status": "not-found"
+    },
+    {
+      "netuid": 97,
+      "status": "not-found"
+    },
+    {
+      "netuid": 104,
+      "status": "ok"
+    },
+    {
+      "netuid": 106,
+      "status": "ok"
+    },
+    {
+      "netuid": 109,
+      "status": "bad-url"
+    },
+    {
+      "netuid": 110,
+      "status": "bad-url"
+    },
+    {
+      "netuid": 102,
+      "status": "ok"
+    },
+    {
+      "netuid": 112,
+      "status": "bad-url"
+    },
+    {
+      "netuid": 107,
+      "status": "ok"
+    },
+    {
+      "netuid": 103,
+      "status": "not-found"
+    },
+    {
+      "netuid": 105,
+      "status": "not-found"
+    },
+    {
+      "netuid": 116,
+      "status": "bad-url"
+    },
+    {
+      "netuid": 111,
+      "status": "ok"
+    },
+    {
+      "netuid": 108,
+      "status": "ok"
+    },
+    {
+      "netuid": 113,
+      "status": "ok"
+    },
+    {
+      "netuid": 114,
+      "status": "ok"
+    },
+    {
+      "netuid": 115,
+      "status": "ok"
+    },
+    {
+      "netuid": 122,
+      "status": "bad-url"
+    },
+    {
+      "netuid": 117,
+      "status": "ok"
+    },
+    {
+      "netuid": 119,
+      "status": "ok"
+    },
+    {
+      "netuid": 118,
+      "status": "not-found"
+    },
+    {
+      "netuid": 121,
+      "status": "ok"
+    },
+    {
+      "netuid": 124,
+      "status": "ok"
+    },
+    {
+      "netuid": 123,
+      "status": "ok"
+    },
+    {
+      "netuid": 120,
+      "status": "not-found"
+    },
+    {
+      "netuid": 125,
+      "status": "ok"
+    },
+    {
+      "netuid": 126,
+      "status": "ok"
+    },
+    {
+      "netuid": 128,
+      "status": "ok"
+    },
+    {
+      "netuid": 127,
+      "status": "ok"
+    }
+  ],
+  "summary": {
+    "no-repo": 7,
+    "ok": 103,
+    "bad-url": 12,
+    "not-found": 7
+  }
+}

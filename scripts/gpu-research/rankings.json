@@ -1,0 +1,1479 @@
+{
+  "stats": {
+    "totalSubnets": 129,
+    "withGithub": 122,
+    "readmeOk": 108,
+    "withMinCompute": 29,
+    "withGpuMention": 27,
+    "withVramSignal": 18,
+    "taoPriceUsd": 251.03,
+    "totalMinerTaoPerDay": 1849.9449965627468
+  },
+  "viewA": [
+    {
+      "gpu": "NVIDIA A100",
+      "reqSubnets": [
+        12,
+        33,
+        45,
+        49,
+        54,
+        60,
+        64,
+        83,
+        113
+      ],
+      "supportedSubnets": [
+        12,
+        33,
+        45,
+        49,
+        54,
+        60,
+        64,
+        83,
+        104,
+        113
+      ],
+      "anySubnets": [
+        12,
+        32,
+        33,
+        34,
+        45,
+        49,
+        54,
+        60,
+        64,
+        83,
+        104,
+        113
+      ],
+      "reqTaoPerDay": 154.8101528122798,
+      "anyTaoPerDay": 181.26500153627427,
+      "evidence": [
+        {
+          "netuid": 33,
+          "name": "ReadyAI",
+          "gpu": "NVIDIA A100",
+          "file": "min_compute.yml",
+          "tier": 1,
+          "miner": true,
+          "require": true,
+          "validator": false,
+          "quote": "required=true min_vram=8 rec_vram=24 rec_gpu=NVIDIA A100",
+          "url": "https://github.com/afterpartyai/bittensor-conversation-genome-project/blob/main/README.md",
+          "minerTaoPerDay": 5.712661557693857
+        },
+        {
+          "netuid": 45,
+          "name": "AlphaRidge.ai",
+          "gpu": "NVIDIA A100",
+          "file": "min_compute.yml",
+          "tier": 1,
+          "miner": true,
+          "require": true,
+          "validator": false,
+          "quote": "required=true min_vram=8 rec_vram=24 rec_gpu=NVIDIA A100",
+          "url": "https://github.com/Team-Rizzo/alpharidge-ai/blob/main/README.md",
+          "minerTaoPerDay": 3.2669945625256083
+        },
+        {
+          "netuid": 54,
+          "name": "Yanez",
+          "gpu": "NVIDIA A100",
+          "file": "min_compute.yml",
+          "tier": 1,
+          "miner": true,
+          "require": true,
+          "validator": false,
+          "quote": "required=false min_vram=16 rec_vram=32 rec_gpu=NVIDIA A100 or RTX 4090",
+          "url": "https://github.com/yanez-compliance/MIID-subnet/blob/main/README.md",
+          "minerTaoPerDay": 10.168005887345196
+        },
+        {
+          "netuid": 60,
+          "name": "Bitsec.ai",
+          "gpu": "NVIDIA A100",
+          "file": "min_compute.yml",
+          "tier": 1,
+          "miner": true,
+          "require": true,
+          "validator": false,
+          "quote": "required=true min_vram=8 rec_vram=24 rec_gpu=NVIDIA A100",
+          "url": "https://github.com/Bitsec-AI/sandbox/blob/main/README.md",
+          "minerTaoPerDay": 5.285027564079553
+        },
+        {
+          "netuid": 83,
+          "name": "CliqueAI",
+          "gpu": "NVIDIA A100",
+          "file": "min_compute.yml",
+          "tier": 1,
+          "miner": true,
+          "require": true,
+          "validator": false,
+          "quote": "required=false min_vram=8 rec_vram=24 rec_gpu=NVIDIA A100",
+          "url": "https://github.com/toptensor/CliqueAI/blob/main/README.md",
+          "minerTaoPerDay": 11.608695918780642
+        }
+      ],
+      "reqCount": 9,
+      "supportedCount": 10,
+      "anyCount": 12,
+      "reqUsdPerDay": 38861.992660466596,
+      "anyUsdPerDay": 45502.95333565093
+    },
+    {
+      "gpu": "NVIDIA RTX 4090",
+      "reqSubnets": [
+        9,
+        32,
+        54,
+        96
+      ],
+      "supportedSubnets": [
+        9,
+        32,
+        53,
+        54,
+        96
+      ],
+      "anySubnets": [
+        9,
+        32,
+        53,
+        54,
+        96,
+        117
+      ],
+      "reqTaoPerDay": 63.65889482406424,
+      "anyTaoPerDay": 98.2316910577292,
+      "evidence": [
+        {
+          "netuid": 32,
+          "name": "ItsAI",
+          "gpu": "NVIDIA RTX 4090",
+          "file": "min_compute.yml",
+          "tier": 1,
+          "miner": true,
+          "require": true,
+          "validator": false,
+          "quote": "required=true min_vram=24 rec_vram=24 rec_gpu=NVIDIA RTX 4090",
+          "url": "https://github.com/It-s-AI/llm-detection/blob/main/README.md",
+          "minerTaoPerDay": 3.8130937152781232
+        },
+        {
+          "netuid": 54,
+          "name": "Yanez",
+          "gpu": "NVIDIA RTX 4090",
+          "file": "min_compute.yml",
+          "tier": 1,
+          "miner": true,
+          "require": true,
+          "validator": false,
+          "quote": "required=false min_vram=16 rec_vram=32 rec_gpu=NVIDIA A100 or RTX 4090",
+          "url": "https://github.com/yanez-compliance/MIID-subnet/blob/main/README.md",
+          "minerTaoPerDay": 10.168005887345196
+        },
+        {
+          "netuid": 96,
+          "name": "Verathos",
+          "gpu": "NVIDIA RTX 4090",
+          "file": "min_compute.yml",
+          "tier": 1,
+          "miner": true,
+          "require": true,
+          "validator": false,
+          "quote": "required=true min_vram=24 rec_vram=48 rec_gpu=NVIDIA RTX 4090",
+          "url": "https://github.com/verathos-ai/verathos/blob/main/README.md",
+          "minerTaoPerDay": 14.275921873137397
+        },
+        {
+          "netuid": 9,
+          "name": "iota",
+          "gpu": "NVIDIA RTX 4090",
+          "file": "README",
+          "tier": 1,
+          "miner": false,
+          "require": true,
+          "validator": false,
+          "quote": "1. Cuda GPU with = 16GB VRAM (RTX 4090, for example).",
+          "url": "https://github.com/macrocosm-os/iota/blob/main/README.md",
+          "minerTaoPerDay": 35.401873348303525
+        },
+        {
+          "netuid": 53,
+          "name": "engy",
+          "gpu": "NVIDIA RTX 4090",
+          "file": "README",
+          "tier": 2,
+          "miner": true,
+          "require": false,
+          "validator": false,
+          "quote": "miner/ folder on its PYTHONPATH (the runbook has a working 4 × RTX 4090",
+          "url": "https://github.com/hanlinai/engy/blob/main/README.md",
+          "minerTaoPerDay": 30.66418236482371
+        }
+      ],
+      "reqCount": 4,
+      "supportedCount": 5,
+      "anyCount": 6,
+      "reqUsdPerDay": 15980.292367684846,
+      "anyUsdPerDay": 24659.10140622176
+    },
+    {
+      "gpu": "NVIDIA H100",
+      "reqSubnets": [
+        40,
+        90
+      ],
+      "supportedSubnets": [
+        40,
+        90
+      ],
+      "anySubnets": [
+        29,
+        40,
+        64,
+        90
+      ],
+      "reqTaoPerDay": 58.85554569676794,
+      "anyTaoPerDay": 155.1967674116945,
+      "evidence": [
+        {
+          "netuid": 90,
+          "name": "KubeTEE",
+          "gpu": "NVIDIA H100",
+          "file": "README",
+          "tier": 1,
+          "miner": true,
+          "require": true,
+          "validator": false,
+          "quote": "- Intel TDX (AMD SEV-SNP, Phase 1) compatible nodes with NVIDIA H100/H200/B200/B300; BIOS + kernel TDX/SGX enabled; one cluster per miner; cluster registered with Rancher for Fleet management",
+          "url": "https://github.com/KubeTEE-AI/kubetee-subnet/blob/main/README.md",
+          "minerTaoPerDay": 54.00556181879884
+        },
+        {
+          "netuid": 40,
+          "name": "Ralph",
+          "gpu": "NVIDIA H100",
+          "file": "README",
+          "tier": 1,
+          "miner": false,
+          "require": true,
+          "validator": false,
+          "quote": "| H100 calibration (matmul) | 0.512 ms |",
+          "url": "https://github.com/RalphLabsAI/ralph/blob/main/README.md",
+          "minerTaoPerDay": 4.849983877969101
+        },
+        {
+          "netuid": 29,
+          "name": "hoτfloaτ",
+          "gpu": "NVIDIA H100",
+          "file": "README",
+          "tier": 3,
+          "miner": false,
+          "require": true,
+          "validator": true,
+          "quote": "GPU requirements: NVLink/SXM 8-GPU pod (8x H200, 8x B200, or 8x B300 are Tier A; 8x H100 is Tier B fallback), 400 GB storage, model weights at /workspace/models/Qwen2.5-72B-Instruct. See [GPU requirements](https://cacheo",
+          "url": "https://github.com/coldint/hotfloat/blob/main/README.md",
+          "minerTaoPerDay": 3.8545338127104958
+        },
+        {
+          "netuid": 64,
+          "name": "Chutes",
+          "gpu": "NVIDIA H100",
+          "file": "README",
+          "tier": 3,
+          "miner": false,
+          "require": false,
+          "validator": false,
+          "quote": "For example, if your chute's node selector allows both a100 and h100, an instance running on an a100 is billed at the a100 hourly rate, and an instance running on an h100 is billed at the h100 hourly rate.",
+          "url": "https://github.com/chutesai/chutes/blob/main/README.md",
+          "minerTaoPerDay": 92.48668790221609
+        }
+      ],
+      "reqCount": 2,
+      "supportedCount": 2,
+      "anyCount": 4,
+      "reqUsdPerDay": 14774.507636259656,
+      "anyUsdPerDay": 38959.044523357676
+    },
+    {
+      "gpu": "NVIDIA A60 / A6000",
+      "reqSubnets": [
+        64
+      ],
+      "supportedSubnets": [
+        12,
+        64
+      ],
+      "anySubnets": [
+        12,
+        64
+      ],
+      "reqTaoPerDay": 92.48668790221609,
+      "anyTaoPerDay": 98.62198269317595,
+      "evidence": [
+        {
+          "netuid": 64,
+          "name": "Chutes",
+          "gpu": "NVIDIA A60 / A6000",
+          "file": "README",
+          "tier": 1,
+          "miner": false,
+          "require": true,
+          "validator": false,
+          "quote": "The most important fields are gpu_count and min_vram_gb_per_gpu. If you wish to include specific GPUs, you can do so, where the include (or exclude) fields are the short identifier per model, e.g. \"a6000\", \"a100\", etc. [",
+          "url": "https://github.com/chutesai/chutes/blob/main/README.md",
+          "minerTaoPerDay": 92.48668790221609
+        },
+        {
+          "netuid": 12,
+          "name": "Compute Horde",
+          "gpu": "NVIDIA A60 / A6000",
+          "file": "README",
+          "tier": 2,
+          "miner": true,
+          "require": true,
+          "validator": true,
+          "quote": "1. trusted miner (requires A6000 - the only GPU supported now) for cross-validation",
+          "url": "https://github.com/backend-developers-ltd/ComputeHorde/blob/master/README.md",
+          "minerTaoPerDay": 6.135294790959857
+        }
+      ],
+      "reqCount": 1,
+      "supportedCount": 2,
+      "anyCount": 2,
+      "reqUsdPerDay": 23216.933264093306,
+      "anyUsdPerDay": 24757.07631546796
+    },
+    {
+      "gpu": "NVIDIA H200",
+      "reqSubnets": [
+        90
+      ],
+      "supportedSubnets": [
+        17,
+        90
+      ],
+      "anySubnets": [
+        10,
+        17,
+        29,
+        90
+      ],
+      "reqTaoPerDay": 54.00556181879884,
+      "anyTaoPerDay": 82.70832213096512,
+      "evidence": [
+        {
+          "netuid": 90,
+          "name": "KubeTEE",
+          "gpu": "NVIDIA H200",
+          "file": "README",
+          "tier": 1,
+          "miner": true,
+          "require": true,
+          "validator": false,
+          "quote": "- 8 nodes minimum per cluster (5 control-plane + etcd + worker combined, 3+ dedicated 8-GPU workers per GPU type) — all co-located in a single data center. The 5 combined nodes run the tech stack (GPU Operator, Kata/CoCo",
+          "url": "https://github.com/KubeTEE-AI/kubetee-subnet/blob/main/README.md",
+          "minerTaoPerDay": 54.00556181879884
+        },
+        {
+          "netuid": 17,
+          "name": "404—GEN",
+          "gpu": "NVIDIA H200",
+          "file": "README",
+          "tier": 2,
+          "miner": true,
+          "require": false,
+          "validator": false,
+          "quote": "2. Pod deployment: Deploy the image on a GPU pod via the batch generation API, using the hardware the miner declared in hardware.json (4×H200 by default)",
+          "url": "https://github.com/404-Repo/404-gen-subnet/blob/main/README.md",
+          "minerTaoPerDay": 12.798497530039915
+        },
+        {
+          "netuid": 29,
+          "name": "hoτfloaτ",
+          "gpu": "NVIDIA H200",
+          "file": "README",
+          "tier": 3,
+          "miner": false,
+          "require": true,
+          "validator": true,
+          "quote": "GPU requirements: NVLink/SXM 8-GPU pod (8x H200, 8x B200, or 8x B300 are Tier A; 8x H100 is Tier B fallback), 400 GB storage, model weights at /workspace/models/Qwen2.5-72B-Instruct. See [GPU requirements](https://cacheo",
+          "url": "https://github.com/coldint/hotfloat/blob/main/README.md",
+          "minerTaoPerDay": 3.8545338127104958
+        },
+        {
+          "netuid": 10,
+          "name": "Pareton",
+          "gpu": "NVIDIA H200",
+          "file": "README",
+          "tier": 3,
+          "miner": false,
+          "require": false,
+          "validator": false,
+          "quote": "SGLang campaign for Qwen/Qwen3.8-27B-FP8 on one H200.",
+          "url": "https://github.com/Pareton-ai/pareton/blob/main/README.md",
+          "minerTaoPerDay": 12.049728969415867
+        }
+      ],
+      "reqCount": 1,
+      "supportedCount": 2,
+      "anyCount": 4,
+      "reqUsdPerDay": 13557.016183373073,
+      "anyUsdPerDay": 20762.270104536172
+    },
+    {
+      "gpu": "NVIDIA B200 / GB200",
+      "reqSubnets": [
+        90
+      ],
+      "supportedSubnets": [
+        90
+      ],
+      "anySubnets": [
+        29,
+        90,
+        125
+      ],
+      "reqTaoPerDay": 54.00556181879884,
+      "anyTaoPerDay": 61.99067516340065,
+      "evidence": [
+        {
+          "netuid": 90,
+          "name": "KubeTEE",
+          "gpu": "NVIDIA B200 / GB200",
+          "file": "README",
+          "tier": 1,
+          "miner": true,
+          "require": true,
+          "validator": false,
+          "quote": "- 8 nodes minimum per cluster (5 control-plane + etcd + worker combined, 3+ dedicated 8-GPU workers per GPU type) — all co-located in a single data center. The 5 combined nodes run the tech stack (GPU Operator, Kata/CoCo",
+          "url": "https://github.com/KubeTEE-AI/kubetee-subnet/blob/main/README.md",
+          "minerTaoPerDay": 54.00556181879884
+        },
+        {
+          "netuid": 29,
+          "name": "hoτfloaτ",
+          "gpu": "NVIDIA B200 / GB200",
+          "file": "README",
+          "tier": 3,
+          "miner": false,
+          "require": true,
+          "validator": true,
+          "quote": "GPU requirements: NVLink/SXM 8-GPU pod (8x H200, 8x B200, or 8x B300 are Tier A; 8x H100 is Tier B fallback), 400 GB storage, model weights at /workspace/models/Qwen2.5-72B-Instruct. See [GPU requirements](https://cacheo",
+          "url": "https://github.com/coldint/hotfloat/blob/main/README.md",
+          "minerTaoPerDay": 3.8545338127104958
+        },
+        {
+          "netuid": 125,
+          "name": "Refinery",
+          "gpu": "NVIDIA B200 / GB200",
+          "file": "README",
+          "tier": 3,
+          "miner": false,
+          "require": false,
+          "validator": true,
+          "quote": "| Compute | One B200; at most 20 hours |",
+          "url": "https://github.com/Barbariandev/refinery/blob/main/README.md",
+          "minerTaoPerDay": 4.1305795318913185
+        }
+      ],
+      "reqCount": 1,
+      "supportedCount": 1,
+      "anyCount": 3,
+      "reqUsdPerDay": 13557.016183373073,
+      "anyUsdPerDay": 15561.519186268466
+    },
+    {
+      "gpu": "Apple Silicon",
+      "reqSubnets": [
+        54
+      ],
+      "supportedSubnets": [
+        54
+      ],
+      "anySubnets": [
+        54
+      ],
+      "reqTaoPerDay": 10.168005887345196,
+      "anyTaoPerDay": 10.168005887345196,
+      "evidence": [
+        {
+          "netuid": 54,
+          "name": "Yanez",
+          "gpu": "Apple Silicon",
+          "file": "README",
+          "tier": 1,
+          "miner": true,
+          "require": true,
+          "validator": false,
+          "quote": "export FLUX_DEVICE=\"cuda\" or mps for Apple Silicon",
+          "url": "https://github.com/yanez-compliance/MIID-subnet/blob/main/README.md",
+          "minerTaoPerDay": 10.168005887345196
+        }
+      ],
+      "reqCount": 1,
+      "supportedCount": 1,
+      "anyCount": 1,
+      "reqUsdPerDay": 2552.4745179002643,
+      "anyUsdPerDay": 2552.4745179002643
+    },
+    {
+      "gpu": "NVIDIA RTX 5090",
+      "reqSubnets": [
+        108
+      ],
+      "supportedSubnets": [
+        108
+      ],
+      "anySubnets": [
+        74,
+        108
+      ],
+      "reqTaoPerDay": 3.057618066986937,
+      "anyTaoPerDay": 7.410393207684367,
+      "evidence": [
+        {
+          "netuid": 108,
+          "name": "Prometheon",
+          "gpu": "NVIDIA RTX 5090",
+          "file": "README",
+          "tier": 1,
+          "miner": false,
+          "require": true,
+          "validator": false,
+          "quote": "| Hardware | 8 × RTX 5090 (256 GB) or better | CPU only, no GPU |",
+          "url": "https://github.com/BitSpaceorganization/prometheon_v2/blob/main/README.md",
+          "minerTaoPerDay": 3.057618066986937
+        },
+        {
+          "netuid": 74,
+          "name": "Gittensor",
+          "gpu": "NVIDIA RTX 5090",
+          "file": "README",
+          "tier": 3,
+          "miner": false,
+          "require": true,
+          "validator": true,
+          "quote": "Serving (compute): to pay compute miners a validator needs its own RTX 5090 running the reference runtime —",
+          "url": "https://github.com/entrius/gittensor/blob/main/README.md",
+          "minerTaoPerDay": 4.352775140697429
+        }
+      ],
+      "reqCount": 1,
+      "supportedCount": 1,
+      "anyCount": 2,
+      "reqUsdPerDay": 767.5538633557309,
+      "anyUsdPerDay": 1860.2310069250066
+    },
+    {
+      "gpu": "NVIDIA GTX 1660 family",
+      "reqSubnets": [
+        72
+      ],
+      "supportedSubnets": [
+        72
+      ],
+      "anySubnets": [
+        72
+      ],
+      "reqTaoPerDay": 2.973930177045209,
+      "anyTaoPerDay": 2.973930177045209,
+      "evidence": [
+        {
+          "netuid": 72,
+          "name": "StreetVision by NATIX",
+          "gpu": "NVIDIA GTX 1660 family",
+          "file": "min_compute.yml",
+          "tier": 1,
+          "miner": true,
+          "require": true,
+          "validator": false,
+          "quote": "required=true min_vram=4 rec_vram=8 rec_gpu=NVIDIA GTX 1660 Super",
+          "url": "https://github.com/natixnetwork/streetvision-subnet/blob/main/README.md",
+          "minerTaoPerDay": 2.973930177045209
+        }
+      ],
+      "reqCount": 1,
+      "supportedCount": 1,
+      "anyCount": 1,
+      "reqUsdPerDay": 746.5456923436587,
+      "anyUsdPerDay": 746.5456923436587
+    },
+    {
+      "gpu": "NVIDIA RTX PRO 6000",
+      "reqSubnets": [],
+      "supportedSubnets": [
+        63
+      ],
+      "anySubnets": [
+        63
+      ],
+      "reqTaoPerDay": 0,
+      "anyTaoPerDay": 7.468652729219063,
+      "evidence": [
+        {
+          "netuid": 63,
+          "name": "Enigma",
+          "gpu": "NVIDIA RTX PRO 6000",
+          "file": "README",
+          "tier": 2,
+          "miner": true,
+          "require": true,
+          "validator": true,
+          "quote": "Factor large semiprimes to break RSA encryption. Solutions run in Docker containers on validator hardware (NVIDIA RTX PRO 6000, 24 vCPU, 85 GB RAM, --network none, linux/amd64) with a 4-hour wall time.",
+          "url": "https://github.com/qbittensor-labs/enigma/blob/main/README.md",
+          "minerTaoPerDay": 7.468652729219063
+        }
+      ],
+      "reqCount": 0,
+      "supportedCount": 1,
+      "anyCount": 1,
+      "reqUsdPerDay": 0,
+      "anyUsdPerDay": 1874.8558946158614
+    },
+    {
+      "gpu": "NVIDIA RTX A5000",
+      "reqSubnets": [],
+      "supportedSubnets": [],
+      "anySubnets": [
+        72
+      ],
+      "reqTaoPerDay": 0,
+      "anyTaoPerDay": 2.973930177045209,
+      "evidence": [
+        {
+          "netuid": 72,
+          "name": "StreetVision by NATIX",
+          "gpu": "NVIDIA RTX A5000",
+          "file": "min_compute.yml",
+          "tier": 3,
+          "miner": false,
+          "require": true,
+          "validator": true,
+          "quote": "required=true min_vram=20 rec_vram=24 rec_gpu=NVIDIA RTX A5000 24GB",
+          "url": "https://github.com/natixnetwork/streetvision-subnet/blob/main/README.md",
+          "minerTaoPerDay": 2.973930177045209
+        }
+      ],
+      "reqCount": 0,
+      "supportedCount": 0,
+      "anyCount": 1,
+      "reqUsdPerDay": 0,
+      "anyUsdPerDay": 746.5456923436587
+    },
+    {
+      "gpu": "NVIDIA L40S",
+      "reqSubnets": [],
+      "supportedSubnets": [],
+      "anySubnets": [
+        91
+      ],
+      "reqTaoPerDay": 0,
+      "anyTaoPerDay": 10.606485948363927,
+      "evidence": [
+        {
+          "netuid": 91,
+          "name": "cascade",
+          "gpu": "NVIDIA L40S",
+          "file": "README",
+          "tier": 3,
+          "miner": false,
+          "require": false,
+          "validator": false,
+          "quote": "chain.toml ships with mainnet values baked in: netuid 91, the L40S GPU pin,",
+          "url": "https://github.com/TensorLink-AI/cascade/blob/main/README.md",
+          "minerTaoPerDay": 10.606485948363927
+        }
+      ],
+      "reqCount": 0,
+      "supportedCount": 0,
+      "anyCount": 1,
+      "reqUsdPerDay": 0,
+      "anyUsdPerDay": 2662.5461676177965
+    }
+  ],
+  "viewB": {
+    "byClass": {
+      "8–12 GB (3060/4070-class)": {
+        "subnets": 30,
+        "taoPerDay": 340.21061566215616,
+        "usdPerDay": 85403.07084967106,
+        "examples": [
+          {
+            "netuid": 1,
+            "name": "Apex",
+            "minVramGb": 8,
+            "src": "app-classifier",
+            "quote": "classifier: Entry GPU 8GB"
+          },
+          {
+            "netuid": 5,
+            "name": "Hone",
+            "minVramGb": 8,
+            "src": "app-classifier",
+            "quote": "classifier: Entry GPU 8GB"
+          },
+          {
+            "netuid": 19,
+            "name": "blockmachine",
+            "minVramGb": 8,
+            "src": "app-classifier",
+            "quote": "classifier: Entry GPU 8GB"
+          },
+          {
+            "netuid": 33,
+            "name": "ReadyAI",
+            "minVramGb": 8,
+            "src": "min_compute.yml",
+            "quote": "min_vram=8 rec=24 rec_gpu=NVIDIA A100"
+          },
+          {
+            "netuid": 38,
+            "name": "ChronoLLM",
+            "minVramGb": 8,
+            "src": "app-classifier",
+            "quote": "classifier: Entry GPU 8GB"
+          },
+          {
+            "netuid": 39,
+            "name": "deprecated",
+            "minVramGb": 8,
+            "src": "app-classifier",
+            "quote": "classifier: Entry GPU 8GB"
+          }
+        ]
+      },
+      "80 GB+ (A100 80G / H100 / H200-class)": {
+        "subnets": 14,
+        "taoPerDay": 186.52075361925222,
+        "usdPerDay": 46822.30478104088,
+        "examples": [
+          {
+            "netuid": 2,
+            "name": "DSperse",
+            "minVramGb": 80,
+            "src": "app-classifier",
+            "quote": "classifier: H100 80GB"
+          },
+          {
+            "netuid": 6,
+            "name": "Numinous",
+            "minVramGb": 80,
+            "src": "app-classifier",
+            "quote": "classifier: H100 80GB"
+          },
+          {
+            "netuid": 10,
+            "name": "Pareton",
+            "minVramGb": 80,
+            "src": "app-classifier",
+            "quote": "classifier: H100 80GB"
+          },
+          {
+            "netuid": 14,
+            "name": "Cacheon",
+            "minVramGb": 80,
+            "src": "app-classifier",
+            "quote": "classifier: H100 80GB"
+          },
+          {
+            "netuid": 26,
+            "name": "Perturb",
+            "minVramGb": 200,
+            "src": "README",
+            "quote": "- Recommended: 16 vCPU, 64 GB RAM, NVIDIA GPU with 24+ GB VRAM, 200 GB SSD"
+          },
+          {
+            "netuid": 29,
+            "name": "hoτfloaτ",
+            "minVramGb": 80,
+            "src": "app-classifier",
+            "quote": "classifier: H100 80GB"
+          }
+        ]
+      },
+      "16 GB (4060 Ti 16G / 4080 / 5080-class)": {
+        "subnets": 9,
+        "taoPerDay": 359.9034545318102,
+        "usdPerDay": 90346.56419112031,
+        "examples": [
+          {
+            "netuid": 3,
+            "name": "Teutonic",
+            "minVramGb": 16,
+            "src": "app-classifier",
+            "quote": "classifier: RTX 4060 Ti 16GB"
+          },
+          {
+            "netuid": 8,
+            "name": "Vanta",
+            "minVramGb": 16,
+            "src": "app-classifier",
+            "quote": "classifier: RTX 4060 Ti 16GB"
+          },
+          {
+            "netuid": 9,
+            "name": "iota",
+            "minVramGb": 16,
+            "src": "README",
+            "quote": "1. Cuda GPU with = 16GB VRAM (RTX 4090, for example)."
+          },
+          {
+            "netuid": 15,
+            "name": "ORO",
+            "minVramGb": 16,
+            "src": "app-classifier",
+            "quote": "classifier: RTX 4060 Ti 16GB"
+          },
+          {
+            "netuid": 28,
+            "name": "SayGM",
+            "minVramGb": 16,
+            "src": "app-classifier",
+            "quote": "classifier: RTX 4060 Ti 16GB"
+          },
+          {
+            "netuid": 54,
+            "name": "Yanez",
+            "minVramGb": 16,
+            "src": "min_compute.yml",
+            "quote": "min_vram=16 rec=32 rec_gpu=NVIDIA A100 or RTX 4090"
+          }
+        ]
+      },
+      "24 GB (RTX 4090 / 3090 / 5090-class)": {
+        "subnets": 16,
+        "taoPerDay": 500.6445444422491,
+        "usdPerDay": 125676.7999913378,
+        "examples": [
+          {
+            "netuid": 4,
+            "name": "Targon",
+            "minVramGb": 24,
+            "src": "app-classifier",
+            "quote": "classifier: RTX 4090 24GB"
+          },
+          {
+            "netuid": 12,
+            "name": "Compute Horde",
+            "minVramGb": 24,
+            "src": "app-classifier",
+            "quote": "classifier: RTX 4090 24GB"
+          },
+          {
+            "netuid": 17,
+            "name": "404—GEN",
+            "minVramGb": 24,
+            "src": "app-classifier",
+            "quote": "classifier: RTX 4090 24GB"
+          },
+          {
+            "netuid": 18,
+            "name": "Zeus",
+            "minVramGb": 24,
+            "src": "app-classifier",
+            "quote": "classifier: RTX 4090 24GB"
+          },
+          {
+            "netuid": 20,
+            "name": "Witness",
+            "minVramGb": 24,
+            "src": "app-classifier",
+            "quote": "classifier: RTX 4090 24GB"
+          },
+          {
+            "netuid": 25,
+            "name": "UR",
+            "minVramGb": 24,
+            "src": "app-classifier",
+            "quote": "classifier: RTX 4090 24GB"
+          }
+        ]
+      },
+      "32–48 GB (A6000 / L40S / A100 40G-class)": {
+        "subnets": 3,
+        "taoPerDay": 22.051660054322973,
+        "usdPerDay": 5535.628223436696,
+        "examples": [
+          {
+            "netuid": 68,
+            "name": "NOVA",
+            "minVramGb": 48,
+            "src": "README",
+            "quote": "- 2 GPU devices with 48 GB VRAM for parallel inference. If only one is available, inference will run sequentially which may result in delayed/missing scoring rounds."
+          },
+          {
+            "netuid": 103,
+            "name": "Capcomp",
+            "minVramGb": 32,
+            "src": "min_compute.yml",
+            "quote": "min_vram=32 rec=48"
+          },
+          {
+            "netuid": 106,
+            "name": "Nodexo",
+            "minVramGb": 40,
+            "src": "README",
+            "quote": "| Miner | Ubuntu/Debian GPU host, [supported NVIDIA GPU](docs/SUPPORTED_GPUS.md), working nvidia-smi, Docker, 4 CPU cores, 16 GB RAM, 40 GB free Docker storage | 8+ CPU cores, 32+ GB RAM, 100+ GB free Docker storage |"
+          }
+        ]
+      }
+    },
+    "unclassified": [
+      {
+        "netuid": 0,
+        "name": "SN0"
+      },
+      {
+        "netuid": 7,
+        "name": "Allways"
+      },
+      {
+        "netuid": 11,
+        "name": "TrajectoryRL"
+      },
+      {
+        "netuid": 13,
+        "name": "Data Universe"
+      },
+      {
+        "netuid": 16,
+        "name": "trav"
+      },
+      {
+        "netuid": 21,
+        "name": "AdTAO"
+      },
+      {
+        "netuid": 22,
+        "name": "Desearch"
+      },
+      {
+        "netuid": 23,
+        "name": "Trishool"
+      },
+      {
+        "netuid": 24,
+        "name": "Quasar"
+      },
+      {
+        "netuid": 27,
+        "name": "Orion"
+      },
+      {
+        "netuid": 30,
+        "name": "Endure Network"
+      },
+      {
+        "netuid": 35,
+        "name": "OxMarkets"
+      },
+      {
+        "netuid": 36,
+        "name": "Epago"
+      },
+      {
+        "netuid": 37,
+        "name": "Aurelius"
+      },
+      {
+        "netuid": 40,
+        "name": "Ralph"
+      },
+      {
+        "netuid": 41,
+        "name": "Almanac"
+      },
+      {
+        "netuid": 42,
+        "name": "Unknown"
+      },
+      {
+        "netuid": 43,
+        "name": "Graphite"
+      },
+      {
+        "netuid": 44,
+        "name": "Score"
+      },
+      {
+        "netuid": 47,
+        "name": "Feval"
+      },
+      {
+        "netuid": 50,
+        "name": "Synth"
+      },
+      {
+        "netuid": 59,
+        "name": "Subnet 59"
+      },
+      {
+        "netuid": 65,
+        "name": "True Performance Network"
+      },
+      {
+        "netuid": 66,
+        "name": "conjectures"
+      },
+      {
+        "netuid": 67,
+        "name": "Harnyx"
+      },
+      {
+        "netuid": 70,
+        "name": "Subnet 70"
+      },
+      {
+        "netuid": 73,
+        "name": "Parked"
+      },
+      {
+        "netuid": 74,
+        "name": "Gittensor"
+      },
+      {
+        "netuid": 76,
+        "name": "Subnet 76"
+      },
+      {
+        "netuid": 77,
+        "name": "Liquidity"
+      },
+      {
+        "netuid": 78,
+        "name": "Umi"
+      },
+      {
+        "netuid": 82,
+        "name": "Compelle"
+      },
+      {
+        "netuid": 84,
+        "name": "Subnet 84"
+      },
+      {
+        "netuid": 86,
+        "name": "Subnet 86"
+      },
+      {
+        "netuid": 87,
+        "name": "Provenonce"
+      },
+      {
+        "netuid": 88,
+        "name": "Investing"
+      },
+      {
+        "netuid": 89,
+        "name": "InfiniteQuant"
+      },
+      {
+        "netuid": 92,
+        "name": "MicroTensor"
+      },
+      {
+        "netuid": 94,
+        "name": "pending..."
+      },
+      {
+        "netuid": 98,
+        "name": "NeverPlayAlone"
+      },
+      {
+        "netuid": 99,
+        "name": "Thirty Spokes"
+      },
+      {
+        "netuid": 104,
+        "name": "TAOstatus"
+      },
+      {
+        "netuid": 108,
+        "name": "Prometheon"
+      },
+      {
+        "netuid": 109,
+        "name": "Finsight"
+      },
+      {
+        "netuid": 111,
+        "name": "Claims"
+      },
+      {
+        "netuid": 112,
+        "name": "parked"
+      },
+      {
+        "netuid": 115,
+        "name": "MoirAI"
+      },
+      {
+        "netuid": 116,
+        "name": "Memo"
+      },
+      {
+        "netuid": 117,
+        "name": "glyph"
+      },
+      {
+        "netuid": 119,
+        "name": "CapabilityForge Next"
+      },
+      {
+        "netuid": 122,
+        "name": "CookingTAO"
+      },
+      {
+        "netuid": 123,
+        "name": "MANTIS"
+      },
+      {
+        "netuid": 124,
+        "name": "Swarm"
+      },
+      {
+        "netuid": 125,
+        "name": "Refinery"
+      },
+      {
+        "netuid": 126,
+        "name": "Poker44"
+      },
+      {
+        "netuid": 127,
+        "name": "Astrid"
+      },
+      {
+        "netuid": 128,
+        "name": "ByteLeap"
+      }
+    ],
+    "classes": [
+      {
+        "class": "8–12 GB (3060/4070-class)",
+        "subnets": 30,
+        "taoPerDay": 340.21061566215616,
+        "usdPerDay": 85403.07084967106,
+        "examples": [
+          {
+            "netuid": 1,
+            "name": "Apex",
+            "minVramGb": 8,
+            "src": "app-classifier",
+            "quote": "classifier: Entry GPU 8GB"
+          },
+          {
+            "netuid": 5,
+            "name": "Hone",
+            "minVramGb": 8,
+            "src": "app-classifier",
+            "quote": "classifier: Entry GPU 8GB"
+          },
+          {
+            "netuid": 19,
+            "name": "blockmachine",
+            "minVramGb": 8,
+            "src": "app-classifier",
+            "quote": "classifier: Entry GPU 8GB"
+          },
+          {
+            "netuid": 33,
+            "name": "ReadyAI",
+            "minVramGb": 8,
+            "src": "min_compute.yml",
+            "quote": "min_vram=8 rec=24 rec_gpu=NVIDIA A100"
+          },
+          {
+            "netuid": 38,
+            "name": "ChronoLLM",
+            "minVramGb": 8,
+            "src": "app-classifier",
+            "quote": "classifier: Entry GPU 8GB"
+          },
+          {
+            "netuid": 39,
+            "name": "deprecated",
+            "minVramGb": 8,
+            "src": "app-classifier",
+            "quote": "classifier: Entry GPU 8GB"
+          }
+        ]
+      },
+      {
+        "class": "16 GB (4060 Ti 16G / 4080 / 5080-class)",
+        "subnets": 9,
+        "taoPerDay": 359.9034545318102,
+        "usdPerDay": 90346.56419112031,
+        "examples": [
+          {
+            "netuid": 3,
+            "name": "Teutonic",
+            "minVramGb": 16,
+            "src": "app-classifier",
+            "quote": "classifier: RTX 4060 Ti 16GB"
+          },
+          {
+            "netuid": 8,
+            "name": "Vanta",
+            "minVramGb": 16,
+            "src": "app-classifier",
+            "quote": "classifier: RTX 4060 Ti 16GB"
+          },
+          {
+            "netuid": 9,
+            "name": "iota",
+            "minVramGb": 16,
+            "src": "README",
+            "quote": "1. Cuda GPU with = 16GB VRAM (RTX 4090, for example)."
+          },
+          {
+            "netuid": 15,
+            "name": "ORO",
+            "minVramGb": 16,
+            "src": "app-classifier",
+            "quote": "classifier: RTX 4060 Ti 16GB"
+          },
+          {
+            "netuid": 28,
+            "name": "SayGM",
+            "minVramGb": 16,
+            "src": "app-classifier",
+            "quote": "classifier: RTX 4060 Ti 16GB"
+          },
+          {
+            "netuid": 54,
+            "name": "Yanez",
+            "minVramGb": 16,
+            "src": "min_compute.yml",
+            "quote": "min_vram=16 rec=32 rec_gpu=NVIDIA A100 or RTX 4090"
+          }
+        ]
+      },
+      {
+        "class": "24 GB (RTX 4090 / 3090 / 5090-class)",
+        "subnets": 16,
+        "taoPerDay": 500.6445444422491,
+        "usdPerDay": 125676.7999913378,
+        "examples": [
+          {
+            "netuid": 4,
+            "name": "Targon",
+            "minVramGb": 24,
+            "src": "app-classifier",
+            "quote": "classifier: RTX 4090 24GB"
+          },
+          {
+            "netuid": 12,
+            "name": "Compute Horde",
+            "minVramGb": 24,
+            "src": "app-classifier",
+            "quote": "classifier: RTX 4090 24GB"
+          },
+          {
+            "netuid": 17,
+            "name": "404—GEN",
+            "minVramGb": 24,
+            "src": "app-classifier",
+            "quote": "classifier: RTX 4090 24GB"
+          },
+          {
+            "netuid": 18,
+            "name": "Zeus",
+            "minVramGb": 24,
+            "src": "app-classifier",
+            "quote": "classifier: RTX 4090 24GB"
+          },
+          {
+            "netuid": 20,
+            "name": "Witness",
+            "minVramGb": 24,
+            "src": "app-classifier",
+            "quote": "classifier: RTX 4090 24GB"
+          },
+          {
+            "netuid": 25,
+            "name": "UR",
+            "minVramGb": 24,
+            "src": "app-classifier",
+            "quote": "classifier: RTX 4090 24GB"
+          }
+        ]
+      },
+      {
+        "class": "32–48 GB (A6000 / L40S / A100 40G-class)",
+        "subnets": 3,
+        "taoPerDay": 22.051660054322973,
+        "usdPerDay": 5535.628223436696,
+        "examples": [
+          {
+            "netuid": 68,
+            "name": "NOVA",
+            "minVramGb": 48,
+            "src": "README",
+            "quote": "- 2 GPU devices with 48 GB VRAM for parallel inference. If only one is available, inference will run sequentially which may result in delayed/missing scoring rounds."
+          },
+          {
+            "netuid": 103,
+            "name": "Capcomp",
+            "minVramGb": 32,
+            "src": "min_compute.yml",
+            "quote": "min_vram=32 rec=48"
+          },
+          {
+            "netuid": 106,
+            "name": "Nodexo",
+            "minVramGb": 40,
+            "src": "README",
+            "quote": "| Miner | Ubuntu/Debian GPU host, [supported NVIDIA GPU](docs/SUPPORTED_GPUS.md), working nvidia-smi, Docker, 4 CPU cores, 16 GB RAM, 40 GB free Docker storage | 8+ CPU cores, 32+ GB RAM, 100+ GB free Docker storage |"
+          }
+        ]
+      },
+      {
+        "class": "80 GB+ (A100 80G / H100 / H200-class)",
+        "subnets": 14,
+        "taoPerDay": 186.52075361925222,
+        "usdPerDay": 46822.30478104088,
+        "examples": [
+          {
+            "netuid": 2,
+            "name": "DSperse",
+            "minVramGb": 80,
+            "src": "app-classifier",
+            "quote": "classifier: H100 80GB"
+          },
+          {
+            "netuid": 6,
+            "name": "Numinous",
+            "minVramGb": 80,
+            "src": "app-classifier",
+            "quote": "classifier: H100 80GB"
+          },
+          {
+            "netuid": 10,
+            "name": "Pareton",
+            "minVramGb": 80,
+            "src": "app-classifier",
+            "quote": "classifier: H100 80GB"
+          },
+          {
+            "netuid": 14,
+            "name": "Cacheon",
+            "minVramGb": 80,
+            "src": "app-classifier",
+            "quote": "classifier: H100 80GB"
+          },
+          {
+            "netuid": 26,
+            "name": "Perturb",
+            "minVramGb": 200,
+            "src": "README",
+            "quote": "- Recommended: 16 vCPU, 64 GB RAM, NVIDIA GPU with 24+ GB VRAM, 200 GB SSD"
+          },
+          {
+            "netuid": 29,
+            "name": "hoτfloaτ",
+            "minVramGb": 80,
+            "src": "app-classifier",
+            "quote": "classifier: H100 80GB"
+          }
+        ]
+      }
+    ]
+  },
+  "viewC": [
+    {
+      "gpu": "CPU VPS",
+      "subnetCount": 65,
+      "taoPerDay": 314.6426429123393,
+      "subnets": [
+        7,
+        11,
+        13,
+        16,
+        21,
+        22,
+        23,
+        24
+      ],
+      "usdPerDay": 78984.74265028453
+    },
+    {
+      "gpu": "Entry GPU (≤12GB)",
+      "subnetCount": 26,
+      "taoPerDay": 339.7464245566087,
+      "subnets": [
+        1,
+        5,
+        19,
+        34,
+        38,
+        39,
+        49,
+        52
+      ],
+      "usdPerDay": 85286.54495644548
+    },
+    {
+      "gpu": "RTX 4090 24GB",
+      "subnetCount": 17,
+      "taoPerDay": 562.3732230225925,
+      "subnets": [
+        4,
+        12,
+        17,
+        18,
+        20,
+        25,
+        48,
+        51
+      ],
+      "usdPerDay": 141172.5501753614
+    },
+    {
+      "gpu": "H100 80GB",
+      "subnetCount": 12,
+      "taoPerDay": 174.0359552495548,
+      "subnets": [
+        2,
+        6,
+        10,
+        14,
+        29,
+        31,
+        46,
+        53
+      ],
+      "usdPerDay": 43688.245846295744
+    },
+    {
+      "gpu": "RTX 4060 Ti 16GB",
+      "subnetCount": 7,
+      "taoPerDay": 276.43032641645937,
+      "subnets": [
+        3,
+        8,
+        9,
+        15,
+        28,
+        90,
+        97
+      ],
+      "usdPerDay": 69392.30484032379
+    },
+    {
+      "gpu": "RTX A6000 48GB",
+      "subnetCount": 1,
+      "taoPerDay": 14.103690472439293,
+      "subnets": [
+        68
+      ],
+      "usdPerDay": 3540.4494192964357
+    }
+  ]
+}

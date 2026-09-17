@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=Playfair+Display:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --c-bg: #f1f0ef;
+    --c-accent: #87702a;
+    --c-text: #1c1c1a;
+    --c-muted: #78766f;
+    --c-mid: #504933;
+    --c-surface: #e8e7e4;
+    --c-border: #cfcab8;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  @page { size: 794px 1123px; margin: 0; }
+  html, body { width: 794px; height: 1123px; background: var(--c-bg); }
+  body { font-family: 'Inter', sans-serif; overflow: hidden; }
+
+  /* Layer 1: background grid (2% opacity) */
+  .layer1 {
+    position: absolute; inset: 0; overflow: hidden; z-index: 1;
+    background-image:
+      linear-gradient(rgba(80, 73, 51, 0.04) 0.5px, transparent 0.5px),
+      linear-gradient(90deg, rgba(80, 73, 51, 0.04) 0.5px, transparent 0.5px);
+    background-size: 50px 50px;
+  }
+  /* Layer 2: structure — ultra-thick left anchor line */
+  .layer2 { position: absolute; inset: 0; z-index: 2; }
+  .anchor-line {
+    position: absolute;
+    left: 95px;              /* 0.12 * 794 */
+    top: 112px;              /* 0.10 * 1123 */
+    height: 899px;           /* to 0.90 * 1123 */
+    width: 6px;
+    background: var(--c-accent);
+  }
+  /* Layer 3: content — left edge = 0.12W + 30pt(40px) = 135px */
+  .layer3 { position: absolute; inset: 0; z-index: 3; }
+  .kicker {
+    position: absolute; left: 152px; top: 168px;   /* 0.15 * H */
+    font-size: 16px; font-weight: 400; letter-spacing: 4px;
+    color: var(--c-muted); text-transform: uppercase;
+  }
+  .hero {
+    position: absolute; left: 152px; top: 320px;   /* ~0.30 * H */
+    max-width: 560px;
+    font-family: 'Playfair Display', 'Inter', serif;
+    font-size: 58px; font-weight: 900; line-height: 1.15;
+    color: var(--c-text);
+  }
+  .summary {
+    position: absolute; left: 152px; top: 580px;   /* ~0.52 * H */
+    max-width: 470px;
+    font-size: 17px; font-weight: 400; line-height: 1.6;
+    color: var(--c-text); opacity: 0.85;
+  }
+  .stat-strip {
+    position: absolute; left: 152px; top: 745px;
+    display: flex; gap: 44px;
+  }
+  .stat .num { font-size: 30px; font-weight: 700; color: var(--c-accent); }
+  .stat .lbl { font-size: 11px; font-weight: 500; letter-spacing: 1.5px; color: var(--c-muted); text-transform: uppercase; margin-top: 4px; }
+  .meta {
+    position: absolute; left: 152px; top: 900px;   /* ~0.80 * H */
+    font-size: 16px; font-weight: 400; line-height: 1.7; color: var(--c-text);
+  }
+  .meta .sub { color: var(--c-muted); font-size: 14px; }
+  .footer {
+    position: absolute; left: 152px; top: 1035px;
+    font-size: 13px; font-weight: 400; letter-spacing: 2px;
+    color: var(--c-muted); text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+  <div class="layer1"></div>
+  <div class="layer2"><div class="anchor-line"></div></div>
+  <div class="layer3">
+    <div class="kicker">Subnet GPU Requirements Research</div>
+    <div class="hero">Which GPUs<br>Mine Bittensor?</div>
+    <div class="summary">
+      A repo-level audit of all 129 Bittensor subnets: READMEs, min_compute.yml
+      declarations and Docker files were scanned to identify which GPU models
+      miners are actually asked to run — H200, RTX 4090, or something else.
+    </div>
+    <div class="stat-strip">
+      <div class="stat"><div class="num">129</div><div class="lbl">Subnets scanned</div></div>
+      <div class="stat"><div class="num">108</div><div class="lbl">READMEs analyzed</div></div>
+      <div class="stat"><div class="num">29</div><div class="lbl">min_compute.yml specs</div></div>
+      <div class="stat"><div class="num">27</div><div class="lbl">GPU evidence records</div></div>
+    </div>
+    <div class="meta">
+      INFRANEX BT — DevOps Intelligence<br>
+      <span class="sub">Block 9,036,761 snapshot · TAO $251.03 · September 10, 2026</span>
+    </div>
+    <div class="footer">INFRANEX BT · FINNEY CHAIN AUDIT · SEPTEMBER 2026</div>
+  </div>
+</body>
+</html>

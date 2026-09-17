@@ -1,0 +1,29 @@
+[
+  {
+    "url": "https://github.com",
+    "name": "commune-ai/compute-ni: Bittensor Compute Subnet",
+    "snippet": "This repository contains all the necessary files and functions to define Bittensor's Compute Subnet . This repository requires python3.8 or higher.",
+    "host_name": "github.com",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://subnetalpha.ai",
+    "name": "Green Compute",
+    "snippet": "Green Compute is Bittensor subnet . Green Compute aims to provide identical multiprocessor rigs (e.g. clusters of 4090/5090 GPUs) and human support to meet ...",
+    "host_name": "subnetalpha.ai",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://docs.vast.ai",
+    "name": "Mining on Bittensor",
+    "snippet": "This tutorial shows how to use the Bittensor testnet to create a subnet and run your incentive mechanism on it.",
+    "host_name": "docs.vast.ai",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  }
+]
