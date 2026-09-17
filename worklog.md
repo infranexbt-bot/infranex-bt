@@ -1339,3 +1339,21 @@ Stage Summary:
 - CPU Catalog feature COMPLETE and VERIFIED post-restore; nothing code-wise left to build for the user's request.
 - Activation is user-side: paste Hetzner Cloud API token (console.hetzner.cloud → Security → API tokens) and/or DigitalOcean token (API → Generate token) in CPU Catalog → Provider API keys.
 - Pending: push main (incl. CPU Catalog + epago label fix) to nextjs-platform — needs fresh PAT.
+
+---
+Task ID: cpu-miner-guide-1
+Agent: main
+Task: "ok provide the CPU miners guide, i need step by step procedure to run the CPU miner"
+
+Work Log:
+- Defaults confirmed after user "continue": PDF guide, both paths (web-app + manual), SN61 RedTeam worked example, full depth, live screenshots, new-miner reader, English.
+- Loaded pdf skill chain (SKILL.md, fonts.md, creative-flow brief, overflow/palette/typography/pagination/cover/cover-backgrounds/charts). Deliberate design decision: kept the GPU guide's proven 720x1020 Operator Handbook skeleton + Business-Blue family for series consistency (same pipeline: html2pdf-next.js --nopaged + stamp-guide-pagenums + pdf_qa).
+- Live data pulled with auth cookie: SN61 requirements from git via /api/devops/subnet-requirements (repo RedTeamSubnet/RedTeam, entrypoint src/redteam_core/validator/miner_manager.py, python 3.10, 10 pip deps, apt list, axon 8091, BT_* env, high confidence) and chain econ via /api/network at block 9,088,338 (TAO $228.43, alpha $16.12, burn 0.1335 TAO = $30.49, 256 miners / 118 rewarded, top-10 share 62.6%, miner emission 208.37 TAO/day). Pricing from fixture-verified adapter tests (CX22 $4.51, CX32 $8.09, CCX13 $16.29, DO s-2vcpu-4gb $24, c-4 $87).
+- 9 live screenshots captured (1600x1000, light theme) into download/cpu-miner-setup-guide/images/: opportunities, cpu-guide picker, catalog empty, keys dialog, catalog with offers (via agent-browser network-route mock of /api/cpu-offers with fixture-shaped data — mock unrouted after; requirements pull in the provision dialog is REAL), provision dialog SN61 + gating, DevOps Engine, My Miners. scripts/mock-cpu-offers.json kept as the reusable mock fixture.
+- Guide written: 12 chapters + cover/ending — golden order CPU edition, why CPU (−95%), prerequisites, connect provider (Hetzner/DO token paths), read the market, pick subnet (honest 3-state GPU labels + SN61 git-requirements table + live chain table), rent & auto-install (7-step engine table + cloud-init block), wallet/launch gates (hotkey-only SCP), register & verify (btcli + Validator Lab/My Miners), manual path M1-M4 terminal blocks, costs ledger (first month ≈ $38.58) + honest expectations (top-10 concentration), troubleshooting (real errors incl. 400/409/refusals).
+- Pipeline: poster_validate check-html PASS (0 errors/0 warnings) → html2pdf-next.js --nopaged 720x1020 (20pp, ~4,584 words, 9 screenshots) → page-number stamp + metadata → pdf_qa --no-tables: fixed 2 line-start punctuation warnings (em-dash table cell, ellipsis wrap) → final PASS. Post-render text extraction: 0 U+FFFD on all 20 pages. Visual page checks OK (cover, ch4/5 flow).
+
+Stage Summary:
+- Deliverables in download/cpu-miner-setup-guide/: cpu-miner-setup-guide.pdf (20pp, 2.9MB, QA PASS) + cpu-miner-setup-guide.html (editable source) + images/ (9 live screenshots).
+- Guide numbers are live and dated (block 9,088,338, Sep 17 2026); regeneration path = edit HTML → re-run README-style command chain.
+- Not yet done: git push to nextjs-platform (needs fresh PAT from user) — guide files currently local-only alongside the CPU Catalog code.
