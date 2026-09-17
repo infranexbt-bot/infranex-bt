@@ -35,6 +35,11 @@ export interface ScoredStrategy {
   /** Mining only — the GPU the subnet needs. */
   requiredGpu?: string;
   minVramGb?: number;
+  /** RIDGES-FIX — honest GPU sourcing, mirrors opportunity-detail.tsx:
+   *  requirementsSource set ⇒ repo-documented requirement; hardwareClassified
+   *  ⇒ work-type typical; neither ⇒ revenue-based estimate (not a spec). */
+  requirementsSource?: string | null;
+  hardwareClassified?: boolean;
   /** Staking only — where the yield comes from. */
   detail?: string;
 }
@@ -130,6 +135,8 @@ function miningStrategy(o: LiveOpportunity, usdInr: number): ScoredStrategy {
     confidence: o.confidence ?? 0.5,
     requiredGpu: o.recommendedGpu,
     minVramGb: o.minVramGb,
+    requirementsSource: o.requirementsSource ?? null,
+    hardwareClassified: o.hardwareClassified ?? false,
     detail: `net of GPU + infra (${o.profitability ? "full P&L" : "ledger estimate"})`,
   };
 }

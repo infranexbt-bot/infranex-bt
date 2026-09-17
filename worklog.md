@@ -1269,3 +1269,20 @@ Stage Summary:
 - Login credentials are UNCHANGED: admin / BRJ2-W2GT-WJNF-97VC (plus ops01, ops02, analyst01, viewer01 — see scripts/users.local.json).
 - Root cause was empty AppUser table post-wipe, not a bad code. users.local.json mirror restored to scripts/ (0600, gitignored).
 - Web app fully loaded and operational on port 3000.
+
+---
+Task ID: epago-gpu-label-1
+Agent: main
+Task: "check Epago why its showing GPU required / CPU VPS / 0 GB VRAM · 61% confidence"
+
+Work Log:
+- Traced the exact UI text to dashboard-view.tsx home card (TAO Opportunity Score section, ~line 612): hardcoded label "GPU required" for every mine suggestion — a leftover the RIDGES-FIX missed (fix had covered opportunity-detail.tsx + opportunity-table.tsx only).
+- Data verified correct via scripts/check-epago.ts (mergeOpportunities on live snapshot): SN36 Epago = Agents & logic, CPU VPS, 0 GB, hardwareClassified=true, requirementsSource=null, confidence=0.61. SubnetOverride row (scraped 06:09 today) has no repo-documented GPU — nothing repo-documented at all. So "GPU required" was a false label on correct data.
+- Fix: (1) opportunity-score.ts ScoredStrategy + miningStrategy() now carry requirementsSource + hardwareClassified; (2) dashboard-view.tsx renders the same three-state honest label as the detail dialog: GPU required (repo-documented) / Typical GPU (classified) / GPU (est.) with matching tooltips.
+- verify-ridges-fix.ts: 2 assertions pinned live chain values (liquidity 30,221 exact, 24h change = 0.0%) and failed on natural drift (30,414 / ▲1.0%) — loosened to ±15% band and presence check, with comments. 14/14 again.
+- Regression: verify-ridges-fix 14/14, verify-merge-engine 14/14, miner-mindset 38/38, mechanics 64/64, tsc src/ clean.
+- Browser-verified: dashboard card now shows "TYPICAL GPU / CPU VPS / 0 GB VRAM · 61% confidence" for Epago α36. Screenshot: download/epago-typical-gpu-fix.png.
+
+Stage Summary:
+- Root cause: hardcoded dashboard label, not data. All three surfaces (detail dialog, table, dashboard home card) now share the same honest GPU-sourcing semantics.
+- Uncommitted: opportunity-score.ts, dashboard-view.tsx, verify-ridges-fix.ts, scripts/check-epago.ts (diagnostic), users.local.json restored (0600, gitignored). Awaiting user instruction to commit/push.
