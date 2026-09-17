@@ -1450,3 +1450,17 @@ Work Log:
 Stage Summary:
 - App is production-ready pending: user re-adds provider keys (RunPod/Hetzner/DO); force-sync UX note (>60s for 106 repos, consider background job)
 - Known honest empty states: wallets/hosts/deployments/keys = 0 until operator onboards
+
+---
+Task ID: judge-audit
+Agent: main
+Task: Verify Validator Lab repo sourcing + verdict-to-live-miner push
+
+Work Log:
+- Traced judge profile build: chain identity first, curated seed fallback; sn61 profile provenance = RedTeamSubnet/RedTeam README + validator/__init__.py via git-trees; sn1 = macrocosm-os/apex (post-audit-fix)
+- Traced apply flow: JUDGE_FIX_RECIPES env deltas, revision snapshot, apply_config via daemon-bridge (HMAC-signed, replay-protected), honest transport ladder (daemon/mock/platform-only)
+- Ran live E2E (scripts/prod-audit-judge-e2e.ts): mock deployment + registered daemon -> judge sync/simulate/apply -> signed daemon pull returned apply_config {"env":{"INFANEX_RUNTIME":"vllm",...}} -> result ack 200 -> cleanup
+
+Stage Summary:
+- Validator Lab: CORRECT repos (chain-first), honest provenance
+- Verdict push to live miner: WORKING end-to-end (proven with signed pull); admin-gated; availability dimension honestly manual-only
