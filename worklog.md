@@ -1464,3 +1464,55 @@ Work Log:
 Stage Summary:
 - Validator Lab: CORRECT repos (chain-first), honest provenance
 - Verdict push to live miner: WORKING end-to-end (proven with signed pull); admin-gated; availability dimension honestly manual-only
+
+---
+Task ID: deployments-audit-1
+Agent: main (Super Z)
+Task: Audit the deployments page — verify everything works end-to-end
+
+Work Log:
+- Read full surface: deployments-view.tsx (751 ln), deploy-stepper.tsx (1069 ln),
+  engine.ts (614), state-machine.ts, ticker.ts, real-setup.ts, registration.ts
+  route, migrate/to-devops/terminate/tick routes, use-deployments.ts hook
+- Found Deployment table EMPTY (fresh DB post-restore) — page shows honest
+  empty state; seeded engine-harness rows to exercise the lifecycle
+- BUG #1 (user-facing): POST /api/deployments/[id]/tick called raw
+  advanceDeployment — a controlled row with status=setup + installStatus=failed
+  jumped setup->ready->deploying (installStatus stayed failed), i.e. the card's
+  "Retry install" button SKIPPED the failed install instead of retrying it.
+  Also would force-jump runpod provisioning past the RUNNING check. Fixed:
+  route now calls engine tickDeployment (retry/poll/no-op-mid-runner semantics
+  — same function the 5s background ticker, judge-apply, revisions use)
+- BUG #2 (harness): DATA-AUDIT-1 M3 removed the DevOps MockTransport but kept
+  mode:"mock" as the engine test harness — mock deployments provisioned fine
+  then DIED at the first install command ("Mock transport removed") and hung
+  failed forever. Fixed with harness-scoped MockDeploymentTransport in
+  real-setup.ts (every line labeled "(mock pod)"); DevOps openTransport stays
+  strict real-SSH-only
+- E2E verified (scripts/audit-deployments.ts): server-ticker-only lifecycle
+  requested->approved->provisioning->provisioned->setup->ready->deploying->
+  started in ~15s (installStatus=installed); failed-phase tick now RETRIES
+  (response stays setup, installStatus running); POST create without provider
+  keys -> honest 400 "connect a provider API key"; invalid hotkey -> 400;
+  r1 revision anchor present; GET detail/registration/revisions 200
+- Browser walkthrough (admin): stepper step1 live subnet list (129, chain
+  data); alpha4 Targon shows hosting-restriction gate + ack checkbox gating
+  Continue; alpha12 offers step shows honest "No offer meets 24GB — add
+  provider keys" + "No RunPod API key yet"; "Your picks" sidebar tracks;
+  empty-state card + Start at step 1 scroll; seeded card renders (badges,
+  cost $161/mo, progress 100%, step indicators); View logs detail panel with
+  (mock pod)-labeled lines; config tab shows real SN12 entrypoint, secret
+  masking (BT_HOTKEY_SS58 dot-masked), honest "rough category guess — not
+  chain-measured" revenue badge; Revisions dialog (r1 deploy/current/engine);
+  Install daemon dialog; Terminate -> Terminated section; Delete -> empty
+  state restored. ZERO console errors / page errors
+- Spot-checked "min 141GB VRAM" across many subnets: REAL parsed data (SN1
+  Apex = H200 141GB; SN11 = CPU-only, honest 0GB) — not a bug
+- Committed 5dcd949 on local main (tick route + real-setup + audit script)
+
+Stage Summary:
+- Deployments page VERIFIED WORKING end-to-end (lifecycle, UI, dialogs,
+  honesty paths). 2 defects found + fixed + committed: tick-route skip-ahead
+  (user-facing) and broken mock harness (test infra). DB left clean (0 rows).
+  Note: real rentals blocked until provider keys are re-added (honest gating,
+  not a bug); screenshots in download/audit-07-deployments-*.png
