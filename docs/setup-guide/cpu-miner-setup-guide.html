@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CPU Miner Setup Guide&nbsp;— INFRANEX BT</title>
+<script>/* This document contains literal dollar amounts, not LaTeX math.
+   Defining a katex stub makes the html2pdf pre-render hook treat KaTeX as
+   already loaded while renderMathInElement stays undefined, so no
+   auto-render pass ever runs and "$4.63/mo" survives as plain text. */
+window.katex = { __disabled: true };</script>
+<style>
+/* ================= PAGE MODEL ================= */
+@page { size: 720px 1020px; margin: 0; }
+:root {
+  --c-primary: #1a365d;      /* dark navy — headings, hero */
+  --c-mid: #2a5298;          /* mid navy — accents, chips */
+  --c-light: #4a7ac7;        /* light navy — borders, highlights */
+  --c-soft: #dce6f5;         /* soft fill */
+  --c-bg: #f5f8fc;           /* page background */
+  --c-text: #22303f;         /* body text */
+  --c-muted: #5b6b7d;        /* secondary text */
+  --c-border: #d9e2ef;       /* hairlines */
+  --c-term: #0f1e33;         /* terminal background */
+  --c-amber: #9a5b10;        /* caution text (low-sat) */
+  --c-amber-bg: #fdf3e3;     /* caution fill */
+}
+html, body {
+  margin: 0; padding: 0; width: 720px;
+  background: var(--c-bg);
+  color: var(--c-text);
+  font-family: 'Carlito', 'Noto Sans SC', 'DejaVu Sans', sans-serif;
+  font-size: 15px; line-height: 1.55;
+  line-break: strict; word-break: normal; overflow-wrap: break-word;
+}
+@media screen {
+  html { height: auto; display: flex; justify-content: center; background: #23303f; }
+  body { transform-origin: top center; margin: 20px auto; box-shadow: 0 8px 40px rgba(0,0,0,.4); }
+}
+* { box-sizing: border-box; }
+p { margin: 0 0 10px 0; }
+p, td, li { text-align: left; }
+
+/* ================= COVER ================= */
+.cover {
+  width: 720px; height: 1020px; break-after: page; overflow: hidden;
+  position: relative; background: var(--c-primary); color: #eef3fb;
+  display: flex; flex-direction: column; justify-content: center; padding: 64px;
+}
+.cover .ring1 { position: absolute; right: 44px; top: 64px; width: 280px; height: 280px;
+  border-radius: 50%; border: 2px solid rgba(122,150,200,.35); }
+.cover .ring2 { position: absolute; right: 84px; top: 104px; width: 200px; height: 200px;
+  border-radius: 50%; border: 1px solid rgba(122,150,200,.25); }
+.cover .grid-lines { position: absolute; left: 64px; bottom: 210px; width: 240px; height: 2px;
+  background: linear-gradient(90deg, var(--c-light), transparent); }
+.cover .tag { font-size: 12px; letter-spacing: 4px; text-transform: uppercase; color: #9db4d8; margin-bottom: 22px; }
+.cover .title { font-size: 58px; font-weight: 700; line-height: 1.04; margin-bottom: 18px; }
+.cover .title .thin { font-weight: 400; color: #b9cbe8; }
+.cover .subtitle { font-size: 17px; line-height: 1.6; color: #c3d2ea; max-width: 520px; margin-bottom: 34px; }
+.cover .cover-chips { display: flex; flex-wrap: wrap; gap: 8px; max-width: 560px; margin-bottom: 40px; }
+.cover .chip { font-size: 11.5px; letter-spacing: 1px; padding: 6px 12px; border: 1px solid rgba(140,170,215,.45);
+  border-radius: 999px; color: #d4e0f2; }
+.cover .cover-meta { position: absolute; left: 64px; bottom: 56px; right: 64px;
+  display: flex; justify-content: space-between; align-items: flex-end;
+  font-size: 12px; color: #93a9cd; border-top: 1px solid rgba(140,170,215,.3); padding-top: 16px; }
+.cover .cover-meta b { color: #d8e3f4; font-weight: 600; }
+
+/* ================= FLOW CONTENT ================= */
+.main-content { padding: 52px 56px 44px 56px; }
+.chapter-header { break-after: avoid; break-inside: avoid; margin-top: 26px; margin-bottom: 14px; }
+.chapter-header:first-child { margin-top: 0; }
+.kicker { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--c-mid); font-weight: 700; margin-bottom: 6px; }
+h1.chapter { font-size: 27px; font-weight: 700; color: var(--c-primary); margin: 0 0 8px 0; line-height: 1.15; }
+.rule { width: 52px; height: 3px; background: var(--c-mid); border-radius: 2px; margin: 10px 0 4px 0; }
+.lead { font-size: 15px; color: var(--c-muted); margin-bottom: 14px; }
+h2.sub { font-size: 18px; color: var(--c-primary); font-weight: 700; margin: 20px 0 8px 0; break-after: avoid; }
+
+/* Step blocks */
+.step { break-inside: avoid; margin-bottom: 14px; padding: 14px 16px; background: #ffffff;
+  border: 1px solid var(--c-border); border-left: 3px solid var(--c-mid); border-radius: 8px; }
+.step .step-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 6px; }
+.step .no { font-size: 12px; font-weight: 700; color: var(--c-mid); letter-spacing: 1px; white-space: nowrap; }
+.step .step-title { font-size: 15.5px; font-weight: 700; color: var(--c-primary); }
+.step p { margin: 4px 0; font-size: 14px; }
+.step ul { margin: 6px 0 2px 0; padding-left: 20px; }
+.step li { margin-bottom: 4px; font-size: 14px; break-inside: avoid; }
+
+/* Click path chip */
+.click { display: inline-block; font-size: 12px; font-weight: 700; color: #ffffff; background: var(--c-mid);
+  padding: 2px 9px; border-radius: 4px; letter-spacing: .4px; white-space: nowrap; }
+.clickpath { font-size: 13.5px; margin: 6px 0; }
+.clickpath .sep { color: var(--c-light); font-weight: 700; padding: 0 4px; }
+
+/* Figures — screenshots */
+figure { break-inside: avoid; margin: 14px 0; }
+figure img { display: block; width: 100%; max-width: 100%; max-height: 460px; object-fit: contain;
+  border: 1px solid var(--c-border); border-radius: 8px; background: #fff; }
+figcaption { font-size: 12.5px; color: var(--c-muted); margin-top: 6px; padding-left: 2px; }
+figcaption b { color: var(--c-primary); }
+
+/* Terminal blocks */
+.term { break-inside: avoid; margin: 12px 0; background: var(--c-term); border-radius: 8px; overflow: hidden;
+  border: 1px solid #1c3355; }
+.term .term-bar { display: flex; justify-content: space-between; padding: 7px 14px; background: #16283f;
+  font-size: 10.5px; letter-spacing: 2px; text-transform: uppercase; color: #8fa9cd; }
+.term pre { margin: 0; padding: 12px 14px; font-family: 'DejaVu Sans Mono', 'Liberation Mono', monospace;
+  font-size: 11.5px; line-height: 1.6; color: #d7e4f6; white-space: pre-wrap; overflow-wrap: break-word; }
+.term .cmd { color: #9fd0a0; }
+.term .out { color: #93a9cd; }
+.term .warn { color: #e8b96a; }
+
+/* Callouts */
+.note { break-inside: avoid; margin: 12px 0; padding: 11px 14px; border-radius: 8px;
+  background: var(--c-soft); border: 1px solid #c3d3ea; font-size: 13.5px; }
+.note b { color: var(--c-primary); }
+.note.amber { background: var(--c-amber-bg); border: 1px solid #ecd3a8; }
+.note.amber b { color: var(--c-amber); }
+
+/* Tables */
+table { width: 100%; border-collapse: collapse; margin: 12px 0; break-inside: avoid; font-size: 13px; }
+thead { display: table-header-group; }
+th { background: var(--c-primary); color: #fff; text-align: left; padding: 7px 10px; font-weight: 700; font-size: 12.5px; }
+td { padding: 7px 10px; border-bottom: 1px solid var(--c-border); vertical-align: top; overflow-wrap: break-word; }
+tr:nth-child(even) td { background: #eef3fa; }
+tr { break-inside: avoid; }
+td b { color: var(--c-primary); }
+.mono { font-family: 'DejaVu Sans Mono', 'Liberation Mono', monospace; font-size: 11.5px; }
+
+/* Golden-order flow */
+.flow-wrap { break-inside: avoid; margin: 14px 0; }
+.flow { display: flex; flex-wrap: wrap; gap: 8px; max-width: 100%; align-items: stretch; }
+.flow-step { flex: 1 1 auto; min-width: 96px; max-width: 100%; background: #fff; border: 1px solid var(--c-border);
+  border-top: 3px solid var(--c-mid); border-radius: 8px; padding: 10px 10px 8px 10px; overflow-wrap: break-word; }
+.flow-step .fn { font-size: 10px; letter-spacing: 2px; color: var(--c-muted); text-transform: uppercase; }
+.flow-step .ft { font-size: 13.5px; font-weight: 700; color: var(--c-primary); margin: 3px 0 2px 0; }
+.flow-step .fd { font-size: 11.5px; color: var(--c-muted); line-height: 1.45; }
+.flow-step.money { border-top-color: var(--c-amber); }
+.flow-step.money .fn::after { content: " · COSTS"; color: var(--c-amber); }
+.flow-step.free .fn::after { content: " · FREE"; color: #2f6b3f; }
+
+/* Checklist */
+.check { break-inside: avoid; margin: 10px 0; padding: 12px 16px; background: #fff; border: 1px solid var(--c-border); border-radius: 8px; }
+.check .ci { display: flex; gap: 10px; align-items: baseline; margin-bottom: 6px; font-size: 14px; }
+.check .box { font-family: 'DejaVu Sans Mono', monospace; color: var(--c-mid); font-weight: 700; }
+
+/* ================= ENDING ================= */
+.ending { width: 720px; height: 1020px; break-before: page; overflow: hidden; position: relative;
+  background: var(--c-primary); color: #e8eefa; display: flex; flex-direction: column;
+  justify-content: center; padding: 64px; }
+.ending .ring1 { position: absolute; left: 52px; bottom: 150px; width: 300px; height: 300px;
+  border-radius: 50%; border: 2px solid rgba(122,150,200,.3); }
+.ending h2 { font-size: 40px; font-weight: 700; margin: 0 0 14px 0; }
+.ending p { color: #c3d2ea; font-size: 15.5px; max-width: 540px; }
+.ending .end-list { margin: 26px 0; }
+.ending .end-item { display: flex; gap: 12px; margin-bottom: 12px; font-size: 14.5px; }
+.ending .end-item .tick { color: #9fd0a0; font-weight: 700; }
+.ending .end-meta { position: absolute; bottom: 56px; left: 64px; right: 64px; display: flex;
+  justify-content: space-between; font-size: 12px; color: #93a9cd; border-top: 1px solid rgba(140,170,215,.3); padding-top: 16px; }
+</style>
+</head>
+<body>
+
+<!-- ============================ COVER ============================ -->
+<div class="cover">
+  <div class="ring1"></div><div class="ring2"></div><div class="grid-lines"></div>
+  <div class="tag">Infranex BT · Operator Handbook</div>
+  <div class="title">CPU Miner<br><span class="thin">Setup Guide</span></div>
+  <div class="subtitle">From an empty dashboard to your first live Bittensor CPU miner — connect a Hetzner Cloud or DigitalOcean key, rent a ~$5–9/mo VPS, let cloud-init install the base stack, and finish the gated launch in DevOps Engine. Worked example: subnet 61 (RedTeam), no GPU anywhere, roughly 95% cheaper to host than the GPU path.</div>
+  <div class="cover-chips">
+    <span class="chip">SN61 · REDTEAM</span>
+    <span class="chip">NO GPU NEEDED</span>
+    <span class="chip">HETZNER CLOUD · DIGITALOCEAN</span>
+    <span class="chip">HOST FROM $4.63/MO</span>
+    <span class="chip">AUTO-INSTALL FROM GIT</span>
+  </div>
+  <div class="cover-meta">
+    <span><b>CPU Miner Setup Guide</b> · companion to the GPU Miner Setup Guide</span>
+    <span>September 2026 · Edition 1</span>
+  </div>
+</div>
+
+<!-- ============================ MAIN CONTENT ============================ -->
+<div class="main-content">
+
+  <!-- ========== CHAPTER 0 : START HERE ========== -->
+  <div class="chapter-header">
+    <div class="kicker">Start here</div>
+    <h1 class="chapter">The CPU path in one page</h1>
+    <div class="rule"></div>
+  </div>
+  <p class="lead">This guide is written for a first-time miner. It walks you through the exact clicks and commands that take you from a fresh sign-in to a running CPU miner on a Bittensor subnet — using subnet 61 (RedTeam) as the worked example. Every screen shot was taken from the live platform; the two figures marked <i>example data</i> use a representative offer so you can see what the catalog looks like once your own API key is connected.</p>
+
+  <p>The CPU path exists because a large family of Bittensor subnets do their work with ordinary processors, not graphics cards. The platform's work-type classifier reads each subnet's public git repo — its README, <span class="mono">requirements.txt</span> and Dockerfile — and files it as CPU-classified, GPU-classified, or CPU VPS-class. For those CPU-classified subnets, renting a GPU is wasted money: the typical CPU-classified subnet needs about 2 vCPU / 4–8&nbsp;GB RAM / 40–50&nbsp;GB disk, which costs $5–9 per month, while the cheapest useful GPU box (an RTX 3090) runs around $161 per month. Same chain, same rewards table, a fraction of the overhead.</p>
+
+  <h2 class="sub">The journey at a glance</h2>
+  <div class="flow-wrap">
+    <div class="flow">
+      <div class="flow-step free"><div class="fn">Step 1</div><div class="ft">Connect a provider</div><div class="fd">paste a Hetzner or DigitalOcean API key — offers refresh live every 60s</div></div>
+      <div class="flow-step free"><div class="fn">Step 2</div><div class="ft">Pick a box</div><div class="fd">catalog suggests the cheapest box that actually fits the subnet</div></div>
+      <div class="flow-step money"><div class="fn">Step 3</div><div class="ft">Rent &amp; auto-install</div><div class="fd">provider creates the box; cloud-init installs docker + bittensor</div></div>
+      <div class="flow-step money"><div class="fn">Step 4</div><div class="ft">Finish in DevOps</div><div class="fd">validate host, copy wallet files yourself, register, approve launch</div></div>
+      <div class="flow-step free"><div class="fn">Always on</div><div class="ft">Monitor</div><div class="fd">My Miners + Monitoring track health, cost and P&amp;L</div></div>
+    </div>
+  </div>
+
+  <h2 class="sub">The worked example used throughout</h2>
+  <div class="note"><b>Worked example — SN61 RedTeam on a Hetzner CX32.</b> RedTeam (α61) is a CPU-classified cybersecurity subnet by Innerworks. Its repo documents 2 cores / 8&nbsp;GB RAM / 50&nbsp;GB disk. The cheapest Hetzner box that comfortably clears that bar is the <b>CX32</b> (4 vCPU / 8&nbsp;GB / 80&nbsp;GB) at about <b>$8.32/mo</b>. You could squeeze onto a floor-spec box (CX22, 2 vCPU / 4&nbsp;GB, ~$4.63/mo), but RedTeam-class boxes are the honest recommendation and they are what the catalog's "RedTeam-class box" card targets. Every screenshot in Parts&nbsp;A–B follows this one box, end to end.</div>
+
+  <h2 class="sub">Where the money moves</h2>
+  <table>
+    <thead><tr><th style="width:32%">Move</th><th style="width:24%">Amount</th><th>What it is</th></tr></thead>
+    <tbody>
+      <tr><td><b>You → Hetzner / DigitalOcean</b></td><td>$4.63–8.32/mo</td><td>The CPU box. Metered hourly (~$0.006–0.011/hr), billed monthly. Runs until you destroy it — teardown costs nothing extra.</td></tr>
+      <tr><td><b>Coldkey → chain burn</b></td><td>one-off recycle fee</td><td>Registering your hotkey on SN61. The app shows the <b>live burn figure</b> on the CPU Guide (05) and Subnets (03) views — it floats with seat demand, so check it before you register.</td></tr>
+      <tr><td><b>Coldkey mnemonic</b></td><td>—</td><td>Never leaves your machine. You copy the wallet files to the box yourself, in an approval-gated step. The platform never ships coldkeys.</td></tr>
+      <tr><td><b>Platform API keys</b></td><td>$0</td><td>Connecting a key is free — you only pay the provider when a box is actually created.</td></tr>
+    </tbody>
+  </table>
+
+  <h2 class="sub">Before you start — have these ready</h2>
+  <div class="check">
+    <div class="ci"><span class="box">[ ]</span><span>Your <b>platform sign-in</b> (operator ID + access code) and 10 minutes of focus time</span></div>
+    <div class="ci"><span class="box">[ ]</span><span>An account at <b>Hetzner Cloud</b> or <b>DigitalOcean</b> with billing enabled — a few dollars of credit is plenty to start</span></div>
+    <div class="ci"><span class="box">[ ]</span><span><b>Python 3.9+</b> on your laptop for btcli (wallet + registration commands run locally, not on the box)</span></div>
+    <div class="ci"><span class="box">[ ]</span><span><b>TAO in your coldkey</b> for the one-off registration burn, plus a small buffer</span></div>
+    <div class="ci" style="margin-bottom:0"><span class="box">[ ]</span><span>Paper and a pen — if you create a new wallet, the mnemonic is shown <b>once</b></span></div>
+  </div>
+
+  <h2 class="sub">CPU path or GPU path?</h2>
+  <table>
+    <thead><tr><th style="width:26%">Question</th><th style="width:37%">CPU path (this guide)</th><th>GPU path (companion guide)</th></tr></thead>
+    <tbody>
+      <tr><td><b>Subnet type</b></td><td>CPU-classified — e.g. SN61 RedTeam, SN67 Harnyx script mining</td><td>GPU-classified — e.g. SN64 Chutes, SN36 Epago (vision)</td></tr>
+      <tr><td><b>Host cost</b></td><td>~$5–20/mo (2–8 vCPU VPS)</td><td>~$161+/mo (RTX 3090 or better)</td></tr>
+      <tr><td><b>How you get the box</b></td><td>CPU Catalog → Rent &amp; auto-install, or manual VPS in Part&nbsp;C</td><td>GPU Catalog → deploy wizard</td></tr>
+      <tr><td><b>Base stack install</b></td><td>Automatic (cloud-init) on the platform path</td><td>Automatic after pod start</td></tr>
+      <tr><td><b>Wallet &amp; launch</b></td><td colspan="2">Identical on both paths: approval-gated in DevOps Engine — the platform never touches your coldkey.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="note"><b>About the screenshots.</b> Figures 1–5 and 10–12 are untouched captures of the live platform. Figures 6–9 were captured against a representative offer (a Hetzner CX32 at $8.32/mo) so the catalog, rent dialog and success screens could be shown without spending your money — with your own key connected, you will see your real prices in the identical UI.</div>
+
+  <!-- ========== PART A ========== -->
+  <div class="chapter-header">
+    <div class="kicker">Part A · ~15 minutes · $0</div>
+    <h1 class="chapter">Platform Prep — Sign In &amp; Connect a CPU Provider</h1>
+    <div class="rule"></div>
+  </div>
+  <p class="lead">Three goals: get into the platform, create an API key at a CPU provider, and hand that key to the CPU Catalog. Nothing here costs money — the provider only bills you when a box is actually created, which happens in Part&nbsp;B when you choose to click Rent.</p>
+
+  <h2 class="sub">A1 · Sign in and land on the dashboard</h2>
+  <div class="step">
+    <div class="step-head"><span class="no">A1</span><span class="step-title">Open the app and sign in</span></div>
+    <p><span class="click">Open</span> the preview link in your browser, then enter your operator User ID and access code and press <span class="click">Sign in</span>. If the page was left open from a previous session, the app restores you automatically.</p>
+    <p>After sign-in you land on the <b>Dashboard (01)</b> — the opportunities table scans the chain and lists subnets with their classification, cost target and hardware hints. You do not need to configure anything here, but it is worth glancing at: every CPU-classified subnet you see is a candidate for this guide.</p>
+  </div>
+
+  <figure>
+    <img src="cpu-images/s01-login.png" alt="Sign-in screen">
+    <figcaption><b>Figure 1.</b> The operator sign-in screen. Your access code is per-user; the app keeps sessions and audit-logs every action.</figcaption>
+  </figure>
+  <figure>
+    <img src="cpu-images/s02-dashboard.png" alt="Dashboard">
+    <figcaption><b>Figure 2.</b> The Dashboard (01) after sign-in — the opportunities table on the right is where CPU-classified subnets surface first.</figcaption>
+  </figure>
+
+  <h2 class="sub">A2 · Create an API key at your provider</h2>
+  <p>The CPU Catalog speaks to two providers: <b>Hetzner Cloud</b> (best prices, EU/US datacenters) and <b>DigitalOcean</b> (worldwide regions, slightly pricier). Either works — this guide follows Hetzner for the worked example, and the DigitalOcean steps are identical in shape.</p>
+
+  <div class="step">
+    <div class="step-head"><span class="no">A2a</span><span class="step-title">Create a Hetzner Cloud API token (worked example)</span></div>
+    <p><span class="click">console.hetzner.cloud</span><span class="sep">→</span>select or create a project<span class="sep">→</span><span class="click">Security</span><span class="sep">→</span><span class="click">API tokens</span><span class="sep">→</span><span class="click">Generate API token</span></p>
+    <ul>
+      <li>Choose the <b>Read <i>and</i> Write</b> permission — a read-only token can show prices but cannot create the server when you click Rent.</li>
+      <li>Copy the token immediately — Hetzner shows it exactly once. If you lose it, delete the token and generate a new one.</li>
+      <li>The token belongs to one project; make sure the project is in a billing-enabled state (a payment method or the free trial credit both count).</li>
+    </ul>
+  </div>
+
+  <div class="step">
+    <div class="step-head"><span class="no">A2b</span><span class="step-title">Or create a DigitalOcean API token</span></div>
+    <p><span class="click">cloud.digitalocean.com</span><span class="sep">→</span><span class="click">API</span><span class="sep">→</span><span class="click">Generate New Token</span></p>
+    <ul>
+      <li>Give it <b>Full Access</b> (write scope) for one-click renting, or read-only if you only want live pricing.</li>
+      <li>Pick an expiration you will remember — when the token expires, offers silently disappear until you paste a fresh one.</li>
+    </ul>
+  </div>
+
+  <div class="note amber"><b>Handle the key like a password.</b> The token can create and destroy servers in your account. Paste it only into the platform's Provider API keys dialog (next step) — never into email, chat, or a shared document. You can revoke and rotate it at any time from the same provider page.</div>
+
+  <h2 class="sub">A3 · Connect the key in the platform</h2>
+  <div class="step">
+    <div class="step-head"><span class="no">A3</span><span class="step-title">Paste the key into Provider API keys</span></div>
+    <p>In the sidebar under <b>Operations</b>, open <span class="click">CPU Catalog · 06b</span> and press <span class="click">Provider API keys</span> (top-right). The dialog lists both CPU providers with a <b>Real rental</b> badge — that means the platform can both show live pricing <i>and</i> create the server for you.</p>
+    <p>Paste your Hetzner token into its field and press <span class="click">Save &amp; verify</span>. The key is validated the moment you save it — a green status pill appears when the provider accepts it. Repeat for DigitalOcean if you created a token there too. Within seconds the catalog pulls live VPS pricing; offers keep refreshing every 60 seconds from then on.</p>
+  </div>
+
+  <figure>
+    <img src="cpu-images/s05-provider-keys.png" alt="Provider API keys dialog">
+    <figcaption><b>Figure 3.</b> The Provider API keys dialog in its CPU mode: Hetzner Cloud and DigitalOcean, each with a paste field and a Save &amp; verify button. Status pills show whether a stored key is valid.</figcaption>
+  </figure>
+
+  <div class="note"><b>How the key is stored.</b> Keys are AES-256-GCM encrypted at rest on the server, used only by the server to call provider APIs, and never displayed in full again. Removing a key immediately drops that provider's offers from the live catalog. Keys are never sent to the browser, never logged, and never shared with the rented machines — the box gets a separate ephemeral SSH key at rent time.</div>
+
+  <!-- ========== PART A / CHAPTER B ========== -->
+  <div class="chapter-header">
+    <div class="kicker">Part A · continued · $0</div>
+    <h1 class="chapter">Reading the CPU Catalog</h1>
+    <div class="rule"></div>
+  </div>
+  <p class="lead">The catalog is honest by design: before a key is connected it shows you exactly what is missing, and after connecting it only recommends boxes that can actually run the subnet's code. Learn the two states once and you can always tell whether you are looking at real supply.</p>
+
+  <h2 class="sub">B1 · The two states of the catalog</h2>
+  <p><b>Without a key</b> (Figure 4) the catalog says so plainly: "No CPU provider connected yet", the three recommendation cards read "No qualifying live offer", and the provider status line at the bottom shows each provider as <span class="mono">not connected</span>. The single green button — <span class="click">Connect a CPU provider</span> — opens the same dialog you used in A3.</p>
+  <p><b>With a key</b> (Figure 5) the same page fills with supply: the header counts the live offers and connected providers, the cards show the cheapest qualifying box and the current RedTeam-class pick, and the offers table lists every rentable VPS with vCPU, RAM, disk, region and price.</p>
+
+  <figure>
+    <img src="cpu-images/s04-cpu-catalog-empty.png" alt="CPU Catalog empty state">
+    <figcaption><b>Figure 4.</b> The catalog before any key is connected — the empty state names the missing piece and the expected price (Hetzner CX22 ≈ $5/mo) so you can tell honesty from a bug.</figcaption>
+  </figure>
+  <figure>
+    <img src="cpu-images/s06-cpu-catalog-offers.png" alt="CPU Catalog with offers">
+    <figcaption><b>Figure 5.</b> The catalog with a connected key — <i>example data</i> (a representative Hetzner + DigitalOcean snapshot). With your own key you will see your real, live prices in this exact layout.</figcaption>
+  </figure>
+
+  <h2 class="sub">B2 · The three recommendation cards</h2>
+  <div class="step">
+    <div class="step-head"><span class="no">B2</span><span class="step-title">How to read the cards above the table</span></div>
+    <ul>
+      <li><b>Cheapest qualifying box · ≥2 vCPU / 4 GB / 40 GB</b> — the absolute floor for CPU-classified subnets. Real money-saver, but only choose it if your subnet is this light; a heavy subnet on a floor box will run slow or get refused by the profiler.</li>
+      <li><b>RedTeam-class box · ≥2 vCPU / 8 GB / 50 GB</b> — the spec SN61 RedTeam documents (2 cores / 8 GB / 50 GB disk). This is the safe default for the worked example, and for many security/agent subnets.</li>
+      <li><b>CPU vs GPU host cost</b> — a live comparison: the CPU box's monthly price next to the cheapest live GPU offer, and the percentage you are saving. Connect a GPU provider key too if you want this card populated.</li>
+    </ul>
+  </div>
+
+  <h2 class="sub">B3 · Filters and choosing a box</h2>
+  <p>Above the table sit four filters: <span class="click">All providers</span>, <span class="click">Any RAM</span> (raise to ≥ 8&nbsp;GB for RedTeam-class), <span class="click">Cheapest /mo</span> (or sort by vCPU/RAM/disk), and a <span class="mono">Max $/mo</span> box for a hard budget cap. The counter on the right ("6 of 6 offers · fetched 9:15:00 AM") confirms the data is live.</p>
+
+  <table>
+    <thead><tr><th style="width:22%">Box</th><th style="width:26%">Spec</th><th style="width:18%">~$/mo</th><th>Verdict for SN61 RedTeam</th></tr></thead>
+    <tbody>
+      <tr><td><b>CX22</b></td><td>2 vCPU · 4 GB · 40 GB</td><td>$4.63</td><td>At the floor — fits only the lightest CPU subnets; below RedTeam's 8 GB RAM guidance.</td></tr>
+      <tr><td><b>CX32</b></td><td>4 vCPU · 8 GB · 80 GB</td><td>$8.32</td><td><b>The worked example.</b> Clears RedTeam-class with headroom at a hobbyist price.</td></tr>
+      <tr><td><b>CCX13</b> <span class="mono">(ded)</span></td><td>2 vCPU · 8 GB · 80 GB</td><td>$14.42</td><td>Dedicated cores — pick when a shared-tenancy box shows CPU-steal in Monitoring.</td></tr>
+      <tr><td><b>CX42</b></td><td>8 vCPU · 16 GB · 160 GB</td><td>$16.64</td><td>Overkill for SN61; sensible for running several CPU miners on one box.</td></tr>
+      <tr><td><b>DO s-2vcpu-4gb</b></td><td>2 vCPU · 4 GB · 80 GB</td><td>$24.00</td><td>DigitalOcean's entry tier — pick it only when you need a specific DO region (e.g. blr1, sgp1).</td></tr>
+    </tbody>
+  </table>
+
+  <div class="note"><b>The profiler is your safety net.</b> When you later pick a subnet in the rent dialog, the engine profiles the subnet's git repo and <b>refuses</b> two things outright: subnets that document GPU requirements ("pick a CPU-classified subnet or rent this one from the GPU Catalog"), and boxes below the subnet's needs. Refusals are the platform protecting you from paying for a box that can never earn.</div>
+
+  <!-- ========== PART B ========== -->
+  <div class="chapter-header">
+    <div class="kicker">Part B · ~10 minutes · provider billing starts</div>
+    <h1 class="chapter">Rent &amp; Auto-Install</h1>
+    <div class="rule"></div>
+  </div>
+  <p class="lead">This is the one click that creates a real server in your provider account. Everything about the flow is designed so you see exactly what will be installed before any money is committed — the subnet's requirements are pulled from its git repo and displayed first, and the wallet/launch decisions stay gated until Part&nbsp;D.</p>
+
+  <h2 class="sub">C1 · Open the rent dialog</h2>
+  <div class="step">
+    <div class="step-head"><span class="no">C1</span><span class="step-title">Pick the row, press Rent &amp; install</span></div>
+    <p>Find your chosen box in the offers table and press <span class="click">Rent &amp; install</span> on its row. The <b>Rent CPU box &amp; auto-install</b> dialog opens with the offer pinned at the top — model, provider, vCPU/RAM/disk and the monthly price next to its hourly equivalent (monthly ÷ 730).</p>
+    <p>For the worked example: the CX32 row — 4 vCPU · 8 GB · 80 GB, $8.32/mo ≈ $0.0114/hr. Billing starts the moment the provider accepts the create call, and stops the moment you destroy the server.</p>
+  </div>
+
+  <h2 class="sub">C2 · Walk through the dialog, top to bottom</h2>
+  <div class="step">
+    <div class="step-head"><span class="no">C2a</span><span class="step-title">Subnet to install (CPU-classified)</span></div>
+    <p>The dialog offers one-click chips for every CPU-classified subnet the scanner currently knows — for the worked example, <span class="click">SN61 · RedTeam</span>. You can also type any netuid into the input (e.g. <span class="mono">61</span>). Choose the subnet you intend to mine; the chip you pick decides what gets profiled and staged.</p>
+  </div>
+  <div class="step">
+    <div class="step-head"><span class="no">C2b</span><span class="step-title">Requirements pulled from the subnet's git</span></div>
+    <p>The moment a subnet is selected, the engine fetches its public repo artifacts — chain identity, README, <span class="mono">requirements.txt</span>, Dockerfile — and prints the verdict right in the dialog: subnet name and category, a <b>confidence</b> badge (high/medium/low), repo URL, entrypoint, axon port, python version, pip dependency count and the apt packages it will install. For SN61 the panel shows <b>RedTeam · Security · high confidence</b>, entrypoint <span class="mono">neurons/miner.py</span>, axon <span class="mono">:8091</span>.</p>
+    <p>Read this panel before you click anything else — it is the contract of what the box will run. If the subnet turns out to document GPU requirements, the dialog refuses to continue and tells you to use the GPU Catalog instead.</p>
+  </div>
+  <div class="step">
+    <div class="step-head"><span class="no">C2c</span><span class="step-title">Region, wallet name, hotkey name</span></div>
+    <ul>
+      <li><b>Region</b> — pick a datacenter close to the chain's validators. Hetzner defaults to Falkenstein DE (fsn1); DigitalOcean offers nine regions from New York to Bangalore. Any choice works; lower validator latency never hurts scores.</li>
+      <li><b>Wallet name</b> — your existing coldkey's name (usually <span class="mono">default</span>), created on your laptop with btcli. This is only a label used later in the install plan.</li>
+      <li><b>Hotkey name</b> — a fresh name for this miner, e.g. <span class="mono">miner-cpu</span>. The dialog accepts letters, digits, dashes and underscores.</li>
+      <li>The <b>shield note</b> at the bottom of the form is worth reading twice: "Wallet files are copied by YOU in the gated DevOps step — the platform never ships coldkeys to rented machines."</li>
+    </ul>
+  </div>
+
+  <figure>
+    <img src="cpu-images/s08-rent-dialog-filled.png" alt="Rent dialog filled in">
+    <figcaption><b>Figure 6.</b> The rent dialog, fully filled for the worked example — <i>example data</i>. CX32 pinned at top, SN61 selected from the chips, the git-pulled requirements panel showing high confidence, region Falkenstein, wallet <span class="mono">default</span>, hotkey <span class="mono">miner-cpu</span>.</figcaption>
+  </figure>
+
+  <h2 class="sub">C3 · Click Rent &amp; auto-install</h2>
+  <div class="step">
+    <div class="step-head"><span class="no">C3</span><span class="step-title">The button does four things in sequence</span></div>
+    <p>Pressing <span class="click">Rent &amp; auto-install</span> triggers the pipeline: <b>(1)</b> the platform calls your provider with the exact offer — CX32, fsn1 — and injects a fresh ephemeral SSH key; <b>(2)</b> cloud-init runs on first boot and installs the mining base stack (docker, python venv tooling, bittensor); <b>(3)</b> the box is registered as a DevOps host over SSH transport; <b>(4)</b> the subnet's install plan is staged on it, waiting for you in DevOps Engine.</p>
+    <p>The success panel confirms the rental — server id, status, IP address (or "IP pending" for the first seconds), monthly price and the DevOps host name — and lists the three things that happen next. None of them need you to be fast; give the base install 3–5 minutes after the IP appears.</p>
+  </div>
+
+  <figure>
+    <img src="cpu-images/s09-rent-success.png" alt="Rent success panel">
+    <figcaption><b>Figure 7.</b> The success panel — <i>example data</i>. "CX32 rented at Hetzner Cloud (fsn1)" with server id, IP, price and the DevOps host name, plus the "What happens now" list and a shortcut into DevOps Engine.</figcaption>
+  </figure>
+
+  <div class="note"><b>What cloud-init installs, exactly.</b> The base stack is deliberately minimal: docker (for containerized miners), python3-venv (for pip-based miners), and bittensor (btcli + SDK). Your subnet's own dependencies are <i>not</i> pre-installed globally — they are handled by the subnet's staged install plan, which you review and approve in Part&nbsp;D. This keeps the box clean and the audit trail honest.</div>
+
+  <!-- ========== PART B / CHAPTER D ========== -->
+  <div class="chapter-header">
+    <div class="kicker">Part B · continued · one-time burn in D2</div>
+    <h1 class="chapter">Finish in DevOps Engine</h1>
+    <div class="rule"></div>
+  </div>
+  <p class="lead">DevOps Engine (08) is the operations cockpit where the rented box becomes a miner. The install plan arrives pre-staged, but three steps stay deliberately manual: validating the host, copying your wallet files, and approving the miner launch. This is the platform's hotkey-only policy doing its job.</p>
+
+  <h2 class="sub">D1 · Validate the new host</h2>
+  <div class="step">
+    <div class="step-head"><span class="no">D1</span><span class="step-title">Open DevOps Engine and find the host</span></div>
+    <p>From the success panel press <span class="click">Open DevOps Engine</span>, or pick <span class="click">DevOps Engine · 08</span> in the sidebar. Your new host appears with its provider, region, IP and status. Press <span class="click">Validate</span> to have the platform SSH in and confirm the base stack landed: docker version, python venv, btcli. Validation turns the host green and unlocks the install plan steps beneath it.</p>
+  </div>
+
+  <h2 class="sub">D2 · The gated steps — wallet files, registration, launch</h2>
+  <div class="step">
+    <div class="step-head"><span class="no">D2a</span><span class="step-title">Create (or confirm) your wallet on your laptop — free, do this before burning</span></div>
+    <p>If you already have a Bittensor coldkey, skip to D2b. Otherwise install btcli locally and create the wallet pair now. This runs on your machine, touches no money, and the mnemonic never leaves your laptop:</p>
+  </div>
+  <div class="term">
+    <div class="term-bar"><span>your laptop · terminal</span><span>btcli · wallet prep</span></div>
+    <pre><span class="cmd">$ pip install bittensor</span>
+<span class="cmd">$ btcli wallet new_coldkey --wallet.name default</span>
+<span class="out">  mnemonic: olympic liquid piano ...   ← shown ONCE — write it on paper</span>
+<span class="cmd">$ btcli wallet new_hotkey --wallet.name default --wallet.hotkey miner-cpu</span>
+<span class="cmd">$ btcli wallet overview --wallet.name default</span>
+<span class="out">  coldkey: default    balance: 0.000 TAO    hotkeys: 1</span></pre>
+  </div>
+  <div class="step">
+    <div class="step-head"><span class="no">D2b</span><span class="step-title">Copy the wallet files to the box yourself</span></div>
+    <p>DevOps Engine shows a <b>Copy wallet files</b> gate with the exact destination. The platform never moves coldkeys — you do, with your own scp command (the host record carries the SSH details). Copy only the hotkey file plus the coldkeypub.txt public file if you can; keep the sealed coldkey file on your laptop unless the subnet's plan genuinely needs it.</p>
+  </div>
+  <div class="term">
+    <div class="term-bar"><span>your laptop · terminal</span><span>wallet transfer · gated step</span></div>
+    <pre><span class="cmd">$ scp -r ~/.bittensor/wallets/default root@&lt;box-ip&gt;:/root/.bittensor/wallets/</span>
+<span class="warn"># keep coldkeyseal (the sealed private file) local unless the plan requires it</span></pre>
+  </div>
+  <div class="step">
+    <div class="step-head"><span class="no">D2c</span><span class="step-title">Register the hotkey on SN61 — the ONE burn</span></div>
+    <p>Registering binds your hotkey to subnet 61 and consumes a dynamic recycle fee — irreversible, sized by seat demand. Check the live figure first: the CPU Guide (05) view and the Subnets (03) view both show SN61's current burn cost. Then run:</p>
+  </div>
+  <div class="term">
+    <div class="term-bar"><span>your laptop · terminal</span><span>one-time chain burn</span></div>
+    <pre><span class="cmd">$ btcli subnets register --netuid 61 --wallet.name default --wallet.hotkey miner-cpu</span>
+<span class="out">  ✅ Registered hotkey miner-cpu on netuid 61 (recycle burned)</span></pre>
+  </div>
+  <div class="note amber"><b>No green verdict, no burn.</b> If you plan to mine SN61 the "proper" way — building a competitive agent — use the in-app CPU Guide (05) first: it profiles the champion, lets you spar against Validator Lab for free, and only then sends you to the register step. Registration burns TAO regardless of whether your miner ever earns, so treat it as the point of no return that it is.</div>
+  <div class="step">
+    <div class="step-head"><span class="no">D2d</span><span class="step-title">Approve the miner launch</span></div>
+    <p>The final gate — <b>Launch miner</b> — runs the subnet's staged install plan: clone the repo, install its pinned dependencies, write the environment (wallet/hotkey names, netuid, network), and start the miner process under supervision. Read the step list, then approve. DevOps shows the live step counter until the last step completes.</p>
+  </div>
+
+  <h2 class="sub">D3 · Why these steps are gated</h2>
+  <p>Everything destructive or secret-bearing — moving wallet files, burning TAO, starting a process — requires an explicit human click, and every action is written to the audit log. That is not caution theater: on the GPU path the same gates exist, and they have prevented more than one mis-clicked deployment from burning a seat on the wrong subnet. The platform automates the parts that are safe to automate (provisioning, base install, dependency wiring) and keeps you in command of the parts that are not.</p>
+
+  <figure>
+    <img src="cpu-images/s10-devops.png" alt="DevOps Engine">
+    <figcaption><b>Figure 8.</b> DevOps Engine (08) — the ops cockpit: fleet vitals up top, Autopilot policy rules and Benchmarks on the right. Your rented host and its staged install plan appear here after the rent flow completes.</figcaption>
+  </figure>
+
+  <!-- ========== PART B / CHAPTER E ========== -->
+  <div class="chapter-header">
+    <div class="kicker">Part B · continued · $0</div>
+    <h1 class="chapter">Verify You Are Mining</h1>
+    <div class="rule"></div>
+  </div>
+  <p class="lead">Two layers of verification: the platform's (My Miners and Monitoring) and the box's own (processes and ports). Check both once after launch, then let the monitoring layer do its job.</p>
+
+  <h2 class="sub">E1 · Check the platform views</h2>
+  <div class="step">
+    <div class="step-head"><span class="no">E1</span><span class="step-title">My Miners (09) and Monitoring (10)</span></div>
+    <p><b>My Miners</b> lists your miner with its subnet, host and status — after a successful launch the miner should show as running on SN61. <b>Monitoring</b> adds the health timeline: axon latency probes every 10 minutes, CPU and memory gauges, and cost tracking that reads the box's real hourly price. If a probe fails or the box drifts, Monitoring opens a recommendation instead of failing silently.</p>
+  </div>
+
+  <figure>
+    <img src="cpu-images/s11-my-miners.png" alt="My Miners view">
+    <figcaption><b>Figure 9.</b> My Miners (09) — one row per running miner, with subnet, hotkey, host and status.</figcaption>
+  </figure>
+  <figure>
+    <img src="cpu-images/s12-monitoring.png" alt="Monitoring view">
+    <figcaption><b>Figure 10.</b> Monitoring (10) — axon latency benchmarks, resource gauges and cost/day for every live box.</figcaption>
+  </figure>
+
+  <h2 class="sub">E2 · Check the box itself</h2>
+  <div class="term">
+    <div class="term-bar"><span>your laptop · terminal</span><span>ssh · spot checks</span></div>
+    <pre><span class="cmd">$ ssh root@&lt;box-ip&gt;</span>
+<span class="cmd"># is the miner process alive?</span>
+<span class="cmd">$ screen -ls</span>
+<span class="out">  There is a screen on:  1 Socket in /run/screen/S-root.</span>
+<span class="cmd"># is the axon port listening?</span>
+<span class="cmd">$ ss -tlnp | grep 8091</span>
+<span class="out">  LISTEN 0 4096  *:8091  *:*  users:(("python",pid=1844,fd=18))</span>
+<span class="cmd"># does the chain see your hotkey on SN61?</span>
+<span class="cmd">$ btcli wallet overview --wallet.name default --network finney</span>
+<span class="cmd"># what did the miner log recently?</span>
+<span class="cmd">$ tail -n 40 /var/log/miner/sn61.log</span></pre>
+  </div>
+
+  <h2 class="sub">E3 · What "earning" honestly looks like</h2>
+  <p>CPU subnet rewards follow emissions, competition and — for work subnets like RedTeam — the quality of what your miner serves. A freshly registered hotkey typically earns little until it proves itself in the validator's scoring window; treat the first days as calibration, watch the daily net line in Monitoring, and let the numbers decide whether to scale up, tune, or tear down. The Opportunities (02) view re-ranks subnets continuously, so if SN61 economics shift, the platform will tell you before your invoice does.</p>
+
+  <!-- ========== PART C ========== -->
+  <div class="chapter-header">
+    <div class="kicker">Part C · ~45–60 minutes · provider billing starts</div>
+    <h1 class="chapter">The Manual DIY Path — No Platform</h1>
+    <div class="rule"></div>
+  </div>
+  <p class="lead">Everything in Parts A–B can also be done by hand, directly in your provider's console and an SSH terminal. Some operators prefer this for learning; some need a box the platform cannot reach. You trade the auto-install and monitoring for full manual control — the same box, the same base stack, and the same "wallet never leaves your laptop" rule.</p>
+
+  <h2 class="sub">F1 · Create the box in the provider console</h2>
+  <div class="step">
+    <div class="step-head"><span class="no">F1</span><span class="step-title">Hetzner (or DigitalOcean) by hand</span></div>
+    <p><span class="click">console.hetzner.cloud</span><span class="sep">→</span>your project<span class="sep">→</span><span class="click">Add Server</span></p>
+    <ul>
+      <li><b>Location</b> — Falkenstein or Helsinki for EU latency, Ashburn/Hillsboro for US.</li>
+      <li><b>Image</b> — <b>Ubuntu 22.04</b> (the same OS the platform's cloud-init targets).</li>
+      <li><b>Type</b> — CX32 for the RedTeam-class worked example (4 vCPU / 8 GB / 80 GB); CCX-series only if you want dedicated cores.</li>
+      <li><b>SSH key</b> — upload your laptop's public key (<span class="mono">~/.ssh/id_ed25519.pub</span>) rather than using a password.</li>
+      <li>DigitalOcean equivalent: <span class="click">Create → Droplets</span>, Ubuntu 22.04 x64, Basic plan s-2vcpu-4gb or larger, your SSH key, a region near you.</li>
+    </ul>
+  </div>
+
+  <h2 class="sub">F2 · Install the base stack by hand</h2>
+  <p>This is precisely what cloud-init automates on the platform path — five commands on a fresh Ubuntu 22.04 box:</p>
+  <div class="term">
+    <div class="term-bar"><span>ssh root@&lt;box-ip&gt; · ubuntu 22.04</span><span>base stack</span></div>
+    <pre><span class="cmd">$ apt update &amp;&amp; apt -y upgrade</span>
+<span class="cmd">$ apt -y install git curl build-essential python3-venv docker.io</span>
+<span class="cmd">$ python3 -m venv /opt/btvenv &amp;&amp; source /opt/btvenv/bin/activate</span>
+<span class="cmd">$ pip install bittensor</span>
+<span class="cmd">$ btcli --version   # sanity check</span></pre>
+  </div>
+
+  <h2 class="sub">F3 · Wallet, registration, and the miner itself</h2>
+  <p>Create the wallet pair on your <i>laptop</i> (D2a), copy the files up (D2b), and register the hotkey (D2c) — identical commands and the same one-time burn. Then clone the subnet's repo and run its miner the way its README prescribes:</p>
+  <div class="term">
+    <div class="term-bar"><span>ssh root@&lt;box-ip&gt; · ubuntu 22.04</span><span>subnet miner · SN61 example</span></div>
+    <pre><span class="cmd">$ git clone https://github.com/RedTeamSubnet/RedTeam.git /opt/sn61</span>
+<span class="cmd">$ cd /opt/sn61 &amp;&amp; pip install -r requirements.txt</span>
+<span class="cmd">$ screen -S sn61</span>
+<span class="cmd">$ python neurons/miner.py --netuid 61 \
+    --wallet.name default --wallet.hotkey miner-cpu --network finney</span>
+<span class="warn"># detach with Ctrl-A D; reattach later with: screen -r sn61</span></pre>
+  </div>
+  <div class="note"><b>Read the subnet's own README last word.</b> Repos evolve; flags and entrypoints change. The in-app CPU Guide (05) goes deeper for SN61 specifically — mining the validator profile, building a competitive agent, and local eval against Validator Lab before you ever burn. For any other subnet, the Subnets (03) view links straight to its repo.</div>
+
+  <!-- ========== PART D ========== -->
+  <div class="chapter-header">
+    <div class="kicker">Part D · reference</div>
+    <h1 class="chapter">Troubleshooting &amp; Economics</h1>
+    <div class="rule"></div>
+  </div>
+  <p class="lead">The nine failures seen most often, what each one means, and the fix. Most issues are configuration, not catastrophe — and only one of them burns money permanently.</p>
+
+  <h2 class="sub">H1 · When something goes wrong</h2>
+  <table>
+    <thead><tr><th style="width:30%">Symptom</th><th>What it means and the fix</th></tr></thead>
+    <tbody>
+      <tr><td><b>"Key check failed" after Save &amp; verify</b></td><td>The token was copied short, expired, or lacks scope. Regenerate at the provider (Read+Write for Hetzner, Full Access for DO) and paste again. Check for a trailing space when copying.</td></tr>
+      <tr><td><b>Catalog still empty after connecting</b></td><td>Press <span class="click">Refresh</span>; check the status line — it names each provider's state. "error — 401/403" means the key; "0 offers" with a valid key means a filter is hiding rows.</td></tr>
+      <tr><td><b>"No qualifying live offer"</b> on a card</td><td>True, not a bug: no connected provider currently sells a box at that spec. Raise your provider coverage (connect both), or relax the RAM/price filters.</td></tr>
+      <tr><td><b>"SN documents GPU requirements" refusal</b></td><td>The profiler found GPU deps in the subnet's repo — a CPU box cannot serve it. Pick a CPU-classified subnet, or rent that netuid from the GPU Catalog instead.</td></tr>
+      <tr><td><b>"Profiler failed" in the dialog</b></td><td>The repo fetch timed out (rate limit or network). Retry once; if it persists you can still rent and stage the install manually from DevOps later.</td></tr>
+      <tr><td><b>Success panel says "IP pending"</b></td><td>Normal for the first ~30 seconds. Wait, then re-check the host in DevOps Engine before assuming a problem.</td></tr>
+      <tr><td><b>Host validation fails in DevOps</b></td><td>Cloud-init is still running (give it 3–5 minutes after IP) or was interrupted — re-run Validate; if it keeps failing, destroy the box and rent again.</td></tr>
+      <tr><td><b>Miner runs but never earns</b></td><td>Check the three usuals: hotkey actually registered on the netuid (<span class="mono">btcli subnets list</span>), axon port reachable (firewall/security-group must allow 8091), and validator scores in Monitoring. On SN61 also read the CPU Guide (05) — a weak agent scores weakly.</td></tr>
+      <tr><td><b>Invoice higher than expected</b></td><td>The box bills hourly while it <i>exists</i>, miner or not. Destroy idle boxes (H1 teardown below) — the platform path keeps the DevOps host record so you can re-rent in one click later.</td></tr>
+    </tbody>
+  </table>
+
+  <h2 class="sub">H2 · Costs, honestly</h2>
+  <table>
+    <thead><tr><th style="width:34%">Item</th><th style="width:22%">CPU path</th><th>GPU path (for comparison)</th></tr></thead>
+    <tbody>
+      <tr><td><b>Host (rented)</b></td><td>$4.63–16.64/mo (worked example $8.32)</td><td>~$161/mo (RTX 3090 class)</td></tr>
+      <tr><td><b>Registration burn</b></td><td colspan="2">One-off, dynamic recycle fee, same on both paths — live figure shown in CPU Guide (05) / Subnets (03) before you commit.</td></tr>
+      <tr><td><b>Platform fees</b></td><td colspan="2">$0 — the platform bills nothing; your costs are the provider and the burn.</td></tr>
+      <tr><td><b>Idle cost</b></td><td>~$0.006–0.011/hr while the box exists</td><td>~$0.22/hr while the pod exists</td></tr>
+      <tr><td><b>Typical host share of a $100/mo net expectation</b></td><td>~8% (CX32)</td><td>~160% (GPU needs the big subnets to pay)</td></tr>
+    </tbody>
+  </table>
+
+  <h2 class="sub">H3 · Tearing down cleanly</h2>
+  <div class="step">
+    <div class="step-head"><span class="no">H3</span><span class="step-title">Destroy the box when you stop mining</span></div>
+    <p><b>Platform path:</b> DevOps Engine → your host → <span class="click">Destroy</span> — removes the server at the provider and marks the host record closed. <b>Manual path:</b> provider console → the server → Delete (Hetzner) / Destroy (DigitalOcean). Billing stops at deletion; the registration burn is chain state and is not refunded, but your hotkey stays valid if you come back with a new box under the same wallet names.</p>
+  </div>
+
+  <h2 class="sub">H4 · Command cheat sheet</h2>
+  <table>
+    <thead><tr><th style="width:44%">Command</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">btcli wallet new_coldkey --wallet.name default</td><td>Create a coldkey on your laptop (mnemonic shown once).</td></tr>
+      <tr><td class="mono">btcli wallet new_hotkey --wallet.hotkey miner-cpu</td><td>Create the miner's hotkey under that coldkey.</td></tr>
+      <tr><td class="mono">btcli subnets register --netuid 61</td><td>Register the hotkey on SN61 — the one-time burn.</td></tr>
+      <tr><td class="mono">btcli wallet overview --network finney</td><td>Balances, hotkeys and registrations as the chain sees them.</td></tr>
+      <tr><td class="mono">screen -S sn61 / screen -r sn61</td><td>Run the miner inside a persistent session; reattach anytime.</td></tr>
+      <tr><td class="mono">ss -tlnp | grep 8091</td><td>Confirm the axon port is listening.</td></tr>
+      <tr><td class="mono">tail -f /var/log/miner/sn61.log</td><td>Follow the miner's log live.</td></tr>
+    </tbody>
+  </table>
+
+  <h2 class="sub">H5 · Three habits that keep the CPU path cheap</h2>
+  <div class="check">
+    <div class="ci"><span class="box">01</span><span><b>Check the burn before you spend it.</b> The recycle fee moves with seat demand. CPU Guide (05) and Subnets (03) show the live figure — look, then register.</span></div>
+    <div class="ci"><span class="box">02</span><span><b>Destroy boxes you are not using.</b> The bill is hourly while the server exists. DevOps Engine keeps the host record, so re-renting later is one click, not a rebuild.</span></div>
+    <div class="ci" style="margin-bottom:0"><span class="box">03</span><span><b>Let Monitoring argue with your optimism.</b> A weak agent scores weakly, and the daily net line knows it before you do. Scale what earns; tear down what does not.</span></div>
+  </div>
+
+</div>
+<div class="ending">
+  <div class="ring1"></div>
+  <h2>Mine with what you have.</h2>
+  <p>The CPU path is the cheapest honest way onto Bittensor: a few dollars a month of VPS, a base stack that installs itself, and two human decisions — where your wallet files go, and when the miner starts. Everything else is clicks.</p>
+  <div class="end-list">
+    <div class="end-item"><span class="tick">✓</span><span>Provider key connected — live offers every 60 seconds, stored AES-256-GCM encrypted</span></div>
+    <div class="end-item"><span class="tick">✓</span><span>Box rented at the spec the subnet actually needs — refused if it can't run the code</span></div>
+    <div class="end-item"><span class="tick">✓</span><span>Base stack auto-installed by cloud-init — docker, venv, bittensor, ~3–5 minutes</span></div>
+    <div class="end-item"><span class="tick">✓</span><span>Wallet files moved by you, burn spent knowingly, launch approved by design</span></div>
+    <div class="end-item"><span class="tick">✓</span><span>Monitoring watching axon latency, resources and cost from the first minute</span></div>
+  </div>
+  <p>Where to go next: the in-app <b>CPU Guide (05)</b> for the SN61 agent-building deep dive, the <b>GPU Miner Setup Guide</b> for the GPU path, and docs.bittensor.com for everything btcli.</p>
+  <div class="end-meta">
+    <span>INFRANEX BT · CPU MINER SETUP GUIDE</span>
+    <span>SEPTEMBER 2026 · EDITION 1</span>
+  </div>
+</div>
+
+</body>
+</html>

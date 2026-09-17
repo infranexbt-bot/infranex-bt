@@ -1,0 +1,30 @@
+{
+  "profile": {
+    "netuid": 61,
+    "subnetName": "RedTeam",
+    "description": "The RedTeam subnet by Innerworks is a decentralized platform designed to drive innovation in cybersecurity through competitive programming challenges.",
+    "category": "Security",
+    "minVramGb": 0,
+    "recommendedGpu": "None — CPU-classified subnet",
+    "gpuSource": "subnet docs",
+    "osPackages": ["git", "curl", "build-essential", "python3-venv", "docker.io"],
+    "pythonVersion": "3.10",
+    "pipPackageCount": 24,
+    "dockerImage": null,
+    "dockerfileFound": false,
+    "bittensorStack": ["docker", "python-venv", "bittensor"],
+    "repoUrl": "https://github.com/RedTeamSubnet/RedTeam",
+    "entrypoint": "neurons/miner.py",
+    "ports": { "axon": 8091, "prometheus": 8092 },
+    "envKeys": [
+      { "name": "BT_WALLET_NAME", "description": "Bittensor wallet (coldkey) name", "required": true },
+      { "name": "BT_HOTKEY_NAME", "description": "Bittensor hotkey name for this miner", "required": true },
+      { "name": "BT_SUBNET_NETUID", "description": "Subnet netuid to mine (61)", "required": true },
+      { "name": "BT_NETWORK", "description": "Chain endpoint (e.g. finney)", "required": true }
+    ],
+    "confidence": "high",
+    "sources": ["chain identity", "github README", "requirements.txt"],
+    "notes": ["RedTeam α61 documents 2 cores / 8 GB RAM / 50 GB disk — any RedTeam-class box (≥2 vCPU / 8 GB / 50 GB) covers it."]
+  },
+  "cached": true
+}

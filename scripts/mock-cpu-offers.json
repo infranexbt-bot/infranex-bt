@@ -1,16 +1,17 @@
 {
   "offers": [
-    { "id": "hetzner-cx22", "model": "CX22", "provider": "Hetzner Cloud", "region": "fsn1", "cpuCores": 2, "ramGb": 4, "diskGb": 40, "cpuType": "shared", "hourlyPrice": 0.0062, "monthlyPrice": 4.51, "availability": "available", "live": true, "source": "hetzner" },
-    { "id": "hetzner-cx32", "model": "CX32", "provider": "Hetzner Cloud", "region": "fsn1", "cpuCores": 4, "ramGb": 8, "diskGb": 80, "cpuType": "shared", "hourlyPrice": 0.0111, "monthlyPrice": 8.09, "availability": "available", "live": true, "source": "hetzner" },
-    { "id": "hetzner-ccx13", "model": "CCX13", "provider": "Hetzner Cloud", "region": "fsn1", "cpuCores": 2, "ramGb": 8, "diskGb": 80, "cpuType": "dedicated", "hourlyPrice": 0.0223, "monthlyPrice": 16.29, "availability": "available", "live": true, "source": "hetzner" },
+    { "id": "hetzner-cx22", "model": "CX22", "provider": "Hetzner Cloud", "region": "fsn1", "cpuCores": 2, "ramGb": 4, "diskGb": 40, "cpuType": "shared", "hourlyPrice": 0.0063, "monthlyPrice": 4.63, "availability": "available", "live": true, "source": "hetzner" },
+    { "id": "hetzner-cx32", "model": "CX32", "provider": "Hetzner Cloud", "region": "fsn1", "cpuCores": 4, "ramGb": 8, "diskGb": 80, "cpuType": "shared", "hourlyPrice": 0.0114, "monthlyPrice": 8.32, "availability": "available", "live": true, "source": "hetzner" },
+    { "id": "hetzner-ccx13", "model": "CCX13", "provider": "Hetzner Cloud", "region": "fsn1", "cpuCores": 2, "ramGb": 8, "diskGb": 80, "cpuType": "dedicated", "hourlyPrice": 0.0198, "monthlyPrice": 14.42, "availability": "limited", "live": true, "source": "hetzner" },
+    { "id": "hetzner-cx42", "model": "CX42", "provider": "Hetzner Cloud", "region": "hel1", "cpuCores": 8, "ramGb": 16, "diskGb": 160, "cpuType": "shared", "hourlyPrice": 0.0228, "monthlyPrice": 16.64, "availability": "available", "live": true, "source": "hetzner" },
     { "id": "do-s-2vcpu-4gb", "model": "s-2vcpu-4gb", "provider": "DigitalOcean", "region": "global", "cpuCores": 2, "ramGb": 4, "diskGb": 80, "cpuType": "shared", "hourlyPrice": 0.0329, "monthlyPrice": 24.0, "availability": "available", "live": true, "source": "digitalocean" },
-    { "id": "do-c-4", "model": "c-4", "provider": "DigitalOcean", "region": "global", "cpuCores": 4, "ramGb": 8, "diskGb": 80, "cpuType": "dedicated", "hourlyPrice": 0.1192, "monthlyPrice": 87.0, "availability": "available", "live": true, "source": "digitalocean" }
+    { "id": "do-s-4vcpu-8gb", "model": "s-4vcpu-8gb", "provider": "DigitalOcean", "region": "global", "cpuCores": 4, "ramGb": 8, "diskGb": 80, "cpuType": "shared", "hourlyPrice": 0.0658, "monthlyPrice": 48.0, "availability": "available", "live": true, "source": "digitalocean" }
   ],
   "source": "live",
-  "fetchedAt": "2026-09-17T16:20:00.000Z",
-  "totalOffers": 5,
+  "fetchedAt": "2026-09-18T09:15:00.000Z",
+  "totalOffers": 6,
   "providers": [
-    { "id": "hetzner", "label": "Hetzner Cloud", "configured": true, "origin": "db", "offers": 3 },
+    { "id": "hetzner", "label": "Hetzner Cloud", "configured": true, "origin": "db", "offers": 4 },
     { "id": "digitalocean", "label": "DigitalOcean", "configured": true, "origin": "db", "offers": 2 }
   ]
 }

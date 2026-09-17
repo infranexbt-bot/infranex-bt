@@ -1,0 +1,7 @@
+{
+  "host": { "id": "host-cpu-01", "name": "cpu-sn61-redteam-1", "provider": "Hetzner Cloud", "status": "ACTIVE", "host": "5.78.100.12", "providerServerId": "88472631" },
+  "server": { "id": "srv-9f3c2a", "status": "installing", "ip": "5.78.100.12" },
+  "offer": { "model": "CX32", "region": "fsn1", "monthlyPrice": 8.32 },
+  "subnet": { "netuid": 61, "name": "RedTeam", "repoUrl": "https://github.com/RedTeamSubnet/RedTeam" },
+  "install": { "id": "inst-cpu-61-01", "stepCount": 9, "staged": true }
+}
