@@ -71,3 +71,6 @@ tool-results/
 
 # user deliverables — kept local, not for the source repo
 download/
+
+# local credential mirrors (plaintext login codes) — never commit
+/infranex-users.local.json
