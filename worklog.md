@@ -1801,3 +1801,22 @@ Stage Summary:
   for >=141GB subnets due to GiB/GB unit mismatch — FIXED and deployed (hot)
 - Wizard now shows Vast H200 $1.975/hr for SN1-class (141GB) instead of RunPod $3.59
 - Note: RunPod "H200 NVL $0.5/hr" is RunPod's own reported on-demand price (community cloud)
+
+---
+Task ID: cpu-laptop-spec-review-1
+Agent: main (Super Z)
+Task: Assess user's laptop (screenshot) for CPU miner testing before renting CPU provider
+
+Work Log:
+- Screenshot parsed: HP Laptop 15-hr1xxx, Intel Core Ultra 5 125H (14C/18T: 4P+8E+2LP-E, 4.5GHz
+  boost, 28-45W), 16GB DDR5-5600, Arc iGPU (irrelevant for CPU path), 477GB storage / 342GB free,
+  Windows 11 x64
+- App bar check: CPU_MIN_SPECS = {cores:2, ramGb:4, diskGb:40} (cpu-providers.ts) — laptop exceeds
+  7x cores, 4x RAM, 8x disk
+- Verdict delivered: YES for testing (build/eval/telemetry loop); honest limits on 24/7 earning
+  (28-45W laptop vs desktop/rented dedicated); WSL2 Ubuntu path recommended for the bash-based
+  Harnyx SN67 flow; thermal gates (78/85C) will flag sustained all-core load — by design
+
+Stage Summary:
+- Laptop approved as testing rig for CPU miner setup; full WSL2 test plan provided in chat
+- No code changes
