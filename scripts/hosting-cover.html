@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  <style>
+    @page { size: 794px 1123px; margin: 0; }
+    :root {
+      --page-bg: #eff0f1;
+      --card-bg: #e4e7e8;
+      --header-fill: #334650;
+      --border: #b8c8cf;
+      --accent: #3681a6;
+      --text-primary: #1a1b1c;
+      --text-muted: #6f7578;
+      --c-bg: #eff0f1;
+      --c-accent: #3681a6;
+      --c-text: #1a1b1c;
+      --c-muted: #6f7578;
+      --c-mid: #334650;
+      --c-surface: #e4e7e8;
+    }
+    html, body {
+      margin: 0; padding: 0;
+      width: 794px; height: 1123px;
+      background: var(--c-bg);
+      font-family: 'Inter', sans-serif;
+      color: var(--c-text);
+    }
+    @media screen {
+      html { height: auto; display: flex; justify-content: center; min-height: 100vh; background: var(--c-bg); }
+      body { transform-origin: top center; scale: min(1, calc(100vw / 794), calc(100vh / 1123)); margin: 0 auto; box-shadow: 0 0 60px rgba(0,0,0,0.15); }
+    }
+    .cover { width: 794px; height: 1123px; position: relative; background: var(--c-bg); border: none; outline: none; box-shadow: none; }
+    /* Layer 1: background grid (2% opacity) - clipped */
+    .layer1 { position: absolute; inset: 0; overflow: hidden; z-index: 1; }
+    .grid {
+      position: absolute; inset: 0;
+      background-image:
+        repeating-linear-gradient(0deg, rgba(54,129,166,0.05) 0px, rgba(54,129,166,0.05) 0.5px, transparent 0.5px, transparent 50px),
+        repeating-linear-gradient(90deg, rgba(54,129,166,0.05) 0px, rgba(54,129,166,0.05) 0.5px, transparent 0.5px, transparent 50px);
+    }
+    /* Layer 2: structure - ultra-thick left anchor line */
+    .layer2 { position: absolute; inset: 0; z-index: 2; }
+    .vline {
+      position: absolute;
+      left: 95px; top: 112px; bottom: 112px;
+      width: 8px; background: var(--c-accent);
+    }
+    /* Layer 3: content */
+    .layer3 { position: absolute; inset: 0; z-index: 3; }
+    .kicker {
+      position: absolute; left: 184px; top: 168px;
+      font-size: 16pt; font-weight: 400;
+      letter-spacing: 3pt; text-transform: uppercase;
+      color: var(--c-text); opacity: 0.6;
+    }
+    .hero1 {
+      position: absolute; left: 184px; top: 337px;
+      font-size: 44pt; font-weight: 900; line-height: 1.15;
+      color: var(--c-text); max-width: 560px;
+    }
+    .hero2 {
+      position: absolute; left: 184px; top: 412px;
+      font-size: 44pt; font-weight: 900; line-height: 1.15;
+      color: var(--c-accent); max-width: 560px;
+    }
+    .summary {
+      position: absolute; left: 184px; top: 566px;
+      font-size: 16pt; font-weight: 400; line-height: 1.6;
+      color: var(--c-text); opacity: 0.85;
+      max-width: 460px;
+    }
+    .meta {
+      position: absolute; left: 184px; top: 852px;
+      font-size: 18pt; font-weight: 500; color: var(--c-text);
+    }
+    .meta-sub {
+      position: absolute; left: 184px; top: 892px;
+      font-size: 13pt; font-weight: 400; color: var(--c-muted);
+    }
+    .footer {
+      position: absolute; left: 184px; top: 995px;
+      font-size: 16pt; font-weight: 400;
+      letter-spacing: 3pt; text-transform: uppercase;
+      color: var(--c-text); opacity: 0.6;
+    }
+  </style>
+</head>
+<body>
+  <div class="cover">
+    <div class="layer1"><div class="grid"></div></div>
+    <div class="layer2"><div class="vline"></div></div>
+    <div class="layer3">
+      <div class="kicker">Deployment &amp; Hosting Guide</div>
+      <div class="hero1">InfraNexBT</div>
+      <div class="hero2">on DigitalOcean</div>
+      <div class="summary">Verified 2026 pricing for Droplets, App Platform, Managed PostgreSQL and GPU Droplets, benchmarked against Hetzner, RunPod and Vast.ai, with a step-by-step production blueprint.</div>
+      <div class="meta">InfraNex Platform Operations</div>
+      <div class="meta-sub">September 2026 &middot; Next.js 16 &middot; Bittensor control plane</div>
+      <div class="footer">Docs &middot; Infranex-BT &middot; 2026</div>
+    </div>
+  </div>
+</body>
+</html>
