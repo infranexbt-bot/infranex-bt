@@ -1772,3 +1772,32 @@ Work Log:
 Stage Summary:
 - NO code defects found; nothing to fix or commit
 - App fully healthy post second DB wipe; config-gaps remain: provider keys must be re-added by user
+
+---
+Task ID: gpu-offers-audit-1
+Agent: main (Super Z)
+Task: Check if app pulls best GPU offers for Vast.ai and RunPod in deployments (user request)
+
+Work Log:
+- Provider keys verified: RunPod (rpa_...4zpr) VALID, Vast.ai hasKey valid; both "offers+rent"
+- Live offers flowing: 49 offers (RunPod 15, Vast 34), prices market-plausible (RunPod H100 $2.69,
+  Vast H200 $1.975, Vast 4090 $0.256); spot offers 0 (wizard is on-demand-only by design)
+- Deploy wizard "best offer" logic verified: filter vramGb >= subnet minVramGb, sort price asc (correct)
+- DEFECT FOUND: Vast reports gpu_ram in MiB -> rounds to GiB (H200 = 140GB) vs RunPod/Lambda/requirements
+  profiler marketing GB (141). Wizard filter vramGb >= 141 EXCLUDED Vast H200 $1.975/hr and would
+  recommend RunPod H200 $3.59/hr for SN1-class subnets (~45% pricier)
+- FIX: normalizeModel() now returns canonical marketing VRAM for drift-prone models (H200/H200 NVL/
+  B200/B300/H100 NVL/MI300X); Vast parser prefers norm.vramGb over raw unit math; relaxed ^H200 regex
+  so Vast "H200" canonicalizes to catalog name "H200 141GB" (cross-provider grouping)
+- Debug journey: first attempt added vramGb to map but not the return statement (caught via direct
+  bun import test); lib-graph HMR was stale -> dev server restarted; verified live: Vast H200 = 141,
+  >=141GB tier now [RunPod H200 NVL $0.5 (RunPod's own on-demand price), Vast H200 $1.975, ...]
+- Consumer cards unaffected (no overrides); tsc clean for edited files (only legacy frontend/ +
+  infranex-bt-subdir-backup pre-existing errors)
+- Committed 15f0d12; pushed main -> nextjs-platform
+
+Stage Summary:
+- Answer: YES both providers' live offers flow correctly; best-offer selection was UNFAIR to Vast
+  for >=141GB subnets due to GiB/GB unit mismatch — FIXED and deployed (hot)
+- Wizard now shows Vast H200 $1.975/hr for SN1-class (141GB) instead of RunPod $3.59
+- Note: RunPod "H200 NVL $0.5/hr" is RunPod's own reported on-demand price (community cloud)
