@@ -1820,3 +1820,21 @@ Work Log:
 Stage Summary:
 - Laptop approved as testing rig for CPU miner setup; full WSL2 test plan provided in chat
 - No code changes
+
+---
+Task ID: laptop-cpu-mining-eval-1
+Agent: main (Super Z)
+Task: Evaluate user's laptop (screenshot) for CPU miner testing; list all CPU-minable subnets and recommend the best laptop-test miner.
+
+Work Log:
+- Read uploaded screenshot /home/z/my-project/upload/pasted_image_1789758863669.png -> HP Laptop 15-hr1xxx, Intel Core Ultra 5 125H (14C/18T, 4.5GHz max), 16GB DDR5-5600, 477GB storage (~342GB free), Win11 64-bit.
+- Logged in fresh (admin), fetched /api/network (129 subnets live, TAO $252.44), /api/profitability-config, /api/subnet-overrides (105).
+- Wrote scripts/cpu-subnet-list.ts (bun, imports live-merge mergeOpportunities) -> reproduced CPU Guide list exactly: 17 classifier-CPU subnets (minVramGb<=0).
+- Wrote scripts/cpu-crosscheck.ts -> pinned profiles SN13/50/75/6 get GPU-tier REVENUE fallback (no keyword match on live descriptions) while SN67/SN62 classify CPU; all 17 CPU subnets consistent with scraped ground truth (no conflicts).
+- Pulled /api/devops/subnet-requirements?netuid=67 -> CPU VPS, py3.11, no Docker/CUDA, confidence high, entrypoint miner_config.py.
+- Checked emissionEnabled: SN76/SN86/SN59 no emissions yet; SN36 Epago burn=1 TAO + only 2 rewarded (unrealistic $201k/mo artifact).
+
+Stage Summary:
+- Verdict: laptop EXCELLENT for script-mining CPU subnets (SN67/SN62: box only builds+submits, validators execute) -> testing on laptop is exactly right, electricity-only cost.
+- Recommended #1: SN67 Harnyx (deepest guide, free Validator Lab gate before burn, burn ~$8.87). #2: SN62 Ridges (burn ~$0.39). Laptop-avoid: SN75 (24/7 storage node), SN13 (24/7 scraper+proxies), SN36 (burn 1 TAO), SN76/86/59 (no emissions).
+- CPU Guide picker = 21 entries (6 pinned + 15 classifier-CPU minus overlap). No app changes needed; scripts/cpu-subnet-list.ts + cpu-crosscheck.ts kept for reuse.
