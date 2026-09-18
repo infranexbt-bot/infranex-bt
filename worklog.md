@@ -1617,3 +1617,24 @@ Work Log:
 
 Stage Summary:
 - LOGIN RESTORED (original credentials). DB data-layer rebuild in progress from chain truth. No code defects — pure environment wipe.
+
+---
+Task ID: 12
+Agent: Super Z (main)
+Task: Validator Lab audit — repo resolution + verdict push to live miner
+
+Work Log:
+- Read full judge surface: judge/{service,extract,simulate,cohort,apply,types}.ts, api/judge/{profiles,runs,simulate,sync,apply}, daemon-bridge.ts, api/daemon/commands
+- Repo resolution VERIFIED chain-first: fetchLiveSnapshot identityGithub > curated seed; live build for SN1 pulled macrocosm-os/apex from on-chain identity
+- Honesty VERIFIED: SN1 with trees-API rate-limited -> honest "unknown" (4 hits < threshold), confidence 0.09, no fabrication; cohort from live metagraph (256 reg / 3 earning -> shark_tank 72); simulate.ts self-disclaims "model, not the validator"
+- BUG #1 (fixed): mined deadlineMs was only in summary text; JudgeProfileData had no field, simulator used archetype default. Added JudgeProfile.deadlineMs column + persist + read + simulator priority; SN8 Vanta now mines 58000ms real deadline
+- BUG #2 (fixed): getJudgeProfile cache-miss rebuild persisted "Subnet N" placeholder; now resolves chain name (verified: netuid=8 -> "Vanta")
+- Verdict push PROVEN end-to-end (scripts/audit-judge-verdict-push.ts, 11/11 PASS): apply -> transport=daemon -> apply_config{INFANEX_RUNTIME:vllm} queued -> HMAC-signed daemon pull -> result recorded -> config env persisted + validator-fix revision snapshot -> cleanup. Note: the Lab's verdict itself is advisory by design; only sanctioned FIX recipes push to miners (admin-gated)
+- Auth gates: simulate/sync/apply 401 unauthenticated; apply admin-gated; nonexistent deployment -> honest 400
+- Browser walkthrough: view renders profile (Shark Tank 72/100, 256/3, sources with real README link), simulator panel, run chip "Apex strong 77.5 ~p94"; zero console/page errors
+- ENV: 3rd wipe hit download/ (PDF/HTML/screenshots lost) — restored PDF from public/guides/ + mirrored to /tmp/my-project/; commits e7d4b10..d9600bf all intact
+- Committed 0e5bc36 on local main
+
+Stage Summary:
+- Validator Lab: WORKING, honest, chain-grounded. 2 defects fixed (deadline fidelity, rebuild naming). Verdict-push channel cryptographically sound (HMAC path-bound, replay cache, pull-only, admin-gated).
+- download/ restored (PDF via public/guides/); key artifacts now mirrored in wipe-proof /tmp/my-project/
