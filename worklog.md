@@ -1674,3 +1674,26 @@ Stage Summary:
 - Best list: DO Droplet 2vCPU/4GB $24/mo recommended control plane; $6/mo budget; App Platform from $5/service (forces SQLite->PG migration); Managed PG $15 (HA $30); GPU: RTX 4000 Ada $0.76/hr (TOR1), RTX 6000 Ada / L40S $1.57/hr, H100 ~$3.39+/hr single / $35.28/hr 8x node; RunPod 4090 $0.34-0.69/hr undercuts DO for experiments; Hetzner hiked June 2026 (CPX11 EUR 5.49)
 - Key verdicts: Droplet > App Platform for this app (SQLite persistence); DOKS not needed; control plane must never host miners; DEVOPS_SECRET stability = miner pairing
 - Validator Lab audit still pending (next task)
+
+---
+Task ID: hosting-consult-1
+Agent: main (Super Z)
+Task: Hosting consultation — compare Oracle vs DigitalOcean vs Railway vs Render (+1) for this app; ranked top 5
+
+Work Log:
+- Grounded recommendation in verified app facts: prisma provider "sqlite" (file DB, persistent disk mandatory);
+  package.json build = next build -> standalone; start = bun .next/standalone/server.js; background bun loops
+  (prod-audit-reconcile, monitor) need always-on processes; miner daemons POST /api/daemon/commands every 60s
+  over public HTTPS
+- Found legacy vercel.json (maxDuration hints) — noted Vercel is a poor fit: ephemeral FS kills SQLite,
+  no always-on process for daemon intake; docker/ compose is legacy dev sandbox (python backend), not current app
+- Delivered ranked top-5 chat consultation: 1) DigitalOcean Droplet 2) Oracle Cloud always-free ARM 3) Railway
+  (PaaS + volume) 4) Render (priciest for this shape) 5) Hetzner (value VPS, already integrated as provider)
+- Key DO notes: $12/mo 2GB Droplet + Caddy auto-HTTPS + systemd units for web/reconcile/monitor; DO dual role —
+  app host AND GPU provider already integrated in DevOps Engine (keys must be re-added)
+
+Stage Summary:
+- Verdict: DigitalOcean #1 overall for this app; Oracle best $0 option; Railway best PaaS convenience;
+  Render worst value for always-on shape; Hetzner cheapest serious VPS
+- Two DB wipes history → hosted persistent disk + automated backups directly addresses user's durability pain
+- No code changes made; consultation only
