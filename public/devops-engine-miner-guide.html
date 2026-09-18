@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>DevOps Engine — Field Guide for GPU Miners</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
+<style>
+@page { size: 720px 1020px; margin: 0; }
+:root {
+  --bg-dark: #0a1628;      /* cover + ending (XL, dark) */
+  --bg-page: #f5f8fc;      /* body page bg (XL) */
+  --bg-section: #edf2f9;   /* section band (XL) */
+  --bg-card: #e4ecf5;      /* card bg (L) */
+  --stripe: #eef3fa;       /* table stripe (L) */
+  --header-fill: #1a4a7a;  /* table header (M) */
+  --border: #c0d0e2;       /* borders (S) */
+  --accent: #2d7ab3;       /* accent (XS) */
+  --lum: #4da8da;          /* luminous accent on dark only */
+  --text: #142840;
+  --muted: #5a7a96;
+  --ok: #2e6b4f; --ok-bg: #e3efe8;
+  --warn: #8a6116; --warn-bg: #f5eedb;
+  --crit: #8a3a2e; --crit-bg: #f4e4e0;
+  --mono: 'Liberation Mono', 'DejaVu Sans Mono', monospace;
+}
+html, body {
+  margin: 0; padding: 0; width: 720px;
+  background: var(--bg-page);
+  color: var(--text);
+  font-family: 'Inter', 'Noto Sans SC', sans-serif;
+  font-size: 14.5px; line-height: 1.62;
+  line-break: strict; word-break: normal; overflow-wrap: break-word;
+}
+@media screen {
+  html { height: auto; display: flex; justify-content: center; background: #1a2839; }
+  body { transform-origin: top center; margin: 20px auto; box-shadow: 0 0 60px rgba(0,0,0,.4); }
+}
+p, td, li { line-break: strict; }
+p { text-align: justify; margin: 0 0 10px 0; }
+
+/* ---------- COVER ---------- */
+.cover {
+  width: 720px; height: 1020px; box-sizing: border-box;
+  break-after: page; overflow: hidden; position: relative;
+  background: var(--bg-dark);
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 0 90px;
+}
+.cover-glow-1, .cover-glow-2 { position: absolute; border-radius: 50%; pointer-events: none; }
+.cover-glow-1 { width: 420px; height: 420px; left: -120px; top: -100px;
+  background: radial-gradient(circle, rgba(77,168,218,0.08) 0%, rgba(77,168,218,0) 70%); }
+.cover-glow-2 { width: 480px; height: 480px; right: -140px; bottom: -120px;
+  background: radial-gradient(circle, rgba(45,122,179,0.07) 0%, rgba(45,122,179,0) 70%); }
+.cover-frame { position: absolute; left: 40px; right: 40px; top: 56px; bottom: 56px;
+  border: 2px solid var(--lum); opacity: 0.85; pointer-events: none; }
+.cover-kicker { font-size: 11pt; color: var(--lum); letter-spacing: 5px; text-transform: uppercase; font-weight: 300; margin-bottom: 34px; }
+.cover-title { font-size: 52pt; font-weight: 900; line-height: 1.08; color: #e8f0f8; margin-bottom: 14px;
+  text-shadow: 0 0 24px rgba(77,168,218,0.25); }
+.cover-sub { font-size: 15pt; font-weight: 300; color: var(--lum); letter-spacing: 1px; margin-bottom: 52px; }
+.cover-summary { font-size: 12.5pt; line-height: 1.7; color: #7a9bb8; max-width: 480px; margin-bottom: 60px; text-align: left; }
+.cover-meta { font-size: 13pt; color: #e8f0f8; font-weight: 500; margin-bottom: 6px; }
+.cover-meta-sub { font-size: 10pt; color: #7a9bb8; letter-spacing: 2px; text-transform: uppercase; }
+.cover-edition { position: absolute; bottom: 84px; left: 90px; right: 90px; display: flex; justify-content: space-between;
+  font-size: 9pt; color: #7a9bb8; letter-spacing: 3px; text-transform: uppercase; font-family: var(--mono), monospace; }
+
+/* ---------- BODY ---------- */
+.main-content { background: var(--bg-page); padding: 58px 60px 46px 60px; }
+.chapter-header { break-after: avoid; break-inside: avoid; margin-top: 26px; }
+.chapter-header.first { margin-top: 0; }
+.section-tag { font-size: 10.5px; font-weight: 700; letter-spacing: 3px; color: var(--accent); text-transform: uppercase; font-family: var(--mono), monospace; }
+.section-title { font-size: 24px; font-weight: 800; line-height: 1.2; margin: 6px 0 0 0; }
+.section-title::after { content: ''; display: block; width: 46px; height: 3px; background: var(--accent); margin: 8px 0 14px 0; }
+.body-text { margin-bottom: 11px; text-align: justify; }
+.lead { font-size: 15px; color: var(--text); }
+.h3 { font-size: 16.5px; font-weight: 700; margin: 16px 0 8px 0; break-after: avoid; color: var(--header-fill); }
+
+/* cards */
+.card { background: #ffffff; border: 1px solid var(--border); border-radius: 8px;
+  padding: 13px 16px; margin-bottom: 12px; break-inside: avoid; }
+.card-title { font-weight: 700; font-size: 13.5px; margin-bottom: 4px; }
+.card p { margin-bottom: 6px; font-size: 13.5px; }
+.card p:last-child { margin-bottom: 0; }
+
+/* component table */
+table { width: 100%; border-collapse: collapse; margin: 10px 0 14px 0; font-size: 12.5px; }
+table.keep { break-inside: avoid; }
+thead { display: table-header-group; }
+tr { break-inside: avoid; }
+th { background: var(--header-fill); color: #ffffff; font-weight: 600; text-align: left;
+  padding: 7px 10px; font-size: 12px; }
+td { padding: 7px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+tbody tr:nth-child(odd) { background: var(--stripe); }
+tbody tr:nth-child(even) { background: #ffffff; }
+td b { color: var(--header-fill); }
+
+/* chips */
+.chip { display: inline-block; font-size: 10.5px; font-weight: 700; letter-spacing: 0.5px;
+  padding: 2px 8px; border-radius: 10px; margin-right: 6px; }
+.chip-auto { color: #1a4a7a; background: #dce8f4; }
+.chip-manual { color: var(--warn); background: var(--warn-bg); }
+.chip-approval { color: var(--crit); background: var(--crit-bg); }
+.chip-ok { color: var(--ok); background: var(--ok-bg); }
+.chip-warn { color: var(--warn); background: var(--warn-bg); }
+.chip-crit { color: var(--crit); background: var(--crit-bg); }
+.chip-info { color: #1a4a7a; background: #dce8f4; }
+
+/* command blocks */
+.cmd { background: #0f2033; color: #d8e6f2; font-family: var(--mono), monospace; font-size: 11.5px;
+  line-height: 1.55; padding: 10px 14px; border-radius: 6px; margin: 8px 0 12px 0;
+  break-inside: avoid; white-space: pre-wrap; word-break: break-all; }
+.cmd .c { color: #6f93b3; }
+
+/* phase blocks */
+.phase { border-left: 3px solid var(--accent); background: #ffffff; border-radius: 0 8px 8px 0;
+  padding: 12px 16px; margin-bottom: 12px; break-inside: avoid; border-top: 1px solid var(--border);
+  border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.phase-when { font-size: 10.5px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--accent); font-family: var(--mono), monospace; margin-bottom: 3px; }
+.phase-title { font-size: 14.5px; font-weight: 700; margin-bottom: 6px; }
+.phase ul, .card ul { margin: 4px 0 2px 0; padding-left: 18px; }
+.phase li, .card li { margin-bottom: 5px; font-size: 13.5px; break-inside: avoid; }
+.phase li:last-child { margin-bottom: 0; }
+ul, ol { margin: 6px 0 10px 0; padding-left: 22px; }
+li { margin-bottom: 6px; text-align: left; }
+
+/* numbered routine */
+.routine { counter-reset: step; }
+.rstep { display: flex; margin-bottom: 10px; break-inside: avoid; }
+.rstep-num { flex: 0 0 26px; height: 26px; border-radius: 50%; background: var(--header-fill);
+  color: #fff; font-weight: 700; font-size: 13px; display: flex; align-items: center;
+  justify-content: center; margin-right: 12px; margin-top: 2px; }
+.rstep-body { flex: 1; }
+.rstep-body b { color: var(--header-fill); }
+.rstep-body p { margin-bottom: 4px; font-size: 13.5px; text-align: left; }
+
+/* ending */
+.ending { width: 720px; height: 1020px; box-sizing: border-box; break-before: page; overflow: hidden;
+  position: relative; background: var(--bg-dark); display: flex; flex-direction: column;
+  justify-content: center; padding: 0 90px; }
+.end-frame { position: absolute; left: 40px; right: 40px; top: 56px; bottom: 56px;
+  border: 2px solid var(--lum); opacity: 0.85; pointer-events: none; }
+.end-big { font-size: 25pt; font-weight: 900; line-height: 1.25; color: #e8f0f8; margin-bottom: 26px; }
+.end-doctrine { font-size: 12.5pt; line-height: 1.7; color: #7a9bb8; max-width: 500px; margin-bottom: 44px; text-align: left; }
+.end-strip { border: 1px solid rgba(77,168,218,0.4); border-radius: 8px; padding: 18px 22px; max-width: 500px; }
+.end-strip-title { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--lum);
+  font-weight: 700; margin-bottom: 10px; font-family: var(--mono), monospace; }
+.end-row { display: flex; justify-content: space-between; font-size: 11.5px; color: #d8e6f2;
+  padding: 5px 0; border-bottom: 1px solid rgba(77,168,218,0.18); font-family: var(--mono), monospace; }
+.end-row:last-child { border-bottom: none; }
+.end-row .k { color: #7a9bb8; }
+.end-edition { position: absolute; bottom: 84px; left: 90px; right: 90px; display: flex;
+  justify-content: space-between; font-size: 9pt; color: #7a9bb8; letter-spacing: 3px;
+  text-transform: uppercase; font-family: var(--mono), monospace; }
+</style>
+</head>
+<body>
+
+<!-- ================= COVER ================= -->
+<div class="cover">
+  <div class="cover-glow-1"></div>
+  <div class="cover-glow-2"></div>
+  <div class="cover-frame"></div>
+  <div class="cover-kicker">GPU Miner Operations Field Guide</div>
+  <div class="cover-title">DEVOPS<br>ENGINE</div>
+  <div class="cover-sub">What it does &middot; What to watch &middot; When to act</div>
+  <div class="cover-summary">A hands-on handbook for Bittensor GPU miners operating through the Infranex
+    platform: how the DevOps Engine registers, validates, provisions and continuously monitors your
+    miner &mdash; and the exact checks to run in the first ten minutes, the first hour, the first day
+    and every week after that.</div>
+  <div class="cover-meta">Infranex Bittensor Platform</div>
+  <div class="cover-meta-sub">Miner Operations &middot; Subnet Mining &middot; Continuous Ops</div>
+  <div class="cover-edition"><span>SEPTEMBER 2026</span><span>GUIDE V1.0</span></div>
+</div>
+
+<!-- ================= BODY ================= -->
+<div class="main-content">
+
+  <!-- ============ CHAPTER 1 ============ -->
+  <div class="chapter-header first">
+    <div class="section-tag">Chapter 1</div>
+    <div class="section-title">What the DevOps Engine Is</div>
+  </div>
+
+  <p class="body-text lead">The DevOps Engine is the miner-facing control plane of the Infranex platform.
+  It is the system that takes an empty GPU machine &mdash; a rig in your garage, a colo box, or a rented pod &mdash;
+  and turns it into a registered, validated, provisioned and continuously supervised Bittensor miner.
+  Everything it does is grounded in two sources of truth: the Bittensor chain (which tells it which subnet
+  really runs where, via the on-chain identity registry) and the subnet&rsquo;s own GitHub repository (which
+  tells it what the miner actually needs to run). It never invents data: a host that cannot be reached fails
+  honestly, a subnet with no published requirements says so, and a GPU sample exists only because a real
+  daemon reported it.</p>
+
+  <p class="body-text">The engine is built from seven cooperating components. Each one owns a distinct part
+  of the miner lifecycle, and each one leaves an audit trail you can inspect from the web UI or from the
+  API. Understanding this division of labor is the fastest way to understand what the engine can do for
+  you &mdash; and, just as importantly, what it deliberately refuses to do for you (like touching your
+  private keys, or silently retrying a failing machine).</p>
+
+  <table class="components">
+    <thead><tr><th style="width:31%">Component</th><th>What it actually does</th></tr></thead>
+    <tbody>
+      <tr><td><b>Host Registry</b></td><td>Inventory of real SSH-reachable GPU machines. Credentials are stored AES-256-GCM encrypted and never returned to the browser. Mock/fake hosts are banned by design &mdash; only real SSH targets can be registered.</td></tr>
+      <tr><td><b>Environment Inspector</b></td><td>A 10-step validation pipeline run over SSH: connection, OS, GPU, driver, Docker, NVIDIA toolkit, CUDA &ge; 12, a real GPU-in-Docker test, one-click fixes, and environment setup. Every step is persisted, resumable and shows its raw output.</td></tr>
+      <tr><td><b>Requirements Profiler</b></td><td>Resolves the subnet&rsquo;s GitHub repo from on-chain identity, scrapes its README, and derives the real install spec: minimum VRAM, CUDA/Python versions, package manager (pip / uv / Dockerfile), entrypoint, axon port, OS packages and cluster requirements. Cached 6 hours, invalidated when the override changes.</td></tr>
+      <tr><td><b>Requirement Installer</b></td><td>Builds a 9-step provisioning plan from that profile (packages, runtime, clone, dependencies, env file, wallet gate, launch gate, verify) and executes it one step at a time over SSH, persisting each result so the wizard is resumable and auditable.</td></tr>
+      <tr><td><b>Continuous Monitor</b></td><td>Every 90 seconds it evaluates every started miner: GPU health (temperature, utilization, process liveness, daemon silence) and subnet drift (hyperparameter changes, UID moves, economics regime shifts). Findings become deduplicated, approval-gated events.</td></tr>
+      <tr><td><b>Node Daemon</b></td><td>A tiny zero-dependency Python agent installed on the host. Every 60 seconds it HMAC-signs and uploads GPU telemetry (utilization, memory, temperature, process liveness) and pulls its command queue. It can only pull &mdash; the control plane never pushes into your machine, and every command was approved by a human.</td></tr>
+      <tr><td><b>Trigger &amp; Strategy Layer</b></td><td>The recommendations inbox: GPU health, subnet drift, deregistration risk, immunity runway, upstream repo drift, benchmark regressions, validator-traffic probes and Miner-Mindset arbitrage/runtime suggestions &mdash; each with evidence and a one-click approved action.</td></tr>
+    </tbody>
+  </table>
+
+  <p class="body-text">Two design rules matter to you as an operator. First, <b>gates everywhere</b>: the
+  engine will not spend your money or start a workload without an explicit approval from you, and it will
+  never create, move or copy your wallet keys &mdash; the wallet step is a manual checkpoint where you confirm
+  the files are in place. Second, <b>honest states</b>: when a daemon is silent, when a provider key is
+  missing, or when a host fails to connect, the UI shows the failure and its remediation instead of hiding
+  it behind a simulated green light. If you ever see a green check, a real command really ran.</p>
+
+  <!-- ============ CHAPTER 2 ============ -->
+  <div class="chapter-header">
+    <div class="section-tag">Chapter 2</div>
+    <div class="section-title">The Miner Lifecycle, End to End</div>
+  </div>
+
+  <p class="body-text">Before you can monitor anything, the engine has to walk your machine through a fixed
+  lifecycle. Knowing where your miner is in this lifecycle tells you exactly which checks apply and which
+  alarms are meaningful. The journey has four stages, and each one ends in a state the engine records in
+  its database &mdash; nothing is left implicit.</p>
+
+  <div class="card">
+    <div class="card-title">Stage 1 &mdash; Register the host</div>
+    <p>You give the engine a name, an IP/hostname, an SSH port, a user and one credential (password or
+    private key). The secret is encrypted at rest and never leaves the server. Registration alone touches
+    nothing on the machine &mdash; it only creates the inventory record, marked <span class="chip chip-info">PENDING</span>.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Stage 2 &mdash; Validate the environment (the 10-step pipeline)</div>
+    <p>The engine SSHes in and runs its inspection: <b>1</b> connect &rarr; <b>2</b> detect OS &rarr;
+    <b>3</b> detect NVIDIA GPU (model + VRAM) &rarr; <b>4</b> validate driver and its CUDA capability &rarr;
+    <b>5</b> validate Docker and Compose &rarr; <b>6</b> validate the NVIDIA container toolkit &rarr;
+    <b>7</b> check CUDA &ge; 12.0 &rarr; <b>8</b> prove GPU passthrough with a real
+    <span style="font-family:var(--mono), monospace; font-size:12px">docker run --gpus all</span> test &rarr;
+    <b>9</b> install or fix what is missing (safe fixes can run automatically) &rarr; <b>10</b> write the
+    environment file. Each step keeps its raw output, duration and remediation hint; a fix that passes its
+    re-check is marked <span class="chip chip-ok">FIXED</span>.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Stage 3 &mdash; Stage the install plan</div>
+    <p>You pick a subnet and name your wallet and hotkey. The engine pulls that subnet&rsquo;s live
+    requirements profile and builds a 9-step plan tailored to the repo &mdash; a venv pipeline for pip repos,
+    a Docker pipeline for repos that ship a Dockerfile, and honest manual gates for Kubernetes-class
+    subnets that must be provisioned with their own tooling. Staging runs nothing; the plan sits in
+    <span class="chip chip-info">STAGED</span> until you execute steps.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Stage 4 &mdash; Execute, launch and monitor</div>
+    <p>You run the steps in order. Two of them are deliberately yours to control: the wallet checkpoint and
+    the launch. When the final verify step passes, the install is <span class="chip chip-ok">DEPLOYED</span>,
+    the miner appears on the DevOps cockpit, and the 90-second monitor pass starts watching it for the rest
+    of its life. You can stop the miner at any time (a safety stop disables the service and marks the
+    install <span class="chip chip-warn">STOPPED</span>), and relaunching is a one-step re-run.</p>
+  </div>
+
+  <p class="body-text">The three gate types you will meet in the plan are worth memorizing, because they
+  define who is allowed to do what:</p>
+
+  <table class="keep">
+    <thead><tr><th style="width:22%">Gate</th><th style="width:38%">Meaning</th><th>Which steps</th></tr></thead>
+    <tbody>
+      <tr><td><span class="chip chip-auto">AUTO</span></td><td>Runs unattended when you click the step; output is recorded verbatim.</td><td>OS packages, venv/Docker setup, repo clone, dependencies, env file, verify.</td></tr>
+      <tr><td><span class="chip chip-manual">MANUAL</span></td><td>The engine can check, but only you can truthfully confirm &mdash; it refuses to pretend.</td><td>Wallet files present on the host (your coldkey + hotkey, copied by you).</td></tr>
+      <tr><td><span class="chip chip-approval">APPROVAL</span></td><td>Starts burning compute; requires an explicit human approval click.</td><td>Launch the miner (systemd unit or GPU container).</td></tr>
+    </tbody>
+  </table>
+  <!-- ============ CHAPTER 3 ============ -->
+  <div class="chapter-header">
+    <div class="section-tag">Chapter 3</div>
+    <div class="section-title">What to Check Once the GPU Miner Is Started</div>
+  </div>
+
+  <p class="body-text lead">The moment the launch step completes, your job changes from building to
+  watching. The engine watches with you &mdash; every 90 seconds, automatically &mdash; but the division of
+  labor is specific: the engine detects and recommends, <b>you</b> confirm and approve. This chapter gives
+  you the exact check sequence in four time windows, from the first ten minutes to the ongoing weekly
+  rhythm. Every check names where to look (the DevOps cockpit or the host itself) and what a healthy
+  result looks like, so a green pass is never a matter of opinion.</p>
+
+  <div class="phase">
+    <div class="phase-when">Window 1 &middot; First 10 minutes</div>
+    <div class="phase-title">Is it actually up?</div>
+    <ul>
+      <li><b>Service state.</b> The verify step ran <span style="font-family:var(--mono), monospace; font-size:12px">systemctl is-active infranex-miner-sn&lt;netuid&gt;</span> and expected <b>active</b>. Re-run it yourself from the host; a unit that flaps (crash-looping under <span style="font-family:var(--mono), monospace; font-size:12px">Restart=always</span>) shows as activating for a while before it shows as failed.</li>
+      <li><b>Axon port listening.</b> The engine checks <span style="font-family:var(--mono), monospace; font-size:12px">ss -tlnp | grep :&lt;axon-port&gt;</span> (8091 for most subnets). If the port is not listening, validators cannot reach you and no incentive can flow, no matter how healthy the process looks.</li>
+      <li><b>First log lines are clean.</b> The engine tails the log (systemd path: <span style="font-family:var(--mono), monospace; font-size:12px">/var/log/infranex-miner-sn&lt;netuid&gt;.log</span>; Docker path: <span style="font-family:var(--mono), monospace; font-size:12px">docker logs --tail 20 infranex-miner-sn&lt;netuid&gt;</span>). Look for the wallet being loaded, the network (finney) being connected and the axon serving &mdash; not for tracebacks, wallet-not-found or chain-sync errors.</li>
+      <li><b>Daemon telemetry arrives.</b> On the DevOps cockpit your miner card should flip the daemon badge to online within a minute or two (the daemon posts every 60 seconds). If it stays offline, the platform has no eyes on the machine and every later alarm is blind.</li>
+      <li><b>The monitor pass sees you.</b> The cockpit footer shows the last monitor pass; within one or two passes (&le; 3 minutes) your miner should be counted in it.</li>
+    </ul>
+    <div class="cmd"><span class="c"># on the host &mdash; the same evidence the verify step collects</span>
+systemctl is-active infranex-miner-sn&lt;netuid&gt;
+ss -tlnp | grep &apos;:&lt;axon-port&gt; &apos;
+tail -n 20 /var/log/infranex-miner-sn&lt;netuid&gt;.log
+<span class="c"># docker-installed repos instead:</span>
+docker ps --filter name=infranex-miner-sn&lt;netuid&gt;
+docker logs --tail 20 infranex-miner-sn&lt;netuid&gt;</div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-when">Window 2 &middot; First hour</div>
+    <div class="phase-title">Is it healthy and reachable?</div>
+    <ul>
+      <li><b>GPU vitals.</b> The miner card&rsquo;s sparkline should show real samples: temperature comfortably below the 78&nbsp;&deg;C warning line, utilization following the workload, and VRAM allocated against capacity. A flat zero utilisation on a warm GPU means the process is alive but not working.</li>
+      <li><b>Chain registration.</b> The engine reads your UID, incentive and emission straight from the metagraph. A fresh miner shows its assigned UID; if the UID column stays empty your hotkey is not registered on this subnet and nothing you fix on the host will change that.</li>
+      <li><b>Axon probe.</b> The service-health pass synthetically probes your axon from the platform side. A <span class="chip chip-crit">PROBE FAIL</span> here with a healthy local service usually means the port is published but not reachable (firewall, NAT, provider security group).</li>
+      <li><b>Recommendations inbox is quiet.</b> One or two passes can surface early problems (thermal, daemon silence). A critical event in the first hour is normal to see once &mdash; it is not normal to ignore.</li>
+    </ul>
+  </div>
+
+  <div class="phase">
+    <div class="phase-when">Window 3 &middot; First 24 hours</div>
+    <div class="phase-title">Is it earning and stable?</div>
+    <ul>
+      <li><b>Incentive is flowing.</b> After validators score you, the incentive/emission figures on the miner card should move off zero. Emissions lag registration by some hours &mdash; that is chain economics, not a platform fault.</li>
+      <li><b>No repeated thermal or idle warnings.</b> The engine only alarms after repeated confirmations (two passes for temperature, three for idle GPU), so any warning that survives a full day is a sustained condition, not noise.</li>
+      <li><b>Registration is stable.</b> Watch for <span class="chip chip-warn">DEREG-RISK</span> or <span class="chip chip-warn">RUNWAY</span> events: hotkey UID moves or immunity-period countdowns mean your slot on the subnet is contested.</li>
+      <li><b>No unexplained drift.</b> <span class="chip chip-info">SUBNET DRIFT</span> events in the first day usually mean the subnet owner changed hyperparameters or the metagraph moved &mdash; the event carries the evidence; approve the suggested re-sync or restart when it looks right.</li>
+    </ul>
+  </div>
+
+  <div class="phase">
+    <div class="phase-when">Window 4 &middot; Ongoing (daily / weekly)</div>
+    <div class="phase-title">Keep it earning</div>
+    <ul>
+      <li><b>Daily &mdash; triage the inbox.</b> Every open event carries evidence and a suggested action (restart miner, re-sync config, recycle compute, fail over). Approve what is right, decline what is not; either way the event history is your ops log.</li>
+      <li><b>Daily &mdash; glance at the sparklines.</b> Temperature creep (dust, fan failure) and utilisation collapse show up hours before earnings stop.</li>
+      <li><b>Weekly &mdash; upstream watch.</b> The engine diffs the subnet&rsquo;s repo; <span class="chip chip-info">UPSTREAM</span> events mean the code you are running is no longer what the subnet ships. <span class="chip chip-info">BENCH REGRESS</span> events mean your measured performance fell against the rolling baseline.</li>
+      <li><b>Weekly &mdash; housekeeping.</b> The systemd unit appends to <span style="font-family:var(--mono), monospace; font-size:12px">/var/log/infranex-miner-sn&lt;netuid&gt;.log</span> forever &mdash; check disk space. The requirements profile re-scrapes automatically every 6 hours, so a subnet that changes its README re-plans without your involvement.</li>
+      <li><b>Weekly &mdash; provider keys.</b> Provisioning actions that spin up new machines need live provider API keys (RunPod / Hetzner / DigitalOcean). A missing key surfaces as an honest configuration error, not a silent failure &mdash; re-add keys in Settings when prompted.</li>
+    </ul>
+  </div>
+
+  <h3 class="h3">The what-and-when matrix</h3>
+  <table>
+    <thead><tr><th style="width:17%">When</th><th style="width:33%">Check</th><th style="width:25%">Healthy looks like</th><th>Where</th></tr></thead>
+    <tbody>
+      <tr><td rowspan="3">First 10 min</td><td>Service active + axon port listening</td><td><b>active</b> + port in LISTEN</td><td>Host / verify step</td></tr>
+      <tr><td>First log lines</td><td>Wallet loaded, axon serving, no tracebacks</td><td>Host log tail</td></tr>
+      <tr><td>Daemon telemetry + monitor pass</td><td>Daemon online; miner counted in pass</td><td>DevOps cockpit</td></tr>
+      <tr><td rowspan="3">First hour</td><td>GPU temp / util / VRAM samples</td><td>Temp &lt; 78&nbsp;&deg;C; util follows workload</td><td>Miner card sparkline</td></tr>
+      <tr><td>UID / registration on chain</td><td>UID assigned</td><td>Miner card chain facts</td></tr>
+      <tr><td>Axon reachability probe</td><td>No PROBE FAIL event</td><td>Recommendations inbox</td></tr>
+      <tr><td rowspan="2">First 24 h</td><td>Incentive / emission flow</td><td>Moves off zero</td><td>Miner card economics</td></tr>
+      <tr><td>Sustained alarms</td><td>No thermal / idle / dereg events</td><td>Recommendations inbox</td></tr>
+      <tr><td rowspan="2">Daily</td><td>Open events triage</td><td>All events approved or declined</td><td>Recommendations inbox</td></tr>
+      <tr><td>Sparkline trends</td><td>No temp creep, no util collapse</td><td>Miner Ops board</td></tr>
+      <tr><td rowspan="2">Weekly</td><td>Upstream repo / benchmark drift</td><td>No unresolved UPSTREAM / BENCH events</td><td>Change feed</td></tr>
+      <tr><td>Log disk usage + provider keys</td><td>Disk under control; keys valid</td><td>Host + Settings</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ============ CHAPTER 4 ============ -->
+  <div class="chapter-header">
+    <div class="section-tag">Chapter 4</div>
+    <div class="section-title">Alarm Thresholds &amp; Event Reference</div>
+  </div>
+
+  <p class="body-text">The monitor enforces one fixed set of thresholds, published on the cockpit so the UI
+  always draws the same lines the engine enforces. Two properties of these alarms matter for interpreting
+  them. First, <b>debounce by design</b>: a condition must hold for several consecutive 90-second passes
+  before it becomes an event, so single-sample spikes never page you. Second, <b>evidence in every
+  event</b>: each finding stores the readings that triggered it, and recovery auto-resolves the event when
+  the condition clears, so the change feed is a faithful history rather than a pile of stale tickets.</p>
+
+  <table>
+    <thead><tr><th style="width:38%">Threshold</th><th style="width:22%">Value</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td>GPU temperature warning</td><td><b>78 &deg;C</b> &times; 2 passes</td><td>Sustained hot GPU &mdash; check cooling before it throttles.</td></tr>
+      <tr><td>GPU temperature critical</td><td><b>85 &deg;C</b> &times; 2 passes</td><td>Danger zone &mdash; expect throttling and possible hardware damage.</td></tr>
+      <tr><td>Idle GPU</td><td>util &lt; <b>30%</b> &times; 3 passes</td><td>Process alive but not doing subnet work &mdash; typically a stuck or mis-configured miner.</td></tr>
+      <tr><td>Miner process dead</td><td><b>2 passes</b></td><td>Critical event; the suggested action is a daemon <span style="font-family:var(--mono), monospace; font-size:11.5px">restart_miner</span> command.</td></tr>
+      <tr><td>Daemon silence</td><td><b>10 minutes</b></td><td>No telemetry for 10 min &mdash; daemon down, host down, or network path broken.</td></tr>
+      <tr><td>Economics regime shift</td><td><b>&plusmn;50%</b></td><td>Median rewarded incentive on the subnet moved by half &mdash; re-check profitability.</td></tr>
+      <tr><td>Sample retention</td><td><b>240 samples</b></td><td>&asymp; 6 hours of GPU history at the 90-second cadence (sparkline window).</td></tr>
+    </tbody>
+  </table>
+
+  <h3 class="h3">Event kinds you will meet in the inbox</h3>
+  <table>
+    <thead><tr><th style="width:26%">Event</th><th>What it tells you</th></tr></thead>
+    <tbody>
+      <tr><td><span class="chip chip-crit">GPU HEALTH</span></td><td>Thermal, idle or process-down condition on a specific miner, with the readings attached.</td></tr>
+      <tr><td><span class="chip chip-info">SUBNET DRIFT</span></td><td>The subnet changed under you: hyperparameters (tempo, immunity, UID cap), metagraph capacity, economics regime, or your hotkey&rsquo;s UID moved.</td></tr>
+      <tr><td><span class="chip chip-warn">DEREG-RISK</span></td><td>Your registration slot is at risk &mdash; typically UID churn; the action is usually failover to a fallback profile.</td></tr>
+      <tr><td><span class="chip chip-warn">RUNWAY</span></td><td>Immunity-period countdown entered the watch or at-risk band: deregistration becomes possible at T-zero.</td></tr>
+      <tr><td><span class="chip chip-crit">PROBE FAIL</span></td><td>The synthetic axon probe could not reach your miner from the platform &mdash; network/port problem, not process health.</td></tr>
+      <tr><td><span class="chip chip-warn">SERVICE LATENCY</span></td><td>Your axon responds but too slowly &mdash; validators may be timing you out.</td></tr>
+      <tr><td><span class="chip chip-warn">QUERY DROUGHT</span></td><td>Validator traffic to your miner dried up &mdash; you are registered but not being queried.</td></tr>
+      <tr><td><span class="chip chip-crit">ESCALATION</span></td><td>The automatic repair ladder is exhausted; approving executes the recorded rollback (or the next step is a stop).</td></tr>
+      <tr><td><span class="chip chip-info">UPSTREAM</span></td><td>The subnet&rsquo;s repo moved after you deployed &mdash; your running code is stale.</td></tr>
+      <tr><td><span class="chip chip-info">BENCH REGRESS</span></td><td>A benchmark run regressed against the rolling baseline &mdash; performance, not uptime.</td></tr>
+      <tr><td><span class="chip chip-ok">ARBITRAGE</span></td><td>Miner-Mindset finding: another subnet pays better for your GPU class; the action recycles compute.</td></tr>
+      <tr><td><span class="chip chip-ok">RUNTIME OPT</span></td><td>Miner-Mindset finding: a serving profile (accelerated runtime recipe) fits your workload and would raise yield.</td></tr>
+    </tbody>
+  </table>
+  <!-- ============ CHAPTER 5 ============ -->
+  <div class="chapter-header">
+    <div class="section-tag">Chapter 5</div>
+    <div class="section-title">Step-by-Step Operator Routine</div>
+  </div>
+
+  <p class="body-text">This is the distilled daily loop, written as you would actually perform it. The
+  first three steps happen in the web UI; the rest only apply when something looks wrong or when you prefer
+  to confirm on the machine itself. Done faithfully, the whole routine takes a few minutes a day per
+  miner &mdash; the engine has already done the watching; you are doing the judging.</p>
+
+  <div class="routine">
+    <div class="rstep"><div class="rstep-num">1</div><div class="rstep-body">
+      <p><b>Open the DevOps cockpit and read the summary bar.</b> It states in one line how many miners
+      are monitored and how many are healthy, warning or critical, whether daemons are online, and the
+      current infra cost versus revenue per day. This bar is the fastest honest answer to &ldquo;is
+      everything fine right now?&rdquo;</p>
+    </div></div>
+    <div class="rstep"><div class="rstep-num">2</div><div class="rstep-body">
+      <p><b>Triage the recommendations inbox.</b> Work top-down: critical events first (GPU health,
+      escalations, probe failures), then warnings (drift, deregistration risk, runway), then strategy
+      findings (arbitrage, runtime optimizations). Expand each event, read its evidence, and either apply
+      the suggested action to the GPU or decline it &mdash; never leave criticals sitting.</p>
+    </div></div>
+    <div class="rstep"><div class="rstep-num">3</div><div class="rstep-body">
+      <p><b>Walk the per-miner ops board.</b> For each started miner, check the daemon badge (online,
+      last seen within a couple of minutes), the GPU sparklines (temperature and utilization trends over
+      the last ~6 hours), and the chain facts (UID, incentive, emission, registration state). Anything
+      flatlined or empty gets investigated in steps 4&ndash;6.</p>
+    </div></div>
+    <div class="rstep"><div class="rstep-num">4</div><div class="rstep-body">
+      <p><b>Confirm the process is really serving.</b> On the host, the unit and its log answer in
+      seconds. The systemd unit is named <span style="font-family:var(--mono), monospace; font-size:12px">infranex-miner-sn&lt;netuid&gt;</span>
+      and the Docker container reuses the same name, so one set of commands covers both install paths.</p>
+      <div class="cmd"><span class="c"># process + port + recent log, one shot</span>
+systemctl status infranex-miner-sn&lt;netuid&gt; --no-pager -l
+journalctl -u infranex-miner-sn&lt;netuid&gt; -n 50 --no-pager
+tail -n 50 /var/log/infranex-miner-sn&lt;netuid&gt;.log
+nvidia-smi</div>
+    </div></div>
+    <div class="rstep"><div class="rstep-num">5</div><div class="rstep-body">
+      <p><b>If the daemon is unreachable, check the agent, not just the miner.</b> The daemon is a small
+      Python service posting every 60 seconds. Silence beyond 10 minutes triggers the platform warning;
+      the usual culprits are the daemon process itself, the host&rsquo;s outbound network, a platform URL
+      change, or clock skew (signatures are only valid within a &plusmn;5-minute window, so a wrong clock
+      silently kills telemetry). Restarting the daemon process is safe and requires no re-registration.</p>
+    </div></div>
+    <div class="rstep"><div class="rstep-num">6</div><div class="rstep-body">
+      <p><b>When an action fires, verify its effect.</b> Approved commands (restart miner, apply config)
+      reach the daemon&rsquo;s queue on its next poll and the result is recorded back to the event. After
+      any restart or re-sync, re-check the miner card: telemetry resumes, the process-alive flag flips
+      back, and the event auto-resolves when the underlying condition clears. If nothing changes within a
+      few passes, the problem is on the host &mdash; go to step 4.</p>
+    </div></div>
+    <div class="rstep"><div class="rstep-num">7</div><div class="rstep-body">
+      <p><b>Close the loop weekly.</b> Review the change feed for what auto-resolved while you were away,
+      check log disk usage on long-running hosts, confirm provider keys in Settings are still valid for
+      machines the engine may provision, and skim upstream/benchmark events to decide whether a re-deploy
+      to newer subnet code is warranted.</p>
+    </div></div>
+  </div>
+
+  <!-- ============ CHAPTER 6 ============ -->
+  <div class="chapter-header">
+    <div class="section-tag">Chapter 6</div>
+    <div class="section-title">Troubleshooting Map</div>
+  </div>
+
+  <p class="body-text">When an install step fails, the engine writes a remediation hint next to the raw
+  output&nbsp;&mdash; the table below collects the ones you will actually meet, so you can act without
+  deciphering raw logs first. The pattern to remember: install failures are almost always environment
+  problems (network, apt sources, missing prerequisites) on the host, and they are re-runnable &mdash; fix
+  the cause, press the step again, and the plan resumes where it stopped. Nothing ever continues past a
+  failed step on its own.</p>
+
+  <table>
+    <thead><tr><th style="width:30%">Failed step</th><th style="width:38%">Typical cause</th><th>What to do</th></tr></thead>
+    <tbody>
+      <tr><td><b>Install OS packages</b></td><td>Broken apt sources or no outbound network on the host.</td><td>Fix distro sources / connectivity, re-run the step.</td></tr>
+      <tr><td><b>Install Docker + NVIDIA runtime</b></td><td>curl or the NVIDIA repo unreachable from the host.</td><td>Install docker-ce and nvidia-container-toolkit manually, then retry.</td></tr>
+      <tr><td><b>Create Python venv</b></td><td>Python version mismatch or python3-venv missing.</td><td>Install the required python3.x (deadsnakes) &mdash; the OS-packages step normally adds venv.</td></tr>
+      <tr><td><b>Clone the subnet repo</b></td><td>Repo not public or host has no egress.</td><td>Check the URL is reachable from the host; retry.</td></tr>
+      <tr><td><b>Install Python dependencies</b></td><td>Heavy CUDA wheels; RAM or disk pressure.</td><td>Read the pip output, free resources if needed, retry.</td></tr>
+      <tr><td><b>Wallet files present</b></td><td>Coldkey/hotkey not copied to the host.</td><td>Copy <span style="font-family:var(--mono), monospace; font-size:11.5px">~/.bittensor/wallets/&lt;wallet&gt;</span> (coldkey + hotkeys/&lt;hotkey&gt;) to the host via scp, then confirm.</td></tr>
+      <tr><td><b>Launch the miner</b></td><td>Bad wallet path, port conflict, chain error.</td><td>The verify step&rsquo;s log tail usually shows the reason; fix and re-run the launch step.</td></tr>
+      <tr><td><b>Verify the miner is live</b></td><td>Service inactive or axon port not listening.</td><td><span style="font-family:var(--mono), monospace; font-size:11.5px">journalctl -u infranex-miner-sn&lt;netuid&gt;</span> &mdash; common causes: wallet path, port conflict, chain sync.</td></tr>
+    </tbody>
+  </table>
+
+  <p class="body-text">Two platform-side conditions round out the map. <b>Mock transport refused</b>: if you
+  ever import or inherit a host record marked as a mock, every step will fail loudly with a message telling
+  you to delete and re-register the machine over real SSH &mdash; that is the honesty rule working as
+  designed, not a bug. <b>Missing provider keys</b>: flows that create machines on your behalf (deployments
+  migrating into DevOps, autopilot recycling compute) will fail with a clear configuration error until the
+  RunPod / Hetzner / DigitalOcean keys are re-added in Settings; the engine will never fall back to a
+  simulated machine to cover the gap.</p>
+
+</div>
+
+<!-- ================= ENDING ================= -->
+<div class="ending">
+  <div class="end-frame"></div>
+  <div class="end-big">Real machines.<br>Real telemetry.<br>Nothing fabricated.</div>
+  <div class="end-doctrine">The DevOps Engine does the watching so you can do the judging: it registers,
+  validates, provisions and monitors every miner you start &mdash; but it never spends your compute, moves
+  your keys, or hides a failure. When you see green, a real command really ran.</div>
+  <div class="end-strip">
+    <div class="end-strip-title">Pocket reference</div>
+    <div class="end-row"><span class="k">unit name</span><span>infranex-miner-sn&lt;netuid&gt;</span></div>
+    <div class="end-row"><span class="k">log file</span><span>/var/log/infranex-miner-sn&lt;netuid&gt;.log</span></div>
+    <div class="end-row"><span class="k">monitor cadence</span><span>every 90 s</span></div>
+    <div class="end-row"><span class="k">daemon heartbeat</span><span>every 60 s (silence &gt; 10 min = warning)</span></div>
+    <div class="end-row"><span class="k">thermal alarms</span><span>78 &deg;C warn / 85 &deg;C crit (&times;2 passes)</span></div>
+    <div class="end-row"><span class="k">idle alarm</span><span>util &lt; 30% &times; 3 passes</span></div>
+    <div class="end-row"><span class="k">requirements cache</span><span>re-scraped every 6 h</span></div>
+  </div>
+  <div class="end-edition"><span>INFRANEX PLATFORM</span><span>GUIDE V1.0 &middot; SEPT 2026</span></div>
+</div>
+
+</body>
+</html>
