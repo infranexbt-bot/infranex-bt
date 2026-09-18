@@ -1697,3 +1697,26 @@ Stage Summary:
   Render worst value for always-on shape; Hetzner cheapest serious VPS
 - Two DB wipes history → hosted persistent disk + automated backups directly addresses user's durability pain
 - No code changes made; consultation only
+
+---
+Task ID: git-save-push-1
+Agent: main (Super Z)
+Task: Save and push the project to git (user request)
+
+Work Log:
+- Verified git state: branch main, 145 commits, full history intact (e7d4b10 audit, d9600bf
+  public guides, 4a87a0d hosting guide); remote origin = infranexbt-bot/infranex-bt (https)
+- Found plaintext credential mirror infranex-users.local.json (login codes for all 5 users)
+  TRACKED in git at repo root -> untracked via git rm --cached, added /infranex-users.local.json
+  to .gitignore (commit b0ee705). File kept on disk as wipe-proof recovery mirror.
+- Committed runtime data update .alpha-price-history.json (commit 5f4f72d)
+- Verified ignore rules: .env, db/custom.db, dev.log, server.log, scripts/users.local.json all ignored
+- Attempted push main -> nextjs-platform: FAILED "could not read Username" — no credential
+  helper, no SSH keys, no GITHUB_* env tokens in environment. Push blocked on fresh PAT (write
+  access to infranexbt-bot/infranex-bt). Everything is committed locally and ready to push.
+
+Stage Summary:
+- Local main is 2 commits ahead (b0ee705 security, 5f4f72d data) + long-standing unpushed work
+- Awaiting fresh PAT from user to complete push (main:nextjs-platform)
+- Security note: credential codes remain in git HISTORY (needs history scrub + code rotation
+  later if user wants; repo visibility could not be confirmed — GitHub API returned 403 rate-limit)
