@@ -1744,3 +1744,31 @@ Stage Summary:
 - backup/nextjs-platform-pre-2026-09-19 preserves the old lineage (88 commits) for recovery
 - Open recommendation for user: revoke/rotate this PAT (pasted in chat); optional history scrub
   to remove plaintext login codes from old commits (needs force-push; codes rotation advised)
+
+---
+Task ID: app-review-1
+Agent: main (Super Z)
+Task: Review the web app for errors and fix (user request)
+
+Work Log:
+- Process/health: next dev v16.1.3 up (port 3000); gate 307, /login 200, authed dashboard 200,
+  public /guides/ PDF 200
+- Login re-verified: POST /api/auth/login admin -> 200 ok:true
+- Route model confirmed: single-dashboard app (src/app/page.tsx + /login) with ~48 API routes;
+  earlier /devops-style 404s were wrong probe paths, not defects
+- Probed all GET APIs with session cookie: ALL 200 (network live block 9,096,416, TAO $247.83,
+  129 subnets; judge/profiles + runs sane; workers/status, trust, monitoring, deployments,
+  wallets, settings, audit, economics etc. all OK with honest post-wipe empty states)
+- Daemon intake: POST /api/daemon/commands unsigned -> 401 (HMAC gate correct)
+- Workers: tick lazily on request traffic (burst pattern matches probe batches); latest runs
+  completed, 0 errors, chain-scanner 129/129 subnets; NOT stale (container date Sep 18 18:49 UTC)
+- DB post-wipe: AppUser 5, SubnetOverride 105/105 with githubUrl (reconcile rebuild COMPLETED),
+  GpuHost 0, JudgeProfile 2, JudgeRun 1; SubnetRequirements was 0 = cold cache — verified lazy
+  profiler end-to-end (GET ?netuid=1 profiled SN1 Apex live from chain and cached, 0 -> 1 row)
+- dev.log full sweep excluding prisma:query noise: ZERO real errors
+- Only finding: /api/cpu-offers source:"error" — both providers configured:false (RunPod/Hetzner/DO
+  keys absent) = documented config-gap with honest degradation, not a code defect
+
+Stage Summary:
+- NO code defects found; nothing to fix or commit
+- App fully healthy post second DB wipe; config-gaps remain: provider keys must be re-added by user
