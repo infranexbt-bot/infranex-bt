@@ -1601,3 +1601,19 @@ Work Log:
 Stage Summary:
 - One-click no-login download now live at /guides/devops-engine-miner-guide.pdf on the app origin
 - Small deliberate auth-surface change, documented in code comment; only curated guides belong in public/guides/
+
+---
+Task ID: 11
+Agent: Super Z (main)
+Task: User locked out ("Invalid user ID or access code") — diagnose + restore
+
+Work Log:
+- Reproduced server-side: POST /api/auth/login admin + correct code -> 401
+- Root cause: DB wiped AGAIN (second wipe). AppUser/SubnetRequirements/GpuHost/HostInstall/PlatformSettings/Deployment all 0 rows; only fresh WorkerStatus(64)/AuditLog(4) from running workers. scripts/users.local.json also deleted; /tmp/my-project/infranex-users.local.json SURVIVED (wipe-proof mirror worked as designed)
+- Restored: bun scripts/seed-users.ts -> 5 users re-seeded with ORIGINAL codes from mirror (admin=BRJ2-W2GT-WJNF-97VC preserved); APP_SESSION_SECRET regenerated in .env (old cookies invalid, fresh login required)
+- Verified: POST login admin -> HTTP 200 {ok:true,user:{userId:admin,role:admin}}
+- Data layer: launched prod-audit-reconcile.ts in background (rebuilds SubnetOverride githubUrls from live SubnetIdentitiesV3 chain identity + re-scrapes real READMEs); SubnetRequirements repopulates via workers/force-sync
+- Note for future: the environment wipe recurs; /tmp mirror + idempotent seed-users.ts is the recovery path; consider also mirroring users.local.json content into worklog-adjacent storage
+
+Stage Summary:
+- LOGIN RESTORED (original credentials). DB data-layer rebuild in progress from chain truth. No code defects — pure environment wipe.
