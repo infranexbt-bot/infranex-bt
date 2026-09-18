@@ -1,0 +1,56 @@
+[
+  {
+    "url": "https://www.digitalocean.com/pricing/managed-databases",
+    "name": "Managed Databases Pricing | DigitalOcean",
+    "snippet": "PostgreSQL is an open source, object-relational database built $15.15 ・ $0.215/GiB/mo, 10 GiB increments. $0.04531 $30.45 ・ 2026 DigitalOcean, LLC.Sitemap.",
+    "host_name": "www.digitalocean.com",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://docs.digitalocean.com/products/databases/postgresql/details/pricing",
+    "name": "PostgreSQL Pricing | DigitalOcean Documentation",
+    "snippet": "Single node clusters begin at $15.00 per month for a single node cluster with 1 GiB of RAM. · High availability clusters begin at $30.00 per month for a 2 GiB ...",
+    "host_name": "docs.digitalocean.com",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.digitalocean.com/products/managed-databases-postgresql",
+    "name": "Worry-Free Managed PostgreSQL Hosting - DigitalOcean",
+    "snippet": "Predictable pricing. Always know what you'll pay with monthly caps and flat pricing across all data centers. Spin up a cluster for just $15.15/month ...",
+    "host_name": "www.digitalocean.com",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.reddit.com/r/webdev/comments/aqm256/digitalocean_is_now_offering_full_managed",
+    "name": "DigitalOcean is now offering full managed databases - Reddit",
+    "snippet": "Feb 14, 2019 · starting from $15 per month or high availability cluster from $50 per month. Backups are included for free. All data is encrypted at rest and in ...",
+    "host_name": "www.reddit.com",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://scalegrid.io/blog/comparing-postgresql-digitalocean-performance-pricing-scalegrid-vs-digitalocean-managed-databases",
+    "name": "ScaleGrid Vs DigitalOcean PostgreSQL Comparison",
+    "snippet": "Jun 4, 2020 · DigitalOcean Managed Database pricing is the same as ScaleGrid's DBaaS pricing across all PostgreSQL plans, as well as their MySQL and Redis ...",
+    "host_name": "scalegrid.io",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.bytebase.com/blog/postgres-hosting-options-pricing-comparison",
+    "name": "PostgreSQL Hosting Options in 2026: Pricing Comparison - Bytebase",
+    "snippet": "Jul 12, 2026 · DigitalOcean $15.00 (1 vCPU, 1 GiB) $60.00. DigitalOcean offers Managed Databases for PostgreSQL, Entry Point: $15/month. Entry Point: $5/month ...",
+    "host_name": "www.bytebase.com",
+    "rank": 5,
+    "date": "",
+    "favicon": ""
+  }
+]

@@ -1,0 +1,65 @@
+[
+  {
+    "url": "https://www.digitalocean.com",
+    "name": "Expanding our GPU Droplet portfolio - NVIDIA RTX 4000",
+    "snippet": "May 8, 2025 — GPUs are now available as DigitalOcean GPU Droplets . Droplets are available in budget-friendly, single -node configurations. competitive pricing ...",
+    "host_name": "www.digitalocean.com",
+    "rank": 0,
+    "date": "May 8, 2025",
+    "favicon": ""
+  },
+  {
+    "url": "https://docs.digitalocean.com",
+    "name": "GPU Droplet Availability by Region",
+    "snippet": "Aug 10, 2026 — NVIDIA L40S GPU Droplets are available in Toronto (TOR1). NVIDIA RTX 4000 Ada . NVIDIA RTX 4000 Ada GPU Droplets are available in Toronto (TOR1). Read more",
+    "host_name": "docs.digitalocean.com",
+    "rank": 1,
+    "date": "Aug 10, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://investors.digitalocean.com",
+    "name": "DigitalOcean Announces Availability of New GPU Droplets,",
+    "snippet": "May 8, 2025 — NVIDIA RTX 4000 Ada Generation, NVIDIA RTX 6000 Ada Generation, and NVIDIA L40S GPUs are generally available to customers as DigitalOcean GPU ...",
+    "host_name": "investors.digitalocean.com",
+    "rank": 2,
+    "date": "May 8, 2025",
+    "favicon": ""
+  },
+  {
+    "url": "https://computeprices.com",
+    "name": "DigitalOcean GPU Pricing: Compare 9+ GPUs",
+    "snippet": "from $0.76/hr. DigitalOcean offers GPU Droplets powered by NVIDIA H100 , H200, L40s , RTX 4000 Ada $0.760/hr 1× 20GB ・ 6000 Ada $1.57/hr ・ 4000 Ada from $2.85/ ...",
+    "host_name": "computeprices.com",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.spheron.network",
+    "name": "DigitalOcean GPU Droplet Pricing 2026: H100, H200, and",
+    "snippet": "Jul 3, 2026 — DigitalOcean GPU Droplets with a single H100 80GB GPU (HGX/SXM architecture) start at approximately $3.39/hr . An 8x H100 SXM node runs ... Read more",
+    "host_name": "www.spheron.network",
+    "rank": 4,
+    "date": "Jul 3, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.nasdaq.com",
+    "name": "DigitalOcean Announces Availability of New GPU Droplets",
+    "snippet": "May 8, 2025 — These new GPU Droplets are currently available in DigitalOcean's Toronto data centers . To learn more about NVIDIA RTX 4000 Ada Generation, ... Read more",
+    "host_name": "www.nasdaq.com",
+    "rank": 5,
+    "date": "May 8, 2025",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.runpod.io",
+    "name": "Top DigitalOcean GPU Alternatives for AI Workloads in 2026",
+    "snippet": "Sep 10, 2026 — The NVIDIA catalog is thin – four cards on demand, with nothing between the RTX 6000 Ada at $1.57 and the H100 at $4.41 and nothing in the RTX ... Read more",
+    "host_name": "www.runpod.io",
+    "rank": 6,
+    "date": "Sep 10, 2026",
+    "favicon": ""
+  }
+]

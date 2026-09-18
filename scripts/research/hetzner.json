@@ -1,0 +1,47 @@
+[
+  {
+    "url": "https://www.hetzner.com",
+    "name": "Cheap cloud-hosting – low vps prices for developers",
+    "snippet": "This is the plan for you if you want to set up a cloud server in a cost -effective and uncomplicated way. ... per GB per month . € 0.0143. circle-plus-prime. Read more",
+    "host_name": "www.hetzner.com",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://docs.hetzner.com",
+    "name": "Hetzner Price Adjustment 15 June 2026",
+    "snippet": "Jun 14, 2026 — The price adjustment took effect for new orders and cloud instance rescales starting on the 15 June 2026 ; 8 AM CEST. Please note that certain ... Read more",
+    "host_name": "docs.hetzner.com",
+    "rank": 1,
+    "date": "Jun 14, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://costgoat.com",
+    "name": "Hetzner Cloud VPS Pricing Calculator (Sep 2026)",
+    "snippet": "How much does Hetzner Cloud cost per month? Monthly costs vary by instance type and region: Smallest instances €5.49-10.49/month (CX/CAX series in Germany ... Read more",
+    "host_name": "costgoat.com",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://northflank.com",
+    "name": "Hetzner cloud server price increases in 2026",
+    "snippet": "Jun 17, 2026 — Hetzner raised cloud server prices up to 3.1x in June 2026 . Full breakdown of CCX, CPX, CX, and CAX increases by region, plus alternatives ...",
+    "host_name": "northflank.com",
+    "rank": 3,
+    "date": "Jun 17, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://forum.cloudron.io",
+    "name": "Hetzner price increases by 20-30 % - other hosting",
+    "snippet": "Feb 23, 2026 — Here's the impact it's having on me: Product previous price New price as of 1 April 2026 . CPX11 (FSN1) € 3.85 € 5.49. CX22 (HEL1) € 3.29 € ... Read more",
+    "host_name": "forum.cloudron.io",
+    "rank": 4,
+    "date": "Feb 23, 2026",
+    "favicon": ""
+  }
+]

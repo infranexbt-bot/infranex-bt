@@ -1,0 +1,56 @@
+[
+  {
+    "url": "https://railway.com",
+    "name": "Pricing",
+    "snippet": "Start with a 30-day free trial with $5 credits, then $1 per month · Up to 1 vCPU / 0.5 GB RAM per service · 0.5 GB of volume storage · Community support. Read more",
+    "host_name": "railway.com",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://northflank.com",
+    "name": "Railway vs Render: which platform fits your workload in",
+    "snippet": "Jun 1, 2026 — Does Render charge per user? No. Render removed per-seat pricing in 2026. Pricing is now based on a flat plan fee plus compute consumption. Read more",
+    "host_name": "northflank.com",
+    "rank": 1,
+    "date": "Jun 1, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://encore.dev",
+    "name": "Render vs Railway 2026 - Pricing, DX & When to Use Each",
+    "snippet": "Apr 19, 2026 — Paid plans start at $7/month per web service . Starter: $7/month per service, Standard/Pro: $25+/month per service, dedicated CPU, more memory. ...",
+    "host_name": "encore.dev",
+    "rank": 2,
+    "date": "Apr 19, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.13labs.au",
+    "name": "Railway vs Render: Pricing, Free Tiers & Cold Starts",
+    "snippet": "Sep 9, 2026 — Railway Free includes $1 monthly credit; its initial $5 trial is a separate, one-time allowance. Render grants 750 free web-service instance ... Read more",
+    "host_name": "www.13labs.au",
+    "rank": 3,
+    "date": "Sep 9, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://justinmckelvey.com",
+    "name": "Railway vs Vercel Pricing 2026: Real Cost Math + Verdict",
+    "snippet": "May 31, 2026 — Railway pricing (Hobby $5, Pro usage-based) vs Vercel: a 3-person SaaS pays $60-150/mo on Vercel, $15-45 on Railway .",
+    "host_name": "justinmckelvey.com",
+    "rank": 4,
+    "date": "May 31, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.agilesoftlabs.com",
+    "name": "Vercel vs Railway vs Render 2026: Where to Deploy Your",
+    "snippet": "Jul 29, 2026 — Render wins on pricing predictability. Vercel ~$109/month, Railway ~$30/month , Render ~$35/month — Vercel's bandwidth overage and external ...",
+    "host_name": "www.agilesoftlabs.com",
+    "rank": 5,
+    "date": "Jul 29, 2026",
+    "favicon": ""
+  }
+]

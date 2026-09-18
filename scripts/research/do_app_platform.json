@@ -1,0 +1,47 @@
+[
+  {
+    "url": "https://www.digitalocean.com",
+    "name": "App platform pricing for multiple instance creation/deletion",
+    "snippet": "Jun 19, 2021 — Hello everyone! I’m currently calculating the cost of using the App Platform for our review environments. I’m not sure how the pricing model will ...",
+    "host_name": "www.digitalocean.com",
+    "rank": 0,
+    "date": "Jun 19, 2021",
+    "favicon": ""
+  },
+  {
+    "url": "https://docs.digitalocean.com",
+    "name": "App Platform Pricing",
+    "snippet": "per month $156.00 per month . Platform offers a free tier for static sites . Each additional app containing static website components costs $3.00 per month .",
+    "host_name": "docs.digitalocean.com",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://rafftechnologies.com",
+    "name": "DigitalOcean App Platform Alternative 2026: Pricing,",
+    "snippet": "Jul 30, 2026 — Raff Apps starts at $3/mo with. DigitalOcean starts at $5/mo across 12 regions. a free static - site tier, dedicated plans start at $29/ month …  ...",
+    "host_name": "rafftechnologies.com",
+    "rank": 2,
+    "date": "Jul 30, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://ghostlyinc.com",
+    "name": "DigitalOcean App Platform pricing: apps, PostgreSQL, and limits",
+    "snippet": "Aug 28, 2026 — From about $5 per month . Good first estimate for a small web service; add workers, jobs, databases, and transfer before deciding. Static sites ...",
+    "host_name": "ghostlyinc.com",
+    "rank": 3,
+    "date": "Aug 28, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://sliplane.io",
+    "name": "5 Great DigitalOcean App Platform Alternatives in 2026",
+    "snippet": "Nov 11, 2025 — Best DigitalOcean App Platform alternative for predictable container hosting: Sliplane from €9/month per server . Best if you already live in AWS ...",
+    "host_name": "sliplane.io",
+    "rank": 4,
+    "date": "Nov 11, 2025",
+    "favicon": ""
+  }
+]

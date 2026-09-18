@@ -1,0 +1,56 @@
+[
+  {
+    "url": "https://www.digitalocean.com",
+    "name": "How to Choose a Cloud GPU Provider for AI/ML Workloads",
+    "snippet": "Jul 31, 2026 — DigitalOcean offers NVIDIA HGX H100 , H200, L40S , Pricing ranges from $0.76-$4.47/ hour , via a straightforward pricing model. L40S , L, Pricing ...",
+    "host_name": "www.digitalocean.com",
+    "rank": 0,
+    "date": "Jul 31, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.spheron.network",
+    "name": "DigitalOcean GPU Droplet Pricing 2026: H100, H200, and",
+    "snippet": "Jul 3, 2026 — DigitalOcean GPU Droplets put H100 hardware on a familiar cloud platform at approximately $3.39/hr per GPU , per-second billing with a 5-minute ...",
+    "host_name": "www.spheron.network",
+    "rank": 1,
+    "date": "Jul 3, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://computeprices.com",
+    "name": "DigitalOcean GPU Pricing: Compare 9+ GPUs",
+    "snippet": "Compare DigitalOcean GPU prices from $0.76/ hr . DigitalOcean offers GPU Droplets powered by NVIDIA H100 , H200, L40s , X GPUs with simple per - hour pricing ・ $4. ...",
+    "host_name": "computeprices.com",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.runpod.io",
+    "name": "Top DigitalOcean GPU Alternatives for AI Workloads in 2026",
+    "snippet": "Sep 10, 2026 — H100 at $4.41. On-demand rates verified 31 August 2026 : L40S $1.50, On-demand rates per GPU per hour , verified 18 August 2026 : H100 SXM 80GB $3 ...",
+    "host_name": "www.runpod.io",
+    "rank": 3,
+    "date": "Sep 10, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://docs.digitalocean.com",
+    "name": "Droplet Pricing | DigitalOcean Documentation",
+    "snippet": "Aug 25, 2026 — On-Demand GPU Droplet Pricing ; NVIDIA H100 (8x), $35.28 per hour ; NVIDIA L40s, $1.57 per hour ; NVIDIA RTX 4000, $0.76 per hour ; NVIDIA RTX 6000 ... Read more",
+    "host_name": "docs.digitalocean.com",
+    "rank": 4,
+    "date": "Aug 25, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://gpufinder.dev",
+    "name": "Digital Ocean GPU Pricing",
+    "snippet": "7 days ago — All Digital Ocean GPU instances and pricing. 1 GPU models from $6.74/hr . Developer-friendly cloud with GPU Droplets (H100, H200, MI300X and more); ... Read more",
+    "host_name": "gpufinder.dev",
+    "rank": 5,
+    "date": "Sep 11, 2026",
+    "favicon": ""
+  }
+]

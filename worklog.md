@@ -1655,3 +1655,22 @@ Work Log:
 Stage Summary:
 - nextjs-platform now carries the full verified line: CPU catalogue + e7d4b10 audit fixes + 5dcd949 deployments fixes + 544399d devops fixes + d9600bf /guides delivery + 0e5bc36 judge fixes
 - If CI workflows are ever wanted on GitHub, user must mint a PAT with `workflow` scope
+
+---
+Task ID: 12
+Agent: main (Super Z)
+Task: Deployment & hosting briefing for the web app + DigitalOcean research ("look into DigitalOcean also and provide the best list")
+
+Work Log:
+- Ran 8 web searches (Sept 2026): DO App Platform, Droplet tiers, GPU Droplets, Managed Postgres; Hetzner 2026 hikes; RunPod; Vultr/Linode; Railway/Render/Vercel
+- Grounded app requirements in code: Next 16 standalone via bun, Prisma 6 SQLite (db/custom.db), ssh2/polkadot/z-ai deps, env vars (APP_SESSION_SECRET, DATABASE_URL, DEVOPS_SECRET, INFRANEX_REPO_ROOT, RUNPOD_API_KEY), 7 workers, legacy stale docker-compose.yml warning
+- CONFIG FIX: DEVOPS_SECRET was missing from .env after the second DB wipe - regenerated (openssl rand -hex 32) and appended
+- Built Deployment & Hosting Guide PDF via pdf skill Report route: palette.cascade, Template 01 HUD cover (validated with poster_validate + cover_validate, fixed hero wrap overlap), ReportLab body with auto-TOC (TocDocTemplate+multiBuild), 8 tables + stat callouts + code blocks, merged via pypdf, normalize_page_to_a4 (tightened to 0.1pt tolerance after pdf_qa page-size error)
+- QA: pdf_qa 13/13 pass (2 cosmetic warnings from intentional 3-across stat row), font.check 0 issues, toc.check pass, meta.brand, pages.clean
+- Delivered: download/deployment-hosting-guide.pdf (12 pages, 166KB) + public/guides/deployment-hosting-guide.pdf (HTTP 200 no-login verified) + download/deployment-hosting-guide-cover.html
+- Commit 4a87a0d
+
+Stage Summary:
+- Best list: DO Droplet 2vCPU/4GB $24/mo recommended control plane; $6/mo budget; App Platform from $5/service (forces SQLite->PG migration); Managed PG $15 (HA $30); GPU: RTX 4000 Ada $0.76/hr (TOR1), RTX 6000 Ada / L40S $1.57/hr, H100 ~$3.39+/hr single / $35.28/hr 8x node; RunPod 4090 $0.34-0.69/hr undercuts DO for experiments; Hetzner hiked June 2026 (CPX11 EUR 5.49)
+- Key verdicts: Droplet > App Platform for this app (SQLite persistence); DOKS not needed; control plane must never host miners; DEVOPS_SECRET stability = miner pairing
+- Validator Lab audit still pending (next task)

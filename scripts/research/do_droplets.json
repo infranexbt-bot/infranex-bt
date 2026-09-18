@@ -1,0 +1,47 @@
+[
+  {
+    "url": "https://www.digitalocean.com",
+    "name": "Budget-Friendly Cloud Server Pricing",
+    "snippet": "$1.91/GPU/hour* Droplets Starting at $4/ month … with 60 sec minimum or $0.01, Droplet cost per month 30%(for daily) tier: $0.30 per",
+    "host_name": "www.digitalocean.com",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://docs.digitalocean.com",
+    "name": "Choosing the Right CPU Droplet Plan",
+    "snippet": "Sep 3, 2026 — See the Droplet pricing page for a full list of plans and prices. Basic Droplets come in a wide variety of configurations , Basic Droplets can ...",
+    "host_name": "docs.digitalocean.com",
+    "rank": 1,
+    "date": "Sep 3, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.websiteplanet.com",
+    "name": "DigitalOcean Plans & Pricing: Cheap but What's the Catch?",
+    "snippet": "Mar 31, 2022 — Starting at $4.00/month , DigitalOcean's Basic Droplets configuration is nothing short of affordable. At this price, you'll start with 1 vCPU ... Read more",
+    "host_name": "www.websiteplanet.com",
+    "rank": 2,
+    "date": "Mar 31, 2022",
+    "favicon": ""
+  },
+  {
+    "url": "https://fluence.ai",
+    "name": "DigitalOcean Droplet Pricing (2026): 2 vCPU 4GB Cost,",
+    "snippet": "Jul 3, 2025 — The Basic 2 vCPU, 4 GiB Droplet costs $24 per month or $0.03571 per hour. How much bandwidth does a Droplet include? Included outbound ... Read more",
+    "host_name": "fluence.ai",
+    "rank": 3,
+    "date": "Jul 3, 2025",
+    "favicon": ""
+  },
+  {
+    "url": "https://rafftechnologies.com",
+    "name": "DigitalOcean Alternative 2026: Pricing & Performance",
+    "snippet": "Aug 20, 2026 — A DigitalOcean Basic Droplet with 2 vCPU, 4 GB and 80 GB is $24/ month ; the identical Raff General Purpose plan is $13.99. Raff runs 35% to ... Read more",
+    "host_name": "rafftechnologies.com",
+    "rank": 4,
+    "date": "Aug 20, 2026",
+    "favicon": ""
+  }
+]

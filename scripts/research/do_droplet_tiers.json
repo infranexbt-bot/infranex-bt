@@ -1,0 +1,38 @@
+[
+  {
+    "url": "https://www.digitalocean.com",
+    "name": "Announcing new Basic Premium Droplet plans",
+    "snippet": "Aug 3, 2023 — Choose from these new plans or any of the existing plans we offer for Basic Premium Droplets with Intel ® Xeon® processors. Processor Type ... Read more",
+    "host_name": "www.digitalocean.com",
+    "rank": 0,
+    "date": "Aug 3, 2023",
+    "favicon": ""
+  },
+  {
+    "url": "https://docs.digitalocean.com",
+    "name": "Droplet Pricing | DigitalOcean Documentation",
+    "snippet": "Aug 25, 2026 — CPU Droplets are billed per second with a minimum charge of 60 seconds or $0.01, whichever is higher. Usage is capped at 672 hours (28 days) ...",
+    "host_name": "docs.digitalocean.com",
+    "rank": 1,
+    "date": "Aug 25, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://fluence.ai",
+    "name": "DigitalOcean Droplet Pricing (2026): 2 vCPU 4GB Cost,",
+    "snippet": "Jul 3, 2025 — How much does a DigitalOcean 2 vCPU 4GB Droplet cost? The Basic 2 vCPU, 4 GiB Droplet costs $24 per month or $0.03571 per hour . How much ... Read more",
+    "host_name": "fluence.ai",
+    "rank": 2,
+    "date": "Jul 3, 2025",
+    "favicon": ""
+  },
+  {
+    "url": "https://rafftechnologies.com",
+    "name": "DigitalOcean Alternative 2026: Pricing & Performance",
+    "snippet": "Aug 20, 2026 — A DigitalOcean Basic Droplet with 2 vCPU , 4 GB and 80 GB is $24/month; the identical Raff General Purpose plan is $13.99. Raff runs 35% to 53% ... Read more",
+    "host_name": "rafftechnologies.com",
+    "rank": 3,
+    "date": "Aug 20, 2026",
+    "favicon": ""
+  }
+]

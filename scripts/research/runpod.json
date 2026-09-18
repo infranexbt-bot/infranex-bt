@@ -1,0 +1,65 @@
+[
+  {
+    "url": "https://www.runpod.io",
+    "name": "Cloud GPU Instances for AI Workloads",
+    "snippet": "Aug 27, 2026 — RTX 4090, H100 PCIe instances are available on-demand from $2.89/hr and A100 PCIe from $1.39/hr, with no contracts or minimums.",
+    "host_name": "www.runpod.io",
+    "rank": 0,
+    "date": "Aug 27, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://flexprice.io",
+    "name": "RunPod Pricing in 2026: What GPU Cloud Actually Costs",
+    "snippet": "Aug 23, 2026 — Launch an A100 PCIe 80GB Pod on Secure Cloud at $1.39/hr and run it for exactly two hours and 14 seconds. RunPod bills you $2.79. RTX 4090 24GB ...",
+    "host_name": "flexprice.io",
+    "rank": 1,
+    "date": "Aug 23, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.spheron.network",
+    "name": "Runpod Pricing 2026: H100 Hourly & Serverless",
+    "snippet": "May 22, 2026 — Runpod H100 SXM5 runs $2.99/hr on Secure Cloud and about $4.55/hr on Serverless. Runpod Secure Cloud charges approximately $2.89/hr for H100 80 ...",
+    "host_name": "www.spheron.network",
+    "rank": 2,
+    "date": "May 22, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://computeprices.com",
+    "name": "Runpod GPU Pricing: Compare 37+ GPUs",
+    "snippet": "H100 NVL. $2.59/hrCommunity Cloud . 1×2×3×. 94GB. 1×2×3×. 9/10/2026 ; H100 NVL. $3.19/hrSecure Cloud. 1×2×3×4×. 94GB. 1×2×3×4×. 9/10/2026. Read more",
+    "host_name": "computeprices.com",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://glows.ai",
+    "name": "RunPod vs Glows.ai: 7 Numbers Before You Rent a GPU",
+    "snippet": "Jul 13, 2026 — RunPod's current pricing page lists an RTX 4090 at $0.69/hr , an A100 PCIe at $1.39/hr, and an H100 PCIe at $2.89/hr. Glows.ai's public rate ... Read more",
+    "host_name": "glows.ai",
+    "rank": 4,
+    "date": "Jul 13, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://hackceleration.com",
+    "name": "How Much Does RunPod Cost? The Real 2026 GPU Price",
+    "snippet": "RTX 4090 sits at $0.34/hr on Community Cloud . an H100 around $2,110. RTX 4090 runs $0.34/hr on Community Cloud ($0.69/hr on Secure Cloud). the H100 PCIe is $2. ...",
+    "host_name": "hackceleration.com",
+    "rank": 5,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://northflank.com",
+    "name": "Runpod GPU pricing: A complete breakdown and platform",
+    "snippet": "Dec 7, 2025 — Secure cloud GPU pricing ; H100 PCIe, $1.99/hr, $2.39/hr ; A100 PCIe, $1.19/hr, $1.39/hr ; A100 SXM, $1.39/hr, $1.49/hr ... Read more",
+    "host_name": "northflank.com",
+    "rank": 6,
+    "date": "Dec 7, 2025",
+    "favicon": ""
+  }
+]
