@@ -267,6 +267,10 @@ model JudgeProfile {
   //   medianIncentive, meanIncentive, top10Take, brutality, band }
   cohortJson     String
   confidence     Float    @default(0)
+  // Response deadline (ms) mined from the validator code by the extractor —
+  // null when no plausible deadline was found; the simulator prefers this
+  // over archetype defaults so latency scoring uses the repo's real number.
+  deadlineMs     Int?
   // Sources JSON: [{ kind: "validator_code" | "readme" | "tree" | "chain", url?, note }]
   sourcesJson    String   @default("[]")
   fetchedAt      DateTime @default(now())

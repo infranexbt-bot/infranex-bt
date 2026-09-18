@@ -187,6 +187,8 @@ export interface JudgeProfileData {
   dimensions: JudgeDimension[];
   cohort: JudgeCohort;
   confidence: number; // 0-1
+  /** Response deadline (ms) mined from the validator code; null = not found. */
+  deadlineMs: number | null;
   sources: JudgeSource[];
 }
 

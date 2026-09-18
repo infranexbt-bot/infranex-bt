@@ -98,6 +98,7 @@ export async function buildJudgeProfile(
     dimensions: extracted.dimensions,
     cohort,
     confidence: extracted.confidence,
+    deadlineMs: extracted.deadlineMs,
     sources,
   };
 
@@ -112,6 +113,7 @@ export async function buildJudgeProfile(
       dimensionsJson: JSON.stringify(data.dimensions),
       cohortJson: JSON.stringify(data.cohort),
       confidence: data.confidence,
+      deadlineMs: data.deadlineMs,
       sourcesJson: JSON.stringify(data.sources),
       fetchedAt: new Date(),
     },
@@ -122,6 +124,7 @@ export async function buildJudgeProfile(
       dimensionsJson: JSON.stringify(data.dimensions),
       cohortJson: JSON.stringify(data.cohort),
       confidence: data.confidence,
+      deadlineMs: data.deadlineMs,
       sourcesJson: JSON.stringify(data.sources),
       fetchedAt: new Date(),
     },
@@ -152,6 +155,7 @@ export async function getJudgeProfile(
           dimensions: JSON.parse(row.dimensionsJson),
           cohort: JSON.parse(row.cohortJson),
           confidence: row.confidence,
+          deadlineMs: row.deadlineMs ?? null,
           sources: JSON.parse(row.sourcesJson),
         };
         memCache.set(netuid, { data, expiresAt: Date.now() + PROFILE_TTL_MS });
@@ -159,7 +163,9 @@ export async function getJudgeProfile(
       }
     }
   }
-  return buildJudgeProfile(netuid, subnetNameFor(netuid));
+  // Resolve the real chain name for rebuilds too — persisting the
+  // "Subnet N" placeholder would stick until the next explicit sync.
+  return buildJudgeProfile(netuid, await resolveSubnetName(netuid));
 }
 
 /** List all persisted profiles. */
@@ -173,6 +179,7 @@ export async function listJudgeProfiles() {
     dimensions: JSON.parse(row.dimensionsJson),
     cohort: JSON.parse(row.cohortJson),
     confidence: row.confidence,
+    deadlineMs: row.deadlineMs ?? null,
     sources: JSON.parse(row.sourcesJson),
     fetchedAt: row.fetchedAt.toISOString(),
   }));

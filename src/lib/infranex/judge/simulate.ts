@@ -127,7 +127,11 @@ export function simulateAgainstProfile(
   profile: JudgeProfileData,
   spec: MinerSpec
 ): SimulationResult {
-  const deadlineMs = profile.dimensions.length ? inferDeadline(profile) : 30_000;
+  // Deadline priority: the value actually MINED from the validator code
+  // beats the archetype default — the simulation must score against the
+  // same number the profile reports in its summary.
+  const deadlineMs =
+    profile.deadlineMs ?? (profile.dimensions.length ? inferDeadline(profile) : 30_000);
   const throughputRef = THROUGHPUT_REFERENCE[profile.judgeKind] ?? 20;
   const priceRef = PRICE_REFERENCE[profile.judgeKind] ?? 0.8;
 
