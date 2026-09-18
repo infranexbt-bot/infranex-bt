@@ -1564,3 +1564,23 @@ Stage Summary:
   being re-added (honest 400s, config not code). DB left clean (0 hosts).
   Note: browser 'click by ref' can silently no-op after re-render — use
   Enter-key submit or re-snapshot (automation artifact, not an app bug).
+
+---
+Task ID: 9
+Agent: Super Z (main)
+Task: Explain DevOps Engine + GPU miner "what/when to check" step-by-step guide; fold in functional verification of the DevOps Engine (prior request)
+
+Work Log:
+- Read engine code end-to-end: lib/devops/{installer,inspector,transport,subnet-requirements}.ts, lib/infranex/{devops-monitor,daemon-bridge,workers}.ts, api/devops/* routes, devops-view
+- Found live DB post-restore had 0 AppUser rows (login broken) -> re-ran scripts/seed-users.ts, restored all 5 users with original codes from /tmp mirror; verified login 200
+- Functional verification via curl+admin cookie: register host (201, secret encrypted, never returned), validate (honest SSH ECONNREFUSED + remediation, skipped steps honest), stage install netuid=1 (real chain-truth profile: Apex/macrocosm-os/apex, H200 141GB, uv, axon 8091; 9-step plan, gates correct), run step s1 (honest fail "no GPU facts"), monitor endpoint (honest empty state, thresholds match code, lastPass proof), DELETE host (cascade cleanup verified)
+- Code review: daemon bridge HMAC-SHA256 (path-bound, replay cache 6min), pull-only command queue, approval gating, mock transport banned -> VERDICT: DevOps Engine PASS, no code defects
+- Wrote grounded miner guide: download/devops-engine-miner-guide.html + .pdf (Creative Flow route, Crystal Blue, 13 pages, ~3.5k words, 10 tables)
+- QA: poster_validate check-html (fixed divider overlaps via ::after, font fallbacks), cover_validate Pass-2 body flags out of scope (doc says cover-ONLY), fixed dark body-bg void bug (light bg + cover paints own dark), allowed big tables to split w/ header repeat, fixed em-dash line-start, ending footer wrap
+- Final: pdf_qa.py PASS (all checks), 0 corrupt chars, page numbers stamped (cover/ending hidden, Arabic body), metadata set
+
+Stage Summary:
+- Deliverables: download/devops-engine-miner-guide.pdf (13p, 365KB, vector) + .html source
+- DevOps Engine functional verdict: PASS (honest states everywhere, gates correct, no fabrication); environment gaps noted (provider keys still missing = config, not code; DB re-seeded post-wipe: 8 seed overrides, workers repopulating)
+- Login credentials restored (same codes as before)
+- Helper scripts kept: scripts/check-users.ts, check-db-counts.ts, stamp-guide-pages.mjs
