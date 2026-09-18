@@ -57,10 +57,16 @@ export interface LiveGpuSnapshot {
 export function normalizeModel(displayName: string, vramGb: number): {
   model: string;
   tierLabel: "Entry" | "Mid" | "High" | "Flagship";
+  /** Canonical marketing VRAM for models where provider reporting drifts
+   *  (Vast reports MiB -> rounds to GiB, e.g. H200 = 140 instead of 141;
+   *  without this the wizard's `vramGb >= minVramGb` filter wrongly hides
+   *  Vast's identical-but-cheaper cards). Parsers should prefer this value
+   *  over their own unit math when present. */
+  vramGb?: number;
 } | null {
   const n = displayName.toUpperCase();
   // Only include GPUs relevant to Bittensor mining (skip low-end/consumer).
-  const map: { match: RegExp; model: string; tier: "Entry" | "Mid" | "High" | "Flagship" }[] = [
+  const map: { match: RegExp; model: string; tier: "Entry" | "Mid" | "High" | "Flagship"; vramGb?: number }[] = [
     { match: /^RTX 4090$/, model: "RTX 4090", tier: "High" },
     { match: /^RTX 4080/, model: "RTX 4080", tier: "Mid" },
     { match: /^RTX 3090 TI/, model: "RTX 3090 Ti", tier: "Mid" },
@@ -76,20 +82,22 @@ export function normalizeModel(displayName: string, vramGb: number): {
     { match: /^L40S$/, model: "L40S", tier: "High" },
     { match: /^L40$/, model: "L40", tier: "Mid" },
     { match: /^L4$/, model: "L4", tier: "Entry" },
-    { match: /^H100 SXM$/, model: "H100 80GB", tier: "Flagship" },
-    { match: /^H100 NVL$/, model: "H100 NVL", tier: "Flagship" },
-    { match: /^H100 PCIE$/, model: "H100 PCIe", tier: "Flagship" },
-    { match: /^H200 SXM$/, model: "H200 141GB", tier: "Flagship" },
-    { match: /^H200 NVL$/, model: "H200 NVL", tier: "Flagship" },
-    { match: /^B200$/, model: "B200 180GB", tier: "Flagship" },
-    { match: /^B300/, model: "B300 288GB", tier: "Flagship" },
-    { match: /^MI300X/, model: "MI300X 192GB", tier: "Flagship" },
+    { match: /^H100 SXM$/, model: "H100 80GB", tier: "Flagship", vramGb: 80 },
+    { match: /^H100 NVL$/, model: "H100 NVL", tier: "Flagship", vramGb: 94 },
+    { match: /^H100 PCIE$/, model: "H100 PCIe", tier: "Flagship", vramGb: 80 },
+    { match: /^H200( SXM)?$/, model: "H200 141GB", tier: "Flagship", vramGb: 141 },
+    { match: /^H200 NVL$/, model: "H200 NVL", tier: "Flagship", vramGb: 141 },
+    { match: /^B200$/, model: "B200 180GB", tier: "Flagship", vramGb: 180 },
+    { match: /^B300/, model: "B300 288GB", tier: "Flagship", vramGb: 288 },
+    { match: /^MI300X/, model: "MI300X 192GB", tier: "Flagship", vramGb: 192 },
     { match: /^RTX 5090$/, model: "RTX 5090", tier: "High" },
     { match: /^RTX 5080$/, model: "RTX 5080", tier: "Mid" },
   ];
   for (const m of map) {
     if (m.match.test(n)) {
-      return { model: m.model, tierLabel: m.tier };
+      return m.vramGb != null
+        ? { model: m.model, tierLabel: m.tier, vramGb: m.vramGb }
+        : { model: m.model, tierLabel: m.tier };
     }
   }
   return null;

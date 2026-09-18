@@ -296,8 +296,13 @@ async function vastOffers(key: string): Promise<LiveOffer[]> {
     // Mining profile: whole single-GPU machines — multi-GPU bundles distort
     // the per-GPU price comparison in the wizard's VRAM filter.
     if (numGpus !== 1) continue;
-    const vramGb = Math.round(gpuRamMb / 1024);
-    const norm = normalizeModel(gpuName, vramGb);
+    const vramRaw = Math.round(gpuRamMb / 1024);
+    const norm = normalizeModel(gpuName, vramRaw);
+    // Prefer the canonical marketing VRAM — Vast reports MiB (rounds to a
+    // GiB figure like 140 for the H200) while subnet requirements and the
+    // other providers speak marketing GB (141). Keeps the wizard's
+    // `vramGb >= minVramGb` filter fair across providers.
+    const vramGb = norm?.vramGb ?? vramRaw;
     out.push({
       id: `vast-${String(o.id ?? `${gpuName}-${hourly}`)}`,
       model: norm?.model ?? gpuName,
