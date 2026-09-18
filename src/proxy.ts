@@ -30,7 +30,10 @@ const PUBLIC_PATHS = new Set([
 ]);
 
 function isPublic(pathname: string): boolean {
-  return PUBLIC_PATHS.has(pathname);
+  // /guides/ — static miner-facing documents (public/guides/*.pdf). Setup and
+  // operations guides are meant to be shared with miners who have no app
+  // account; contents are curated, nothing sensitive lives there.
+  return PUBLIC_PATHS.has(pathname) || pathname.startsWith("/guides/");
 }
 
 export default async function proxy(req: NextRequest) {
