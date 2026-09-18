@@ -1720,3 +1720,27 @@ Stage Summary:
 - Awaiting fresh PAT from user to complete push (main:nextjs-platform)
 - Security note: credential codes remain in git HISTORY (needs history scrub + code rotation
   later if user wants; repo visibility could not be confirmed — GitHub API returned 403 rate-limit)
+
+---
+Task ID: git-save-push-2
+Agent: main (Super Z)
+Task: Push project to GitHub using user-provided PAT
+
+Work Log:
+- User supplied fresh PAT (token NOT logged here — revoke after use)
+- Divergence discovered: remote nextjs-platform had 88 commits not in local main (prior-session
+  lineage: CPU guide docs bd4337d, multi-subnet picker 06d1aac, price caches); local main had 148
+  commits not on remote (sandbox platform auto-commit chain + all session work)
+- Content-level safety check: remote-only commit files verified present locally — gpu-miner-setup-guide.pdf
+  byte-identical (4,279,434 B), cpu-guide-view.tsx same/newer lineage (1,237 lines), screenshots +
+  stamp-guide-pagenums.py present. Divergence is HISTORY-ONLY, not content.
+- Safety net: pushed old remote tip ae6238e to backup branch backup/nextjs-platform-pre-2026-09-19
+- Force-with-lease push (lease pinned to ae6238e) main -> nextjs-platform: SUCCESS, remote now 071780f
+- Updated local tracking ref + upstream for future pushes; token used one-shot in URL, never persisted
+
+Stage Summary:
+- GitHub nextjs-platform = current running project (audit fixes, public guides, hosting docs,
+  security fix untracking credential mirror, latest data snapshots)
+- backup/nextjs-platform-pre-2026-09-19 preserves the old lineage (88 commits) for recovery
+- Open recommendation for user: revoke/rotate this PAT (pasted in chat); optional history scrub
+  to remove plaintext login codes from old commits (needs force-push; codes rotation advised)
