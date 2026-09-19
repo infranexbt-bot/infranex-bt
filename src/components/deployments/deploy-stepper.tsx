@@ -1669,6 +1669,24 @@ export function DeployStepper() {
                 </p>
               </>
             )}
+            {!hasDeployment && cpuProvisioned != null && (
+              <>
+                <Separator className="my-1" />
+                <p className="text-[10px] leading-relaxed text-muted-foreground">
+                  CPU VPS rented — the staged install plan waits in the DevOps Engine card below.
+                  Approve the gated steps there to go live.
+                </p>
+              </>
+            )}
+            {!hasDeployment && cpuProvisioned == null && localSetupDone && selectedLocalHost && (
+              <>
+                <Separator className="my-1" />
+                <p className="text-[10px] leading-relaxed text-muted-foreground">
+                  Laptop ready — send the register command from step 4, then watch the agent under
+                  DevOps → Local machines.
+                </p>
+              </>
+            )}
           </aside>
         </div>
       </CardContent>
