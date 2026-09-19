@@ -12,6 +12,9 @@
 //                            HMAC (x-infranex-signature, ±5 min replay window,
 //                            timing-safe compare). Session-gating these made
 //                            every real-daemon call 401 at the edge.
+//   /api/agent/*           — LOCALHOST-1 local-machine agent (laptop/WSL2):
+//                            same pull-model security — one-time enrollment
+//                            token then per-host HMAC; no cookie exists there.
 // Everything else (pages AND /api/*) requires a valid session cookie:
 //   pages  → 307 redirect to /login
 //   api    → 401 JSON (fetch-safe; the browser already sends the cookie)
@@ -27,6 +30,10 @@ const PUBLIC_PATHS = new Set([
   "/api/auth/logout",
   "/api/daemon/commands", // HMAC-authenticated (daemon bridge)
   "/api/daemon/telemetry", // HMAC-authenticated (daemon bridge)
+  "/api/agent/enroll", // one-time-token exchange (LOCALHOST-1)
+  "/api/agent/heartbeat", // HMAC-authenticated (local agent)
+  "/api/agent/results", // HMAC-authenticated (local agent)
+  "/api/agent/agent.py", // agent source download (no secrets inside)
 ]);
 
 function isPublic(pathname: string): boolean {

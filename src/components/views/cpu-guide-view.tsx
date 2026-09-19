@@ -19,7 +19,9 @@ import {
   Flame,
   Gavel,
   Landmark,
+  Laptop,
   ListChecks,
+  Play,
   ShieldAlert,
   Wallet,
 } from "lucide-react";
@@ -29,8 +31,10 @@ import {
   type LiveOpportunity,
 } from "@/lib/infranex/use-network";
 import { useProfitabilityConfig } from "@/lib/infranex/use-profitability";
+import { useLocalHosts } from "@/lib/infranex/use-local-hosts";
 import type { LiveNetworkSnapshot } from "@/lib/infranex/chain";
 import type { ViewKey } from "@/lib/infranex/types";
+import { cn } from "@/lib/utils";
 
 // ---------------------------------------------------------------------------
 // CPU-GUIDE — the CPU mining path, in-app, for EVERY CPU-classified subnet.
@@ -289,7 +293,15 @@ function CostBadge({ tier }: { tier: "free" | "paid" | "burn" }) {
   );
 }
 
-function CopyCmd({ cmd }: { cmd: string }) {
+function CopyCmd({
+  cmd,
+  run,
+}: {
+  cmd: string;
+  /** LOCALHOST-1 — when set, a "Run on <host>" button queues this command
+   *  to the selected local machine. run.onRun must not throw. */
+  run?: { hostName: string; onRun: () => void; note: string | null };
+}) {
   const [copied, setCopied] = useState(false);
   const copy = async () => {
     try {
@@ -301,21 +313,39 @@ function CopyCmd({ cmd }: { cmd: string }) {
     }
   };
   return (
-    <div className="flex items-start gap-2 rounded-lg border border-border/60 bg-muted/40 px-3 py-2">
-      <code className="mono min-w-0 flex-1 overflow-x-auto whitespace-pre text-xs text-foreground/90">
-        {cmd}
-      </code>
-      <button
-        onClick={copy}
-        aria-label="Copy command"
-        className="shrink-0 rounded p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-      >
-        {copied ? (
-          <Check className="h-3.5 w-3.5 text-success" aria-hidden="true" />
-        ) : (
-          <Copy className="h-3.5 w-3.5" aria-hidden="true" />
-        )}
-      </button>
+    <div className="space-y-1">
+      <div className="flex items-start gap-2 rounded-lg border border-border/60 bg-muted/40 px-3 py-2">
+        <code className="mono min-w-0 flex-1 overflow-x-auto whitespace-pre text-xs text-foreground/90">
+          {cmd}
+        </code>
+        <div className="flex shrink-0 items-center gap-1">
+          {run ? (
+            <button
+              onClick={run.onRun}
+              aria-label={`Run on ${run.hostName}`}
+              title={`Run on ${run.hostName}`}
+              className="flex items-center gap-1 rounded border border-primary/40 bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary transition-colors hover:bg-primary/20"
+            >
+              <Play className="h-3 w-3" aria-hidden="true" />
+              <span className="max-w-28 truncate">{run.hostName}</span>
+            </button>
+          ) : null}
+          <button
+            onClick={copy}
+            aria-label="Copy command"
+            className="shrink-0 rounded p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
+            {copied ? (
+              <Check className="h-3.5 w-3.5 text-success" aria-hidden="true" />
+            ) : (
+              <Copy className="h-3.5 w-3.5" aria-hidden="true" />
+            )}
+          </button>
+        </div>
+      </div>
+      {run?.note ? (
+        <p className="pl-1 text-[11px] text-muted-foreground">{run.note}</p>
+      ) : null}
     </div>
   );
 }
@@ -716,6 +746,14 @@ export function CpuGuideView({ onNavigate }: { onNavigate: (v: ViewKey) => void 
   const { data: profConfig } = useProfitabilityConfig();
   const userId = useSessionUserId();
 
+  // LOCALHOST-1 — local machines (laptop) as command targets.
+  const { hosts: localHosts, queueCommand } = useLocalHosts();
+  const onlineHosts = localHosts.filter((h) => h.status === "online");
+  const [runHostId, setRunHostId] = useState<string | null>(null);
+  const runHost =
+    onlineHosts.find((h) => h.id === runHostId) ?? onlineHosts[0] ?? null;
+  const [runNote, setRunNote] = useState<string | null>(null);
+
   const [selected, setSelected] = useState<number>(67);
 
   // All live opportunities the classifier marks CPU-only (min VRAM 0) — the
@@ -964,6 +1002,35 @@ export function CpuGuideView({ onNavigate }: { onNavigate: (v: ViewKey) => void 
         </CardContent>
       </Card>
 
+      {/* LOCALHOST-1 — run-target selector: execute phase commands on YOUR
+          laptop instead of copy-pasting them manually. */}
+      {onlineHosts.length > 0 ? (
+        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-primary/25 bg-primary/[0.06] px-4 py-3">
+          <Laptop className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+          <span className="text-sm font-medium">Run commands on:</span>
+          <div className="flex flex-wrap gap-1.5">
+            {onlineHosts.map((h) => (
+              <button
+                key={h.id}
+                onClick={() => setRunHostId(h.id)}
+                aria-pressed={runHost?.id === h.id}
+                className={cn(
+                  "rounded-full border px-2.5 py-0.5 text-xs font-medium transition-colors",
+                  runHost?.id === h.id
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border/60 bg-muted/40 text-foreground/80 hover:bg-muted"
+                )}
+              >
+                {h.name}
+              </button>
+            ))}
+          </div>
+          <span className="text-[11px] text-muted-foreground">
+            phase commands get a Run button — output lands in DevOps → Local machines
+          </span>
+        </div>
+      ) : null}
+
       {/* Phase cards */}
       <div className="space-y-3">
         {phases.map((phase) => {
@@ -1034,7 +1101,39 @@ export function CpuGuideView({ onNavigate }: { onNavigate: (v: ViewKey) => void 
                     {phase.commands ? (
                       <div className="space-y-1.5">
                         {phase.commands.map((cmd, i) => (
-                          <CopyCmd key={i} cmd={cmd} />
+                          <CopyCmd
+                            key={i}
+                            cmd={cmd}
+                            run={
+                              runHost
+                                ? {
+                                    hostName: runHost.name,
+                                    note:
+                                      i === 0 && runNote
+                                        ? runNote
+                                        : null,
+                                    onRun: () => {
+                                      void queueCommand(runHost.id, cmd, {
+                                        netuid,
+                                        phase: phase.id,
+                                      })
+                                        .then(() =>
+                                          setRunNote(
+                                            `Queued on ${runHost.name} — watch DevOps → Local machines for the output (agent polls every 15s).`
+                                          )
+                                        )
+                                        .catch((e: unknown) =>
+                                          setRunNote(
+                                            e instanceof Error
+                                              ? `Run failed: ${e.message}`
+                                              : "Run failed"
+                                          )
+                                        );
+                                    },
+                                  }
+                                : undefined
+                            }
+                          />
                         ))}
                       </div>
                     ) : null}

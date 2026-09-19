@@ -41,6 +41,7 @@ import { StrategyBoard } from "@/components/cards/devops/strategy-board";
 import { AutopilotPanel } from "@/components/cards/devops/autopilot-panel";
 import { AlertsPanel } from "@/components/cards/devops/alerts-panel";
 import { OpsAgentPanel } from "@/components/cards/devops/ops-agent-panel";
+import { LocalMachinesCard } from "@/components/cards/devops/local-machines-card";
 
 /**
  * DEVOPS-1 — the DevOps Engine view. One live cockpit for every running
@@ -290,6 +291,9 @@ export function DevopsView({ onNavigate }: { onNavigate: (v: ViewKey) => void })
 
       {/* TIER3 — Autopilot policy rules + Benchmark harness summary */}
       {data && <AutopilotPanel data={data} />}
+
+      {/* LOCALHOST-1 — the user's own laptop/PC as a pull-agent miner target */}
+      <LocalMachinesCard />
 
       {/* TIER4 — Ops Agent (AI fleet advisor) + external alerting channels */}
       <div className="grid gap-3 lg:grid-cols-2">

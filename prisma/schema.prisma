@@ -386,6 +386,61 @@ model DaemonState {
 }
 
 // ---------------------------------------------------------------------------
+// Local Machines (LOCALHOST-1) — the user's OWN laptop/PC as a first-class
+// miner target for the CPU path. Unlike GpuHost (SSH push — unreachable
+// behind home NAT), the local agent runs ON the laptop, dials the platform
+// outbound, HMAC-signs every call and PULLS its own command queue (the same
+// security model as DaemonState, decoupled from GPU deployments).
+//   enroll: session UI mints a one-time token (30-min TTL, sha256 at rest);
+//           the laptop exchanges it for an agent secret (shown once).
+//   trust:  commands are queued ONLY by authenticated app sessions — the
+//           agent executes the operator's own queued commands.
+// ---------------------------------------------------------------------------
+model LocalHost {
+  id              String    @id @default(cuid())
+  name            String
+  // "pending" (awaiting enroll) | "online" | "offline" | "revoked"
+  status          String    @default("pending")
+  // One-time enrollment token (sha256 hash; cleared on successful enroll).
+  enrollTokenHash String?
+  enrollExpiresAt DateTime?
+  // Per-host agent HMAC secret, AES-256-GCM encrypted (shown once).
+  agentSecretEnc  String?
+  // Reported static specs (JSON: hostname, os, cpuModel, cores, threads, ramGb, diskFreeGb, python)
+  specsJson       String?
+  // Latest heartbeat telemetry (JSON: load1, memUsedMb, memTotalMb, tempC, uptimeS)
+  telemetryJson   String?
+  version         String?
+  lastSeenAt      DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([status])
+}
+
+// One queued shell command for one LocalHost — the agent pulls, executes
+// with a timeout and reports the result back.
+// status: "queued" | "delivered" | "running" | "done" | "failed" | "timeout" | "canceled"
+model LocalCommand {
+  id         String    @id @default(cuid())
+  hostId     String
+  netuid     Int?
+  phase      String?   // CPU-guide phase id, e.g. "p3"
+  command    String
+  status     String    @default("queued")
+  exitCode   Int?
+  // Combined stdout+stderr, truncated (agent-side cap + server cap).
+  output     String?
+  durationMs Int?
+  createdAt  DateTime  @default(now())
+  deliveredAt DateTime?
+  finishedAt DateTime?
+
+  @@index([hostId, status])
+  @@index([hostId, createdAt])
+}
+
+// ---------------------------------------------------------------------------
 // Provider API Keys — user-supplied credentials for GPU marketplace APIs
 // (RunPod, Vast.ai, Lambda Labs). Managed from the GPU catalog UI. Encrypted
 // at rest with the same AES-256-GCM scheme as DevOps host secrets; the
