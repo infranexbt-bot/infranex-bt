@@ -1876,3 +1876,18 @@ Work Log:
 Stage Summary:
 - Feature live: DevOps → Local machines card drives the whole CPU workflow from the app; laptop executes via pull agent; output streams back.
 - Sandbox reaps background processes between tool calls (agent must run in one tool call there) — on the user's real laptop tmux/nohup keeps it alive; noted in UI copy.
+
+---
+Task ID: best-subnet-pick-1
+Agent: main (Super Z)
+Task: Identify which subnet will work perfectly on the user's laptop; give the single best subnet to check.
+
+Work Log:
+- Refreshed chain snapshot via /api/network (block 9,101,516, TAO $268.33) + /api/profitability-config; re-ran scripts/cpu-subnet-list.ts: 128 opportunities, 17 CPU-classified.
+- SubnetRequirements table empty post-wipe (rebuilds on demand); relied on previously verified SN67 scraped profile.
+- Verified harnyx repo reachable (HTTP 200).
+- No code changes; no commit needed.
+
+Stage Summary:
+- Verdict: SN67 Harnyx = best laptop check (fresh numbers: 117 rewarded, burn 0.0433tau ~ $11.62, $1282/mo per earning miner; py3.11, no Docker/CUDA, validators execute the agent).
+- Runner-ups: SN45 AlphaRidge (cheapest burn $3.23, 235 rewarded), SN62 Ridges ($1.26 burn but 17 rewarded + heavier setup). Avoid SN11/115/109 (1 rewarded), SN36 ($294 burn), SN124 ($141 burn), SN89 (saturated, $3/mo).
