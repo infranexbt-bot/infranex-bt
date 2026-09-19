@@ -1909,3 +1909,21 @@ Work Log:
 Stage Summary:
 - CPU deployment workflow live in Deployments: SN67 → CPU provider or local laptop → start miner, all on one page. Cloud path waits on user's Hetzner/DO keys (wiped); local path fully verified green.
 - Committed on main; push still pending fresh PAT (ahead 11 of origin/nextjs-platform ab0261a).
+
+---
+Task ID: cpu-deploy-push-1
+Agent: main (Super Z)
+Task: Finish CPUDEPLOY-1 leftovers and push everything to GitHub (user: "ok save the project and pust to git infranex-bt" + PAT)
+
+Work Log:
+- Confirmed step 4 CPU cards (cloud go-live + local burn-gate) and compute rows in the sidebar rail were already in place from the prior session; junk `{false && <Loader2/>}` line already removed.
+- Added final parity touch: right-rail tracking notes for CPU paths ("CPU VPS rented — approve staged install in DevOps Engine" / "Laptop ready — send register command from step 4"), matching the existing GPU-locked note.
+- Verified: bunx tsc --noEmit → src/ has ZERO errors (remaining diagnostics are pre-existing in scripts/ + skills/ utility files only); dev server serving on :3000 (307 → login).
+- Committed 733fadb "CPUDEPLOY-1: finish CPU go-live — step 4 go-live cards (cloud + local), sidebar tracking notes" (+ .alpha-price-history.json refresh).
+- Pushed with the user-supplied PAT via explicit URL (token NOT persisted in .git/config): ab0261a..733fadb main -> nextjs-platform. All 17 pending commits are now on GitHub.
+- git fetch origin — tracking refs synced (main == origin/nextjs-platform). New remote branches noticed: platform-live, backup/nextjs-platform-pre-2026-09-19.
+
+Stage Summary:
+- CPUDEPLOY-1 COMPLETE and PUSHED. Deploy stepper now runs the full CPU workflow: SN67 (any CPU subnet) → Compute step branches CPU provider (Hetzner/DO) or Local machine → step 3 rents (cloud) or runs setup on the laptop (local agent) → step 4 go-live with burn-gated register command.
+- Cloud CPU path awaits user re-adding Hetzner/DO provider keys; local path E2E-verified green.
+- PAT note: the token used is live and valid; recommend the user revoke/rotate it after this push since it was shared in chat.
