@@ -1,0 +1,10 @@
+import { PrismaClient } from "@prisma/client";
+const db = new PrismaClient();
+const users = await db.appUser.count();
+const ovr = await db.subnetOverride.count();
+const reqs = await db.subnetRequirements?.count?.().catch(() => "n/a") ?? "n/a";
+console.log("AppUser:", users, "| SubnetOverride:", ovr, "| SubnetRequirements:", reqs);
+console.log("--- all tables ---");
+const tables: any = await db.$queryRawUnsafe("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name");
+console.log(tables.map((t: any) => t.name).join(", "));
+await db.$disconnect();

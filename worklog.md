@@ -1838,3 +1838,22 @@ Stage Summary:
 - Verdict: laptop EXCELLENT for script-mining CPU subnets (SN67/SN62: box only builds+submits, validators execute) -> testing on laptop is exactly right, electricity-only cost.
 - Recommended #1: SN67 Harnyx (deepest guide, free Validator Lab gate before burn, burn ~$8.87). #2: SN62 Ridges (burn ~$0.39). Laptop-avoid: SN75 (24/7 storage node), SN13 (24/7 scraper+proxies), SN36 (burn 1 TAO), SN76/86/59 (no emissions).
 - CPU Guide picker = 21 entries (6 pinned + 15 classifier-CPU minus overlap). No app changes needed; scripts/cpu-subnet-list.ts + cpu-crosscheck.ts kept for reuse.
+
+---
+Task ID: login-fix-1
+Agent: main (Super Z)
+Task: User unable to log in with admin code after platform reset.
+
+Work Log:
+- Diagnosed TWO stacked root causes: (1) platform reset recreated db/custom.db EMPTY (AppUser 0) — db:push only aligns schema, never seeds; (2) .env lost APP_SESSION_SECRET -> per-boot random signing secret differed between Next dev workers -> login minted cookie one worker rejected.
+- Restored all 5 users from wipe-proof mirror /tmp/my-project/infranex-users.local.json (codes preserved) via bun scripts/restore-users.ts, then ran official bun scripts/seed-users.ts (idempotent; also persisted APP_SESSION_SECRET to .env).
+- Restarted dev server; verified login 200 + /api/auth/session 200 stable.
+- Overrides rebuilt 8 -> 105/105 (sync-all kick + lazy worker). Requirements 0 (profiler rebuilds on demand).
+- Provider keys: 0 — RunPod/Vast keys UNRECOVERABLE (checked snapshot DB /tmp/my-project/db/custom.db: ProviderKey 0; dev-pkeys.log: no key material). User must re-add.
+- Durable fix: added WIPE-HEAL-1 step to .zscripts/dev.sh — runs idempotent seed-users after db:push on every boot; committed 4d52031 on main.
+- Push blocked: credentials lost in reset ("could not read Username"); local main ahead 9 of origin/nextjs-platform (ab0261a), clean fast-forward pending fresh PAT.
+
+Stage Summary:
+- Login fully fixed, same codes work (admin BRJ2-W2GT-WJNF-97VC verified 200).
+- Boot auto-heal committed; push pending user PAT (old one must be revoked).
+- Post-wipe state: users 5, overrides 105, provider keys 0 (re-add RunPod+Vast), wallets/judge/hosts empty until used.
