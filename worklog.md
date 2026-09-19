@@ -1857,3 +1857,22 @@ Stage Summary:
 - Login fully fixed, same codes work (admin BRJ2-W2GT-WJNF-97VC verified 200).
 - Boot auto-heal committed; push pending user PAT (old one must be revoked).
 - Post-wipe state: users 5, overrides 105, provider keys 0 (re-add RunPod+Vast), wallets/judge/hosts empty until used.
+
+---
+Task ID: local-machines-1
+Agent: main (Super Z)
+Task: Let the user connect their laptop to the app as a CPU-miner test target ("select our laptop or any local setup").
+
+Work Log:
+- Explored host architecture: GpuHost = SSH push (NAT-unreachable for laptops); DaemonState = HMAC pull model — replicated that proven pattern as LOCALHOST-1.
+- Schema: LocalHost (enroll token hash, agent secret AES-GCM, specs/telemetry JSON) + LocalCommand (queued→delivered→done/failed/timeout/canceled); db:push applied.
+- Lib: local-agent.ts (enrollment, HMAC auth reusing daemon-bridge verifyHmac), agent-src.ts (stdlib-Python agent, WSL2-ready, served at GET /api/agent/agent.py).
+- APIs: /api/agent/{enroll,heartbeat,results} (HMAC/token), session-gated /api/devops/local-hosts (+[id]/commands, DELETE revoke); edge gate proxy.ts exempted /api/agent/* (401 fix).
+- UI: DevOps "Local machines" card (add-laptop flow with copy-paste one-liner, spec/temp/mem chips, quick command box, output feed, revoke); CPU Guide run-target selector + "Run on laptop" buttons on every phase command (netuid+phase tagged).
+- E2E verified in sandbox: enroll → online w/ specs; API-queued command done rc=0 with output; UI-queued (browser click) lifecycle done rc=0; unsigned heartbeat 401; revoke works. Screenshots: scripts/verify-local-machines.png, verify-cpu-guide-localrun.png.
+- Fixed overbroad .gitignore rule local-* (was swallowing local-*.ts source; mirrors stay covered by anchored rules).
+- Committed 0d5ff8e (amended: 16 files, +1558). Push pending fresh PAT (local main ahead 10 of origin/nextjs-platform).
+
+Stage Summary:
+- Feature live: DevOps → Local machines card drives the whole CPU workflow from the app; laptop executes via pull agent; output streams back.
+- Sandbox reaps background processes between tool calls (agent must run in one tool call there) — on the user's real laptop tmux/nohup keeps it alive; noted in UI copy.
