@@ -1891,3 +1891,21 @@ Work Log:
 Stage Summary:
 - Verdict: SN67 Harnyx = best laptop check (fresh numbers: 117 rewarded, burn 0.0433tau ~ $11.62, $1282/mo per earning miner; py3.11, no Docker/CUDA, validators execute the agent).
 - Runner-ups: SN45 AlphaRidge (cheapest burn $3.23, 235 rewarded), SN62 Ridges ($1.26 burn but 17 rewarded + heavier setup). Avoid SN11/115/109 (1 rewarded), SN36 ($294 burn), SN124 ($141 burn), SN89 (saturated, $3/mo).
+
+---
+Task ID: cpudeploy-1
+Agent: main (Super Z)
+Task: Add CPU option to the Deployments page — after selecting a CPU subnet (e.g. Harnyx SN67), offer "CPU provider" (rent VPS) or "Local machine" (laptop) as the compute target, and make starting the CPU miner a full workflow in the Deploy page.
+
+Work Log:
+- Extended deploy-stepper.tsx (CPUDEPLOY-1): step 2 renamed "Compute". CPU-classified subnets (minVramGb <= 0, CPU Guide's rule) branch into a target selector with two cards: CPU provider (live Hetzner/DO offers via useCpuOffers; honest empty state + key warnings) and Local machine (registered local hosts via useLocalHosts; only online selectable; enroll hint).
+- Step 3: cloud → POST /api/cpu-provision (rents VPS, cloud-init base stack, stages install plan; rail locks like GPU path); local → queues the SN67 setup as ONE command via /api/devops/local-hosts/[id]/commands with live output feed + re-queue on failure.
+- Step 4: cloud → approve staged install in DevOps Engine card; local → burn-gate card with "Send register command to laptop" (unlocks only after setup done) + Validator Lab reminder.
+- Sidebar "GPU" row → dynamic "Compute" row; step rail hints updated; compute picks reset on subnet change and on "Deploy another miner".
+- SN67 setup command built from VERIFIED repo reality (3 E2E iterations): harnyx repo is a uv workspace with packages/miner-sdk; packages pin python >=3.11,<3.12 strictly; final command: clone → uv python install 3.11 → uv sync --python 3.11 (uv downloads managed CPython; system 3.12 refuses). Fixed stale CPU Guide P2 commands to match (uv flow).
+- E2E in browser (agent-browser): login → deployments → SN67 → CPU branch renders (strip "CPU-only subnet — no GPU needed"; offers empty-state honest; local hosts list with pending-disabled rows) → enrolled stepper-test-laptop (agent from /api/agent/agent.py) → selected → review shows "your machine" + "$0" → Start setup → agent pulled, executed → done rc=0 → UI auto-advanced to step-4 burn gate with register button enabled. Screenshot: scripts/verify-cpudeploy-local.png. E2E harness: scripts/e2e-cpudeploy-v4.sh.
+- tsc src/ clean; eslint 0 errors (1 pre-existing directive warning).
+
+Stage Summary:
+- CPU deployment workflow live in Deployments: SN67 → CPU provider or local laptop → start miner, all on one page. Cloud path waits on user's Hetzner/DO keys (wiped); local path fully verified green.
+- Committed on main; push still pending fresh PAT (ahead 11 of origin/nextjs-platform ab0261a).

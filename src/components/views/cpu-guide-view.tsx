@@ -433,8 +433,8 @@ const DEEP_SN67_PHASES: Phase[] = [
     ],
     commands: [
       "git clone https://github.com/harnyx/harnyx.git && cd harnyx",
-      "python -m venv .venv && source .venv/bin/activate",
-      "pip install -e harnyx-miner-sdk",
+      "curl -LsSf https://astral.sh/uv/install.sh | sh  # repo is a uv workspace",
+      "uv python install 3.11 && uv sync --python 3.11  # packages pin python >=3.11,<3.12 — verified 2026-09-19",
     ],
     appNote:
       "Subnets view → SN67 shows the live on-chain identity, repo link, seat count and burn cost in one place.",

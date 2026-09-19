@@ -385,7 +385,16 @@ export function DeployStepper() {
     const dir = `~/infranex/sn${uid}`;
     let cmd: string;
     if (uid === 67) {
-      cmd = `mkdir -p ${dir} && cd ${dir} && (git clone https://github.com/harnyx/harnyx.git . || git pull) && python3.11 -m venv .venv && . .venv/bin/activate && pip install -e harnyx-miner-sdk && echo SETUP-OK`;
+      // Researched flagship path — mirrors the CPU Guide's deep phases with
+      // the repo's ACTUAL layout (verified 2026-09-19 end-to-end): a uv
+      // workspace whose packages pin python >=3.11,<3.12 strictly. The
+      // verified flow: uv manages the interpreter itself — `uv python
+      // install 3.11 && uv sync --python 3.11` (downloads a managed CPython
+      // when the system one doesn't match; system 3.12 REFUSES the install).
+      cmd =
+        `mkdir -p ${dir} && cd ${dir} && (git clone https://github.com/harnyx/harnyx.git . || git pull) && ` +
+        `if ! command -v uv >/dev/null 2>&1; then echo "uv required — install it: curl -LsSf https://astral.sh/uv/install.sh | sh"; exit 1; fi && ` +
+        `uv python install 3.11 && uv sync --python 3.11 && echo SETUP-OK`;
     } else {
       const repo = profile?.repoUrl;
       if (!repo) {
@@ -1219,7 +1228,6 @@ export function DeployStepper() {
                       >
                         {computeKind === "cloud" ? (
                           <>
-                            {false && <Loader2 className="h-4 w-4 animate-spin" />}
                             <Rocket className="h-4 w-4" />
                             Rent &amp; deploy
                           </>
@@ -1323,6 +1331,131 @@ export function DeployStepper() {
             )}
 
             {/* ------------------------- STEP 4 — GO LIVE ------------------------- */}
+            {effStep === 4 && cpuProvisioned != null && !dep && (
+              <div className="space-y-3">
+                <div className="rounded-lg border border-border/60 bg-card/40 p-3">
+                  <p className="flex items-center gap-2 text-sm font-medium">
+                    <Server className="h-4 w-4 text-primary" />
+                    1 · Approve the install in the DevOps Engine
+                  </p>
+                  <p className="mt-1.5 text-xs text-muted-foreground">
+                    {cpuProvisioned.hostName} is rented and its base stack is installing via
+                    cloud-init. The subnet&rsquo;s staged install plan — including the wallet-file
+                    and miner-launch steps — waits in the DevOps Engine card on this page. Approve
+                    the gated steps there; they run over SSH on your VPS.
+                  </p>
+                </div>
+                <div className="rounded-lg border border-border/60 bg-card/40 p-3">
+                  <p className="text-sm font-medium">2 · What happens next</p>
+                  <div className="mt-2 space-y-1.5 text-xs text-muted-foreground">
+                    <p className="flex items-start gap-1.5">
+                      <FlaskConical className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
+                      <span>
+                        <span className="font-medium text-foreground">Validator Lab</span> — run
+                        the free check on this subnet before any on-chain registration.
+                      </span>
+                    </p>
+                    <p className="flex items-start gap-1.5">
+                      <Activity className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
+                      <span>
+                        <span className="font-medium text-foreground">Monitoring</span> — watch
+                        health, earnings and drift from the cards below once the miner serves.
+                      </span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {effStep === 4 && cpuProvisioned == null && !dep && selectedLocalHost && (
+              <div className="space-y-3">
+                {localSetupCmd && (
+                  <div
+                    className={cn(
+                      "rounded-lg border p-3 text-xs",
+                      localSetupDone
+                        ? "border-success/30 bg-success/[0.05]"
+                        : localSetupCmd.status === "failed"
+                          ? "border-destructive/30 bg-destructive/[0.04]"
+                          : "border-border/60 bg-card/40"
+                    )}
+                  >
+                    <p className="flex items-center gap-2 text-sm font-medium">
+                      {localSetupDone ? (
+                        <CheckCircle2 className="h-4 w-4 text-success" />
+                      ) : localSetupCmd.status === "failed" ? (
+                        <XCircle className="h-4 w-4 text-destructive" />
+                      ) : (
+                        <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                      )}
+                      Setup on {selectedLocalHost.name} — {localSetupCmd.status}
+                    </p>
+                    {(localSetupCmd.output ?? "").trim() && (
+                      <div className="mt-2 max-h-32 overflow-y-auto custom-scroll font-mono text-[11px] text-muted-foreground">
+                        {(localSetupCmd.output ?? "")
+                          .trim()
+                          .split("\n")
+                          .slice(-8)
+                          .map((line, i) => (
+                            <p key={i} className="truncate">
+                              {line}
+                            </p>
+                          ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+                <div className="rounded-lg border border-border/60 bg-card/40 p-3">
+                  <p className="flex items-center gap-2 text-sm font-medium">
+                    <Flame className="h-4 w-4 text-warning" />
+                    1 · Burn gate — register on-chain from your laptop
+                  </p>
+                  <p className="mt-1.5 text-xs text-muted-foreground">
+                    Registration burns TAO and is irreversible — run the free Validator Lab check
+                    on this subnet first and only send the register command when the gate is
+                    green. The command runs on {selectedLocalHost.name} with your wallet{" "}
+                    <span className="font-medium text-foreground">
+                      {effWalletName.trim() || "infranex"}
+                    </span>{" "}
+                    + hotkey{" "}
+                    <span className="font-medium text-foreground">
+                      {hotkeyName.trim() || `sn${liveSubnet?.netuid ?? ""}miner`}
+                    </span>
+                    .
+                  </p>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="mt-2 gap-1.5"
+                    disabled={!localSetupDone || selectedLocalHost.status !== "online"}
+                    onClick={handleLocalRegister}
+                  >
+                    <Terminal className="h-3.5 w-3.5" />
+                    Send register command to laptop
+                  </Button>
+                  {!localSetupDone && (
+                    <p className="mt-1.5 text-[11px] text-muted-foreground">
+                      Finishes the setup first — the button unlocks when the agent reports done.
+                    </p>
+                  )}
+                </div>
+                <div className="rounded-lg border border-border/60 bg-card/40 p-3">
+                  <p className="text-sm font-medium">2 · What happens next</p>
+                  <div className="mt-2 space-y-1.5 text-xs text-muted-foreground">
+                    <p className="flex items-start gap-1.5">
+                      <Activity className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
+                      <span>
+                        <span className="font-medium text-foreground">Monitor &amp; earn</span> —
+                        after registration, submit your agent per the subnet&rsquo;s own flow
+                        (CPU Guide has the phases), then watch emissions in Opportunities and the
+                        cards below.
+                      </span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {effStep === 4 && dep && (
               <div className="space-y-3">
                 {fullyLive ? (
@@ -1466,6 +1599,11 @@ export function DeployStepper() {
                         setRegCtx(null);
                         setNetuid(null);
                         setOfferId(null);
+                        setComputeKind(null);
+                        setCpuOfferId(null);
+                        setLocalHostId(null);
+                        setCpuProvisioned(null);
+                        setQueuedCmdId(null);
                         setMinerName("");
                         setSearch("");
                       }}
@@ -1484,13 +1622,35 @@ export function DeployStepper() {
             <p className="text-eyebrow text-muted-foreground">Your picks</p>
             <PickRow label="Subnet" value={liveSubnet ? `α${liveSubnet.netuid} ${liveSubnet.name}` : null} icon={<FlaskConical className="h-3 w-3" />} />
             <PickRow
-              label="GPU"
-              value={offer ? `${offer.model} · $${offer.hourlyPrice.toFixed(2)}/hr` : null}
-              icon={<Cpu className="h-3 w-3" />}
+              label="Compute"
+              value={
+                offer
+                  ? `${offer.model} · $${offer.hourlyPrice.toFixed(2)}/hr`
+                  : cpuOffer
+                    ? `${cpuOffer.model} · ${cpuOffer.cpuCores} vCPU`
+                    : selectedLocalHost
+                      ? `${selectedLocalHost.name} · local`
+                      : null
+              }
+              icon={
+                selectedLocalHost && !offer && !cpuOffer ? (
+                  <Laptop className="h-3 w-3" />
+                ) : (
+                  <Cpu className="h-3 w-3" />
+                )
+              }
             />
             <PickRow
               label="Est. cost"
-              value={offer ? `~${formatCurrency(offer.monthlyPrice)}/mo` : null}
+              value={
+                offer
+                  ? `~${formatCurrency(offer.monthlyPrice)}/mo`
+                  : cpuOffer
+                    ? `~$${cpuOffer.monthlyPrice.toFixed(0)}/mo`
+                    : selectedLocalHost
+                      ? "$0 — your hardware"
+                      : null
+              }
               icon={<Activity className="h-3 w-3" />}
             />
             <PickRow label="Miner" value={minerName.trim() || null} icon={<Server className="h-3 w-3" />} />
