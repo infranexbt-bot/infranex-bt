@@ -23,7 +23,7 @@ ongoing operator routine.
   weekly/monthly cadence (UID Defense risk codes, monitoring thresholds,
   RunPod runway math).
 
-- **Part H** — Judge Lab pre-burn gate: mine the judge profile (archetype,
+- **Part H** — Validator Lab pre-burn gate: mine the judge profile (archetype,
   composite weights, cohort brutality), run the mock-validator simulator, and
   the verdict table that decides whether a burn is justified.
 - **Part I** — the CPU path: Harnyx SN67 script mining with NO GPU (v1.4).

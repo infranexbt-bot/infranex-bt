@@ -386,7 +386,7 @@ It is the ONLY way to recover your funds if you lose access:</span>
     <div class="rule"></div>
   </div>
   <p class="lead">Your miner is installed and healthy&nbsp;— <b>now</b> you pay the registration fee. The burn is not a transfer you make by hand: it happens automatically inside the register command, taken from your coldkey the moment you confirm. In exchange your hotkey gets a <b>UID</b> on SN64, and both the immunity clock and your earning window start.</p>
-  <div class="note"><b>The gate before you burn:</b> the registration fee is the same on every subnet, so fail <i>cheap</i> first&nbsp;— run the free <b>Judge Lab</b> pre-flight (Part H, 10 minutes, $0) and confirm your spec scores <b>competitive or better</b> against SN64's judge. If it does, come straight back here and register. If it doesn't, Part H also shows you the highest-leverage fixes&nbsp;— much cheaper to apply them now than to discover a weak score after the burn.</div>
+  <div class="note"><b>The gate before you burn:</b> the registration fee is the same on every subnet, so fail <i>cheap</i> first&nbsp;— run the free <b>Validator Lab</b> pre-flight (Part H, 10 minutes, $0) and confirm your spec scores <b>competitive or better</b> against SN64's judge. If it does, come straight back here and register. If it doesn't, Part H also shows you the highest-leverage fixes&nbsp;— much cheaper to apply them now than to discover a weak score after the burn.</div>
 
   <div class="step">
     <div class="step-head"><span class="no">E1</span><span class="step-title">Register the hotkey (wizard step 6, on your laptop)</span></div>
@@ -520,16 +520,16 @@ emission: 0 rAO  block: #9,061,842</span></pre></div>
 <span class="out">infranex    miner    finney    0.0831      $19.44   ← growing weekly ✓</span></pre></div>
   <div class="note"><b>What you never have to do manually:</b> spend accrual, GPU utilisation and temperature sampling, incentive sampling, UID Defense scoring, daily earnings rollups, and the append-only audit log all run on the platform's 90-second worker passes&nbsp;— and alerts dispatch to your webhook the moment a trigger fires. <b>The whole daily routine in one line:</b> deployment card green → UID Defense healthy → GPU% and incentive nonzero → P&amp;L not bleeding → RunPod balance funded → done.</div>
 
-  <!-- ========== PART H : JUDGE LAB ========== -->
+  <!-- ========== PART H : VALIDATOR LAB ========== -->
   <div class="chapter-header" style="margin-top:26px">
     <div class="kicker">Part H · pre-flight &amp; ongoing · $0 · ~10 min</div>
-    <h1 class="chapter">Judge Lab&nbsp;— Test Before You Burn</h1>
+    <h1 class="chapter">Validator Lab&nbsp;— Test Before You Burn</h1>
     <div class="rule"></div>
   </div>
-  <p class="lead">Every subnet has a <b>judge</b>&nbsp;— the validator that scores miners and decides your incentive. Judges are not alike: one pays for raw speed, another for output quality, another for the cheapest price. Judge Lab (nav <b>04</b>) reads the subnet's <i>actual validator code</i>, extracts what it rewards and how brutally it pays, then <b>simulates your miner spec against it</b>&nbsp;— all before you spend a rupee. It is the only place in this guide where failing is free.</p>
+  <p class="lead">Every subnet has a <b>judge</b>&nbsp;— the validator that scores miners and decides your incentive. Judges are not alike: one pays for raw speed, another for output quality, another for the cheapest price. Validator Lab (nav <b>04</b>) reads the subnet's <i>actual validator code</i>, extracts what it rewards and how brutally it pays, then <b>simulates your miner spec against it</b>&nbsp;— all before you spend a rupee. It is the only place in this guide where failing is free.</p>
   <div class="step">
     <div class="step-head"><span class="no">H-1</span><span class="step-title">Mine the judge profile&nbsp;— SN64</span></div>
-    <p class="clickpath"><span class="click">Judge Lab 04</span><span class="sep">→</span>pick <b>α64 · Chutes</b><span class="sep">→</span><b>Re-mine profile</b></p>
+    <p class="clickpath"><span class="click">Validator Lab 04</span><span class="sep">→</span>pick <b>α64 · Chutes</b><span class="sep">→</span><b>Re-mine profile</b></p>
     <p>The lab resolves the subnet's repo from on-chain identity, scans the validator source for scoring evidence (<i>24 evidence hits</i> for Chutes), and classifies the judge into an archetype. Chutes comes back as <b>Market Clearing</b> at <b>66% profile confidence</b>&nbsp;— the lab tells you how much code evidence it found, so you know how much to trust the model.</p>
   </div>
   <div class="step">
@@ -545,8 +545,8 @@ emission: 0 rAO  block: #9,061,842</span></pre></div>
     <p>The example run scores <b>62.1</b>&nbsp;— verdict <b>competitive</b>, estimated cohort percentile <b>~p82</b>, <b>1.36×</b> the cohort median. Below the numbers: a per-dimension breakdown (speed 0.98, uptime 0.90, quality 0.77&nbsp;— price only 0.50, the weak axis on a Market Clearing judge) and the <b>highest-leverage fixes</b> ranked by composite points gained: <i>+14.5 cut asking price</i>, <i>+3.6 increase throughput</i>, <i>+0.7 resource fit</i>. Fix what is cheap to fix, re-run, and watch the composite move.</p>
   </div>
   <figure>
-    <img src="images/s18-judge-lab.png" alt="Judge Lab with SN64 profile and simulation verdict">
-    <figcaption><b>Fig H-1.</b> Judge Lab on SN64&nbsp;— left: the mined judge profile (Market Clearing, 66% confidence, brutality 62/100, composite weights with Price at 58%); right: the mock-validator simulator at the 4090 default spec and its verdict&nbsp;— composite 62.1, <i>competitive</i>, ~p82 percentile, 1.36× vs median&nbsp;— with the ranked highest-leverage fixes.</figcaption>
+    <img src="images/s18-validator-lab.png" alt="Validator Lab with SN64 profile and simulation verdict">
+    <figcaption><b>Fig H-1.</b> Validator Lab on SN64&nbsp;— left: the mined judge profile (Market Clearing, 66% confidence, brutality 62/100, composite weights with Price at 58%); right: the mock-validator simulator at the 4090 default spec and its verdict&nbsp;— composite 62.1, <i>competitive</i>, ~p82 percentile, 1.36× vs median&nbsp;— with the ranked highest-leverage fixes.</figcaption>
   </figure>
   <table>
     <thead><tr><th style="width:22%">Verdict</th><th style="width:20%">Composite</th><th>What it means for your burn</th></tr></thead>
@@ -580,9 +580,9 @@ emission: 0 rAO  block: #9,061,842</span></pre></div>
       <div class="flow-step free"><div class="fn">P0</div><div class="ft">Size the deal</div><div class="fd">Opportunities filter "CPU-only" → SN67 scored 65.5, net ~$100/mo base case.</div></div>
       <div class="flow-step free"><div class="fn">P1</div><div class="ft">Wallets</div><div class="fd">Coldkey + hotkey on your box; record the hotkey address in the Wallets view.</div></div>
       <div class="flow-step free"><div class="fn">P2</div><div class="ft">Get the code</div><div class="fd">Clone harnyx/harnyx; install the harnyx-miner-sdk in a small venv.</div></div>
-      <div class="flow-step free"><div class="fn">P3</div><div class="ft">Study the champion</div><div class="fd">Sync the judge profile (netuid 67) in Judge Lab; probe the top miner via MCP.</div></div>
+      <div class="flow-step free"><div class="fn">P3</div><div class="ft">Study the champion</div><div class="fd">Sync the judge profile (netuid 67) in Validator Lab; probe the top miner via MCP.</div></div>
       <div class="flow-step free"><div class="fn">P4</div><div class="ft">Build the agent</div><div class="fd">Targets: &lt;30 s, ≤$0.50/1M, ≥25 tps, quality ~80% with citations.</div></div>
-      <div class="flow-step free"><div class="fn">P5</div><div class="ft">Local eval</div><div class="fd">Spar with Judge Lab — re-simulate after every design change.</div></div>
+      <div class="flow-step free"><div class="fn">P5</div><div class="ft">Local eval</div><div class="fd">Spar with Validator Lab — re-simulate after every design change.</div></div>
       <div class="flow-step money"><div class="fn">P6</div><div class="ft">Register</div><div class="fd">The ONE burn (~$12–18) — only on a green gate. btcli subnet register.</div></div>
       <div class="flow-step free"><div class="fn">P7</div><div class="ft">Submit script</div><div class="fd">Harnyx CLI's job — the app deliberately has no upload path.</div></div>
       <div class="flow-step free"><div class="fn">P8</div><div class="ft">Monitor &amp; earn</div><div class="fd">Weekly strip check; MCP + Harnyx dashboard for scores; taostats for payouts.</div></div>
@@ -591,7 +591,7 @@ emission: 0 rAO  block: #9,061,842</span></pre></div>
 
   <div class="step">
     <div class="step-head"><span class="no">I-3</span><span class="step-title">The gate&nbsp;— Part H's rule, SN67's numbers</span></div>
-    <p>Sync the profile (<span class="click">Judge Lab 04</span><span class="sep">→</span>netuid <b>67</b><span class="sep">→</span><b>Re-mine profile</b>): SN67's judge is <b>Market Clearing</b> with <b>Price 56%</b> + Quality 19% composite weight, a <b>~30 s</b> response deadline, a <b>~$0.50/1M</b> price reference and <b>~25 tps</b> throughput reference. The Part H verdict table applies verbatim. The pre-flight that proved the rule on this very subnet: a slow-but-deep agent (240&nbsp;s, $0.60/1M, 72% quality) scored <b>41.9&nbsp;— weak</b>; a tuned fast+cheap agent (25&nbsp;s, $0.45/1M, 80%, 25&nbsp;tps) scored <b>62.1&nbsp;— competitive ≈ p90, 1.87× the median</b>. Same spec, same judge model, two different decisions: don't burn, and clear to burn.</p>
+    <p>Sync the profile (<span class="click">Validator Lab 04</span><span class="sep">→</span>netuid <b>67</b><span class="sep">→</span><b>Re-mine profile</b>): SN67's judge is <b>Market Clearing</b> with <b>Price 56%</b> + Quality 19% composite weight, a <b>~30 s</b> response deadline, a <b>~$0.50/1M</b> price reference and <b>~25 tps</b> throughput reference. The Part H verdict table applies verbatim. The pre-flight that proved the rule on this very subnet: a slow-but-deep agent (240&nbsp;s, $0.60/1M, 72% quality) scored <b>41.9&nbsp;— weak</b>; a tuned fast+cheap agent (25&nbsp;s, $0.45/1M, 80%, 25&nbsp;tps) scored <b>62.1&nbsp;— competitive ≈ p90, 1.87× the median</b>. Same spec, same judge model, two different decisions: don't burn, and clear to burn.</p>
   </div>
 
   <div class="step">
@@ -600,7 +600,7 @@ emission: 0 rAO  block: #9,061,842</span></pre></div>
 <span class="cmd">$ python -m venv .venv &amp;&amp; source .venv/bin/activate</span>
 <span class="out">(python 3.10+ is plenty — the SDK wraps the network protocol)</span>
 <span class="cmd">$ pip install -e harnyx-miner-sdk</span>
-<span class="out">build your agent inside the SDK harness · verify in Judge Lab (I-3)</span>
+<span class="out">build your agent inside the SDK harness · verify in Validator Lab (I-3)</span>
 <span class="cmd">$ btcli subnet register --netuid 67 --wallet.name harnyx --wallet.hotkey sn67miner</span>
 <span class="out">burns ~0.05–0.08 τ — run ONLY when the gate says competitive or better</span></pre></div>
     <p>After registering, submit the agent through the repo's Harnyx miner tooling (the SDK's submission flow is the source of truth&nbsp;— it signs with your keys and hands the script to the validators). Your hotkey then earns on SN67 every epoch it clears the judge.</p>
@@ -614,7 +614,7 @@ emission: 0 rAO  block: #9,061,842</span></pre></div>
 
   <figure>
     <img src="images/s19-cpu-guide.png" alt="CPU Guide view with live SN67 economics strip and phase checklist">
-    <figcaption><b>Fig I-1.</b> The CPU Guide (nav 05)&nbsp;— top: the live SN67 economics strip (256/256 seats full, 217 earning miners, burn 0.0784&nbsp;τ ≈ $18 at press time, alpha 0.0195&nbsp;τ, 9.80&nbsp;τ/day miner emission) and the golden-order banner with the gate numbers; below: the nine phase cards with copyable commands, cost badges and per-user progress counter, the Judge Lab gate card (41.9 weak vs 62.1 competitive), budget at a glance, and the honest-boundaries panel.</figcaption>
+    <figcaption><b>Fig I-1.</b> The CPU Guide (nav 05)&nbsp;— top: the live SN67 economics strip (256/256 seats full, 217 earning miners, burn 0.0784&nbsp;τ ≈ $18 at press time, alpha 0.0195&nbsp;τ, 9.80&nbsp;τ/day miner emission) and the golden-order banner with the gate numbers; below: the nine phase cards with copyable commands, cost badges and per-user progress counter, the Validator Lab gate card (41.9 weak vs 62.1 competitive), budget at a glance, and the honest-boundaries panel.</figcaption>
   </figure>
 
   <div class="note"><b>Budget at a glance:</b> burn ~$12–18 one-off (irreversible, floats with seat demand&nbsp;— read the strip before executing) · hardware $0&nbsp;— an existing CPU box is fine · expected net ~$100/mo base case. <b>Cadence:</b> the Part G.2 weekly routine applies here too, minus the pod checks&nbsp;— strip trend, judge re-mine after any subnet validator update, cohort spread. <b>Decision rule:</b> if the net expectation sits under your target for weeks straight, deregister and move the (small) burn elsewhere&nbsp;— that flexibility is the whole point of the cheap seat.</div>
