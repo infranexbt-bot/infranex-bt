@@ -2074,3 +2074,33 @@ Work Log:
 Stage Summary:
 - BOTH queued builds (diligence scorecard + pre-flight gates) are DONE, committed, E2E-verified
 - Remaining queue: (a) post-deployment operations loop (user's 10 objectives), (b) GitHub push
+
+---
+Task ID: golive-verify-1
+Agent: main (Super Z)
+Task: Build Phase 1 of post-deployment operations loop — "First 1–6 hours: make sure you're actually working" (user's lifecycle: Deploy → Verify → Optimize → Monitor → Improve → Reconfigure → Continue/Exit)
+
+Work Log:
+- Reused existing telemetry: Deployment registration fields, GpuSample, ProbeSample, TrafficSample,
+  WalletProfile, install steps; transportFor (SSH real / mock simulated) for deep probes
+- NEW GET /api/deployments/[id]/verify (?deep=1): 17 checks in 4 groups — identity (hotkey SS58+
+  checksum, registered on-chain via real metagraph scan, UID, wallet binding, immunity window),
+  runtime (container/service, install plan, image/files, daemon freshness), taskflow (axon probe,
+  validator request counts, crash/restart stability over 24 samples), telemetry (GPU util, VRAM,
+  temp, disk, error-log scan). Honest-aggregation: missing data = unknown + fix hint, never fake pass
+- NEW src/components/deployments/golive-verify.tsx: verdict banner (working/partial/issues),
+  hours-since-go-live first-6h badge, 4 group cards with pass/warn/fail/unknown chips + source tags,
+  Re-run + Deep probe buttons, transcript pre; auto-refresh 60s paused during deep probes; deep
+  transcript survives plain refreshes
+- Wired as FIRST tab "Go-live check" in DeploymentDetail (default when status=started)
+- E2E bugs found+fixed: (1) immunity fail for established miners — old registration = lapse is
+  normal, now pass with "~49h ago" note; (2) mock transport would fake container-down/0-errors —
+  simulated outputs never derive live verdicts now; (3) deep transcript race vs 60s auto-refresh
+- E2E: seeded real registered hotkey (SN3 uid 0 via chain RPC, scripts/seed-golive-verify.mjs) →
+  chain-verified green path (PARTIALLY VERIFIED, only disk+logscan unknown — mock honest) +
+  no-data path (ISSUES FOUND, no hotkey). Screenshots scripts/e2e/golive-*.png; dev.log clean
+
+Stage Summary:
+- Phase 1 (Verify) of the operations loop is LIVE: open a started deployment → Go-live check tab
+- Next phases queued: Optimize / Monitor / Improve / Reconfigure / Continue-Exit per user lifecycle
+- GitHub push still blocked on fresh token
