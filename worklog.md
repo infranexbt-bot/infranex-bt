@@ -1992,3 +1992,19 @@ Stage Summary:
 - WORKING public download URL (verified HTTP 200, full size, no login):
   https://preview-chat-04b679f7-12fc-4962-9379-065a0c16b029.space-z.ai/guides/cpu-miner-setup-guide-v2.pdf
 - File also still at download/cpu-miner-setup-guide-v2.pdf for the panel
+
+---
+Task ID: naming-clarify-1
+Agent: main (Super Z)
+Task: User asked why assistant kept saying "Judge Lab" — name was changed
+
+Work Log:
+- Verified sidebar: nav 04 label = "Validator Lab" (key:"judge", src/components/layout/sidebar.tsx:47)
+- Code internals keep old name: judge-view.tsx, /api/judge/*, JudgeRun model, applyJudgeFix
+- FALSE ALARM: suspected "n" corruption in gpu guide — was my own rg flag artifact
+  (rg -rn parsed as --replace n, displaying matches as "n"); files verified intact, no edits made
+- Real inconsistency: docs/setup-guide (cpu+gpu guides, README) still use old "Judge Lab" name vs UI "Validator Lab"
+
+Stage Summary:
+- UI name = "Validator Lab" (nav 04); code+docs internals = "judge"/"Judge Lab" — single page, same feature
+- Pending user decision: rename docs/guides to "Validator Lab" + regenerate GPU guide PDF
