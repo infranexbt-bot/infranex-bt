@@ -43,6 +43,8 @@ export interface EmissionTrendPoint {
 export interface DiligenceTrend {
   points: EmissionTrendPoint[];
   emissionChangePct: number | null;
+  /** α/USD across the same window — null when the buffer lacks price rows. */
+  alphaPriceChangePct?: number | null;
   hasHistory: boolean;
 }
 
@@ -185,7 +187,7 @@ export function computeDiligence(
     6,
     "complexity",
     "Technical complexity",
-    complexity <= 1 ? "pass" : complexity <= 4 ? "warn" : "warn",
+    complexity <= 1 ? "pass" : "warn",
     complexityLabel,
     complexityFlags.length
       ? `Drivers: ${complexityFlags.join(", ")}. High complexity means slower first-earn and more ops surface — price your time in before the burn.`
@@ -240,7 +242,9 @@ export function computeDiligence(
     "The snapshot ring buffer is still filling. Trend is the difference between a rising pool and a dying one — check back before approving.";
   if (trend?.hasHistory && trend.emissionChangePct != null) {
     const ch = trend.emissionChangePct;
-    trendValue = `${ch >= 0 ? "+" : ""}${ch.toFixed(1)}% emission vs window start`;
+    const alphaCh = trend.alphaPriceChangePct;
+    const fmtCh = (v: number) => `${v >= 0 ? "+" : ""}${v.toFixed(1)}%`;
+    trendValue = `${fmtCh(ch)} emission vs window start${alphaCh != null ? ` · α price ${fmtCh(alphaCh)}` : ""}`;
     trendStatus = ch >= -5 ? "pass" : ch >= -25 ? "warn" : "fail";
     trendDetail =
       ch >= 0
@@ -248,6 +252,12 @@ export function computeDiligence(
         : ch >= -25
           ? "Emission is drifting down — could be price (τ-denominated pool is stable) or real cut. Read the points before deciding."
           : "Steep emission decline — the pool is shrinking fast. Entry here chases a falling knife.";
+    if (alphaCh != null) {
+      trendDetail +=
+        alphaCh < -20
+          ? ` The α/USD price also fell ${fmtCh(alphaCh)} in the same window — even a stable τ pool pays out less in dollars when the token slides. Price your exit, not just your emission.`
+          : ` α/USD moved ${fmtCh(alphaCh)} over the same window — USD earnings track the τ pool AND the token price.`;
+    }
   }
   push(9, "emission-trend", "Emission trend", trendStatus, trendValue, trendDetail,
     trend?.hasHistory ? "Snapshot history (server ring buffer)" : "Awaiting history");

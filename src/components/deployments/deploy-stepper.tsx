@@ -87,7 +87,12 @@ const CPU_NAME_RE = /^[a-z0-9][a-z0-9-]{2,47}$/;
 
 type StepN = 1 | 2 | 3 | 4;
 
-export function DeployStepper() {
+export function DeployStepper({
+  preflightLocalHostId,
+}: {
+  /** PREFLIGHT-1 — online local machine handed off by the pre-flight checklist. */
+  preflightLocalHostId?: string | null;
+}) {
   const [step, setStep] = useState<StepN>(1);
   const [netuid, setNetuid] = useState<number | null>(null);
   const [offerId, setOfferId] = useState<string | null>(null);
@@ -143,6 +148,19 @@ export function DeployStepper() {
     if (pre.computeKind) setComputeKind(pre.computeKind);
     if (pre.localHostId) setLocalHostId(pre.localHostId);
   }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
+
+  // PREFLIGHT-1 — the pre-flight checklist hands off an online local machine:
+  // preselect it in step 2 (Compute) so a CPU-subnet deploy is already aimed
+  // at the operator's laptop. Guarded: never touch an in-flight deployment or
+  // a flow that has already moved past the Compute step.
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => {
+    if (!preflightLocalHostId) return;
+    if (depId || cpuProvisioned || step >= 3) return;
+    setComputeKind("local");
+    setLocalHostId(preflightLocalHostId);
+  }, [preflightLocalHostId]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
   // --- Step 1 data: live subnets (chain + curated merged) ------------------

@@ -41,6 +41,7 @@ import {
   type RegistrationWizardContext,
 } from "@/lib/infranex/use-deployments";
 import { DeployStepper } from "@/components/deployments/deploy-stepper";
+import { PreflightChecklist } from "@/components/deployments/preflight-checklist";
 import { RevisionsDialog } from "@/components/deployments/revisions-dialog";
 import { MigrateDialog } from "@/components/deployments/migrate-dialog";
 import { DaemonInstallDialog } from "@/components/deployments/daemon-install-dialog";
@@ -59,6 +60,9 @@ export function DeploymentsView() {
   const { data: deployments, isLoading } = useDeployments();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [wizardCtx, setWizardCtx] = useState<RegistrationWizardContext | null>(null);
+  // PREFLIGHT-1 — the online local machine handed off by the pre-flight
+  // checklist; forwarded to the stepper so Compute can preselect it.
+  const [preflightHostId, setPreflightHostId] = useState<string | null>(null);
 
   const scrollToStepper = () =>
     document.getElementById("deploy-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -87,8 +91,16 @@ export function DeploymentsView() {
         </p>
       </header>
 
+      {/* --- PREFLIGHT-1: two gates (machine online → wallet keys) before the deploy flow --- */}
+      <PreflightChecklist
+        onHandoff={(hostId) => {
+          setPreflightHostId(hostId);
+          scrollToStepper();
+        }}
+      />
+
       {/* --- THE deploy flow: 4 steps, one page, no dialog --- */}
-      <DeployStepper />
+      <DeployStepper preflightLocalHostId={preflightHostId} />
 
       <Separator />
 
