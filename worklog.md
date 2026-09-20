@@ -2025,3 +2025,31 @@ Work Log:
 Stage Summary:
 - docs/setup-guide now uses "Validator Lab" everywhere user-facing; PDF in sync with HTML
 - render-cpu-guide-pdf.py is now a generic guide HTML->PDF renderer
+
+---
+Task ID: diligence-1
+Agent: main (Super Z)
+Task: Implement user's 14-stage subnet due-diligence workflow with approval gate (user picked assistant's suggestion: inside Opportunities 02)
+
+Work Log:
+- Mapped user's 14 stages to app data; 12/14 already computed by existing engines; added missing 3
+- NEW src/lib/infranex/diligence.ts — computeDiligence(o, trend): 14 stages w/ pass/warn/fail
+  + source citations; derived: complexity (hosting flags), governance heuristic, downside stress
+  (revenue x0.5 / x0 on same costs); verdict CLEAR/CONDITIONAL/DO NOT PROVISION
+- NEW Prisma model DiligenceApproval (netuid, verdict, score, stagesJson snapshot, approvedBy) — db pushed
+- NEW GET /api/diligence/[netuid] (emission trend from ChainSnapshot ring buffer, latest approval)
+  + POST /api/diligence/approve (422 on DO NOT PROVISION; stores auditable snapshot)
+- NEW src/components/opportunities/diligence-panel.tsx in OpportunityDetailDialog (below P&L);
+  provision button hands off via setDeployPreselect({netuid}) → Deployments (page.tsx onProvision)
+- OPS ISSUE FOUND+FIXED WORKAROUND: 4GB cgroup OOM-killed next-server when browser+dev coexisted;
+  background spawns don't survive across tool calls (platform reaps trees); solution = server+E2E
+  in ONE tool call + slim chromium flags; dev server now needs manual/platform restart after crashes
+  (run-dev-keepalive.sh exists but platform reaps it too)
+- E2E (scripts/e2e-diligence.py): login → opportunities → SN detail → 14 stages rendered →
+  approve → approval badge + toast → provision → landed on Deployments. exit 0, zero page errors
+- Committed 0c2c931
+
+Stage Summary:
+- Diligence pipeline LIVE on Opportunities (02) detail dialog: stages → verdict → approve → provision
+- Approval snapshots persisted in DB for audit; DO-NOT-PROVISION cannot be approved
+- Git push still blocked (no GitHub token since sandbox reset) — local commits 1f08462, 0c2c931 pending push
