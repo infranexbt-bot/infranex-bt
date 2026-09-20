@@ -2008,3 +2008,20 @@ Work Log:
 Stage Summary:
 - UI name = "Validator Lab" (nav 04); code+docs internals = "judge"/"Judge Lab" — single page, same feature
 - Pending user decision: rename docs/guides to "Validator Lab" + regenerate GPU guide PDF
+
+---
+Task ID: docs-rename-1
+Agent: main (Super Z)
+Task: Rename "Judge Lab" -> "Validator Lab" in docs to match nav-04 UI name (user confirmed)
+
+Work Log:
+- Surveyed docs/: 12 mentions in gpu-miner-setup-guide.html, 1 in README.md, 0 in cpu guide (already new name)
+- scripts/rename-judge-lab-docs.py: replaced Judge Lab/JUDGE LAB/judge-lab; renamed screenshot
+  s18-judge-lab.png -> s18-validator-lab.png + updated src/alt refs; lowercase concept "judge" untouched
+- Parametrized render script (argv src/out, absolute paths) and regenerated GPU guide PDF
+  via Playwright: 27 pages (matches original), 0 old-name refs, chapter title verified
+- Committed 1f08462 on main; pushed to origin main
+
+Stage Summary:
+- docs/setup-guide now uses "Validator Lab" everywhere user-facing; PDF in sync with HTML
+- render-cpu-guide-pdf.py is now a generic guide HTML->PDF renderer

@@ -1,9 +1,15 @@
-"""Render cpu-miner-setup-guide.html to a fresh PDF (new filename) via Playwright."""
+"""Render a print-designed guide HTML to PDF via Playwright.
+
+Usage: python render-cpu-guide-pdf.py [src_html] [out_pdf]
+Defaults to the CPU guide (kept for backwards compatibility).
+"""
 import asyncio
+import sys
+from pathlib import Path
 from playwright.async_api import async_playwright
 
-SRC = "/home/z/my-project/download/cpu-miner-setup-guide.html"
-OUT = "/home/z/my-project/download/cpu-miner-setup-guide-v2.pdf"
+SRC = str(Path(sys.argv[1] if len(sys.argv) > 1 else "/home/z/my-project/download/cpu-miner-setup-guide.html").resolve())
+OUT = str(Path(sys.argv[2] if len(sys.argv) > 2 else "/home/z/my-project/download/cpu-miner-setup-guide-v2.pdf").resolve())
 
 
 async def main():
