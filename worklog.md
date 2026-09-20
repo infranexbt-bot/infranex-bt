@@ -2104,3 +2104,21 @@ Stage Summary:
 - Phase 1 (Verify) of the operations loop is LIVE: open a started deployment → Go-live check tab
 - Next phases queued: Optimize / Monitor / Improve / Reconfigure / Continue-Exit per user lifecycle
 - GitHub push still blocked on fresh token
+
+---
+Task ID: git-push-1
+Agent: main (Super Z)
+Task: Save project state and push all local commits to github.com/infranexbt-bot/infranex-bt using user-provided PAT
+
+Work Log:
+- Inspected git state: local main had 18 unpushed commits (ahead of remote default branch nextjs-platform by 18, behind by 0 — clean fast-forward)
+- Discovered remote had no main branch; default branch was nextjs-platform (plus platform-live and a backup branch)
+- Committed pending change: .alpha-price-history.json snapshot (d4fea20); left dirty embedded repo infranex-bt-subdir-backup gitlink untouched
+- Configured origin URL with user PAT, pushed main:main (created new branch) and main:nextjs-platform (fast-forward a98911b..d4fea20)
+- Set upstream tracking main -> origin/main for future simple pushes
+- Verified via ls-remote: main, nextjs-platform, and HEAD all at d4fea20; 0 commits unpushed
+
+Stage Summary:
+- GitHub fully synced: all 19 commits including diligence scorecard (0c2c931), pre-flight workflow (6b63f18), operations go-live verify (bfa1e2a), docs rename (1f08462) now on remote main + nextjs-platform
+- Future pushes work with plain "git push" (PAT embedded in origin URL, upstream set)
+- platform-live and backup branches left untouched
