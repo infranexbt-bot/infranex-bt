@@ -45,6 +45,7 @@ import { PreflightChecklist } from "@/components/deployments/preflight-checklist
 import { RevisionsDialog } from "@/components/deployments/revisions-dialog";
 import { MigrateDialog } from "@/components/deployments/migrate-dialog";
 import { DaemonInstallDialog } from "@/components/deployments/daemon-install-dialog";
+import { GoliveVerify } from "@/components/deployments/golive-verify";
 import { DevOpsEngineSection } from "@/components/devops/devops-console";
 import { WalletRegistrationDialog } from "@/components/devops/wallet-registration-dialog";
 
@@ -563,7 +564,9 @@ function DeploymentDetail({
   deployment: DeploymentRecord;
   onClose: () => void;
 }) {
-  const [tab, setTab] = useState<"logs" | "config">("logs");
+  const [tab, setTab] = useState<"verify" | "logs" | "config">(
+    d.status === "started" ? "verify" : "logs"
+  );
   const cfg = d.config;
 
   return (
@@ -583,6 +586,16 @@ function DeploymentDetail({
       <CardContent className="space-y-4">
         {/* Tabs */}
         <div className="flex items-center gap-1 rounded-lg border bg-card/30 p-1 w-fit">
+          <button
+            onClick={() => setTab("verify")}
+            className={cn(
+              "rounded px-3 py-1 text-xs font-medium transition-colors",
+              tab === "verify" ? "bg-primary/10 text-primary" : "text-muted-foreground"
+            )}
+          >
+            <ShieldCheck className="mr-1.5 inline h-3 w-3" />
+            Go-live check
+          </button>
           <button
             onClick={() => setTab("logs")}
             className={cn(
@@ -604,6 +617,10 @@ function DeploymentDetail({
             Deployment config
           </button>
         </div>
+
+        {tab === "verify" && (
+          <GoliveVerify deploymentId={d.id} minerName={d.minerName} netuid={d.netuid} status={d.status} />
+        )}
 
         {tab === "logs" && (
           <div className="space-y-3">
