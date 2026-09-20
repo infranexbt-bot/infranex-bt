@@ -807,3 +807,27 @@ model AuditLog {
   @@index([createdAt])
   @@index([action])
 }
+
+// ---------------------------------------------------------------------------
+// DILIGENCE-1 — the human approval gate between analysis and provisioning.
+// The 14-stage diligence pipeline (lib/infranex/diligence.ts) ends in an
+// explicit operator decision: OPPORTUNITY verdict → YOU APPROVE → provision.
+// Each approval stores the full stage snapshot so the decision is auditable
+// against the exact numbers the operator saw (DATA-AUDIT ethos: no silent
+// re-reads — if the data moved after approval, the new run shows it).
+// ---------------------------------------------------------------------------
+model DiligenceApproval {
+  id         String   @id @default(cuid())
+  netuid     Int
+  subnetName String
+  // "CLEAR" | "CONDITIONAL" — "DO NOT PROVISION" can never be approved.
+  verdict    String
+  // Opportunity score at approval time, for later comparison.
+  score      Float
+  // Full 14-stage DiligenceStage[] snapshot + verdictReason.
+  stagesJson String
+  approvedBy String   @default("system") // AppUser userId
+  createdAt  DateTime @default(now())
+
+  @@index([netuid, createdAt])
+}

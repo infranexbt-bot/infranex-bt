@@ -112,6 +112,12 @@ export default function Home() {
         opportunity={selected}
         open={dialogOpen}
         onOpenChange={setDialogOpen}
+        onProvision={() => {
+          if (!selected) return;
+          setDialogOpen(false);
+          setView("deployments");
+          setDeployPreselect({ netuid: selected.netuid });
+        }}
       />
     </DashboardLayout>
   );

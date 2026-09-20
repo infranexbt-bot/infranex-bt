@@ -18,6 +18,7 @@ import { assessSeatChance, formatBurnTao } from "@/lib/infranex/miner-score";
 import { RegisterOddsBlock, RegisterOddsInline } from "@/components/cards/register-odds";
 import { HostingWarningBlock, HostingChips } from "@/components/cards/hosting-requirements";
 import { OfficialMechanicsBlock, MechanicsChips, rampWeeksSourceNote } from "@/components/cards/mechanics-block";
+import { DiligencePanel } from "@/components/opportunities/diligence-panel";
 import { useOddsTrends } from "@/lib/infranex/use-odds";
 import type { Opportunity } from "@/lib/infranex/types";
 
@@ -25,12 +26,15 @@ interface OpportunityDetailDialogProps {
   opportunity: Opportunity | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** DILIGENCE-1 — provision hand-off (Deployments stepper, preselected). */
+  onProvision?: () => void;
 }
 
 export function OpportunityDetailDialog({
   opportunity,
   open,
   onOpenChange,
+  onProvision,
 }: OpportunityDetailDialogProps) {
   if (!opportunity) return null;
   const o = opportunity;
@@ -639,6 +643,9 @@ export function OpportunityDetailDialog({
             <p className="font-medium capitalize">{o.status}</p>
           </div>
         </div>
+
+        {/* --- DILIGENCE-1: 14-stage pipeline → verdict → approve → provision --- */}
+        <DiligencePanel o={o} onProvision={onProvision ?? (() => {})} />
       </DialogContent>
     </Dialog>
   );
