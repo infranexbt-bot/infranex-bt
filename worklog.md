@@ -1943,3 +1943,21 @@ Work Log:
 
 Stage Summary:
 - CPU Catalog now offers BOTH paths in one place: cloud (Hetzner/DO keys → rent & install) and local (connect laptop → Start CPU miner → Deploy stepper preloaded with SN67 + the machine). Full mining flow (setup → burn-gated register) happens in the stepper as before.
+
+---
+Task ID: cpu-guide-pdf-1
+Agent: main (Super Z)
+Task: Complete step-by-step CPU miner setup guide (PDF) — wallet/local machine/register timing (user request)
+
+Work Log:
+- Routed per pdf skill: guide/handbook -> Creative Flow brief; read full skill chain (SKILL.md, fonts.md, creative-flow.md, overflow.md, pagination.md, typography.md, palette.md, cover.md, cover-backgrounds.md).
+- Palette via pdf.py palette.cascade (warm bronze family); fonts Inter + Liberation Mono via Google Fonts link; 720x1020px flow doc.
+- Content grounded in the app's verified reality: SN67 phases (cpu-guide-view.tsx P0-P8), CPU Catalog local-machine enrollment (CPUCAT-LOCAL-1), Deploy stepper CPU workflow (CPUDEPLOY-1), fresh chain snapshot (block 9,101,516, TAO $268.33, burn 0.0433 tau ~ $11.62).
+- Structure: cover -> 01 workflow map (7 step cards) + master "when to do what" table -> 02 prerequisites checklist -> 03 connect local machine -> 04 create & fund wallet (on the laptop, before register) -> 05 pick SN67 + stepper setup -> 06 Validator Lab free gate -> 07 the ONE burn -> 08 submit agent -> 09 weekly monitoring table -> 10 command cheat sheet + troubleshooting -> ending page.
+- Validation loop: poster_validate check-html caught cover collisions (hairlines crossing text; rule bar 30px < 40px gap) -> removed hairlines, fixed gaps, dividers moved to chapter-header::after. cover_validate Pass 1 clean; its Pass-2 body-page flags are documented false positives (tool is cover-only per SKILL.md; same-row td/th flagged).
+- pdf_qa fixes across 3 renders: orphan 10%-fill tail page (global micro-tighten), ending glyph off-edge (centered + inset), line-start punctuation in table cells, author metadata. Final: PASS all checks.
+- Post-process (scripts/postprocess_cpu_guide.py): page numbers stamped per pagination.md (cover hidden, body Arabic 1..12, no denominator), metadata set, pymupdf text scan: zero U+FFFD, zero near-empty pages.
+- Delivered BOTH files per HTML->PDF route rule: download/cpu-miner-setup-guide.pdf (13 pages, ~444 KB, vector) + download/cpu-miner-setup-guide.html (editable source).
+
+Stage Summary:
+- Complete CPU miner setup guide delivered: 7-step workflow with explicit timing (machine first, wallet on laptop before register, Validator Lab gate before burn), master schedule table, cheat sheet, troubleshooting. This closes the pending "CPU miner guide PDF" item.
