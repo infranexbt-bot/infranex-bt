@@ -1927,3 +1927,19 @@ Stage Summary:
 - CPUDEPLOY-1 COMPLETE and PUSHED. Deploy stepper now runs the full CPU workflow: SN67 (any CPU subnet) → Compute step branches CPU provider (Hetzner/DO) or Local machine → step 3 rents (cloud) or runs setup on the laptop (local agent) → step 4 go-live with burn-gated register command.
 - Cloud CPU path awaits user re-adding Hetzner/DO provider keys; local path E2E-verified green.
 - PAT note: the token used is live and valid; recommend the user revoke/rotate it after this push since it was shared in chat.
+
+---
+Task ID: cpucat-local-1
+Agent: main (Super Z)
+Task: CPU Catalog page — add "connect local machine" option next to the CPU providers + start CPU miner on it (user request)
+
+Work Log:
+- Explored cpus-view.tsx (CPU Catalog): had Hetzner/DO key connect + offers table + provision dialog, no local path. Reused DevOps LocalMachinesCard patterns (enrollment token flow) and deploy-preselect bridge.
+- Extended DeployPreselect with computeKind ("cloud"|"local") + localHostId; deploy-stepper mount effect now applies them (lands on step 2 Compute with Local machine + host pre-picked).
+- New src/components/cpus/local-machine-section.tsx: "Or skip the cloud — connect your local machine ($0/mo)" section — name input → createEnrollment → enroll + run commands with copy (WSL2 hint, 30-min one-time token, tmux/nohup tip), host list with status chips + specs + last-seen, per-online-host "Start CPU miner" button → setDeployPreselect({netuid: 67 (SN67 Harnyx best pick), computeKind: "local", localHostId}) + navigate to deployments. Offline/pending disabled with hints; pointer to DevOps → Local machines for revoke/logs.
+- Wired into cpus-view.tsx: section rendered after the provider status line; how-it-works strip now 4 cards ("…or use your laptop"); header copy mentions the $0 laptop path.
+- Verified: tsc src/ ZERO errors; dev server was DOWN (restarted via init script, 307→login OK); authenticated page load 200/85KB with 0 compile errors in dev.log; new component present in client + SSR chunks (SSR only renders the default view, hence HTML grep miss).
+- Committed a98911b, pushed 733fadb..a98911b main -> nextjs-platform.
+
+Stage Summary:
+- CPU Catalog now offers BOTH paths in one place: cloud (Hetzner/DO keys → rent & install) and local (connect laptop → Start CPU miner → Deploy stepper preloaded with SN67 + the machine). Full mining flow (setup → burn-gated register) happens in the stepper as before.
