@@ -2053,3 +2053,24 @@ Stage Summary:
 - Diligence pipeline LIVE on Opportunities (02) detail dialog: stages → verdict → approve → provision
 - Approval snapshots persisted in DB for audit; DO-NOT-PROVISION cannot be approved
 - Git push still blocked (no GitHub token since sandbox reset) — local commits 1f08462, 0c2c931 pending push
+
+---
+Task ID: preflight-verify-1
+Agent: main (Super Z)
+Task: User asked "is that done" — verify status of queued builds (diligence + pre-flight)
+
+Work Log:
+- Verified diligence build: commit 0c2c931 (lib/infranex/diligence.ts, DiligenceApproval model,
+  GET /api/diligence/[netuid], POST /api/diligence/approve, DiligencePanel in opportunity detail)
+- Verified pre-flight build: commit 6b63f18 — preflight-checklist.tsx (651 lines) implements the
+  two-gate design exactly as requested: Gate 1 = laptop agent online (enroll/heartbeat), Gate 2 =
+  wallet cold+hot key names with SS58 address validation, secrets/mnemonics hard-rejected; both
+  green -> hands off to existing deploy stepper with first online host preselected
+- E2E evidence in repo: scripts/e2e-preflight.sh + screenshots preflight-pending/gate1-green/both-green
+- Dev server confirmed live (login 200, API responding) on port 3000
+- Push status: ~10 local commits pending (1f08462 docs rename, 0c2c931 diligence, 6b63f18 preflight,
+  plus platform checkpoint commits) — still blocked on fresh GitHub token
+
+Stage Summary:
+- BOTH queued builds (diligence scorecard + pre-flight gates) are DONE, committed, E2E-verified
+- Remaining queue: (a) post-deployment operations loop (user's 10 objectives), (b) GitHub push
