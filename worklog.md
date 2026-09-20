@@ -1961,3 +1961,18 @@ Work Log:
 
 Stage Summary:
 - Complete CPU miner setup guide delivered: 7-step workflow with explicit timing (machine first, wallet on laptop before register, Validator Lab gate before burn), master schedule table, cheat sheet, troubleshooting. This closes the pending "CPU miner guide PDF" item.
+
+---
+Task ID: pdf-redeliver-1
+Agent: main (Super Z)
+Task: User could not find cpu-miner-setup-guide.pdf in download panel
+
+Work Log:
+- Verified original PDF valid on disk (992KB, 13 pages) — file was fine; panel sync was the issue
+- Re-save with fresh mtime did NOT fix it (panel appears to only index files created in current session)
+- Regenerated PDF in-session from its HTML source via Playwright/Chromium (scripts/render-cpu-guide-pdf.py)
+- Output as NEW filename: download/cpu-miner-setup-guide-v2.pdf — verified 13 pages, 720x1020px, cover text intact
+
+Stage Summary:
+- Fresh deliverable: /home/z/my-project/download/cpu-miner-setup-guide-v2.pdf (594KB, 13 pages)
+- Original cpu-miner-setup-guide.pdf also still present; html source retained
