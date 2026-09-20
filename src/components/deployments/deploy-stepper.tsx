@@ -140,6 +140,8 @@ export function DeployStepper() {
       setStep(2);
     }
     if (pre.offerId) setOfferId(pre.offerId);
+    if (pre.computeKind) setComputeKind(pre.computeKind);
+    if (pre.localHostId) setLocalHostId(pre.localHostId);
   }, []);
   /* eslint-enable react-hooks/set-state-in-effect */
 

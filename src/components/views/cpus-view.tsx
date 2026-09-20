@@ -30,6 +30,7 @@ import {
   WifiOff,
   KeyRound,
   GitBranch,
+  Laptop,
   MemoryStick,
   HardDrive,
   PiggyBank,
@@ -38,6 +39,7 @@ import { useCpuOffers, type CpuOffersSnapshot } from "@/lib/infranex/use-cpu-off
 import { useMergedGpuOffers } from "@/lib/infranex/use-gpu-offers";
 import { ProviderKeysDialog } from "@/components/gpus/provider-keys-dialog";
 import { CpuProvisionDialog } from "@/components/cpus/provision-dialog";
+import { LocalMachineSection } from "@/components/cpus/local-machine-section";
 import { cn, formatCurrency } from "@/lib/utils";
 import type { ViewKey } from "@/lib/infranex/types";
 
@@ -150,7 +152,8 @@ export function CpusView({ onNavigate }: CpusViewProps) {
               ? `. ${configuredProviders.length} provider${configuredProviders.length > 1 ? "s" : ""} connected via your API keys.`
               : ". Connect Hetzner Cloud or DigitalOcean with your own API key for live pricing."}{" "}
             Rent &amp; auto-install pulls the subnet&apos;s requirements from its git repo and
-            provisions the box with the mining base stack.
+            provisions the box with the mining base stack. Prefer your own hardware? Connect a
+            local machine below and start the CPU miner on your laptop for $0.
           </p>
         </div>
         <div className="flex flex-col gap-2 self-start sm:flex-row sm:self-end">
@@ -180,8 +183,8 @@ export function CpusView({ onNavigate }: CpusViewProps) {
         </div>
       </header>
 
-      {/* How the CPU path works — 3 steps, same order as the GPU path */}
-      <div className="grid gap-3 sm:grid-cols-3">
+      {/* How the CPU path works — 3 cloud steps + the local-machine branch */}
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {[
           {
             icon: KeyRound,
@@ -197,6 +200,11 @@ export function CpusView({ onNavigate }: CpusViewProps) {
             icon: Server,
             title: "3 · Rent & auto-install",
             body: "Cloud-init installs docker + bittensor on the new box; the subnet install lands in DevOps with wallet/launch gates.",
+          },
+          {
+            icon: Laptop,
+            title: "…or use your laptop",
+            body: "Connect a local machine below and start the CPU miner on your own hardware — $0/mo, NAT-safe pull agent, revoke anytime.",
           },
         ].map((s) => (
           <div key={s.title} className="rounded-xl border border-border/60 bg-card/30 p-4">
@@ -471,6 +479,9 @@ export function CpusView({ onNavigate }: CpusViewProps) {
             .join(" · ")}
         </p>
       )}
+
+      {/* The $0/mo branch — connect the laptop and start the miner on it */}
+      <LocalMachineSection onNavigate={onNavigate} />
 
       <ProviderKeysDialog open={keysOpen} onOpenChange={setKeysOpen} kind="cpu" />
       <CpuProvisionDialog

@@ -12,6 +12,10 @@
 export interface DeployPreselect {
   netuid?: number | null;
   offerId?: string | null;
+  /** CPU subnets only — which branch of the Compute step is pre-picked. */
+  computeKind?: "cloud" | "local" | null;
+  /** CPU subnets only — a registered local machine (from useLocalHosts). */
+  localHostId?: string | null;
 }
 
 let pending: DeployPreselect | null = null;
