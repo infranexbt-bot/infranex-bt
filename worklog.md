@@ -1976,3 +1976,19 @@ Work Log:
 Stage Summary:
 - Fresh deliverable: /home/z/my-project/download/cpu-miner-setup-guide-v2.pdf (594KB, 13 pages)
 - Original cpu-miner-setup-guide.pdf also still present; html source retained
+
+---
+Task ID: pdf-redeliver-2
+Agent: main (Super Z)
+Task: Deliver downloadable PDF to user via URL (panel still not showing it)
+
+Work Log:
+- Copied PDF to public/guides/ (proxy.ts whitelists /guides/ as no-auth static path)
+- Found bot/preview domain discovery method in scripts/append-recovery1.js (FC_FUNCTION_NAME env)
+- Tested both candidate domains; live one = preview-chat-<chat_id>.space-z.ai (root 307, pdf 200/593842)
+- Removed redundant login-protected copy at public/ root
+
+Stage Summary:
+- WORKING public download URL (verified HTTP 200, full size, no login):
+  https://preview-chat-04b679f7-12fc-4962-9379-065a0c16b029.space-z.ai/guides/cpu-miner-setup-guide-v2.pdf
+- File also still at download/cpu-miner-setup-guide-v2.pdf for the panel
