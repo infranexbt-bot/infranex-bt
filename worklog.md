@@ -2171,3 +2171,24 @@ Stage Summary:
 - Login fully functional again with the ORIGINAL credentials (unchanged codes)
 - Side effect: previous stale 'my-laptop' placeholder rows wiped with the old DB - laptop re-enrollment can now start clean
 - Deployment history was reset; operational data accumulates fresh from here
+
+---
+Task ID: providers-akash-vast-1
+Agent: main (Super Z)
+Task: Add Vast.ai + Akash Network providers to GPU/CPU catalogs with live API integration
+
+Work Log:
+- Explored provider architecture: PROVIDER_META registry, key vault (AES-GCM), offer adapters, snapshot caches; Vast GPU already existed
+- Probed Akash public API: console-api.akash.network/v1/gpu-prices (public, 27 GPU models bid medians), /v1/providers (capacity); no public CPU price endpoint; Vast bundle search requires key (tested keyless -> success:false)
+- Created src/lib/infranex/akash.ts: akashGpuOffers (public, normalizeModel-canonicalized, median pricing), akashCpuOffers (4 reference tiers marked "(est.)" availability "limited" + live capacity in milli-CPU->vCPU), validateAkashKey (x-api-key /deployments)
+- providers.ts: added "akash" ProviderId, kind "gpu"|"cpu"|"both", publicOffers flag + keyless snapshot flow (origin "public"), Akash + Vast kind:"both"
+- cpu-providers.ts: vastCpuOffers (num_gpus=0), akashCpuCatalogOffers, keyless handling in CPU snapshot
+- UI: dialog shows "both" providers in both catalogs, keyless-aware connected copy, provider-aware live badge, "Rent soon" disabled button for non-rentable sources; fixed stale RunPod-only labels
+- FIXED pre-existing corruption: gpus-view line 47 (display artifact only - verified hex intact)
+- HEALED database: 14 missing tables (LocalHost, EarningsDaily, AuditLog, DiligenceApproval etc.) created via db:push after environment-restore data loss; local-hosts/economics/trust routes 200 again
+- Verified E2E in browser: GPU catalog 25 Akash offers ($0.03 P4 - $4.45 H200/hr) keyless; CPU catalog 4 Akash tiers + recommendation cards; keys dialog; screenshots saved
+
+Stage Summary:
+- Commit b19c770 (6 files, +485/-47)
+- Akash works keyless in both catalogs; Vast CPU + Akash key ops unlock when user adds API keys
+- CPU rent adapters for Akash/Vast remain future work (buttons honestly disabled)

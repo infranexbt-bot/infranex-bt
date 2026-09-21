@@ -1,0 +1,29 @@
+[
+  {
+    "url": "https://akash.network",
+    "name": "Getting Started with Managed Wallet API",
+    "snippet": "Deploy on Akash programmatically using the Console API with a managed wallet. Navigate to Settings → API Keys. Complete endpoint documentation Quickstart - End ...",
+    "host_name": "akash.network",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://github.com",
+    "name": "Akash Console Air — self-custody, crypto-native fork of",
+    "snippet": "Self-hostable, self-custody crypto wallet UI for deploying on the Akash Network . If you hold AKT/ACT, want to sign your own transactions with your own ... Read more",
+    "host_name": "github.com",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://apis.io",
+    "name": "Akash | APIs.io Providers",
+    "snippet": "The platform offers REST APIs for deployment management, provider discovery, GPU availability, AI inference, and direct blockchain interaction via Cosmos SDK ... Read more",
+    "host_name": "apis.io",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  }
+]
