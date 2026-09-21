@@ -1,0 +1,47 @@
+[
+  {
+    "url": "https://subnetalpha.ai",
+    "name": "Swarm",
+    "snippet": "In essence, Swarm is developing an open-source autopilot system for drones by leveraging Bittensor's incentivized network of miners and validators. ... Recorded ... Read more",
+    "host_name": "subnetalpha.ai",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://swarm124.com",
+    "name": "Our moat - Swarm",
+    "snippet": "Swarm runs on Bittensor Subnet 124 — a perpetual, on-chain tournament where flight intelligence evolves through transparent competition. MINERS train flight ... Read more",
+    "host_name": "swarm124.com",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://simplytao.ai",
+    "name": "Your Simple Guide to Swarm (SN124)",
+    "snippet": "Aug 6, 2026 — Swarm is Bittensor Subnet 124 , an open benchmark and reward network for autonomous drone navigation. Miners train flight controllers and submit ... Read more",
+    "host_name": "simplytao.ai",
+    "rank": 2,
+    "date": "Aug 6, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.bittensor.com",
+    "name": "Mining — Bittensor Docs",
+    "snippet": "A miner is a hotkey registered on a subnet , doing whatever work that subnet's incentive mechanism rewards. not supported on Windows.",
+    "host_name": "www.bittensor.com",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://github.com",
+    "name": "swarm-subnet/swarm - Autonomous Drone Navigation",
+    "snippet": "The best pilot wins, out in the open, and its rewards are paid automatically by the Bittensor network ( Subnet 124 ). teaching a drone to find people. Subnet 124 ...",
+    "host_name": "github.com",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  }
+]

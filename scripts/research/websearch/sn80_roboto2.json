@@ -1,0 +1,47 @@
+[
+  {
+    "url": "https://subnetalpha.ai",
+    "name": "OpenRoboto",
+    "snippet": "OpenRoboto is an open competition on Bittensor ( Subnet 80 ) for continuously improving robotics models. Miners fine-tune an open base model starting from. Read more",
+    "host_name": "subnetalpha.ai",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://github.com",
+    "name": "Public miner, protocol, and validator for the OpenRoboto",
+    "snippet": "OpenRoboto is a Bittensor mainnet subnet for improving vision-language-action models. This repository contains the public miner , on-chain protocol helpers, ... Read more",
+    "host_name": "github.com",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://bittensor.ai",
+    "name": "Bittensor subnet directory",
+    "snippet": "Decentralized GPU rental marketplace powered by Bittensor . Miners contribute resources, validators verify performance, renters access compute on-demand. 0.0853 ... Read more",
+    "host_name": "bittensor.ai",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://docs.vast.ai",
+    "name": "Mining on Bittensor",
+    "snippet": "This tutorial shows how to use the Bittensor testnet to create a subnet and run your incentive mechanism on it. ​. 1. Install Bittensor subnet template. cd ... Read more",
+    "host_name": "docs.vast.ai",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.bittensor.com",
+    "name": "Mining — Bittensor Docs",
+    "snippet": "A miner is a hotkey registered on a subnet , doing whatever work that subnet's incentive mechanism rewards. The chain side of mining is small: register, ... Read more",
+    "host_name": "www.bittensor.com",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  }
+]

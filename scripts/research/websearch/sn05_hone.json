@@ -1,0 +1,47 @@
+[
+  {
+    "url": "https://subnetalpha.ai",
+    "name": "Hone",
+    "snippet": "Hone ( Subnet - 5 of the Bittensor network) is a decentralized AI research subnet focused on training a new generation of AI models with hierarchical learning ...",
+    "host_name": "subnetalpha.ai",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.bittensor.com",
+    "name": "Bittensor Documentation",
+    "snippet": "Bittensor is an open network where independent subnets produce digital commodities — compute, inference, storage, prediction — and the chain pays ...",
+    "host_name": "www.bittensor.com",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://github.com",
+    "name": "manifold-inc/hone: Decentralized Hierarchal Pretraining",
+    "snippet": "Prerequisites Python 3.10+ Docker & Requirements 4+ CPU cores 8GB+ RAM 20GB disk Reliable network connection 1. port (default: 8091)",
+    "host_name": "github.com",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://docs.taostats.io",
+    "name": "Hardware requirements - Getting Started with Bittensor",
+    "snippet": "Mining hardware requirements vary by subnet although most require some for of GPU to perform the require compute functions.",
+    "host_name": "docs.taostats.io",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://bittensor.ai",
+    "name": "Bittensor subnet directory",
+    "snippet": "Confidential AI compute powered by trusted hardware . Decentralized inference network with remote attestation and verifiable security. 0.0557 τ. -0.96%|-4.28%.",
+    "host_name": "bittensor.ai",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  }
+]

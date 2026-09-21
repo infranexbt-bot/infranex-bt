@@ -1,0 +1,47 @@
+[
+  {
+    "url": "https://www.bittensor.com",
+    "name": "Mining — Bittensor Docs",
+    "snippet": "A miner is a hotkey registered on a subnet , doing whatever work that subnet's incentive mechanism rewards. The chain side of mining is small: register, tell ...",
+    "host_name": "www.bittensor.com",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://bittensor.ai",
+    "name": "Bittensor subnet directory",
+    "snippet": "Witness WitnessSN20. Miners serve embedding models, vector search, and LLM inference. Bittensor subnets are specialized decentralized AI networks within the  ...",
+    "host_name": "bittensor.ai",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://docs.vast.ai",
+    "name": "Mining on Bittensor",
+    "snippet": "This tutorial shows how to use the Bittensor testnet to create a subnet and run your incentive mechanism on it. and for subnet miner . miner and subnet validator",
+    "host_name": "docs.vast.ai",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.altcoinbuzz.io",
+    "name": "Top 10 Bittensor Subnets by Mindshare",
+    "snippet": "Sep 5, 2025 — Bittensor uses “subnets”. These subnets are specialized networks that train, run, and improve AI models in a fully open, incentive-driven ...",
+    "host_name": "www.altcoinbuzz.io",
+    "rank": 3,
+    "date": "Sep 5, 2025",
+    "favicon": ""
+  },
+  {
+    "url": "https://subnetalpha.ai",
+    "name": "What is Bittensor",
+    "snippet": "The Bittensor network is composed of nodes, known as miners , that participate in the protocol. Each node operates Bittensor client software, allowing it to ... Read more",
+    "host_name": "subnetalpha.ai",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  }
+]

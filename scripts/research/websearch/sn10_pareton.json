@@ -1,0 +1,47 @@
+[
+  {
+    "url": "https://www.bittensor.com",
+    "name": "Mining — Bittensor Docs",
+    "snippet": "A miner is a hotkey registered on a subnet , doing whatever work that subnet's incentive mechanism rewards. The chain side of mining is small: register, ... Read more",
+    "host_name": "www.bittensor.com",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://bittensor.ai",
+    "name": "Bittensor subnet directory",
+    "snippet": "Bittensor subnets are specialized decentralized AI networks within the Bittensor ecosystem. has its own miners , validators, and incentive mechanism.",
+    "host_name": "bittensor.ai",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://docs.vast.ai",
+    "name": "Mining on Bittensor",
+    "snippet": "This tutorial shows how to use the Bittensor testnet to create a subnet and run your incentive mechanism on it. subnet validator and for subnet miner .",
+    "host_name": "docs.vast.ai",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.altcoinbuzz.io",
+    "name": "Top 10 Bittensor Subnets by Mindshare",
+    "snippet": "Sep 5, 2025 — Validators and miners work together in these subnets . Miners , for example, produce outputs (like AI model results) and validators score them. Read more",
+    "host_name": "www.altcoinbuzz.io",
+    "rank": 3,
+    "date": "Sep 5, 2025",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.coingecko.com",
+    "name": "Top 5 Bittensor Subnets: A Deep Dive into the dTAO",
+    "snippet": "May 7, 2026 — Bittensor subnets are specialized, decentralized marketplaces where miners compete to produce high-quality machine intelligence and digital ... Read more",
+    "host_name": "www.coingecko.com",
+    "rank": 4,
+    "date": "May 7, 2026",
+    "favicon": ""
+  }
+]

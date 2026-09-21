@@ -1,0 +1,38 @@
+[
+  {
+    "url": "https://hackquest.io",
+    "name": "Guided Project I: Sportstensor (SN41) Mining Guide",
+    "snippet": "In this unit, you will learn how to register a Hotkey and connect the Miner to the Sportstensor subnet . Unit 4 - Almanac Registration and Miner Identity Binding. Read more",
+    "host_name": "hackquest.io",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://github.com",
+    "name": "sportstensor/sn41",
+    "snippet": "Aug 3, 2026 — Miners generate information signals by trading on Almanac , which routes Polymarket CLOB orders through the miner's proxy wallet. Every trade ... Read more",
+    "host_name": "github.com",
+    "rank": 1,
+    "date": "Aug 3, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.bittensor.com",
+    "name": "Mining — Bittensor Docs",
+    "snippet": "Register a hotkey on a subnet , publish your axon, and keep your UID. ... A miner is a hotkey registered on a subnet , doing whatever work that subnet's incentive ... Read more",
+    "host_name": "www.bittensor.com",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://taomarketcap.com",
+    "name": "Subnet 41 | Bittensor Trade",
+    "snippet": "TaoMarketCap delivers real-time insights for Validators, Traders, and Miners across the Bittensor network. Track Subnet performance, TAO price action, validator ... Read more",
+    "host_name": "taomarketcap.com",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  }
+]

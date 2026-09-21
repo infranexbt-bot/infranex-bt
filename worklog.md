@@ -2192,3 +2192,19 @@ Stage Summary:
 - Commit b19c770 (6 files, +485/-47)
 - Akash works keyless in both catalogs; Vast CPU + Akash key ops unlock when user adds API keys
 - CPU rent adapters for Akash/Vast remain future work (buttons honestly disabled)
+
+---
+Task ID: run35-analysis-1
+Agent: main (Super Z)
+Task: Analyze all 35 RUN subnets on Opportunities — which to mine CPU vs GPU, earnings chances
+
+Work Log:
+- Replicated the Opportunities page exactly: login via API, fetched /api/network + /api/profitability-config + /api/subnet-overrides, ran the project's own mergeOpportunities + opportunityBand (scripts/audit-run-subnets.ts) → RUN=35 WATCH=22 AVOID=71 (block 9,116,822, TAO $284.14)
+- Dumped full per-row seat/economics metrics to scripts/research/run-subnets.json + run-subnets-full.json (rewardedRatio, top10IncentiveShare, freeSlots, burnCost, per-earning mean, liquidity, alpha price/24h)
+- Recovered platform's own all-subnet hosting audit verdicts from worklog (Chutes bare-metal+TEE+static IP; Targon/SayGM/lium/KubeTEE TEE-class)
+- 30+ web searches (scripts/research-run-websearch.sh, -2.sh → scripts/research/websearch/*.json) verified current identities: SN104=MASX forecasting, SN107=Minos genomic variant calling, SN112="for sale"=Minotaur (sold, owner dumping alpha), SN39="deprecated"=Basilica (abandoned), SN41=Sportstensor/Almanac (Polymarket trading), SN61=RedTeam CPU 2c/8GB min, SN36=Epago browser agents, SN83=CliqueAI max-clique, SN5=Hone pretraining (broad rewards), SN68=NOVA drug discovery, SN9=iota pretraining (datacenter), SN3=Teutonic 80B pretraining, SN51=lium GPU marketplace+TEE, SN124=Swarm drone autopilot RL, SN123=MANTIS financial prediction, SN16=kenju opaque, SN122=CookingTAO thin/unclear, SN97=Albedo coding-agent arena, SN20=Witness inference serving, SN25=UR renamed (ex-Mainframe)
+- Synthesized 4-tier verdict: CPU lanes (41, 61, 67, 123), GPU broad-reward lanes (5, 83, 51), winner-take-all arenas (rest), do-not-mine (39, 112, 16, 122, 36 artifact, TEE-gated 64/4/90/28)
+
+Stage Summary:
+- Delivered full 35-subnet CPU-vs-GPU analysis to user in chat
+- Key finding: model's net figures are per-earning-mean optimistic on knife-fight subnets (rewRatio ≤3%, top10=100%); Epago $189k/mo is an arithmetic artifact (22 TAO/d ÷ 2 rewarded UIDs); honest best CPU adds = SN41 Almanac + SN61 RedTeam; best GPU target = SN5 Hone (95% of UIDs earn); Targon 4090 label is a tier fallback — actual requirement is NVIDIA CC (TEE)

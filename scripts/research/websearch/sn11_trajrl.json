@@ -1,0 +1,47 @@
+[
+  {
+    "url": "https://www.bittensor.com",
+    "name": "Mining — Bittensor Docs",
+    "snippet": "A miner is a hotkey registered on a subnet , doing whatever work that subnet's incentive mechanism rewards. The chain side of mining is small: register, ... Read more",
+    "host_name": "www.bittensor.com",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://github.com",
+    "name": "trajectoryRL - Bittensor Subnet 11",
+    "snippet": "TrajectoryRL runs a continuous competition on Bittensor . Validators evaluate every submission in real sandboxes against tasks with hidden tests, consensus is ...",
+    "host_name": "github.com",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://subnetalpha.ai",
+    "name": "TrajectoryRL",
+    "snippet": "TrajectoryRL is a decentralized prompt optimization tournament built as Subnet 11 on the Bittensor network. Miners submit self-contained policy bundles",
+    "host_name": "subnetalpha.ai",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://bittensor.ai",
+    "name": "Bittensor subnet directory",
+    "snippet": "Bittensor subnets are specialized decentralized AI networks within the Bittensor ecosystem. has its own miners , validators, and incentive mechanism.",
+    "host_name": "bittensor.ai",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://docs.vast.ai",
+    "name": "Mining on Bittensor",
+    "snippet": "This tutorial shows how to use the Bittensor testnet to create a subnet and run your incentive mechanism on it. subnet validator and for subnet miner .",
+    "host_name": "docs.vast.ai",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  }
+]

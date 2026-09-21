@@ -1,0 +1,38 @@
+[
+  {
+    "url": "https://subnetalpha.ai",
+    "name": "CliqueAI",
+    "snippet": "CliqueAI turns the maximum clique search into a distributed challenge: many participant nodes (AI “ miners ”) cooperate and compete to find the largest clique in ...",
+    "host_name": "subnetalpha.ai",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://bittensor.ai",
+    "name": "Bittensor subnet directory",
+    "snippet": "83 CliqueAISN83 Distributed maximum clique solving with incentivized AI miners . CliqueAI rewards both solution optimality and algorithmic diversity.",
+    "host_name": "bittensor.ai",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://taomarketcap.com",
+    "name": "Subnet 83 | Bittensor Trade",
+    "snippet": "TaoMarketCap delivers real-time insights for Validators, Traders, and Miners across the Bittensor network. Track Subnet performance, TAO price action ... Read more",
+    "host_name": "taomarketcap.com",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.bittensor.com",
+    "name": "Yuma Consensus - to determine the proportion of emission",
+    "snippet": "Miners are endpoints that use the API defined by a subnet owner to answer queries from validators. Miners must use the templates defined by the",
+    "host_name": "www.bittensor.com",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  }
+]

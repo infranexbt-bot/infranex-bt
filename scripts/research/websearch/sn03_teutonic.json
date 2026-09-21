@@ -1,0 +1,47 @@
+[
+  {
+    "url": "https://www.tao.media",
+    "name": "Teutonic Subnet Begins Training 80B AI Model on Bittensor",
+    "snippet": "May 12, 2026 — Teutonic (SN3), is a training-focused subnet within Bittensor that coordinates distributed compute to train large AI models. The subnet recently ... Read more",
+    "host_name": "www.tao.media",
+    "rank": 0,
+    "date": "May 12, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://simplytao.ai",
+    "name": "Teutonic (SN3)",
+    "snippet": "Teutonic is a decentralized pretraining platform operating as Subnet 3 (SN3) on the Bittensor network. The platform runs a king-of-the-hill competition",
+    "host_name": "simplytao.ai",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.bittensor.com",
+    "name": "Mining — Bittensor Docs",
+    "snippet": "A miner is a hotkey registered on a subnet , doing whatever work that subnet's incentive mechanism rewards. The chain side of mining is small: register, ... Read more",
+    "host_name": "www.bittensor.com",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://taostats.io",
+    "name": "Subnets · taostats · Official Block Explorer & Gateway to",
+    "snippet": "Bittensor subnets , emissions, ownership, registration date, immunity and recycle volume data. Teutonic Teutonic SN3",
+    "host_name": "taostats.io",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://ourcryptotalk.com",
+    "name": "Teutonic Subnet Begins Training 80B Parameter AI Model",
+    "snippet": "May 11, 2026 — Teutonic is a Bittensor subnet focused on decentralized AI model training . It operates through a competitive system where miners submit model ... Read more",
+    "host_name": "ourcryptotalk.com",
+    "rank": 4,
+    "date": "May 11, 2026",
+    "favicon": ""
+  }
+]

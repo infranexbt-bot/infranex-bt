@@ -1,0 +1,29 @@
+[
+  {
+    "url": "https://www.bittensor.com",
+    "name": "Bittensor Documentation",
+    "snippet": "Bittensor is an open network where independent subnets produce digital commodities. Miners produce the commodity, validators score the miners, These docs cover ...",
+    "host_name": "www.bittensor.com",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://bittensor.ai",
+    "name": "Bittensor subnet directory",
+    "snippet": "Bittensor subnets are specialized decentralized AI networks within the Bittensor ecosystem . Each subnet focuses on a specific AI task — such as text generation, ... Read more",
+    "host_name": "bittensor.ai",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://docs.vast.ai",
+    "name": "Mining on Bittensor",
+    "snippet": "This tutorial shows how to use the Bittensor testnet to create a subnet and run your incentive mechanism on it. and for subnet miner .",
+    "host_name": "docs.vast.ai",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  }
+]

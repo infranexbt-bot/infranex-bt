@@ -1,0 +1,47 @@
+[
+  {
+    "url": "https://subnetalpha.ai",
+    "name": "GM",
+    "snippet": "Miner /Validator Mechanics. Within SN28 , Bittensor's usual consensus of miner /validator dynamics applies. Miners are participants who deploy models or ... Read more",
+    "host_name": "subnetalpha.ai",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://taostats.io",
+    "name": "Subnets",
+    "snippet": "taostats has been the official Bittensor block explorer since 2022. The most widely used platform in the ecosystem for staking, portfolio tracking, tax reports, ... Read more",
+    "host_name": "taostats.io",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.tao.media",
+    "name": "SayGM (SN 28): Your Private Gateway to Frontier Models on",
+    "snippet": "Jun 29, 2026 — Bittensor Subnet 28, is a private AI gateway where miners route your prompts to Claude, GPT, and Gemini through an Intel TDX trusted execution ...",
+    "host_name": "www.tao.media",
+    "rank": 2,
+    "date": "Jun 29, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.bittensor.com",
+    "name": "Mining — Bittensor Docs",
+    "snippet": "A miner is a hotkey registered on a subnet , doing whatever work that subnet's incentive mechanism rewards. The chain side of mining is small: register, tell ...",
+    "host_name": "www.bittensor.com",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://github.com",
+    "name": "BitMind-AI/snp-subnet-28",
+    "snippet": "Validators store the miner predictions, and then calculate the scores of the miners after the predictions mature. Miners are ranked against eachother, naturally ... Read more",
+    "host_name": "github.com",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  }
+]

@@ -1,0 +1,47 @@
+[
+  {
+    "url": "https://github.com",
+    "name": "404-Repo/404-gen-subnet: A 3D asset creation extension",
+    "snippet": "404 - GEN Competition System. A decentralized 3D content generation competition running on Bittensor Subnet 17 . Miners submit open-source solutions for AI ... Read more",
+    "host_name": "github.com",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://subnetalpha.ai",
+    "name": "Gen 404",
+    "snippet": "In this session, the team behind Subnet 17 discusses their innovative AI-powered subnet built on Bittensor , designed to revolutionize 3D content creation for ... Read more",
+    "host_name": "subnetalpha.ai",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://simplytao.ai",
+    "name": "What is 404-GEN (SN17) on Bittensor | Simple Guide",
+    "snippet": "Apr 8, 2026 — Under the hood, 404-GEN (SN17 ) functions as a competitive marketplace where miners submit open-source code for AI-powered 3D model generation, ... Read more",
+    "host_name": "simplytao.ai",
+    "rank": 2,
+    "date": "Apr 8, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.taopill.ai",
+    "name": "An Interview With Ben James from 404-GEN",
+    "snippet": "Oct 9, 2025 — After discovering Bittensor in early 2024, Ben saw the potential to design a subnet that served as an open engine for 3D model generation where ... Read more",
+    "host_name": "www.taopill.ai",
+    "rank": 3,
+    "date": "Oct 9, 2025",
+    "favicon": ""
+  },
+  {
+    "url": "https://bittensor.ai",
+    "name": "Bittensor subnet directory",
+    "snippet": "Each subnet focuses on a specific AI task — such as text generation , image recognition, distributed training, or financial prediction — and has its own miners , ... Read more",
+    "host_name": "bittensor.ai",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  }
+]

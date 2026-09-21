@@ -1,0 +1,56 @@
+[
+  {
+    "url": "https://github.com",
+    "name": "manifold-inc/hone: Decentralized Hierarchal Pretraining",
+    "snippet": "validators evaluate miners . GPU sandbox. Minimum floor: 20% accuracy required to qualify Top 5 miners above floor receive rewards. GPU isolation: Inference ...",
+    "host_name": "github.com",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://subnetalpha.ai",
+    "name": "Hone",
+    "snippet": "This phase involves scaling up the training: using more data, more compute ( GPUs contributed by miners ), and more sophisticated techniques.",
+    "host_name": "subnetalpha.ai",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.amazon.com",
+    "name": "The Consumer GPU Mining Guide for Bittensor : Step by",
+    "snippet": "The only guide you need to start mining Bittensor with a consumer GPU — even if you've never. mined anything before. This is not theory. Read more",
+    "host_name": "www.amazon.com",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.bittensor.com",
+    "name": "Mining — Bittensor Docs",
+    "snippet": "A miner is a hotkey registered on a subnet , Mining (and validating) is not supported on Windows. means competing against miners tuned over months.",
+    "host_name": "www.bittensor.com",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://docs.vast.ai",
+    "name": "Mining on Bittensor",
+    "snippet": "This tutorial shows how to use the Bittensor testnet to create a subnet and run your incentive mechanism on it. subnet validator and for subnet miner .",
+    "host_name": "docs.vast.ai",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://chutes.ai",
+    "name": "Mining on Chutes - Docs",
+    "snippet": "Getting Started · 1. Use ansible to provision servers · 2. Configure prerequisites · 3. Configure your environment · 4. Update gepetto with your optimized strategy. Read more",
+    "host_name": "chutes.ai",
+    "rank": 5,
+    "date": "",
+    "favicon": ""
+  }
+]

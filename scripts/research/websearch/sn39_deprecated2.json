@@ -1,0 +1,47 @@
+[
+  {
+    "url": "https://www.tao.media",
+    "name": "Which Bittensor Subnets Have Locked Alpha? The Full",
+    "snippet": "Jun 11, 2026 — SN3, SN39, and SN81 each read as deprecated , show zero owner convictions, a countdown: 62 days for SN3, 124 for SN81, and 200 for SN39. ...",
+    "host_name": "www.tao.media",
+    "rank": 0,
+    "date": "Jun 11, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://icm-analytics.com",
+    "name": "deprecated (SN39) — Bittensor Intelligence",
+    "snippet": "Jul 3, 2026 — Basilica subnet (netuid 39 ) is explicitly marked deprecated across name, slug, and description, with 10 active validators and minimal daily ...",
+    "host_name": "icm-analytics.com",
+    "rank": 1,
+    "date": "Jul 3, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.bittensor.com",
+    "name": "Running a subnet",
+    "snippet": "A subnet owner defines an incentive mechanism: what miners must produce and how validators must score it. A subnet owner's coldkey controls the subnet's ...",
+    "host_name": "www.bittensor.com",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.tao.app",
+    "name": "SN39 - deprecated | TAOApp | Your Gateway to Bittensor",
+    "snippet": "Analyze. Stake. Incentivize. Accelerate.",
+    "host_name": "www.tao.app",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.tradingview.com",
+    "name": "Bittensor (TAO) Crashes 20% Following Covenant AI's Exit,",
+    "snippet": "Apr 10, 2026 — “I saw the legit post deletions in real-time and also the bittensor discord channels being deprecated by Sam (Covenant owner) too. Read more",
+    "host_name": "www.tradingview.com",
+    "rank": 4,
+    "date": "Apr 10, 2026",
+    "favicon": ""
+  }
+]

@@ -1,0 +1,47 @@
+[
+  {
+    "url": "https://github.com",
+    "name": "vidAio-subnet",
+    "snippet": "Miners process and apply upscaling or compression based on user requirements . Results are aggregated and delivered back to users. 2.5 Incentive mechanism.",
+    "host_name": "github.com",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://vidaio.io",
+    "name": "Next-Generation Video Processing Powered by AI",
+    "snippet": "Miners enhance video quality using AI-driven upscaling techniques. ... Bittensor subnet is designed to ensure the quality and reliability of miners ' contribution.",
+    "host_name": "vidaio.io",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://subnetalpha.ai",
+    "name": "Vidaio",
+    "snippet": "The team introduces their core offerings: AI-driven video upscaling to enhance low-resolution videos to HD or 4K and AI-based video compression to reduce file ...",
+    "host_name": "subnetalpha.ai",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://bittensor.ai",
+    "name": "Bittensor subnet directory",
+    "snippet": "VidaioSN85. Decentralized video processing on Bittensor: miners run upscaling and compression services ; validators score output quality, speed, and cost.",
+    "host_name": "bittensor.ai",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.bittensor.com",
+    "name": "Emissions — Bittensor Docs",
+    "snippet": "Emissions run in two stages. Every block, the chain mints TAO, splits it across subnets , and injects liquidity into their pools (the coinbase).",
+    "host_name": "www.bittensor.com",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  }
+]

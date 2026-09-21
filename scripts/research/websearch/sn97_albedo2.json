@@ -1,0 +1,47 @@
+[
+  {
+    "url": "https://bittensor.ai",
+    "name": "Bittensor subnet directory",
+    "snippet": "Each subnet focuses on a specific AI task — such as text generation, image recognition, has its own miners , validators, and incentive mechanism.",
+    "host_name": "bittensor.ai",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.bittensor.com",
+    "name": "The Bittensor Paradigm",
+    "snippet": "What Bittensor is and why it exists: an open network of subnets producing digital commodities, priced and rewarded in TAO by decentralized consensus.",
+    "host_name": "www.bittensor.com",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.tao.media",
+    "name": "Albedo (SN97): The Bittensor Subnet That Gets Stronger",
+    "snippet": "Jul 13, 2026 — Dendrite's Albedo (SN97) is a Bittensor arena where miners compete to unseat a champion AI coding agent , every exploit attempt is expected, ... Read more",
+    "host_name": "www.tao.media",
+    "rank": 2,
+    "date": "Jul 13, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://docs.taostats.io",
+    "name": "Architecture of Subnets - Getting Started with Bittensor - Taostats",
+    "snippet": "Miners produce output as defined by the subnet code . This work is usually performed by running code in order to complete tasks. Each subnet has different ... Read more",
+    "host_name": "docs.taostats.io",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.binance.com",
+    "name": "Deep Dive : Bittensor Subnet Encyclopedia",
+    "snippet": "Mar 21, 2026 — How it works Miners actively scrape specific categories of data from the internet based on dynamic labels requested by the subnet validators. Read more",
+    "host_name": "www.binance.com",
+    "rank": 4,
+    "date": "Mar 21, 2026",
+    "favicon": ""
+  }
+]

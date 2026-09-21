@@ -1,0 +1,47 @@
+[
+  {
+    "url": "https://subnetalpha.ai",
+    "name": "Harnyx",
+    "snippet": "Harnyx (Subnet 67 ) is a Bittensor‐based network for “deep research” tasks. Harnyx's immediate users are likely Bittensor miners, validators, and early-test ...",
+    "host_name": "subnetalpha.ai",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://github.com",
+    "name": "Harnyx Subnet",
+    "snippet": "Harnyx (SN 67 ) is a Bittensor subnet for deep research. It turns research execution into a competitive harness: miners compete on better workflows, validators ...",
+    "host_name": "github.com",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://bittensor.ai",
+    "name": "Bittensor subnet directory",
+    "snippet": "HarnyxSN67 Deep research harness with competitive agent evaluation . Miners submit Python scripts; validators score results against reference answers using LLM ...",
+    "host_name": "bittensor.ai",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.bittensor.com",
+    "name": "Bittensor Documentation",
+    "snippet": "Bittensor is an open network where independent subnets produce digital commodities — compute, inference, storage, prediction — and the chain pays ... Read more",
+    "host_name": "www.bittensor.com",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://docs.vast.ai",
+    "name": "Mining on Bittensor",
+    "snippet": "This tutorial shows how to use the Bittensor testnet to create a subnet and run your incentive mechanism on it. and for subnet miner. Run subnet miner and  ...",
+    "host_name": "docs.vast.ai",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  }
+]

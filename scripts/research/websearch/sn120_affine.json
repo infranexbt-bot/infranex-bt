@@ -1,0 +1,47 @@
+[
+  {
+    "url": "https://subnetalpha.ai",
+    "name": "Affine",
+    "snippet": "Affine (Bittensor Subnet-120 ) serves as an infrastructure layer that connects and coordinates multiple AI subnets to enable seamless interoperability and ... Read more",
+    "host_name": "subnetalpha.ai",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://simplytao.ai",
+    "name": "Your Simple Guide to Affine (SN120)",
+    "snippet": "Mar 11, 2026 — Affine pays miners who make incremental improvements to AI models on a defined set of tasks such as program abduction and coding.",
+    "host_name": "simplytao.ai",
+    "rank": 1,
+    "date": "Mar 11, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://taostats.io",
+    "name": "Subnets · taostats · Official Block Explorer & Gateway to",
+    "snippet": "taostats has been the official Bittensor block explorer since 2022. The most widely used platform in the ecosystem for staking, portfolio tracking, tax reports, ... Read more",
+    "host_name": "taostats.io",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.coingecko.com",
+    "name": "Top 5 Bittensor Subnets: A Deep Dive into the dTAO",
+    "snippet": "May 7, 2026 — Bittensor subnets are specialized, decentralized marketplaces where miners compete to produce high-quality machine intelligence and digital ... Read more",
+    "host_name": "www.coingecko.com",
+    "rank": 3,
+    "date": "May 7, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.bittensor.com",
+    "name": "Mining — Bittensor Docs",
+    "snippet": "A miner is a hotkey registered on a subnet , doing whatever work that subnet's incentive mechanism rewards. The chain side of mining is small: register, ... Read more",
+    "host_name": "www.bittensor.com",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  }
+]

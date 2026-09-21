@@ -1,0 +1,47 @@
+[
+  {
+    "url": "https://taostats.io",
+    "name": "Subnets for Sale",
+    "snippet": "Bittensor subnets for sale listings. There are no subnets listed for sale . Owner Key New Owner Key Transfer Start. Unknown 112 Subnet112 5GyUN...epeh",
+    "host_name": "taostats.io",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://subnetalpha.ai",
+    "name": "minotaur",
+    "snippet": "The subnet is under new ownership; currently worth over $40,000 . Minotaur team intends to begin selling subnet-owner SN112 alpha on the open market. an ...",
+    "host_name": "subnetalpha.ai",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.bittensor.com",
+    "name": "Running a subnet",
+    "snippet": "A subnet owner defines an incentive mechanism: what miners must produce and how validators must score it. A subnet owner's coldkey controls the subnet's ...",
+    "host_name": "www.bittensor.com",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://bittensor.ai",
+    "name": "for sale (SN112) — Intent Execution - Subnets",
+    "snippet": "Minotaur is a Bittensor Subnet 112 focused on distributed intent execution where miners compete by writing the best Solving Engine and validators run it to ... Read more",
+    "host_name": "bittensor.ai",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://learnbittensor.org",
+    "name": "Subnet Owner | Concept",
+    "snippet": "Learn what subnet owners do in Bittensor . Discover their role in managing subnets and how they help the network grow.",
+    "host_name": "learnbittensor.org",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  }
+]

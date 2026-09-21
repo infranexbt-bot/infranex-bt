@@ -1,0 +1,47 @@
+[
+  {
+    "url": "https://learnbittensor.org",
+    "name": "Subnet Deregistration | Concept",
+    "snippet": "Subnet deregistration is a process to remove subnets from Bittensor . This mechanism existed before Dynamic TAO but was disabled with its introduction. Read more",
+    "host_name": "learnbittensor.org",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.bittensor.com",
+    "name": "Emissions — Bittensor Docs",
+    "snippet": "Because recycled TAO is subtracted from total issuance and can be re-emitted, recycling pushes halvings out. This includes registration burns and transaction ...",
+    "host_name": "www.bittensor.com",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://docs.taostats.io",
+    "name": "Subnet deregistration",
+    "snippet": "Aug 21, 2026 — When a subnet is deregistered , its entire TAO reserve is drained and paid out pro-rata by alpha across everyone with a claim on the pool. Read more",
+    "host_name": "docs.taostats.io",
+    "rank": 2,
+    "date": "Aug 21, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.bitget.com",
+    "name": "Bittensor recovery subnet registration and deregistration",
+    "snippet": "Oct 15, 2025 — TAO from deregistered subnets will be proportionally distributed to alpha holders, unlocking TAO stuck in inactive liquidity pools and ... Read more",
+    "host_name": "www.bitget.com",
+    "rank": 3,
+    "date": "Oct 15, 2025",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.abittensorjourney.com",
+    "name": "Bittensor's Relegation Zone: How to Save Your Subnet from",
+    "snippet": "Nov 4, 2025 — Deregistration resumed in October 2025 after a summer pause, with the first removal hitting SN100 mid‑month. New subnets currently get a 4‑month ... Read more",
+    "host_name": "www.abittensorjourney.com",
+    "rank": 4,
+    "date": "Nov 4, 2025",
+    "favicon": ""
+  }
+]

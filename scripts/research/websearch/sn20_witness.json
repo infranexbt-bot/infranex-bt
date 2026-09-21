@@ -1,0 +1,38 @@
+[
+  {
+    "url": "https://www.bittensor.com",
+    "name": "Mining — Bittensor Docs",
+    "snippet": "A miner is a hotkey registered on a subnet , doing whatever work that subnet's incentive mechanism rewards. The chain side of mining is small: register, ... Read more",
+    "host_name": "www.bittensor.com",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.coingecko.com",
+    "name": "Top 5 Bittensor Subnets: A Deep Dive into the dTAO",
+    "snippet": "May 7, 2026 — Bittensor subnets are specialized, decentralized marketplaces where miners compete to produce high-quality machine intelligence and digital ... Read more",
+    "host_name": "www.coingecko.com",
+    "rank": 1,
+    "date": "May 7, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.binance.com",
+    "name": "A panoramic interpretation of Bittensor's 34 subnets and",
+    "snippet": "May 30, 2024 — BitAgent (Subnet 20): is a decentralized subnet focused on task and workflow management . Miners compete based on performance and are rewarded ...",
+    "host_name": "www.binance.com",
+    "rank": 2,
+    "date": "May 30, 2024",
+    "favicon": ""
+  },
+  {
+    "url": "https://docs.vast.ai",
+    "name": "Mining on Bittensor",
+    "snippet": "This tutorial shows how to use the Bittensor testnet to create a subnet and run your incentive mechanism on it. and for subnet miner .",
+    "host_name": "docs.vast.ai",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  }
+]

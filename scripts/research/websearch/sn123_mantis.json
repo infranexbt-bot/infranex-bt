@@ -1,0 +1,47 @@
+[
+  {
+    "url": "https://subnetalpha.ai",
+    "name": "MANTIS",
+    "snippet": "It operates as a specialized validator node ( Subnet 123 ) that incentivizes miners to produce information with real predictive value. In essence, miners on ... Read more",
+    "host_name": "subnetalpha.ai",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://github.com",
+    "name": "Barbariandev/MANTIS",
+    "snippet": "Bittensor Subnet 123 , The Ultimate Signal Machine Architecture Validators sample miner payloads every SAMPLE_EVERY blocks, decrypt them … pairs in a SQLite ...",
+    "host_name": "github.com",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.altcoinbuzz.io",
+    "name": "Why Bittensor Subnets 62, 123, 120 Have Top Potential",
+    "snippet": "Sep 5, 2025 — Subnet 123, called MANTIS , takes a very different approach. Its aim is to provide decentralized financial prediction, producing trading signals ...",
+    "host_name": "www.altcoinbuzz.io",
+    "rank": 2,
+    "date": "Sep 5, 2025",
+    "favicon": ""
+  },
+  {
+    "url": "https://bittensor.ai",
+    "name": "Crypto Price Prediction Network — SN123",
+    "snippet": "May 11, 2026 — MANTIS (Bittensor Subnet 123 ) is a financial prediction subnet that scores miners on their ability to predict price movements and market ... Read more",
+    "host_name": "bittensor.ai",
+    "rank": 3,
+    "date": "May 11, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.bittensor.com",
+    "name": "Bittensor Documentation",
+    "snippet": "Bittensor is an open network where independent subnets produce digital commodities — compute, inference, storage, prediction. Miners produce the commodity, ...",
+    "host_name": "www.bittensor.com",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  }
+]
