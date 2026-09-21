@@ -42,6 +42,10 @@ export function DashboardView({ onSelectOpportunity, onStartMining, onNavigate }
   const m = getLiveDashboardMetrics(snap, profConfig);
   const liveOpps = mergeOpportunities(snap, profConfig, overrides);
   const top = liveOpps.slice(0, 8);
+  // MINE-PICK — the "Choose your subnet" picker LEADS the dashboard (first
+  // card, above the TAO Opportunity Score): every net-positive subnet ranked
+  // by rent earn × diligence × confidence.
+  const minePicks = rankMinePicks(liveOpps);
 
   // MOCK-PURGE-2 — emission distribution derives from the LIVE chain snapshot
   // and the Workers card reads real engine runs from /api/workers/status.
@@ -99,6 +103,15 @@ export function DashboardView({ onSelectOpportunity, onStartMining, onNavigate }
           <DataSourceBanner />
         </div>
       </header>
+
+      {/* MINE-PICK FIRST — "Choose your subnet · CPU or GPU, with conviction"
+          leads the dashboard: every net-positive subnet ranked by conviction,
+          CPU/GPU filterable, one click to detail or the deploy flow. */}
+      <SubnetChooser
+        picks={minePicks}
+        onStartMining={onStartMining}
+        onSelectOpportunity={onSelectOpportunity}
+      />
 
       {/* TAO Opportunity Score — mine vs stake, in numbers */}
       <OpportunityScoreCard
@@ -849,9 +862,9 @@ function OpportunityScoreCard({
   // "jackpot seat" subnet can top this card while carrying elevated seat /
   // reward risk — when its own Ledger band is WATCH or AVOID, surface it
   // instead of silently recommending it.
-  // MINE-PICK — one merged pass feeds both the Ledger cross-check map and
-  // the ranked "Choose your subnet" picker (rent earn × diligence ×
-  // confidence per row).
+  // MINE-PICK — one merged pass feeds the Ledger cross-check map; the ranked
+  // "Choose your subnet" picker built from it now renders at the TOP of the
+  // dashboard (DashboardView), above this card.
   const liveOpps = useMemo(() => {
     if (!snap || snap.subnets.length === 0) return [];
     try {
@@ -864,7 +877,6 @@ function OpportunityScoreCard({
     () => new Map(liveOpps.map((o) => [o.netuid, o])),
     [liveOpps]
   );
-  const minePicks = useMemo(() => rankMinePicks(liveOpps), [liveOpps]);
 
   const recommended = score ? score.recommended : null;
   const alternative = score ? score.alternative : null;
@@ -1110,14 +1122,6 @@ function OpportunityScoreCard({
                   </div>
                 </div>
               )}
-              {/* MINE-PICK — the subnet picker: every net-positive subnet,
-                  ranked by Rent earn × Diligence pipeline × confidence, with
-                  a one-click hand-off to the deploy flow. */}
-              <SubnetChooser
-                picks={minePicks}
-                onStartMining={onStartMining}
-                onSelectOpportunity={onSelectOpportunity}
-              />
               {score.notes.length > 0 && (
                 <ul className="space-y-1 pt-1">
                   {score.notes.slice(0, 4).map((n, i) => (

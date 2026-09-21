@@ -3,10 +3,11 @@
 // ---------------------------------------------------------------------------
 // SUBNET CHOOSER — the Dashboard's "point a rig here" picker.
 //
-// Lives inside the TAO Opportunity Score card. The headline ring answers
-// "mine vs stake"; this list answers the follow-up: WHICH subnet, CPU or
-// GPU, with the receipts to trust it. Every row combines the three signals
-// the platform computes independently (mine-pick.ts):
+// LEADS the Dashboard as its first card (above the TAO Opportunity Score).
+// The score ring answers "mine vs stake"; this list answers the follow-up:
+// WHICH subnet, CPU or GPU, with the receipts to trust it. Every row
+// combines the three signals the platform computes independently
+// (mine-pick.ts):
 //   Rent earn (rentability × seat reality × new-entrant EV)
 //   + Diligence pipeline (14-stage health + verdict gate)
 //   + model confidence → one CONVICTION score, ranked.
@@ -28,6 +29,7 @@ import {
   CircleAlert,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   MINE_PICK_BAND_STYLE,
   type MinePick,
@@ -110,26 +112,21 @@ export function SubnetChooser({
   );
   const visible = showAll ? filtered : filtered.slice(0, 5);
 
-  if (picks.length === 0) {
-    return (
-      <div className="flex h-[110px] flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-border/50 text-center">
-        <p className="text-sm font-medium">No net-positive subnet to point a rig at yet</p>
-        <p className="max-w-[460px] text-xs text-muted-foreground">
-          The picker lists subnets whose profitability P&amp;L is net-positive under your
-          current cost settings — it fills in once the chain scan and profitability engine
-          have run.
-        </p>
-      </div>
-    );
-  }
-
+  // The picker renders as its own top-level card — the FIRST card on the
+  // dashboard, above the TAO Opportunity Score.
   return (
-    <div className="rounded-xl border border-border/50 bg-background/40 p-3">
-      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <p className="text-eyebrow flex items-center gap-1.5 text-muted-foreground">
-          <Hammer className="h-3.5 w-3.5" />
-          Choose your subnet · CPU or GPU, with conviction
-        </p>
+    <Card className="glass">
+      <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3 space-y-0">
+        <div>
+          <p className="text-eyebrow flex items-center gap-1.5 text-muted-foreground">
+            <Hammer className="h-3.5 w-3.5" />
+            Action · point a rig here
+          </p>
+          <CardTitle className="text-display mt-2 text-2xl font-bold">
+            Choose your subnet · CPU or GPU, with conviction
+          </CardTitle>
+        </div>
+        {picks.length > 0 && (
         <div className="flex items-center gap-1">
           {(["all", "CPU", "GPU"] as const).map((k) => (
             <button
@@ -153,9 +150,21 @@ export function SubnetChooser({
             </button>
           ))}
         </div>
-      </div>
-
-      <div className="space-y-1.5">
+        )}
+      </CardHeader>
+      <CardContent className="space-y-2">
+        {picks.length === 0 ? (
+          <div className="flex h-[110px] flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-border/50 text-center">
+            <p className="text-sm font-medium">No net-positive subnet to point a rig at yet</p>
+            <p className="max-w-[460px] text-xs text-muted-foreground">
+              The picker lists subnets whose profitability P&amp;L is net-positive under your
+              current cost settings — it fills in once the chain scan and profitability engine
+              have run.
+            </p>
+          </div>
+        ) : (
+        <>
+        <div className="space-y-1.5">
         {visible.map((p, i) => {
           const bs = MINE_PICK_BAND_STYLE[p.band];
           const rs = RENT_EARN_BAND_STYLE[p.rent.band];
@@ -256,25 +265,28 @@ export function SubnetChooser({
         })}
       </div>
 
-      {filtered.length > 5 && (
-        <button
-          onClick={() => setShowAll((v) => !v)}
-          className="mt-2 inline-flex items-center gap-1 text-[11px] font-medium text-primary transition-colors hover:text-primary/80"
-        >
-          {showAll ? (
-            <>Show top 5 <ChevronUp className="h-3 w-3" /></>
-          ) : (
-            <>Show all {filtered.length} <ChevronDown className="h-3 w-3" /></>
-          )}
-        </button>
-      )}
+        {filtered.length > 5 && (
+          <button
+            onClick={() => setShowAll((v) => !v)}
+            className="inline-flex items-center gap-1 text-[11px] font-medium text-primary transition-colors hover:text-primary/80"
+          >
+            {showAll ? (
+              <>Show top 5 <ChevronUp className="h-3 w-3" /></>
+            ) : (
+              <>Show all {filtered.length} <ChevronDown className="h-3 w-3" /></>
+            )}
+          </button>
+        )}
 
-      <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">
-        Conviction = 40% Rent earn (rentability × seat reality × new-entrant EV) + 35% Diligence
-        pipeline (14-stage health, hard-fail gated) + 25% model confidence — so a high number
-        means a rented CPU/GPU rig can run the work, a new seat can realistically earn, and the
-        pipeline found no deal-breaker. Click a row for the full breakdown; Mine opens the deploy flow.
-      </p>
-    </div>
+        <p className="text-[10px] leading-relaxed text-muted-foreground">
+          Conviction = 40% Rent earn (rentability × seat reality × new-entrant EV) + 35% Diligence
+          pipeline (14-stage health, hard-fail gated) + 25% model confidence — so a high number
+          means a rented CPU/GPU rig can run the work, a new seat can realistically earn, and the
+          pipeline found no deal-breaker. Click a row for the full breakdown; Mine opens the deploy flow.
+        </p>
+        </>
+        )}
+      </CardContent>
+    </Card>
   );
 }
