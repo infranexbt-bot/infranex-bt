@@ -2313,3 +2313,19 @@ Stage Summary:
 - Deliverables: /home/z/my-project/download/GPU-Provider-Analysis-Operator-Brief.pdf (10 pages) + GPU-Provider-Analysis-Cover.html (cover source)
 - Verdict delivered: RunPod (Secure Cloud, 99% SLA) best for continuous mining runtime; Vast.ai price floor for interruptible work with auto-restart; Lambda enterprise fallback; Akash secondary bid market; H100 SXM = top mining GPU performer
 - Scripts persisted in scripts/ for iteration (gpu_cover.html, gpu_report_content.py, gpu_report_pdf.py)
+
+---
+Task ID: git-save-push-2
+Agent: Super Z (main)
+Task: Save and push pending changes to git infranex-bt with user-provided PAT
+
+Work Log:
+- git status: only .alpha-price-history.json modified (auto-updated price data); infranex-bt-subdir-backup submodule noise ignored
+- Updated origin remote URL with user-provided PAT (replaces old token)
+- Committed .alpha-price-history.json as "chore: update alpha price history data" -> 0930ba1
+- Pushed to origin main: e6f89c7..0930ba1 (carried local commits e91867c, 6d318bd, fd355fd + 0930ba1)
+- Verified: working tree clean, origin/main at 0930ba1, GPU analysis PDF intact at download/GPU-Provider-Analysis-Operator-Brief.pdf (262 KB, 10 pages)
+
+Stage Summary:
+- Remote infranexbt-bot/infranex-bt fully synced at 0930ba1 with new PAT credential
+- No platform code changes pending — Task 1 (chooser promote, e6f89c7) and Task 2 (GPU provider PDF) deliverables confirmed in place
