@@ -2,6 +2,7 @@ import type { LiveNetworkSnapshot } from "./chain";
 import { computeStakingStrategies, type StakingStrategy, STAKING_MODEL } from "./staking";
 import type { ProfitabilityConfig } from "./profitability";
 import { mergeOpportunities, type LiveOpportunity } from "./use-network";
+import { computeDiligence } from "./diligence";
 
 // ---------------------------------------------------------------------------
 // TAO Opportunity Score — the home-screen verdict.
@@ -88,33 +89,64 @@ function inr(usd: number, usdInr: number): number {
  *  bare metal/VM or TEE (Chutes SN64, Targon SN4, KubeTEE SN90, ...) cannot
  *  be run on a consumer GPU or a rented container — they are excluded from
  *  the generic mining ranking and surfaced via a note instead. The
- *  Opportunities table still lists them with the full hosting evidence. */
+ *  Opportunities table still lists them with the full hosting evidence.
+ *  SEAT-REALISM GATE: rows with whale-mean economics (fewer than 15% of
+ *  registered seats earned last epoch — e.g. SN36 Epago's $189k/mo = 22
+ *  TAO/d ÷ 2 rewarded UIDs) OR a failed 14-stage diligence check (the
+ *  pipeline's own DO-NOT-PROVISION verdict — whale top-10 take, exit
+ *  slippage > 5%, zero reward flow) are excluded from the HEADLINE
+ *  ranking. Their $/mo is a mean over a handful of earning whales, not a
+ *  forecast for the seat a newcomer actually gets. They stay on
+ *  Opportunities with the seat evidence; the dashboard verdict only
+ *  headlines subnets where a meaningful share of seats really earns and
+ *  the pipeline found no deal-breaker. When EVERY net-positive row is
+ *  gated, it relaxes rather than showing no mining verdict. */
+const WHALE_MEAN_REWARDED_RATIO = 0.15;
+
 function bestMiningCandidates(
   snap: LiveNetworkSnapshot,
   profConfig: ProfitabilityConfig | undefined,
   maxGpuVramGb?: number,
   overrides?: Map<number, Record<string, unknown>>
-): { miners: LiveOpportunity[]; restrictedCount: number } {
+): { miners: LiveOpportunity[]; restrictedCount: number; inflatedCount: number } {
   const all = mergeOpportunities(snap, profConfig, overrides);
   const restricted = new Set(
     all
       .filter((o) => o.hosting && (o.hosting.bareMetalOnly || o.hosting.teeRequired))
       .map((o) => o.netuid)
   );
-  const rows = all.filter((o) => {
+  const whaleMean = (o: LiveOpportunity) =>
+    o.rewardedRatio != null && o.rewardedRatio < WHALE_MEAN_REWARDED_RATIO;
+  const diligenceBlocked = (o: LiveOpportunity) => {
+    try {
+      return computeDiligence(o).verdict === "DO NOT PROVISION";
+    } catch {
+      return false;
+    }
+  };
+  const seatBlocked = (o: LiveOpportunity) => whaleMean(o) || diligenceBlocked(o);
+  const baseFilter = (o: LiveOpportunity, strict: boolean) => {
     if (o.netuid === 0) return false;
     if (o.meetsMinimum === false) return false;
     if (!(o.netMonthlyUsd != null && o.netMonthlyUsd > 0)) return false;
     if (maxGpuVramGb != null && o.minVramGb > maxGpuVramGb) return false;
     if (restricted.has(o.netuid)) return false;
+    if (strict && seatBlocked(o)) return false;
     return true;
-  });
+  };
   const roi = (o: LiveOpportunity): number =>
     o.profitability?.roiMonthlyPct ??
     (o.netMonthlyUsd && o.gpuCostMonthlyUsd
       ? (o.netMonthlyUsd / Math.max(o.gpuCostMonthlyUsd, 100)) * 100
       : 0);
-  return { miners: rows.sort((a, b) => roi(b) - roi(a)), restrictedCount: restricted.size };
+  const strictRows = all.filter((o) => baseFilter(o, true));
+  const relaxed = strictRows.length > 0 ? strictRows : all.filter((o) => baseFilter(o, false));
+  const inflated = all.filter((o) => baseFilter(o, false) && seatBlocked(o));
+  return {
+    miners: relaxed.sort((a, b) => roi(b) - roi(a)),
+    restrictedCount: restricted.size,
+    inflatedCount: inflated.length,
+  };
 }
 
 function miningStrategy(o: LiveOpportunity, usdInr: number): ScoredStrategy {
@@ -202,7 +234,7 @@ export function computeOpportunityScore(
       ? stakingTopSubnet
       : stakingRoot;
 
-  const { miners, restrictedCount } = opts?.profConfig
+  const { miners, restrictedCount, inflatedCount } = opts?.profConfig
     ? bestMiningCandidates(snap, opts.profConfig, opts?.maxGpuVramGb, opts?.overrides)
     : bestMiningCandidates(snap, undefined, opts?.maxGpuVramGb, opts?.overrides);
   const bestMiner = miners[0] ?? null;
@@ -219,6 +251,11 @@ export function computeOpportunityScore(
   if (restrictedCount > 0) {
     notes.push(
       `${restrictedCount} hosting-restricted subnet${restrictedCount === 1 ? "" : "s"} (bare-metal/TEE-only per the subnet's own repo docs) excluded from the mining ranking — they need datacenter confidential-compute infrastructure, not consumer GPUs or rented containers.`
+    );
+  }
+  if (inflatedCount > 0) {
+    notes.push(
+      `${inflatedCount} seat-unrealistic subnet${inflatedCount === 1 ? "" : "s"} excluded from the headline ranking — whale-mean economics (<15% of seats earned, so the per-miner $/mo is averaged over a few earning whales) or a failed diligence check (DO NOT PROVISION); full evidence on Opportunities.`
     );
   }
 
