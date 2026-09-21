@@ -2155,3 +2155,19 @@ Work Log:
 Stage Summary:
 - Web app fully live after restart; no code lost; GitHub history intact
 - Platform added checkpoint commits (UUID-named) on top of our d4fea20 push
+
+---
+Task ID: login-recovery-1
+Agent: main (Super Z)
+Task: Fix "Invalid user ID or access code" login failure
+
+Work Log:
+- Diagnosed: environment restore reset db/custom.db - AppUser table empty (0 rows), Deployment also wiped (operational data lost)
+- Credential mirrors survived intact (scripts/users.local.json + /tmp/my-project/infranex-users.local.json, both identical - the designed wipe-proof recovery path)
+- Ran bun scripts/restore-users.ts: re-seeded all 5 users (admin, analyst01, ops01, ops02, viewer01) with scrypt hashes + AES-GCM re-encryption, re-synced repo mirror
+- Verified: admin and ops01 login via API -> HTTP 200 with session cookies
+
+Stage Summary:
+- Login fully functional again with the ORIGINAL credentials (unchanged codes)
+- Side effect: previous stale 'my-laptop' placeholder rows wiped with the old DB - laptop re-enrollment can now start clean
+- Deployment history was reset; operational data accumulates fresh from here
