@@ -2274,3 +2274,21 @@ Work Log:
 
 Stage Summary:
 - "Choose your subnet · CPU or GPU, with conviction" is now the Dashboard's first card, directly under the hero and above the TAO Opportunity Score; conviction-ranked picks with working CPU/GPU filters and Mine hand-off unchanged
+
+---
+Task ID: gpu-provider-analysis-1
+Agent: main (Super Z)
+Task: "which provider is the best for GPU miner, where it has good runtime. list down the top GPU performers. is it vast or akash or runpod or any other... Please make analysis on this"
+
+Work Log:
+- Clarification batch answered with "continue" -> proceeded on recommended defaults (PDF report, platform+market data, runtime-first, operator brief, ~1,500 words)
+- Platform data: scripts/provider-analysis.py pulled live /api/gpu-offers (authed session) -> Akash snapshot: 24 GPU types, 417 listed / 157 available (H200 4.45/h 40/15, H100 2.55/h 69/20, A100 1.84/h 222/64, PRO6000SE 2.04/h 24/24, 4090 0.34/h, 3090 0.16/h); chain block 9,117,160, TAO $289.75; ProviderKey table EMPTY (runpod/vast/lambda keys unset) and DB fresh (0 deployments/0 GpuSamples) -> no internal uptime history yet, so reliability scored via defined RRI (SLA/tenancy/interrupt/maturity, 25% each, threshold 70)
+- Market research: 10 web searches saved to tool-results/provider-research/s1-s10.json -> RunPod Secure 99% SLA (99.99% enterprise) + SOC2 vs Community variance + 227-outage review counterpoint; Vast no instance SLA, interruptible killed when outbid, H100 $1.49-2.21; Akash ClusterMAX 2.0 "Underperforming", 91% A100 utilization; Lambda 99.9% SLA $3.44; H100 1-yr index +40% (Oct 2025 $1.70 -> Mar 2026 $2.35)
+- PDF per pdf skill Report brief: charts (scripts/provider-charts.py, Template 07 blue family: H100 price lanes, RRI by lane, Akash depth) -> Outline (6 sections) -> cover Template 07 Crystal Blue (scripts/provider-cover.html, poster_validate PASS + cover_validate PASS, rendered via html2poster.js --width 794px) -> ReportLab body (scripts/provider-report.py: SimpleDocTemplate no TOC, FreeSerif + install_font_fallback, Template 07 fixed body palette, Paragraph-wrapped tables, CondPageBreak H1, chart spacer rhythm) -> pypdf merge (scripts/provider-merge.py, normalize_to_a4 tightened to 0.1pt after QA page-size error)
+- QA: pdf_qa.py 0 errors (1 accepted warning: Template 07 left-anchored cover margin asymmetry, per-template design); font.check 0 issues; pages.clean none blank; fixed during iteration: table_block paren bug, NotoSansSC variable-font path (dropped static registration), em-dash line-start warning, RRI/VRAM column wraps
+- Deliverables: download/GPU-Provider-Analysis-Infranex-BT.pdf (8 pages: cover + 7 body) + download/GPU-Provider-Analysis-cover-source.html (HTML source per dual-delivery rule)
+- Verdict delivered in report: RunPod Secure = runtime-first default (RRI 84); Lambda premium certainty (82); Akash = platform-native price discovery + overflow, verify per-provider (66); Vast = cheapest, interruptible NOT for registered miners (62/45)
+
+Stage Summary:
+- GPU provider operator-brief PDF produced from live platform snapshot + Sep 2026 market research; RRI ranking RunPod S 84 > Lambda 82 > RunPod C 68 > Akash 66 > Vast OD 62 > Vast spot 45; top GPU performers: H200/H100/A100/PRO6000SE/4090/3090 with platform Akash prices + depth
+- Follow-up candidate: set RunPod+Vast provider keys (wired but unconfigured) so future analyses can use platform-internal offer + rental telemetry
