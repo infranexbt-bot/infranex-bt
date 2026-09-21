@@ -2329,3 +2329,18 @@ Work Log:
 Stage Summary:
 - Remote infranexbt-bot/infranex-bt fully synced at 0930ba1 with new PAT credential
 - No platform code changes pending — Task 1 (chooser promote, e6f89c7) and Task 2 (GPU provider PDF) deliverables confirmed in place
+
+---
+Task ID: akash-api-guide-1
+Agent: Super Z (main)
+Task: Explain how to get an Akash API key and connect it to the infranex web app
+
+Work Log:
+- Read src/lib/infranex/akash.ts — Akash GPU offers are PUBLIC (/v1/gpu-prices, no key); Console API key is optional, unlocks account ops (Managed Wallet / AEP-63)
+- Read providers.ts registry — akash: kind "both", offers true, rent false (offers-only, no rental adapter), keyHint points to console.akash.network Settings > API Keys
+- Read provider-keys-dialog.tsx + gpus-view.tsx — key entry point is "Provider API keys" button in GPU Catalog; validation hits GET /v1/deployments with x-api-key header
+- Web search confirmed: Console API keys at console.akash.network/settings/api-keys, x-api-key auth, Managed Wallet API = REST + credit-card billing, no crypto wallet needed
+
+Stage Summary:
+- Answer delivered in chat: (1) create key at console.akash.network → Settings → API Keys; (2) paste into infranex GPU Catalog → Provider API keys → Akash Network → Save & verify
+- Key fact: Akash pricing already streams keyless; the key unlocks account operations — Akash remains rent:false (offers-only) vs RunPod/Vast real rentals
