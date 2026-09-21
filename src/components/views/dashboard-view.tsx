@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";import { computeOpportunityScore, type OpportunityScoreResult, type ScoredStrategy } from "@/lib/infranex/opportunity-score";
 import { formatBurnTao } from "@/lib/infranex/miner-score";
+import { rankMinePicks } from "@/lib/infranex/mine-pick";
+import { SubnetChooser } from "@/components/cards/subnet-chooser";
 import { RegisterOddsBlock } from "@/components/cards/register-odds";
 import { MetricCard } from "@/components/cards/metric-card";
 import { DataSourceBanner } from "@/components/cards/data-source-banner";
@@ -99,7 +101,11 @@ export function DashboardView({ onSelectOpportunity, onStartMining, onNavigate }
       </header>
 
       {/* TAO Opportunity Score — mine vs stake, in numbers */}
-      <OpportunityScoreCard onNavigate={onNavigate} />
+      <OpportunityScoreCard
+        onNavigate={onNavigate}
+        onStartMining={onStartMining}
+        onSelectOpportunity={onSelectOpportunity}
+      />
 
       {/* TRUST-LOOP — did the fleet actually earn the projection? */}
       <TrustLoopCard onNavigate={onNavigate} />
@@ -778,7 +784,15 @@ function TrustLoopCard({ onNavigate }: { onNavigate: (v: ViewKey) => void }) {
   );
 }
 
-function OpportunityScoreCard({ onNavigate }: { onNavigate: (v: ViewKey) => void }) {
+function OpportunityScoreCard({
+  onNavigate,
+  onStartMining,
+  onSelectOpportunity,
+}: {
+  onNavigate: (v: ViewKey) => void;
+  onStartMining?: (o: Opportunity) => void;
+  onSelectOpportunity: (o: Opportunity) => void;
+}) {
   const { data: snap, isFetching } = useNetwork();
   const { data: profConfig } = useProfitabilityConfig();
   const { data: overrides } = useSubnetOverrides();
@@ -835,16 +849,22 @@ function OpportunityScoreCard({ onNavigate }: { onNavigate: (v: ViewKey) => void
   // "jackpot seat" subnet can top this card while carrying elevated seat /
   // reward risk — when its own Ledger band is WATCH or AVOID, surface it
   // instead of silently recommending it.
-  const ledgerCheck = useMemo(() => {
-    if (!snap || snap.subnets.length === 0) return null;
+  // MINE-PICK — one merged pass feeds both the Ledger cross-check map and
+  // the ranked "Choose your subnet" picker (rent earn × diligence ×
+  // confidence per row).
+  const liveOpps = useMemo(() => {
+    if (!snap || snap.subnets.length === 0) return [];
     try {
-      return new Map(
-        mergeOpportunities(snap, profConfig, overrides).map((o) => [o.netuid, o])
-      );
+      return mergeOpportunities(snap, profConfig, overrides);
     } catch {
-      return null;
+      return [];
     }
   }, [snap, profConfig, overrides]);
+  const ledgerCheck = useMemo(
+    () => new Map(liveOpps.map((o) => [o.netuid, o])),
+    [liveOpps]
+  );
+  const minePicks = useMemo(() => rankMinePicks(liveOpps), [liveOpps]);
 
   const recommended = score ? score.recommended : null;
   const alternative = score ? score.alternative : null;
@@ -1090,6 +1110,14 @@ function OpportunityScoreCard({ onNavigate }: { onNavigate: (v: ViewKey) => void
                   </div>
                 </div>
               )}
+              {/* MINE-PICK — the subnet picker: every net-positive subnet,
+                  ranked by Rent earn × Diligence pipeline × confidence, with
+                  a one-click hand-off to the deploy flow. */}
+              <SubnetChooser
+                picks={minePicks}
+                onStartMining={onStartMining}
+                onSelectOpportunity={onSelectOpportunity}
+              />
               {score.notes.length > 0 && (
                 <ul className="space-y-1 pt-1">
                   {score.notes.slice(0, 4).map((n, i) => (
