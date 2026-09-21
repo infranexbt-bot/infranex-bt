@@ -2258,3 +2258,19 @@ Work Log:
 
 Stage Summary:
 - Dashboard headline can no longer recommend a whale-mean or diligence-failed subnet; Epago nowhere visible on the dashboard; honest pick = SN41 Almanac with RedTeam/Harnyx as runner-ups
+
+---
+Task ID: chooser-promote-top-1
+Agent: main (Super Z)
+Task: "show or display Choose your subnet · CPU or GPU, with conviction first or top of the dashboard"
+
+Work Log:
+- SubnetChooser (src/components/cards/subnet-chooser.tsx) was an inner block buried at the bottom of the TAO Opportunity Score card (below Recommended strategy / Alternative / Runner-ups)
+- Refactored it into a standalone glass Card: title "Choose your subnet · CPU or GPU, with conviction" promoted to CardTitle with new eyebrow "Action · point a rig here", Hammer icon kept in eyebrow; CPU/GPU filter chips (All/CPU/GPU with counts) moved to the header right; rows + show-all toggle + conviction formula footnote in CardContent; empty state (no net-positive subnets) now renders inside the Card, filter chips hidden when empty
+- DashboardView (src/components/views/dashboard-view.tsx): rankMinePicks now computed at view level (liveOpps already merged there) and <SubnetChooser> rendered as the FIRST card after the hero, BEFORE <OpportunityScoreCard>; removed the old embed + minePicks memo from OpportunityScoreCard (Ledger cross-check map untouched); de-duped rankMinePicks import
+- Verified: npx tsc --noEmit → src/ clean (only pre-existing subdir-backup/scripts noise); browser E2E as admin — hero → picker card (All 53 · CPU 11 · GPU 42; top rows SN5 Hone PRIME 78, SN41 Almanac PRIME 66, SN123 MANTIS 66, SN61 RedTeam 65, SN67 Harnyx READY 62) → TAO Opportunity Score (91.6 ring, Mine Almanac α41, seat safety 55/100, Alternative Stake TAO Apex) — CPU filter shows 5× "CPU work" rows + Show all 11, GPU filter shows only GPU rows, exactly 1 instance of the title in body (no duplication), zero console/page errors
+- Screenshots: tool-results/chooser-top-{1,2}.png
+- GIT: commit e6f89c7 pushed to main (clean)
+
+Stage Summary:
+- "Choose your subnet · CPU or GPU, with conviction" is now the Dashboard's first card, directly under the hero and above the TAO Opportunity Score; conviction-ranked picks with working CPU/GPU filters and Mine hand-off unchanged
