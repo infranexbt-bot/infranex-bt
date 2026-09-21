@@ -1,0 +1,38 @@
+[
+  {
+    "url": "https://www.bittensor.com",
+    "name": "Mining — Bittensor Docs",
+    "snippet": "A miner is a hotkey registered on a subnet , doing whatever work that subnet's incentive mechanism rewards. Mining (and validating) is not supported on Windows.",
+    "host_name": "www.bittensor.com",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://docs.vast.ai",
+    "name": "Mining on Bittensor",
+    "snippet": "This tutorial shows how to use the Bittensor testnet to create a subnet and run your incentive mechanism on it. subnet validator and for subnet miner .",
+    "host_name": "docs.vast.ai",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.tao.media",
+    "name": "Bittensor vs Other Decentralized AI Networks - Tao.media",
+    "snippet": "Sep 8, 2026 — The two systems can complement one another. A Bittensor miner may need external compute to run a model, and a marketplace such as Akash could ... Read more",
+    "host_name": "www.tao.media",
+    "rank": 2,
+    "date": "Sep 8, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://onfinality.io",
+    "name": "How to Mine Bittensor: TAO, Subnets, and RPC Setup",
+    "snippet": "Aug 1, 2026 — How do I mine Bittensor and keep my miner connected?",
+    "host_name": "onfinality.io",
+    "rank": 3,
+    "date": "Aug 1, 2026",
+    "favicon": ""
+  }
+]

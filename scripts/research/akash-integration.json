@@ -1,0 +1,56 @@
+[
+  {
+    "url": "https://akash.network",
+    "name": "Deployment | Akash Network - Your Guide to Decentralized",
+    "snippet": "This section covers everything you need to deploy applications, including Akash Console, Console Air, the Console API , SDKs, CLI tools, SDL configuration , ... Read more",
+    "host_name": "akash.network",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://github.com",
+    "name": "akash-network/console: Deploy docker containers on",
+    "snippet": "Deploy docker containers on the Akash Network . build SDLs, deploy, and manage deployments. This project's services are deployed using Docker and Docker Compose.",
+    "host_name": "github.com",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://skills.rest",
+    "name": "Update Akash Network documentation with corrected CLI",
+    "snippet": "Deployment workflows: Guidance and examples for CLI, Console API, and SDK-driven deployments , including lease lifecycle and escrow management. Provider & Node ... Read more",
+    "host_name": "skills.rest",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.onebullex.com",
+    "name": "How to Deploy Applications on Akash Network: A Step-by-",
+    "snippet": "Jul 3, 2026 — This guide walks through the complete deployment process, from environment setup to monitoring your live application, with practical examples ... Read more",
+    "host_name": "www.onebullex.com",
+    "rank": 3,
+    "date": "Jul 3, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://apis.io",
+    "name": "Akash Network — API Provider, Schemas",
+    "snippet": "Akash Network publishes 3 APIs on the APIs .io network: Bids API , Deployments API , and Leases API . Tagged areas include Decentralized Cloud, GPU, Compute, ...",
+    "host_name": "apis.io",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://akashneurips.vercel.app",
+    "name": "Deploying an Angular App on Akash",
+    "snippet": "Step 1: Build Your Angular Application · Step 2: Prepare the Deployment File · Step 3: Deploy Using Akash CLI · Step 4: Deploy Using Akash Console (Alternative ... Read more",
+    "host_name": "akashneurips.vercel.app",
+    "rank": 5,
+    "date": "",
+    "favicon": ""
+  }
+]

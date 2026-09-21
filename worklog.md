@@ -2122,3 +2122,21 @@ Stage Summary:
 - GitHub fully synced: all 19 commits including diligence scorecard (0c2c931), pre-flight workflow (6b63f18), operations go-live verify (bfa1e2a), docs rename (1f08462) now on remote main + nextjs-platform
 - Future pushes work with plain "git push" (PAT embedded in origin URL, upstream set)
 - platform-live and backup branches left untouched
+
+---
+Task ID: research-akash-1
+Agent: main (Super Z)
+Task: Research Akash Network fit for Infranex BT platform and CPU miner hosting (SN67)
+
+Work Log:
+- 8 web searches: overview, Bittensor ties, pricing, integration APIs, ToS policy, Console API, CPU costs
+- Read Akash docs: Managed Wallet API getting-started + API reference; Console ToS (66KB, grepped for mining/prohibited clauses)
+- Probed console-api.akash.network/v1/deployment-funding-config (public, live: defaultDepositUsd 0.5, 48h runway)
+- Findings saved to scripts/research/*.json
+
+Stage Summary:
+- VERDICT: Akash fits well as a rented-infra provider option for CPU miners; no mining-workload ban in ToS; Bittensor mining is compute-serving, not PoW
+- Integration path: Console API (Managed Wallet, AEP-63) - x-api-key auth, POST SDL -> dseq -> bids -> lease, USD credit-card billing (no AKT volatility), SDK available
+- CPU pricing: ~$0.02-0.10/hr 4-core shared; ~$15-25/mo small instances; 60-85% below AWS; Q1 2026: 43.5K leases, lease revenue compressed 45% (cheap)
+- Risks: hotkey on third-party host (use dedicated mining hotkey, no mnemonics), ephemeral storage (stateless OK - registration is on-chain), inbound axon port mapping (same NAT class as laptops), provider uptime variance (mitigated by our monitoring + auto-redeploy)
+- Proposed design: "Akash Lease" provider type in Deployments, lib/infranex/akash.ts SDL generator, Gate 3 pre-flight (API key + bid cost preview), lease-cost-vs-TAO-earnings economics panel, human approval for credit top-ups

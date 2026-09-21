@@ -1,0 +1,56 @@
+[
+  {
+    "url": "https://akash.network/docs/api-documentation/console-api/getting-started",
+    "name": "Getting Started with Managed Wallet API - Akash Network",
+    "snippet": "Deploy on Akash programmatically using the Console API with a managed wallet ... POST your SDL to create a deployment. Console funds it automatically from ...",
+    "host_name": "akash.network",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://akash.network/docs/api-documentation/console-api",
+    "name": "Managed Wallet API - Your Guide to Decentralized Cloud",
+    "snippet": "Managed Wallet API ... Deploy on Akash programmatically using the Console API. It lets you create and manage deployments with Console-managed wallets, so you do ...",
+    "host_name": "akash.network",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://akash.network/docs/api-documentation/console-api/api-reference",
+    "name": "Console API reference | Akash Network Documentation",
+    "snippet": "... API reference. Docs · API Documentation · Managed Wallet API; API Reference ... API key. dseq query string required. Deployment sequence ID returned by create ...",
+    "host_name": "akash.network",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://akash.network/docs/developers/deployment/akt/console",
+    "name": "Akash Console Integration | Akash Network - Your Guide to",
+    "snippet": "Contexts with the console-api auth method route deployment operations through the Akash Console Managed Wallet API. The Console backend handles signing and ...",
+    "host_name": "akash.network",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://github.com/api-evangelist/akash/blob/main/apis.yml",
+    "name": "akash/apis.yml at main · api-evangelist/akash - GitHub",
+    "snippet": "3 days ago · REST API for the managed Akash Console - deploy workloads with a managed wallet and credit-card billing,. list and manage deployments, leases ...",
+    "host_name": "github.com",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://akash.network/roadmap/aep-63",
+    "name": "Console API for Managed Wallet Users - v1 - Akash Network",
+    "snippet": "Console API for Managed Wallet Users - v1. Final. Motivation. The number of ... API with simple endpoints to call, for deployment and lease lifecycle management.",
+    "host_name": "akash.network",
+    "rank": 5,
+    "date": "",
+    "favicon": ""
+  }
+]

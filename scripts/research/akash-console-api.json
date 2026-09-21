@@ -1,0 +1,29 @@
+[
+  {
+    "url": "https://akash.network",
+    "name": "Getting Started with Managed Wallet API",
+    "snippet": "Deploy on Akash programmatically using the Console API with a managed wallet . Navigate to Settings → API Keys Click “Create API Key” API keys grant full access ...",
+    "host_name": "akash.network",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://github.com",
+    "name": "Issue #534 · akash-network/console - Managed wallet API",
+    "snippet": "Dec 9, 2024 — We want to make it possible for users to integrate with Akash programmatically using our managed wallets api . Currently it's only possible to ... Read more",
+    "host_name": "github.com",
+    "rank": 1,
+    "date": "Dec 9, 2024",
+    "favicon": ""
+  },
+  {
+    "url": "https://apis.io",
+    "name": "Akash Console API — Documentation, OpenAPI",
+    "snippet": "Deploy workloads to the Akash decentralized cloud marketplace using managed wallets and credit-card billing, without directly managing keys or AKT. contact ... Read more",
+    "host_name": "apis.io",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  }
+]

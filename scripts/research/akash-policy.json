@@ -1,0 +1,56 @@
+[
+  {
+    "url": "https://akash.network/architectural-overview",
+    "name": "Architectural Overview - Akash Network",
+    "snippet": "strict hardware constraints like isolated GPU profiles or minimum VRAM thresholds. Workloads are secured by automated network. Every constraint the tenant ...",
+    "host_name": "akash.network",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://akash.network/token",
+    "name": "Akash Token (AKT) - The Currency of Decentralized Cloud",
+    "snippet": "Staking AKT secures the underlying infrastructure, verifies host provider configurations, and guarantees strict workload tenant isolation across the grid.",
+    "host_name": "akash.network",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.onebullex.com/explore/what-is-akash-network-akt-how-does-it-work-2026",
+    "name": "What is Akash Network (AKT) and how does it work in 2026?",
+    "snippet": "Data centers that invested in GPU infrastructure for crypto mining or other workloads now have capacity that can be redirected to AI compute. Akash provides the ...",
+    "host_name": "www.onebullex.com",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://console.akash.network/terms-of-service",
+    "name": "Akash Network Terms of Service",
+    "snippet": "Jul 1, 2025 · Akash will not be responsible or liable for any Resources, including without limitation, technical support, security updates, or patches. ...",
+    "host_name": "console.akash.network",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://x.com/akashnet/status/1976862045774467471",
+    "name": "Akash Network on X: \"https://t.co/c1AnCQtUnB\" / X",
+    "snippet": "Oct 10, 2025 · This framework also limits the platform's appeal for highly sensitive workloads, such as those involving crypto keys or cached sensitive data,",
+    "host_name": "x.com",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.reflexivityresearch.com/all-reports/akash-network-overview",
+    "name": "Akash Network Overview - Reflexivity Research",
+    "snippet": "Akash spreads resources across a global network. This approach ensures better uptime, fault tolerance, and freedom from arbitrary restrictions.",
+    "host_name": "www.reflexivityresearch.com",
+    "rank": 5,
+    "date": "",
+    "favicon": ""
+  }
+]
