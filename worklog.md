@@ -2292,3 +2292,24 @@ Work Log:
 Stage Summary:
 - GPU provider operator-brief PDF produced from live platform snapshot + Sep 2026 market research; RRI ranking RunPod S 84 > Lambda 82 > RunPod C 68 > Akash 66 > Vast OD 62 > Vast spot 45; top GPU performers: H200/H100/A100/PRO6000SE/4090/3090 with platform Akash prices + depth
 - Follow-up candidate: set RunPod+Vast provider keys (wired but unconfigured) so future analyses can use platform-internal offer + rental telemetry
+
+---
+Task ID: gpu-provider-analysis-1
+Agent: Super Z (main)
+Task: GPU rental provider analysis (Vast.ai vs Akash vs RunPod vs Lambda vs others) delivered as downloadable PDF
+
+Work Log:
+- Loaded pdf skill + web-search skill; read full chain: SKILL.md, configs/fonts.md, briefs/report.md (1704 lines), typesetting/cover.md, palette.md, overflow.md, charts.md, pagination.md, typography.md, fill-engine.md, cover-backgrounds.md, geometry.md
+- Web research (7 searches): provider pricing/SLA/reliability — RunPod H100 $1.99 Community / $2.89 Secure (99% SLA), Vast.ai H100 floor <$1.20 + median SXM ~$2.16 (no SLA, +20-40% effective cost on unverified hosts), Akash median ~$3.37, Lambda ~$2.86, TensorDock $2.25 with availability issues since late 2025
+- Platform context check: src/lib/infranex/providers.ts confirms RunPod + Vast rental adapters live, Lambda/Akash offers-only, matching user's provider question
+- Outline tool: 10 sections (cover, toc, 8 chapters), Template 07 Crystal Blue
+- Cover: scripts/gpu_cover.html per cover.md Template 07 spec (fixed palette #0a1628/#4da8da, frame 60/80px inset, glow layers); passed poster_validate.py check-html + cover_validate.js; rendered via html2poster.js --width 794px
+- Body: scripts/gpu_report_content.py + scripts/gpu_report_pdf.py (TocDocTemplate + multiBuild, clickable TOC with page-1 offset so body starts at 1, FreeSerif + install_font_fallback, 4 tables all-Paragraph cells HEADER_FILL/TABLE_STRIPE, 2 callouts, matplotlib grouped bar chart per charts.md with constrained_layout)
+- code.sanitize before run; post-build: meta.brand, font.check (0 issues), toc.check (pass), pages.clean (0 blank), pdf_qa.py
+- Fixes: normalize_page_to_a4 threshold 2pt -> 0.1pt (cover page size mismatch), cover summary max-width 520->570px (margin symmetry), Table 1 header "Runtime grade" -> "Grade" (mid-word wrap)
+- Final pdf_qa.py: PASS all 13 checks; 10 pages, 256.6 KB
+
+Stage Summary:
+- Deliverables: /home/z/my-project/download/GPU-Provider-Analysis-Operator-Brief.pdf (10 pages) + GPU-Provider-Analysis-Cover.html (cover source)
+- Verdict delivered: RunPod (Secure Cloud, 99% SLA) best for continuous mining runtime; Vast.ai price floor for interruptible work with auto-restart; Lambda enterprise fallback; Akash secondary bid market; H100 SXM = top mining GPU performer
+- Scripts persisted in scripts/ for iteration (gpu_cover.html, gpu_report_content.py, gpu_report_pdf.py)
