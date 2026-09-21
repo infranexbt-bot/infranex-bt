@@ -22,10 +22,15 @@ import {
 import { Input } from "@/components/ui/input";
 import { formatNumber } from "@/lib/utils";
 import { assessSeatChance } from "@/lib/infranex/miner-score";
+import {
+  computeRentEarnMap,
+  RENT_EARN_BAND_STYLE,
+} from "@/lib/infranex/rent-earn";
 import { SeatChanceBadge } from "@/components/subnets/seat-chance-badge";
 import { RegisterOddsInline } from "@/components/cards/register-odds";
 import { HostingChips } from "@/components/cards/hosting-requirements";
 import { useOddsTrends } from "@/lib/infranex/use-odds";
+import { Swords, AlertTriangle, Ban } from "lucide-react";
 import type { Opportunity } from "@/lib/infranex/types";
 
 interface OpportunityTableProps {
@@ -40,6 +45,7 @@ type SortKey =
   | "rank"
   | "subnetName"
   | "score"
+  | "rentEarn"
   | "estimatedApy"
   | "netMonthlyUsd"
   | "grossMonthlyUsd"
@@ -116,6 +122,8 @@ export function OpportunityTable({
   // Winner-stability trends for ALL subnets in ONE request — TanStack Query
   // dedupes every table/card mount onto a single cache entry.
   const { data: oddsTrends } = useOddsTrends();
+  // RENT-EARN — one pass over all rows: rentability gate + seat reality + EV.
+  const rentMap = useMemo(() => computeRentEarnMap(opportunities), [opportunities]);
 
   const filtered = useMemo(() => {
     let r = opportunities;
@@ -130,8 +138,15 @@ export function OpportunityTable({
       );
     }
     const sorted = [...r].sort((a, b) => {
-      const av = a[sortKey];
-      const bv = b[sortKey];
+      let av: unknown;
+      let bv: unknown;
+      if (sortKey === "rentEarn") {
+        av = rentMap.get(a.id)?.score ?? -1;
+        bv = rentMap.get(b.id)?.score ?? -1;
+      } else {
+        av = a[sortKey];
+        bv = b[sortKey];
+      }
       if (typeof av === "number" && typeof bv === "number") {
         return dir === "asc" ? av - bv : bv - av;
       }
@@ -140,7 +155,7 @@ export function OpportunityTable({
         : String(bv).localeCompare(String(av));
     });
     return sorted;
-  }, [opportunities, sortKey, dir, search]);
+  }, [opportunities, sortKey, dir, search, rentMap]);
 
   const handleSort = (k: SortKey) => {
     if (sortKey === k) {
@@ -183,6 +198,20 @@ export function OpportunityTable({
               {!compact && (
                 <SortableTh k="score" sortKey={sortKey} dir={dir} onSort={handleSort}>
                   Score
+                </SortableTh>
+              )}
+              {!compact && (
+                <SortableTh
+                  k="rentEarn"
+                  sortKey={sortKey}
+                  dir={dir}
+                  onSort={handleSort}
+                >
+                  <span
+                    title="RENT-EARN — can a rented GPU/CPU (Akash/Vast-class) run this, and does a NEW seat have a real chance to earn? Combines rentability gate, % of slots earning, top-10% reward concentration and new-entrant expected net."
+                  >
+                    Rent earn
+                  </span>
                 </SortableTh>
               )}
               {!compact && (
@@ -269,7 +298,7 @@ export function OpportunityTable({
             {filtered.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={compact ? 5 : 12}
+                  colSpan={compact ? 5 : 13}
                   className="py-12 text-center text-muted-foreground"
                 >
                   No opportunities match your search.
@@ -336,6 +365,60 @@ export function OpportunityTable({
                         </div>
                       </TableCell>
                     )}
+                    {!compact && (() => {
+                      const rent = rentMap.get(o.id);
+                      if (!rent) return <TableCell className="text-xs text-muted-foreground">—</TableCell>;
+                      const st = RENT_EARN_BAND_STYLE[rent.band];
+                      const tip = [
+                        rent.rentBlock ?? "Rentable on Akash/Vast-class GPU/CPU",
+                        rent.earnChancePct != null
+                          ? `${rent.earnChancePct}% of slots earned last epoch`
+                          : null,
+                        rent.top10TakePct != null
+                          ? `top 10% of UIDs take ${rent.top10TakePct}% of rewards`
+                          : null,
+                        rent.expectedNetMonthlyUsd != null
+                          ? `new-entrant EV ≈ $${rent.expectedNetMonthlyUsd.toLocaleString()}/mo`
+                          : null,
+                        ...rent.notes,
+                      ]
+                        .filter(Boolean)
+                        .join("\n");
+                      return (
+                        <TableCell>
+                          <div
+                            className="flex flex-col items-start gap-1"
+                            title={tip}
+                          >
+                            <div className="flex items-center gap-1.5">
+                              <Badge
+                                variant="outline"
+                                className={cn("text-[10px] font-semibold", st.bg, st.color)}
+                              >
+                                {rent.rentable ? <>{rent.band} {rent.score}</> : <>{rent.band}</>}
+                              </Badge>
+                              {rent.knifeFight && (
+                                <Swords className="h-3 w-3 text-destructive" aria-label="knife-fight seat" />
+                              )}
+                              {rent.whaleMean && !rent.knifeFight && (
+                                <AlertTriangle className="h-3 w-3 text-warning" aria-label="whale-mean $ figures" />
+                              )}
+                              {!rent.rentable && (
+                                <Ban className="h-3 w-3 text-destructive" aria-label="not rentable" />
+                              )}
+                            </div>
+                            <span className="text-[10px] leading-tight text-muted-foreground">
+                              {rent.earnChancePct != null
+                                ? `${rent.earnChancePct}% earn · top10 ${rent.top10TakePct ?? "?"}%`
+                                : "earn ?"}
+                              {rent.expectedNetMonthlyUsd != null && (
+                                <> · EV ${rent.expectedNetMonthlyUsd.toLocaleString()}/mo</>
+                              )}
+                            </span>
+                          </div>
+                        </TableCell>
+                      );
+                    })()}
                     {!compact && (
                       <TableCell className="align-top">
                         {(() => {

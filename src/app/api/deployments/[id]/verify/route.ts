@@ -361,7 +361,7 @@ export async function GET(
           "a4",
           "Coldkey / hotkey configuration",
           "pass",
-          `wallet profile "${wallet.name}" bound — cold ${cfg?.miner?.walletName ?? wallet.walletName ?? "?"} / hot ${cfg?.miner?.hotkeyName ?? wallet.hotkeyName ?? "?"}`,
+          `wallet profile "${wallet.label}" bound — cold ${cfg?.miner?.walletName ?? wallet.walletName ?? "?"} / hot ${cfg?.miner?.hotkeyName ?? wallet.hotkeyName ?? "?"}`,
           "record"
         )
       );

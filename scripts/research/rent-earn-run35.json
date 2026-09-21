@@ -1,0 +1,729 @@
+{
+  "asOf": "2026-09-21T15:53:31.082Z",
+  "block": 9116960,
+  "rows": [
+    {
+      "netuid": 5,
+      "name": "Hone",
+      "ledger": 76.5,
+      "hw": "H200 141GB 141GB",
+      "net": 3027,
+      "band": "GREAT",
+      "rentScore": 84,
+      "rentable": true,
+      "earnPct": 95.3,
+      "top10": 11,
+      "knife": false,
+      "whale": false,
+      "entry": "displace",
+      "ev": 2928,
+      "notes": [
+        "Subnet full — a new seat must displace an incumbent"
+      ]
+    },
+    {
+      "netuid": 41,
+      "name": "Almanac",
+      "ledger": 71.5,
+      "hw": "CPU",
+      "net": 2641,
+      "band": "OK",
+      "rentScore": 51,
+      "rentable": true,
+      "earnPct": 37.9,
+      "top10": 48,
+      "knife": false,
+      "whale": false,
+      "entry": "displace",
+      "ev": 1064,
+      "notes": [
+        "CPU-class work — any rented vCPU box qualifies",
+        "Subnet full — a new seat must displace an incumbent"
+      ]
+    },
+    {
+      "netuid": 83,
+      "name": "CliqueAI",
+      "ledger": 70.8,
+      "hw": "H200 141GB 141GB",
+      "net": 569,
+      "band": "GREAT",
+      "rentScore": 67,
+      "rentable": true,
+      "earnPct": 93.4,
+      "top10": 28,
+      "knife": false,
+      "whale": false,
+      "entry": "displace",
+      "ev": 451,
+      "notes": [
+        "Subnet full — a new seat must displace an incumbent"
+      ]
+    },
+    {
+      "netuid": 64,
+      "name": "Chutes",
+      "ledger": 69.6,
+      "hw": "RTX 4090 24GB 24GB",
+      "net": 29390,
+      "band": "NO",
+      "rentScore": 21,
+      "rentable": false,
+      "earnPct": 6.6,
+      "top10": 100,
+      "knife": true,
+      "whale": true,
+      "entry": "displace",
+      "ev": 1940,
+      "notes": [
+        "Bare metal + Intel TDX + static 1:1 IPs required (chutes-miner README) — container clouds (RunPod/Vast/Akash) explicitly excluded",
+        "Knife fight — only 6.6% of slots earned, top 10% of UIDs take 100% of rewards",
+        "Subnet full — a new seat must displace an incumbent",
+        "New-entrant EV ≈ $1,940/mo is a CEILING — treat as unproven until more UIDs earn"
+      ]
+    },
+    {
+      "netuid": 61,
+      "name": "RedTeam",
+      "ledger": 67.9,
+      "hw": "CPU",
+      "net": 2051,
+      "band": "OK",
+      "rentScore": 50,
+      "rentable": true,
+      "earnPct": 50,
+      "top10": 67,
+      "knife": false,
+      "whale": false,
+      "entry": "displace",
+      "ev": 461,
+      "notes": [
+        "CPU-class work — any rented vCPU box qualifies",
+        "Subnet full — a new seat must displace an incumbent"
+      ]
+    },
+    {
+      "netuid": 4,
+      "name": "Targon",
+      "ledger": 66.7,
+      "hw": "RTX 4090 24GB 24GB",
+      "net": 16863,
+      "band": "NO",
+      "rentScore": 2,
+      "rentable": false,
+      "earnPct": 2.3,
+      "top10": 100,
+      "knife": true,
+      "whale": true,
+      "entry": "displace",
+      "ev": 182,
+      "notes": [
+        "NVIDIA Confidential Compute (TEE) required per the repo's Current Implementation — rented containers have no CC mode",
+        "Knife fight — only 2.3% of slots earned, top 10% of UIDs take 100% of rewards",
+        "Subnet full — a new seat must displace an incumbent",
+        "New-entrant EV ≈ $182/mo is a CEILING — treat as unproven until more UIDs earn"
+      ]
+    },
+    {
+      "netuid": 107,
+      "name": "Minos",
+      "ledger": 66.6,
+      "hw": "H200 141GB 141GB",
+      "net": 7118,
+      "band": "POOR",
+      "rentScore": 37,
+      "rentable": true,
+      "earnPct": 20,
+      "top10": 94,
+      "knife": false,
+      "whale": false,
+      "entry": "displace",
+      "ev": 283,
+      "notes": [
+        "Subnet full — a new seat must displace an incumbent"
+      ]
+    },
+    {
+      "netuid": 9,
+      "name": "iota",
+      "ledger": 65.7,
+      "hw": "H200 141GB 141GB",
+      "net": 11080,
+      "band": "NO",
+      "rentScore": 22,
+      "rentable": true,
+      "earnPct": 1.2,
+      "top10": 100,
+      "knife": true,
+      "whale": true,
+      "entry": "displace",
+      "ev": 160,
+      "notes": [
+        "Knife fight — only 1.2% of slots earned, top 10% of UIDs take 100% of rewards",
+        "Subnet full — a new seat must displace an incumbent",
+        "New-entrant EV ≈ $160/mo is a CEILING — treat as unproven until more UIDs earn"
+      ]
+    },
+    {
+      "netuid": 90,
+      "name": "KubeTEE",
+      "ledger": 65.5,
+      "hw": "H200 141GB 141GB",
+      "net": 28992,
+      "band": "NO",
+      "rentScore": 9,
+      "rentable": false,
+      "earnPct": 3,
+      "top10": 100,
+      "knife": true,
+      "whale": true,
+      "entry": "free-slot",
+      "ev": 771,
+      "notes": [
+        "Whole mechanism is TEE-attested Kubernetes clusters (Intel TDX + NVIDIA CC, 8-GPU passthrough, Kata+CoCo)",
+        "Knife fight — only 3% of slots earned, top 10% of UIDs take 100% of rewards",
+        "New-entrant EV ≈ $771/mo is a CEILING — treat as unproven until more UIDs earn"
+      ]
+    },
+    {
+      "netuid": 95,
+      "name": "Actual",
+      "ledger": 65.3,
+      "hw": "H100 80GB 80GB",
+      "net": 14593,
+      "band": "NO",
+      "rentScore": 21,
+      "rentable": true,
+      "earnPct": 0.4,
+      "top10": 100,
+      "knife": true,
+      "whale": true,
+      "entry": "displace",
+      "ev": 58,
+      "notes": [
+        "Knife fight — only 0.4% of slots earned, top 10% of UIDs take 100% of rewards",
+        "Subnet full — a new seat must displace an incumbent",
+        "New-entrant EV ≈ $58/mo is a CEILING — treat as unproven until more UIDs earn"
+      ]
+    },
+    {
+      "netuid": 67,
+      "name": "Harnyx",
+      "ledger": 65,
+      "hw": "CPU",
+      "net": 1108,
+      "band": "OK",
+      "rentScore": 46,
+      "rentable": true,
+      "earnPct": 55.5,
+      "top10": 70,
+      "knife": false,
+      "whale": false,
+      "entry": "displace",
+      "ev": 253,
+      "notes": [
+        "CPU-class work — any rented vCPU box qualifies",
+        "Subnet full — a new seat must displace an incumbent"
+      ]
+    },
+    {
+      "netuid": 68,
+      "name": "NOVA",
+      "ledger": 64.9,
+      "hw": "RTX A6000 48GB 48GB",
+      "net": 18591,
+      "band": "NO",
+      "rentScore": 23,
+      "rentable": true,
+      "earnPct": 1.6,
+      "top10": 100,
+      "knife": true,
+      "whale": true,
+      "entry": "displace",
+      "ev": 297,
+      "notes": [
+        "Knife fight — only 1.6% of slots earned, top 10% of UIDs take 100% of rewards",
+        "Subnet full — a new seat must displace an incumbent",
+        "New-entrant EV ≈ $297/mo is a CEILING — treat as unproven until more UIDs earn"
+      ]
+    },
+    {
+      "netuid": 3,
+      "name": "Teutonic",
+      "ledger": 64.7,
+      "hw": "H200 141GB 141GB",
+      "net": 11164,
+      "band": "NO",
+      "rentScore": 23,
+      "rentable": true,
+      "earnPct": 2,
+      "top10": 100,
+      "knife": true,
+      "whale": true,
+      "entry": "displace",
+      "ev": 224,
+      "notes": [
+        "Knife fight — only 2% of slots earned, top 10% of UIDs take 100% of rewards",
+        "Subnet full — a new seat must displace an incumbent",
+        "New-entrant EV ≈ $224/mo is a CEILING — treat as unproven until more UIDs earn"
+      ]
+    },
+    {
+      "netuid": 122,
+      "name": "CookingTAO",
+      "ledger": 64.1,
+      "hw": "H200 141GB 141GB",
+      "net": 5651,
+      "band": "NO",
+      "rentScore": 21,
+      "rentable": true,
+      "earnPct": 1.4,
+      "top10": 100,
+      "knife": true,
+      "whale": true,
+      "entry": "free-slot",
+      "ev": 79,
+      "notes": [
+        "Knife fight — only 1.4% of slots earned, top 10% of UIDs take 100% of rewards",
+        "New-entrant EV ≈ $79/mo is a CEILING — treat as unproven until more UIDs earn"
+      ]
+    },
+    {
+      "netuid": 120,
+      "name": "Affine",
+      "ledger": 63.9,
+      "hw": "H200 141GB 141GB",
+      "net": 17931,
+      "band": "POOR",
+      "rentScore": 25,
+      "rentable": true,
+      "earnPct": 2.3,
+      "top10": 100,
+      "knife": true,
+      "whale": true,
+      "entry": "displace",
+      "ev": 412,
+      "notes": [
+        "Knife fight — only 2.3% of slots earned, top 10% of UIDs take 100% of rewards",
+        "Subnet full — a new seat must displace an incumbent",
+        "New-entrant EV ≈ $412/mo is a CEILING — treat as unproven until more UIDs earn"
+      ]
+    },
+    {
+      "netuid": 123,
+      "name": "MANTIS",
+      "ledger": 63.8,
+      "hw": "CPU",
+      "net": 369,
+      "band": "OK",
+      "rentScore": 55,
+      "rentable": true,
+      "earnPct": 97.7,
+      "top10": 71,
+      "knife": false,
+      "whale": false,
+      "entry": "displace",
+      "ev": 109,
+      "notes": [
+        "CPU-class work — any rented vCPU box qualifies",
+        "Subnet full — a new seat must displace an incumbent"
+      ]
+    },
+    {
+      "netuid": 51,
+      "name": "lium.io",
+      "ledger": 63.6,
+      "hw": "RTX 4090 24GB 24GB",
+      "net": 2187,
+      "band": "NO",
+      "rentScore": 15,
+      "rentable": false,
+      "earnPct": 26.2,
+      "top10": 98,
+      "knife": false,
+      "whale": false,
+      "entry": "displace",
+      "ev": 41,
+      "notes": [
+        "Executor must run inside an Intel TDX confidential VM with attestation (dstacktee) — needs a TEE-capable bare host",
+        "Subnet full — a new seat must displace an incumbent"
+      ]
+    },
+    {
+      "netuid": 28,
+      "name": "SayGM",
+      "ledger": 63.5,
+      "hw": "H200 141GB 141GB",
+      "net": 2384,
+      "band": "NO",
+      "rentScore": 18,
+      "rentable": false,
+      "earnPct": 25.8,
+      "top10": 90,
+      "knife": false,
+      "whale": false,
+      "entry": "displace",
+      "ev": 217,
+      "notes": [
+        "Miner must run as a Phala Cloud Intel TDX CVM — not a plain rented container",
+        "Subnet full — a new seat must displace an incumbent"
+      ]
+    },
+    {
+      "netuid": 25,
+      "name": "UR",
+      "ledger": 63.2,
+      "hw": "RTX 4090 24GB 24GB",
+      "net": 4186,
+      "band": "NO",
+      "rentScore": 20,
+      "rentable": true,
+      "earnPct": 0.4,
+      "top10": 100,
+      "knife": true,
+      "whale": true,
+      "entry": "displace",
+      "ev": 17,
+      "notes": [
+        "Knife fight — only 0.4% of slots earned, top 10% of UIDs take 100% of rewards",
+        "Subnet full — a new seat must displace an incumbent",
+        "New-entrant EV ≈ $17/mo is a CEILING — treat as unproven until more UIDs earn"
+      ]
+    },
+    {
+      "netuid": 10,
+      "name": "Pareton",
+      "ledger": 63.1,
+      "hw": "RTX 5090 24GB",
+      "net": 3995,
+      "band": "NO",
+      "rentScore": 20,
+      "rentable": true,
+      "earnPct": 0.8,
+      "top10": 100,
+      "knife": true,
+      "whale": true,
+      "entry": "displace",
+      "ev": 38,
+      "notes": [
+        "Knife fight — only 0.8% of slots earned, top 10% of UIDs take 100% of rewards",
+        "Subnet full — a new seat must displace an incumbent",
+        "New-entrant EV ≈ $38/mo is a CEILING — treat as unproven until more UIDs earn"
+      ]
+    },
+    {
+      "netuid": 124,
+      "name": "Swarm",
+      "ledger": 62.8,
+      "hw": "CPU",
+      "net": 3684,
+      "band": "POOR",
+      "rentScore": 25,
+      "rentable": true,
+      "earnPct": 9.8,
+      "top10": 100,
+      "knife": true,
+      "whale": true,
+      "entry": "displace",
+      "ev": 321,
+      "notes": [
+        "CPU-class work — any rented vCPU box qualifies",
+        "Knife fight — only 9.8% of slots earned, top 10% of UIDs take 100% of rewards",
+        "Subnet full — a new seat must displace an incumbent",
+        "New-entrant EV ≈ $321/mo is a CEILING — treat as unproven until more UIDs earn"
+      ]
+    },
+    {
+      "netuid": 11,
+      "name": "TrajectoryRL",
+      "ledger": 62.7,
+      "hw": "RTX A6000 48GB",
+      "net": 3157,
+      "band": "NO",
+      "rentScore": 20,
+      "rentable": true,
+      "earnPct": 0.4,
+      "top10": 100,
+      "knife": true,
+      "whale": true,
+      "entry": "displace",
+      "ev": 13,
+      "notes": [
+        "Knife fight — only 0.4% of slots earned, top 10% of UIDs take 100% of rewards",
+        "Subnet full — a new seat must displace an incumbent",
+        "New-entrant EV ≈ $13/mo is a CEILING — treat as unproven until more UIDs earn"
+      ]
+    },
+    {
+      "netuid": 16,
+      "name": "kenju",
+      "ledger": 62.7,
+      "hw": "H200 141GB 141GB",
+      "net": 6465,
+      "band": "POOR",
+      "rentScore": 25,
+      "rentable": true,
+      "earnPct": 5.6,
+      "top10": 100,
+      "knife": true,
+      "whale": true,
+      "entry": "free-slot",
+      "ev": 362,
+      "notes": [
+        "Knife fight — only 5.6% of slots earned, top 10% of UIDs take 100% of rewards",
+        "New-entrant EV ≈ $362/mo is a CEILING — treat as unproven until more UIDs earn"
+      ]
+    },
+    {
+      "netuid": 110,
+      "name": "Green Compute",
+      "ledger": 62.6,
+      "hw": "H100 80GB 80GB",
+      "net": 3860,
+      "band": "NO",
+      "rentScore": 20,
+      "rentable": true,
+      "earnPct": 0.4,
+      "top10": 100,
+      "knife": true,
+      "whale": true,
+      "entry": "displace",
+      "ev": 15,
+      "notes": [
+        "Knife fight — only 0.4% of slots earned, top 10% of UIDs take 100% of rewards",
+        "Subnet full — a new seat must displace an incumbent",
+        "New-entrant EV ≈ $15/mo is a CEILING — treat as unproven until more UIDs earn"
+      ]
+    },
+    {
+      "netuid": 93,
+      "name": "Bitcast",
+      "ledger": 62.5,
+      "hw": "H200 141GB 141GB",
+      "net": 2690,
+      "band": "NO",
+      "rentScore": 20,
+      "rentable": true,
+      "earnPct": 1.2,
+      "top10": 100,
+      "knife": true,
+      "whale": true,
+      "entry": "displace",
+      "ev": 36,
+      "notes": [
+        "Knife fight — only 1.2% of slots earned, top 10% of UIDs take 100% of rewards",
+        "Subnet full — a new seat must displace an incumbent",
+        "New-entrant EV ≈ $36/mo is a CEILING — treat as unproven until more UIDs earn"
+      ]
+    },
+    {
+      "netuid": 104,
+      "name": "TAOstatus",
+      "ledger": 62.4,
+      "hw": "H200 141GB 141GB",
+      "net": 7598,
+      "band": "NO",
+      "rentScore": 22,
+      "rentable": true,
+      "earnPct": 1.6,
+      "top10": 100,
+      "knife": true,
+      "whale": true,
+      "entry": "displace",
+      "ev": 122,
+      "notes": [
+        "Knife fight — only 1.6% of slots earned, top 10% of UIDs take 100% of rewards",
+        "Subnet full — a new seat must displace an incumbent",
+        "New-entrant EV ≈ $122/mo is a CEILING — treat as unproven until more UIDs earn"
+      ]
+    },
+    {
+      "netuid": 97,
+      "name": "Albedo",
+      "ledger": 61.7,
+      "hw": "H200 141GB 141GB",
+      "net": 5642,
+      "band": "NO",
+      "rentScore": 22,
+      "rentable": true,
+      "earnPct": 2,
+      "top10": 100,
+      "knife": true,
+      "whale": true,
+      "entry": "displace",
+      "ev": 113,
+      "notes": [
+        "Knife fight — only 2% of slots earned, top 10% of UIDs take 100% of rewards",
+        "Subnet full — a new seat must displace an incumbent",
+        "New-entrant EV ≈ $113/mo is a CEILING — treat as unproven until more UIDs earn"
+      ]
+    },
+    {
+      "netuid": 112,
+      "name": "for sale",
+      "ledger": 61.3,
+      "hw": "H200 141GB 141GB",
+      "net": 1551,
+      "band": "NO",
+      "rentScore": 20,
+      "rentable": true,
+      "earnPct": 0.8,
+      "top10": 100,
+      "knife": true,
+      "whale": true,
+      "entry": "displace",
+      "ev": 15,
+      "notes": [
+        "Knife fight — only 0.8% of slots earned, top 10% of UIDs take 100% of rewards",
+        "Subnet full — a new seat must displace an incumbent",
+        "New-entrant EV ≈ $15/mo is a CEILING — treat as unproven until more UIDs earn"
+      ]
+    },
+    {
+      "netuid": 80,
+      "name": "OpenRoboto",
+      "ledger": 61,
+      "hw": "H200 141GB 141GB",
+      "net": 2087,
+      "band": "NO",
+      "rentScore": 21,
+      "rentable": true,
+      "earnPct": 2,
+      "top10": 100,
+      "knife": true,
+      "whale": true,
+      "entry": "displace",
+      "ev": 22,
+      "notes": [
+        "Knife fight — only 2% of slots earned, top 10% of UIDs take 100% of rewards",
+        "Subnet full — a new seat must displace an incumbent",
+        "New-entrant EV ≈ $22/mo is a CEILING — treat as unproven until more UIDs earn"
+      ]
+    },
+    {
+      "netuid": 102,
+      "name": "ConnitoAI",
+      "ledger": 60.9,
+      "hw": "RTX 4090 24GB 24GB",
+      "net": 4272,
+      "band": "NO",
+      "rentScore": 22,
+      "rentable": true,
+      "earnPct": 3.1,
+      "top10": 100,
+      "knife": true,
+      "whale": true,
+      "entry": "displace",
+      "ev": 159,
+      "notes": [
+        "Knife fight — only 3.1% of slots earned, top 10% of UIDs take 100% of rewards",
+        "Subnet full — a new seat must displace an incumbent",
+        "New-entrant EV ≈ $159/mo is a CEILING — treat as unproven until more UIDs earn"
+      ]
+    },
+    {
+      "netuid": 36,
+      "name": "Epago",
+      "ledger": 60.7,
+      "hw": "CPU",
+      "net": 192816,
+      "band": "POOR",
+      "rentScore": 43,
+      "rentable": true,
+      "earnPct": 8.7,
+      "top10": 100,
+      "knife": true,
+      "whale": true,
+      "entry": "free-slot",
+      "ev": 20130,
+      "notes": [
+        "CPU-class work — any rented vCPU box qualifies",
+        "Knife fight — only 8.7% of slots earned, top 10% of UIDs take 100% of rewards",
+        "New-entrant EV ≈ $20,130/mo is a CEILING — treat as unproven until more UIDs earn"
+      ]
+    },
+    {
+      "netuid": 39,
+      "name": "deprecated",
+      "ledger": 60.3,
+      "hw": "H200 141GB 141GB",
+      "net": 1383,
+      "band": "NO",
+      "rentScore": 20,
+      "rentable": true,
+      "earnPct": 0.4,
+      "top10": 100,
+      "knife": true,
+      "whale": true,
+      "entry": "displace",
+      "ev": 6,
+      "notes": [
+        "Knife fight — only 0.4% of slots earned, top 10% of UIDs take 100% of rewards",
+        "Subnet full — a new seat must displace an incumbent",
+        "New-entrant EV ≈ $6/mo is a CEILING — treat as unproven until more UIDs earn"
+      ]
+    },
+    {
+      "netuid": 20,
+      "name": "Witness",
+      "ledger": 60.1,
+      "hw": "RTX 4090 24GB 24GB",
+      "net": 1714,
+      "band": "NO",
+      "rentScore": 20,
+      "rentable": true,
+      "earnPct": 0.8,
+      "top10": 100,
+      "knife": true,
+      "whale": true,
+      "entry": "displace",
+      "ev": 16,
+      "notes": [
+        "Knife fight — only 0.8% of slots earned, top 10% of UIDs take 100% of rewards",
+        "Subnet full — a new seat must displace an incumbent",
+        "New-entrant EV ≈ $16/mo is a CEILING — treat as unproven until more UIDs earn"
+      ]
+    },
+    {
+      "netuid": 85,
+      "name": "Vidaio",
+      "ledger": 60.1,
+      "hw": "RTX 4090 24GB 24GB",
+      "net": 2215,
+      "band": "NO",
+      "rentScore": 22,
+      "rentable": true,
+      "earnPct": 4.3,
+      "top10": 100,
+      "knife": true,
+      "whale": true,
+      "entry": "displace",
+      "ev": 56,
+      "notes": [
+        "Knife fight — only 4.3% of slots earned, top 10% of UIDs take 100% of rewards",
+        "Subnet full — a new seat must displace an incumbent",
+        "New-entrant EV ≈ $56/mo is a CEILING — treat as unproven until more UIDs earn"
+      ]
+    },
+    {
+      "netuid": 117,
+      "name": "glyph",
+      "ledger": 60,
+      "hw": "H200 141GB 141GB",
+      "net": 1501,
+      "band": "NO",
+      "rentScore": 20,
+      "rentable": true,
+      "earnPct": 0.8,
+      "top10": 100,
+      "knife": true,
+      "whale": true,
+      "entry": "free-slot",
+      "ev": 12,
+      "notes": [
+        "Knife fight — only 0.8% of slots earned, top 10% of UIDs take 100% of rewards",
+        "New-entrant EV ≈ $12/mo is a CEILING — treat as unproven until more UIDs earn"
+      ]
+    }
+  ]
+}
