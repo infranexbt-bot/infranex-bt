@@ -2243,3 +2243,18 @@ Work Log:
 Stage Summary:
 - Dashboard TAO Opportunity Score card now carries the full mine-ready subnet list: conviction = Rent earn × Diligence × confidence per subnet, CPU/GPU filterable, one click to detail or deploy
 - Platform artifact: commits 976c173 on main
+
+---
+Task ID: dashboard-remove-epago-1
+Agent: main (Super Z)
+Task: "remove Recommended strategy Mine Epago from dashboard, do not show that" — the TAO Opportunity Score headline was SN36 Epago (whale-mean artifact)
+
+Work Log:
+- Root cause: bestMiningCandidates ranked net-positive rows by ROI% with no seat-realism check — SN36 Epago topped it (22 TAO/d ÷ 2 rewarded UIDs → ~$189k/mo per-miner mean), exactly the arithmetic artifact flagged in run35-analysis-1
+- Fixed the ENGINE, not just the row (opportunity-score.ts bestMiningCandidates): SEAT-REALISM GATE excludes from the HEADLINE ranking (a) whale-mean rows rewardedRatio < 0.15 (WHALE_MEAN_REWARDED_RATIO) and (b) rows whose 14-stage diligence verdict is DO NOT PROVISION (computeDiligence, pure — catches whale top-10 take, slippage >5%, zero reward flow; needed because SN35 passed the raw ratio gate yet still had $74k/mo whale artifact + Do-not-provision verdict); relaxes to ungated only if every net-positive row is gated; returns inflatedCount → score note "N seat-unrealistic subnets excluded — whale-mean economics or failed diligence check" (no row names shown)
+- Excluded rows remain on Opportunities with full evidence (honesty contract unchanged); SubnetChooser unaffected (conviction gates already band these NO-GO, sorted to bottom)
+- Verified via scripts/verify-headline-pick.ts (runs the REAL computeOpportunityScore on live /api/network): first pass after ratio-only gate exposed SN35 ($74,353/mo, diligence Do-not-provision) → added diligence gate → RECOMMENDED = mine Almanac α41 $2,657/mo 1903%/mo (Ledger 71.6 RUN), runner-ups α61 RedTeam + α67 Harnyx, score 91.6, 49 seat-unrealistic excluded; browser E2E: Recommended strategy = Mine Almanac (CPU VPS, LOW RISK, seat safety Top-10% 48% / seats earning 38%), document.body.innerText.includes('Epago') === false across the whole dashboard, zero console errors
+- GIT: commit 4ae5bf9 pushed to main (clean)
+
+Stage Summary:
+- Dashboard headline can no longer recommend a whale-mean or diligence-failed subnet; Epago nowhere visible on the dashboard; honest pick = SN41 Almanac with RedTeam/Harnyx as runner-ups
