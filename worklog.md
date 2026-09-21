@@ -2226,3 +2226,20 @@ Work Log:
 Stage Summary:
 - Delivered ranked rented-friendly RUN list: Hone > CliqueAI (GPU), MANTIS > Almanac > RedTeam > Harnyx (CPU); knife-fight/whale-mean/no-rent flags now visible on every row
 - Platform artifact: RENT-EARN score live on Opportunities (commit d2d8c40)
+
+---
+Task ID: dashboard-subnet-chooser-1
+Agent: main (Super Z)
+Task: Dashboard TAO Opportunity Score — list subnets combining Rent earn + Diligence pipeline + confidence score, with CPU/GPU choice + "choose subnet" option (user request)
+
+Work Log:
+- Built src/lib/infranex/mine-pick.ts: MINE-PICK engine — per net-positive subnet (netuid>0, net>0, meetsMinimum≠false) computes CONVICTION 0-100 = 40% Rent earn score (rent-earn.ts: rentability gate × seat reality × new-entrant EV) + 35% Diligence pipeline health (diligence.ts 14 stages: pass=100/info=75/warn=50/fail=0) + 25% row confidence (Ledger 0-1 → 0-100); hard gates: not rentable → cap 24, DO NOT PROVISION → cap 30, meetsMinimum=false → cap 20; bands PRIME≥65 / READY≥50 / MARGINAL≥35 / NO-GO; CPU class = minVram≤0 | workType cpu | /cpu/i GPU (mirror of rent-earn isCpuWork); rankMinePicks sorts by conviction then EV
+- Built src/components/cards/subnet-chooser.tsx: "Choose your subnet · CPU or GPU, with conviction" picker — All/CPU/GPU filter chips with live counts, top 5 rows + "Show all" toggle, per-row: rank, hardware icon (Cpu/Gpu), SN# name + rentability entry line, band badge, Conviction /100, Rent earn band+score, Diligence health% + verdict (Clear/Conditional/Do-not-provision icon), Confidence %, month-1 Earn chance %, Net/EV $, Mine button (stopPropagation → onStartMining → deployments preselect); row click = detail dialog; tooltip + footer explain the formula; empty state when no net-positive rows
+- dashboard-view.tsx: OpportunityScoreCard now takes onStartMining + onSelectOpportunity (threaded from DashboardView/page.tsx handleStartMining); refactored ledgerCheck memo into shared liveOpps array memo → Map + minePicks = rankMinePicks(liveOpps); <SubnetChooser> rendered between runner-ups and notes
+- Verified: npx tsc --noEmit → zero errors in src/ (only pre-existing infrastrx-bt-subdir-backup/ + frontend/ scaffold noise); browser E2E as admin: picker renders live (block 9,117,842, TAO $287.84) — All 53 · CPU 11 · GPU 42; top picks SN5 Hone PRIME 77 (GREAT 83, earn 66%, EV ~$2,850), SN41 Almanac PRIME 66, SN123 MANTIS PRIME 66, SN61 RedTeam PRIME 65, SN67 Harnyx READY 62 — matches the run35 audit lanes; CPU filter shows 41/123/61/67; gates proven: SN35 $73,914/mo headline → NO-GO (diligence Do-not-provision, conviction 30); Mine on SN5 → Deployments stepper preseeded α5 Hone + Akash H200 $4.45/hr offer matched; row click → full detail dialog (Almanac RUN · Profitable · P&L); zero console/page errors
+- Screenshots: tool-results/subnet-chooser-{2,3,4,cpu,gpu,deploy,detail}.png
+- GIT: commit 976c173 pushed to main (no workflow files present this time — clean push)
+
+Stage Summary:
+- Dashboard TAO Opportunity Score card now carries the full mine-ready subnet list: conviction = Rent earn × Diligence × confidence per subnet, CPU/GPU filterable, one click to detail or deploy
+- Platform artifact: commits 976c173 on main
