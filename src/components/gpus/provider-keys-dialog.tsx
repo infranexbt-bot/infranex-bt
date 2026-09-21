@@ -191,7 +191,7 @@ export function ProviderKeysDialog({
           </DialogTitle>
           <DialogDescription>
             {kind === "cpu"
-              ? "Connect CPU VPS providers (Hetzner Cloud, DigitalOcean) to pull live pricing into the CPU catalog and rent boxes with one click."
+              ? "Connect CPU providers (Hetzner Cloud, DigitalOcean, Vast.ai, Akash) to pull live pricing into the CPU catalog and rent boxes with one click."
               : "Connect GPU marketplaces to pull live pricing into the catalog and the deploy wizard."}{" "}
             Each key is validated the moment you save it.
           </DialogDescription>
@@ -204,7 +204,8 @@ export function ProviderKeysDialog({
         ) : (
           <div className="space-y-3">
             {(keysQuery.data?.keys ?? [])
-              .filter((entry) => entry.kind === kind)
+              // "both" providers (Vast.ai, Akash) surface in both catalogs.
+              .filter((entry) => entry.kind === kind || entry.kind === "both")
               .map((entry) => {
               const connectable = entry.offers || entry.rent;
               const draft = drafts[entry.id] ?? "";

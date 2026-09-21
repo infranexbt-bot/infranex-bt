@@ -46,7 +46,8 @@ import type { ViewKey } from "@/lib/infranex/types";
 // ---------------------------------------------------------------------------
 // CPU-CATALOG-1 — the CPU Catalog, the CPU-side mirror of the GPU Catalog:
 //
-//   connect API keys (Hetzner Cloud, DigitalOcean)  →  live CPU offers flow in
+//   connect API keys (Hetzner Cloud, DigitalOcean, Vast.ai)  →  live CPU offers flow in
+//   (Akash reference tiers load keyless)  →  rent & auto-install flows to DevOps
 //   pick a CPU-classified subnet                    →  engine pulls its
 //                                                       requirements from git
 //   "Rent & auto-install"                           →  provider creates the
@@ -86,6 +87,15 @@ export function CpusView({ onNavigate }: CpusViewProps) {
   const [provisionOffer, setProvisionOffer] = useState<Offer | null>(null);
   const liveProviders = (snap?.providers ?? []).filter((p) => p.configured && p.offers > 0);
   const configuredProviders = (snap?.providers ?? []).filter((p) => p.configured);
+  const keylessCount = configuredProviders.filter((p) => (p as { keyless?: boolean }).keyless).length;
+  const connectedLabel =
+    configuredProviders.length === 0
+      ? ". Connect Hetzner Cloud, DigitalOcean or Vast.ai with your own API key for live pricing."
+      : keylessCount === configuredProviders.length
+        ? `. ${configuredProviders.length} provider${configuredProviders.length > 1 ? "s" : ""} streaming public market data — no keys needed.`
+        : keylessCount > 0
+          ? `. ${configuredProviders.length} provider${configuredProviders.length > 1 ? "s" : ""} live (Akash keyless + your API keys).`
+          : `. ${configuredProviders.length} provider${configuredProviders.length > 1 ? "s" : ""} connected via your API keys.`;
   const providerLabel =
     liveProviders.length > 1
       ? `${liveProviders.length} providers`
@@ -148,9 +158,7 @@ export function CpusView({ onNavigate }: CpusViewProps) {
               : isFetching
                 ? "checking provider markets…"
                 : "no live offers yet — connect a CPU provider key below"}
-            {configuredProviders.length > 0
-              ? `. ${configuredProviders.length} provider${configuredProviders.length > 1 ? "s" : ""} connected via your API keys.`
-              : ". Connect Hetzner Cloud or DigitalOcean with your own API key for live pricing."}{" "}
+            {connectedLabel}{" "}
             Rent &amp; auto-install pulls the subnet&apos;s requirements from its git repo and
             provisions the box with the mining base stack. Prefer your own hardware? Connect a
             local machine below and start the CPU miner on your laptop for $0.
@@ -189,7 +197,7 @@ export function CpusView({ onNavigate }: CpusViewProps) {
           {
             icon: KeyRound,
             title: "1 · Connect a provider",
-            body: "Paste your Hetzner Cloud or DigitalOcean API key — offers refresh live every 60s. Keys stay encrypted server-side.",
+            body: "Paste your Hetzner Cloud, DigitalOcean or Vast.ai API key — offers refresh live every 60s. Akash tiers load without a key. Keys stay encrypted server-side.",
           },
           {
             icon: GitBranch,
@@ -372,9 +380,10 @@ export function CpusView({ onNavigate }: CpusViewProps) {
               <>
                 <KeyRound className="h-6 w-6 text-muted-foreground" />
                 <p className="max-w-md text-sm text-muted-foreground">
-                  No CPU provider connected yet. Add your Hetzner Cloud or DigitalOcean
-                  API key — the catalog pulls live VPS pricing the moment a key verifies
-                  (Hetzner CX22 ≈ $5/mo for 2 vCPU / 4 GB / 40 GB).
+                  Akash Network tiers load instantly (reference estimates — Akash CPU
+                  leases are bid-priced). Add your Hetzner Cloud, DigitalOcean or
+                  Vast.ai API key and the catalog pulls their live pricing the moment
+                  a key verifies (Hetzner CX22 ≈ $5/mo for 2 vCPU / 4 GB / 40 GB).
                 </p>
                 <Button size="sm" className="gap-2" onClick={() => setKeysOpen(true)}>
                   <KeyRound className="h-3.5 w-3.5" /> Connect a CPU provider
@@ -441,19 +450,34 @@ export function CpusView({ onNavigate }: CpusViewProps) {
                     ${o.hourlyPrice.toFixed(4)}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className={cn(
-                        "h-8 gap-1.5 border-primary/40 text-primary hover:bg-primary/10"
-                      )}
-                      onClick={() => {
-                        setProvisionOffer(o);
-                        setProvisionOpen(true);
-                      }}
-                    >
-                      <Server className="h-3.5 w-3.5" /> Rent &amp; install
-                    </Button>
+                    {/* PROVIDER-AKASH — rental adapters exist for Hetzner/DO
+                        only; Akash/Vast CPU rows stay browseable but the
+                        one-click rent is disabled until their adapters land. */}
+                    {o.source === "hetzner" || o.source === "digitalocean" ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className={cn(
+                          "h-8 gap-1.5 border-primary/40 text-primary hover:bg-primary/10"
+                        )}
+                        onClick={() => {
+                          setProvisionOffer(o);
+                          setProvisionOpen(true);
+                        }}
+                      >
+                        <Server className="h-3.5 w-3.5" /> Rent &amp; install
+                      </Button>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled
+                        title="Live offers shown for comparison — one-click rent for this provider is coming (Akash deploys via the Console API, Vast via its instance API)."
+                        className="h-8 gap-1.5"
+                      >
+                        <Server className="h-3.5 w-3.5" /> Rent soon
+                      </Button>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}

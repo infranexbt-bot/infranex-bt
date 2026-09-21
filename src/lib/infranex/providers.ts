@@ -21,6 +21,7 @@
 
 import { db } from "@/lib/db";
 import { decryptSecret, encryptSecret } from "@/lib/devops/crypto";
+import { akashGpuOffers } from "./akash";
 import { fetchRunpodGpus, normalizeModel, type RunpodGpuType } from "./runpod";
 import type { GPUOffer } from "./types";
 
@@ -30,6 +31,7 @@ export type ProviderId =
   | "runpod"
   | "vast"
   | "lambda"
+  | "akash"
   | "nvidia"
   | "hetzner"
   | "digitalocean";
@@ -37,8 +39,8 @@ export type ProviderId =
 export interface ProviderMeta {
   id: ProviderId;
   label: string;
-  /** Which catalog this provider belongs to. */
-  kind: "gpu" | "cpu";
+  /** Which catalog(s) this provider belongs to — "both" spans GPU + CPU. */
+  kind: "gpu" | "cpu" | "both";
   /** Live offer pull is implemented for this provider. */
   offers: boolean;
   /** Real rental adapter exists (wizard "RunPod (real)" mode). */
@@ -46,6 +48,12 @@ export interface ProviderMeta {
   /** Where the user finds the key. */
   keyHint: string;
   note?: string;
+  /**
+   * Offer pull works WITHOUT a key (public market data). These providers
+   * appear in the catalog even before any key is configured — the key then
+   * unlocks account-level operations.
+   */
+  publicOffers?: boolean;
 }
 
 export const PROVIDER_META: ProviderMeta[] = [
@@ -61,13 +69,15 @@ export const PROVIDER_META: ProviderMeta[] = [
   {
     id: "vast",
     label: "Vast.ai",
-    kind: "gpu",
+    // PROVIDER-AKASH — Vast also lists CPU-only machines (num_gpus = 0),
+    // so the same key feeds both catalogs.
+    kind: "both",
     offers: true,
     // TIER4 — rental adapter is live (deployment mode "vast"): provisions a
     // real instance from the chosen bundle and injects the SSH key via onstart.
     rent: true,
     keyHint: "console.vast.ai → Account → Keys → copy API key",
-    note: "Live pricing AND real rentals — the deploy wizard rents the exact bundle you pick (on-demand only).",
+    note: "Live pricing AND real rentals — the deploy wizard rents the exact bundle you pick (on-demand only). Same key feeds GPU + CPU catalogs.",
   },
   {
     id: "lambda",
@@ -77,6 +87,19 @@ export const PROVIDER_META: ProviderMeta[] = [
     rent: false,
     keyHint: "cloud.lambdalabs.com → API keys → Add API key",
     note: "Live on-demand pricing. Rental adapter in progress — rent via RunPod (real).",
+  },
+  {
+    // PROVIDER-AKASH — decentralized compute marketplace. GPU pricing is
+    // PUBLIC bid-aggregation (no key needed); the Console API key unlocks
+    // account operations (Managed Wallet API, USD billing).
+    id: "akash",
+    label: "Akash Network",
+    kind: "both",
+    offers: true,
+    rent: false,
+    keyHint: "console.akash.network → Settings → API Keys → Create API Key (optional — GPU pricing is public)",
+    note: "GPU prices are live bid medians from the network. CPU entries are reference estimates — Akash CPU leases are bid-priced at deploy time.",
+    publicOffers: true,
   },
   {
     id: "nvidia",
@@ -219,6 +242,21 @@ export async function validateProviderKey(providerId: ProviderId, key: string): 
         status: "valid",
         message: count > 0 ? `Key valid — ${count} Lambda instance types visible.` : "Key valid — Lambda returned no instance types yet.",
       };
+    }
+
+    if (providerId === "akash") {
+      // PROVIDER-AKASH — Console API keys validate against the account-scoped
+      // deployments endpoint (valid → 200 even with zero deployments).
+      const res = await fetch("https://console-api.akash.network/v1/deployments", {
+        headers: { "x-api-key": key },
+        cache: "no-store",
+        signal: AbortSignal.timeout(HTTP_TIMEOUT_MS),
+      });
+      if (res.status === 401 || res.status === 403) {
+        return { ok: false, status: "invalid", message: "Key rejected by Akash Console (401) — double-check the API key." };
+      }
+      if (!res.ok) return { ok: false, status: "error", message: `Akash Console API HTTP ${res.status}` };
+      return { ok: true, status: "valid", message: "Key valid — Akash Console account verified (Managed Wallet operations unlocked)." };
     }
 
     // CPU-CATALOG-1 — key validation for the CPU providers (read-only calls).
@@ -378,6 +416,7 @@ export async function fetchProviderOffers(providerId: ProviderId, key: string): 
   }
   if (providerId === "vast") return vastOffers(key);
   if (providerId === "lambda") return lambdaOffers(key);
+  if (providerId === "akash") return akashGpuOffers(); // public — key unused
   return [];
 }
 
@@ -416,9 +455,11 @@ export interface ProviderStatus {
   id: ProviderId;
   label: string;
   configured: boolean;
-  origin?: "db" | "env";
+  origin?: "db" | "env" | "public";
   offers: number;
   error?: string;
+  /** Present for publicOffers providers pulled without a key. */
+  keyless?: boolean;
 }
 
 export interface MultiProviderSnapshot {
@@ -450,19 +491,26 @@ export async function fetchAllLiveOffers(force = false): Promise<MultiProviderSn
   const now = Date.now();
   if (!force && cachedSnapshot && now < snapshotExpiresAt) return cachedSnapshot;
 
-  // CPU-CATALOG-1 — GPU catalog pulls GPU providers only (hetzner/do are
-  // served by fetchAllLiveCpuOffers in cpu-providers.ts).
-  const liveProviders = PROVIDER_META.filter((p) => p.offers && p.kind === "gpu");
+  // CPU-CATALOG-1 — GPU catalog pulls GPU-side providers only (hetzner/do/
+  // vast-cpu/akash-cpu are served by fetchAllLiveCpuOffers in cpu-providers.ts).
+  const liveProviders = PROVIDER_META.filter((p) => p.offers && p.kind !== "cpu");
   const results = await Promise.all(
     liveProviders.map(async (p): Promise<{ status: ProviderStatus; offers: LiveOffer[] }> => {
       const resolved = await getProviderKey(p.id).catch(() => null);
-      if (!resolved) {
+      if (!resolved && !p.publicOffers) {
         return { status: { id: p.id, label: p.label, configured: false, offers: 0 }, offers: [] };
       }
       try {
-        const offers = await fetchProviderOffers(p.id, resolved.key);
+        const offers = await fetchProviderOffers(p.id, resolved?.key ?? "");
         return {
-          status: { id: p.id, label: p.label, configured: true, origin: resolved.origin, offers: offers.length },
+          status: {
+            id: p.id,
+            label: p.label,
+            configured: true,
+            origin: resolved?.origin ?? "public",
+            keyless: !resolved,
+            offers: offers.length,
+          },
           offers,
         };
       } catch (e) {
@@ -471,7 +519,8 @@ export async function fetchAllLiveOffers(force = false): Promise<MultiProviderSn
             id: p.id,
             label: p.label,
             configured: true,
-            origin: resolved.origin,
+            origin: resolved?.origin ?? "public",
+            keyless: !resolved,
             offers: 0,
             error: e instanceof Error ? e.message : String(e),
           },

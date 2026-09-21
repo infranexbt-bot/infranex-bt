@@ -24,6 +24,7 @@
 // ---------------------------------------------------------------------------
 
 import { getProviderKey, PROVIDER_META, type ProviderId } from "./providers";
+import { akashCpuOffers } from "./akash";
 import type { CPUOffer } from "./types";
 import crypto from "crypto";
 
@@ -31,7 +32,7 @@ const HTTP_TIMEOUT_MS = 15_000;
 export const MONTHLY_HOURS = 730;
 
 export const CPU_PROVIDER_IDS: ProviderId[] = PROVIDER_META
-  .filter((p) => p.kind === "cpu" && p.offers)
+  .filter((p) => p.kind !== "gpu" && p.offers)
   .map((p) => p.id);
 
 export function isCpuProviderId(v: unknown): v is "hetzner" | "digitalocean" {
@@ -178,6 +179,88 @@ export async function digitalOceanOffers(key: string): Promise<LiveCpuOffer[]> {
   return out;
 }
 
+// --- Vast.ai (CPU-only machines — PROVIDER-AKASH) ---------------------------
+//
+// Vast lists CPU-only boxes alongside GPU bundles: the same bundle search
+// API, filtered to num_gpus = 0. Key is REQUIRED (Vast requires auth for
+// bundle search) — the same Vast key that feeds the GPU catalog.
+
+interface VastCpuBundle {
+  id?: number | string;
+  dph_total?: number;
+  cpu_cores?: number;
+  cpu_ram?: number; // MB
+  disk_space?: number; // MB
+  cpu_model?: string;
+  geolocation?: string;
+  is_interruptible?: boolean;
+  rentable?: boolean;
+  reliability2?: number;
+}
+
+// See hetznerOffers note — exported for the fixture test suite only.
+export async function vastCpuOffers(key: string): Promise<LiveCpuOffer[]> {
+  const q = encodeURIComponent(JSON.stringify({ num_gpus: { eq: 0 }, rentable: { eq: true } }));
+  const res = await fetch(`https://console.vast.ai/api/v0/bundles?q=${q}`, {
+    headers: { Authorization: `Bearer ${key}` },
+    cache: "no-store",
+    signal: AbortSignal.timeout(HTTP_TIMEOUT_MS),
+  });
+  if (!res.ok) throw new Error(`Vast.ai HTTP ${res.status}`);
+  // Same dual response shape as the GPU side (vastOffers in providers.ts).
+  const j = (await res.json().catch(() => null)) as
+    | { offers?: VastCpuBundle[]; data?: { bundles?: VastCpuBundle[]; offers?: VastCpuBundle[] } }
+    | null;
+  const items: VastCpuBundle[] =
+    j?.offers ?? j?.data?.bundles ?? j?.data?.offers ?? [];
+
+  const out: LiveCpuOffer[] = [];
+  for (const o of items) {
+    const cores = Number(o.cpu_cores ?? 0);
+    const ramGb = Math.round(Number(o.cpu_ram ?? 0) / 1024);
+    const diskGb = Math.round(Number(o.disk_space ?? 0) / 1024);
+    const hourly = Number(o.dph_total ?? 0);
+    if (cores <= 0 || ramGb <= 0 || hourly <= 0) continue;
+    // Vast CPU models read like "AMD EPYC 7402 24-Core Processor" / "Intel
+    // Core i9-10980XE" — compact them into a stable catalog model string.
+    const cpuModel = String(o.cpu_model ?? "")
+      .replace(/\s+(x86-64|aes|avx.*)$/i, "")
+      .replace(/\s*CPU\s*$/i, "")
+      .trim();
+    const label = `${cores} vCPU · ${ramGb} GB${cpuModel ? ` · ${cpuModel.split(" ").slice(0, 3).join(" ")}` : ""}`;
+    const monthly = Math.round(hourly * MONTHLY_HOURS * 100) / 100;
+    out.push({
+      id: `vast-cpu-${String(o.id ?? `${cores}-${ramGb}-${hourly}`)}`,
+      model: label,
+      provider: "Vast.ai",
+      region: o.geolocation ? String(o.geolocation) : "global",
+      cpuCores: cores,
+      ramGb,
+      diskGb,
+      cpuType: cores >= 8 ? "dedicated" : "shared",
+      hourlyPrice: Math.round(hourly * 10_000) / 10_000,
+      monthlyPrice: monthly,
+      availability: "available",
+      live: true,
+      source: "vast",
+    });
+  }
+  return out;
+}
+
+// --- Akash Network (reference tiers + live capacity — PROVIDER-AKASH) -------
+
+/**
+ * Akash CPU entries are reference tiers ("(est.)", availability "limited")
+ * — Akash CPU leases are bid-priced per provider at deploy time and there is
+ * no public per-spec price endpoint. akashCpuOffers() also pulls live
+ * network capacity so the entries stay anchored to a real market.
+ */
+export async function akashCpuCatalogOffers(): Promise<LiveCpuOffer[]> {
+  const rows = await akashCpuOffers(); // throws on HTTP failure — snapshot surfaces the error
+  return rows.map((r) => ({ ...r, live: true as const }));
+}
+
 // --- Multi-provider snapshot (serves /api/cpu-offers) -----------------------
 
 export type LiveCpuOffer = CPUOffer & { live: true; source: string };
@@ -186,9 +269,11 @@ export interface CpuProviderStatus {
   id: string;
   label: string;
   configured: boolean;
-  origin?: "db" | "env";
+  origin?: "db" | "env" | "public";
   offers: number;
   error?: string;
+  /** Present for publicOffers providers pulled without a key. */
+  keyless?: boolean;
 }
 
 export interface CpuOffersSnapshot {
@@ -222,19 +307,28 @@ export async function fetchAllLiveCpuOffers(force = false): Promise<CpuOffersSna
   const adapters: Record<string, (key: string) => Promise<LiveCpuOffer[]>> = {
     hetzner: hetznerOffers,
     digitalocean: digitalOceanOffers,
+    vast: vastCpuOffers,
+    akash: akashCpuCatalogOffers, // ignores the key — public market data
   };
 
   const results = await Promise.all(
     CPU_PROVIDER_IDS.map(async (id): Promise<{ status: CpuProviderStatus; offers: LiveCpuOffer[] }> => {
       const meta = PROVIDER_META.find((p) => p.id === id)!;
       const resolved = await getProviderKey(id).catch(() => null);
-      if (!resolved) {
+      if (!resolved && !meta.publicOffers) {
         return { status: { id, label: meta.label, configured: false, offers: 0 }, offers: [] };
       }
       try {
-        const offers = await adapters[id](resolved.key);
+        const offers = await adapters[id](resolved?.key ?? "");
         return {
-          status: { id, label: meta.label, configured: true, origin: resolved.origin, offers: offers.length },
+          status: {
+            id,
+            label: meta.label,
+            configured: true,
+            origin: resolved?.origin ?? "public",
+            keyless: !resolved,
+            offers: offers.length,
+          },
           offers,
         };
       } catch (e) {
@@ -243,7 +337,8 @@ export async function fetchAllLiveCpuOffers(force = false): Promise<CpuOffersSna
             id,
             label: meta.label,
             configured: true,
-            origin: resolved.origin,
+            origin: resolved?.origin ?? "public",
+            keyless: !resolved,
             offers: 0,
             error: e instanceof Error ? e.message : String(e),
           },

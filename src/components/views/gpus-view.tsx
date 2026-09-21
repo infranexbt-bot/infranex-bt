@@ -57,6 +57,15 @@ export function GpusView({ onProvision }: GpusViewProps) {
     (p) => p.configured && p.offers > 0
   );
   const configuredProviders = (snap?.providers ?? []).filter((p) => p.configured);
+  const keylessCount = configuredProviders.filter((p) => (p as { keyless?: boolean }).keyless).length;
+  const connectedLabel =
+    configuredProviders.length === 0
+      ? ". Akash loads keyless — connect RunPod, Vast.ai or Lambda with your own API keys for more markets."
+      : keylessCount === configuredProviders.length
+        ? `. ${configuredProviders.length} provider${configuredProviders.length > 1 ? "s" : ""} streaming public market data — no keys needed.`
+        : keylessCount > 0
+          ? `. ${configuredProviders.length} provider${configuredProviders.length > 1 ? "s" : ""} live (Akash keyless + your API keys).`
+          : `. ${configuredProviders.length} provider${configuredProviders.length > 1 ? "s" : ""} connected via your API keys.`;
   const liveProviderLabel =
     liveProviders.length > 1
       ? `${liveProviders.length} providers`
@@ -110,12 +119,10 @@ export function GpusView({ onProvision }: GpusViewProps) {
             {liveProviderLabel
               ? `${liveCount} live offers from ${liveProviderLabel}`
               : isLive
-                ? `${liveCount} live RunPod offers`
+                ? `${liveCount} live offers`
                 : "no live offers yet — connect a provider key below"}
             {snap?.totalGpuTypes ? ` across ${snap.totalGpuTypes} GPU types` : ""}
-            {configuredProviders.length > 0
-              ? `. ${configuredProviders.length} provider${configuredProviders.length > 1 ? "s" : ""} connected via your API keys.`
-              : ". Connect RunPod, Vast.ai or Lambda with your own API keys for live pricing."}{" "}
+            {connectedLabel}{" "}
             Provision opens the guided deploy wizard with the GPU preselected.
           </p>
         </div>
@@ -222,12 +229,12 @@ export function GpusView({ onProvision }: GpusViewProps) {
                 {isLive ? (
                   <Badge variant="outline" className="border-success/30 text-[10px] text-success">
                     <span className="mr-1 inline-block h-1.5 w-1.5 rounded-full bg-success" />
-                    RunPod live · {liveCount} offers
+                    {liveProviderLabel ?? "provider"} live · {liveCount} offers
                   </Badge>
                 ) : snap?.source === "error" ? (
                   <Badge variant="outline" className="border-destructive/30 text-[10px] text-destructive">
                     <WifiOff className="mr-1 h-3 w-3" />
-                    RunPod offline
+                    providers offline
                   </Badge>
                 ) : isFetching ? (
                   <Badge variant="outline" className="text-[10px] text-muted-foreground">
