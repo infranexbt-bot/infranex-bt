@@ -2140,3 +2140,18 @@ Stage Summary:
 - CPU pricing: ~$0.02-0.10/hr 4-core shared; ~$15-25/mo small instances; 60-85% below AWS; Q1 2026: 43.5K leases, lease revenue compressed 45% (cheap)
 - Risks: hotkey on third-party host (use dedicated mining hotkey, no mnemonics), ephemeral storage (stateless OK - registration is on-chain), inbound axon port mapping (same NAT class as laptops), provider uptime variance (mitigated by our monitoring + auto-redeploy)
 - Proposed design: "Akash Lease" provider type in Deployments, lib/infranex/akash.ts SDL generator, Gate 3 pre-flight (API key + bid cost preview), lease-cost-vs-TAO-earnings economics panel, human approval for credit top-ups
+
+---
+Task ID: app-recovery-1
+Agent: main (Super Z)
+Task: Load web app - diagnose hang after environment restart
+
+Work Log:
+- Found dev server hung: dev.log showed cached ENOENT for src/app (server started 14:29 before sandbox filesystem finished restoring)
+- Verified damage: none - src/app, src/components all present; git main at 9e86fa7 with d4fea20 (our push) confirmed as ancestor
+- Killed stale next processes, restarted next dev -p 3000 with DATABASE_URL, /login warmed to 200 in 43ms
+- Verified: root 307 (auth redirect OK), API 401 auth-gated OK, PDF guide 200 (593,842 bytes), Prisma background workers running
+
+Stage Summary:
+- Web app fully live after restart; no code lost; GitHub history intact
+- Platform added checkpoint commits (UUID-named) on top of our d4fea20 push
