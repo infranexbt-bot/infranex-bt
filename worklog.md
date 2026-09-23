@@ -2344,3 +2344,18 @@ Work Log:
 Stage Summary:
 - Answer delivered in chat: (1) create key at console.akash.network → Settings → API Keys; (2) paste into infranex GPU Catalog → Provider API keys → Akash Network → Save & verify
 - Key fact: Akash pricing already streams keyless; the key unlocks account operations — Akash remains rent:false (offers-only) vs RunPod/Vast real rentals
+
+---
+Task ID: app-load-verify-1
+Agent: Super Z (main)
+Task: Load the web app and verify it is healthy
+
+Work Log:
+- Checked port 3000 — server already running (307 -> login gate, expected)
+- curl: /login returns 200, title "Infranex BT — Bittensor Subnet Intelligence Platform", fast renders in dev.log
+- agent-browser E2E: opened /login, signed in as admin, landed on dashboard at /
+- Dashboard verified: 12 cards, "Choose your subnet" picker is first card (All 59 / CPU 13 / GPU 46), LIVE Finney chain block 9,131,710, TAO $292.12, 129 subnets
+- agent-browser errors: zero; screenshot tool-results/app-load-verify.png
+
+Stage Summary:
+- App RUNNING on localhost:3000, admin session verified, live chain data flowing, no console errors
