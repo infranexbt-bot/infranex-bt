@@ -2393,3 +2393,14 @@ Work Log:
 Stage Summary:
 - Core insight: no provider wins all three of price (Vast), runtime SLA (RunPod), true bare metal (Latitude.sh) — routing matrix is the answer
 - Platform status: RunPod+Vast real rentals; Lambda+Akash offers-only; the other 6 not integrated — Latitude.sh adapter offered as follow-up
+
+---
+Task ID: final-pick-1
+Agent: Super Z (main)
+Task: Single best-pick verdict for Bittensor GPU miner
+
+Work Log:
+- Synthesized all prior research (10 providers, 2 research phases) into one final pick
+
+Stage Summary:
+- Final pick: RunPod (Secure Cloud) — best runtime-per-dollar, only budget provider with 99% SLA, and the only top pick already wired end-to-end into the platform (rental adapter, deploy wizard, monitoring, migration). Vast.ai runner-up for interruptible; Latitude.sh when a subnet demands bare metal.
