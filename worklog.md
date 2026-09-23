@@ -2419,3 +2419,16 @@ Work Log:
 
 Stage Summary:
 - Revised honest verdict: RunPod vs Vast is 1a/1b split by subnet + ops style, NOT skip-Vast. Akash skippable for now. Routing is per-subnet and the platform already computes it (rent-earn engine)
+
+---
+Task ID: gpu-health-explain-1
+Agent: Super Z (main)
+Task: Explain what the app does for GPU health + what the miner must do themselves
+
+Work Log:
+- Verified daemon-bridge.ts: 3 commands (restart_miner / status_probe / apply_config); restartViaDaemon used by Trigger Engine approved actions, daemon picks up within 60s; container-safe restart chain systemctl -> pm2 -> pkill+relaunch
+- Confirmed health-score 7-signal composite on 90s passes; autopilot auto-approves routine remediation (denylist KILL/ESCALATION/ARBITRAGE-recycle)
+- Answered in chat: app layer (monitor/trigger/autopilot/actuate/judge/runway/alerts/upstream) + honest gaps (host quality, hardware failure, funding, human-only approvals) + miner checklist (daily 5min, weekly 15min, once-at-setup)
+
+Stage Summary:
+- Answer delivered; no code changes. Key fact: restart_miner queued via daemon within 60s of approved trigger; thermal/process/traffic signals are the app's GPU-health eyes
