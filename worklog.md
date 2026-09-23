@@ -2448,3 +2448,20 @@ Work Log:
 Stage Summary:
 - Critical user guidance: Vast/RunPod fine for current top picks (SN5/41/123/61/67) but SN27 needs bare-metal providers; article is Dec 2023 — verify current SN27 docs before spending
 - Offered follow-up: add SN27 to CURATED_RENT_BLOCKS after verifying current repo requirements
+
+---
+Task ID: nvidia-gpu-source-1
+Agent: main
+Task: Answer whether NVIDIA provides GPUs for Bittensor miners
+
+Work Log:
+- Web-searched NVIDIA grant programs (Academic Grant, Inception), first-party rentals (DGX Cloud, NVIDIA Brev / build.nvidia.com), and crypto history (CMP line)
+- Web-searched Bittensor subnet NVIDIA hardware dependencies (H100 Confidential Computing / CC mode for SN4, bare-metal requirements)
+- Pulled live 2026 H100 market pricing: Vast H100 SXM $1.73-2.04/hr, market range $1.49-13/hr, Oracle DGX Cloud $10/GPU-hr (earlier research)
+- No document deliverable requested; chat answer only
+
+Stage Summary:
+- Verdict: NVIDIA does NOT provide GPUs to Bittensor miners - no miner program, no partnership, no discounts. NVIDIA is the chip supplier; all rental goes through third parties (Vast = user's chosen channel)
+- NVIDIA first-party options (DGX Cloud enterprise clusters, NVIDIA Brev developer cloud, Academic grants, Inception startup program) are all wrong-audience or 3-5x over marketplace pricing, and container clouds fail SN64/bare-metal subnet requirements per rent-earn engine
+- NVIDIA's only crypto product (CMP, 2021 PoW era) is discontinued and useless for Bittensor ML workloads
+- NVIDIA relevance is indirect: H100/H200 CC-mode hardware feature (required by SN4), CUDA stack, driver probes in real-setup.ts
