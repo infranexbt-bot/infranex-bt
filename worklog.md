@@ -2432,3 +2432,19 @@ Work Log:
 
 Stage Summary:
 - Answer delivered; no code changes. Key fact: restart_miner queued via daemon within 60s of approved trigger; thermal/process/traffic signals are the app's GPU-health eyes
+
+---
+Task ID: ni-article-compare-1
+Agent: Super Z (main)
+Task: Compare Neural Internet "How to Run a Compute Miner?" article vs app capabilities
+
+Work Log:
+- Fetched full article (Medium, @neuralinternet, Dec 1 2023) — it is the SN27 Compute Subnet manual setup guide, and the SOURCE of the user's 6-provider list (DataCrunch/Oracle/CoreWeave/FluidStack/Latitude.sh/Oblivus)
+- KEY: article says "We do not support container-based instances such as Runpod, Vast AI, and lambda" — SN27 requires bare metal; explains the bare-metal list
+- Verified: SN27 is NOT in CURATED_RENT_BLOCKS (grep count 0) — platform would wrongly allow container providers for SN27
+- Article flow: Docker/CUDA/hashcat/PM2/manual registration/UFW/pm2 logs/hashcat bench >=4500 MH/s
+- Comparison delivered: app automates/supersedes most steps (docker-or-venv setup, daemon restarts, health score, registration, upstream resync, migration, economics); 2 gaps found: (1) SN27 missing from rent blocks, (2) no hashcat-style GPU compute benchmark (app benchmarks axon latency)
+
+Stage Summary:
+- Critical user guidance: Vast/RunPod fine for current top picks (SN5/41/123/61/67) but SN27 needs bare-metal providers; article is Dec 2023 — verify current SN27 docs before spending
+- Offered follow-up: add SN27 to CURATED_RENT_BLOCKS after verifying current repo requirements
