@@ -2379,3 +2379,17 @@ Work Log:
 Stage Summary:
 - None of the 6 are in the infranex provider registry (runpod/vast/lambda/akash/nvidia) — follow-up offer: add Latitude.sh offers adapter
 - Complements earlier GPU-Provider-Analysis-Operator-Brief.pdf (Vast/RunPod/Akash/Lambda): Vast=interruptible, RunPod=SLA, Latitude.sh=bare-metal-required subnets
+
+---
+Task ID: provider-compare-all-10-1
+Agent: Super Z (main)
+Task: Compare new 6 providers (Latitude.sh, FluidStack, Verda, Oblivus, Oracle, CoreWeave) vs RunPod/Vast/Akash/Lambda for Bittensor mining
+
+Work Log:
+- 2 verification searches: Vast.ai = single-tenant bare metal marketplace machines (no hypervisor) + on-demand/interruptible/reserved; Lambda = bare-metal GPU instances, 1-Click Clusters, no egress fees
+- Built 10-provider master comparison (price, bare metal, runtime/SLA, static IP, platform integration)
+- Delivered in chat: tier grouping (S: RunPod/Vast/Latitude; A: Lambda/FluidStack/Verda; B: Akash/Oblivus; C: Oracle/CoreWeave) + routing matrix per subnet requirement
+
+Stage Summary:
+- Core insight: no provider wins all three of price (Vast), runtime SLA (RunPod), true bare metal (Latitude.sh) — routing matrix is the answer
+- Platform status: RunPod+Vast real rentals; Lambda+Akash offers-only; the other 6 not integrated — Latitude.sh adapter offered as follow-up
