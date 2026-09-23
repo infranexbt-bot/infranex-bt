@@ -2359,3 +2359,23 @@ Work Log:
 
 Stage Summary:
 - App RUNNING on localhost:3000, admin session verified, live chain data flowing, no console errors
+
+---
+Task ID: baremetal-provider-research-1
+Agent: Super Z (main)
+Task: Research 6 providers (DataCrunch/Verda, Oracle, CoreWeave, FluidStack, Latitude.sh, Oblivus) for Bittensor GPU mining, bare-metal focus
+
+Work Log:
+- 8 web searches across all 6 providers: pricing, bare-metal availability, model
+- Key findings: Latitude.sh "Intelligent bare metal" IS their product line — H100 PCIe $1.68/hr ($1,230/mo), monthly 50% / yearly 65% cheaper; BITTENSOR27 referral = Bittensor community program
+- Verda (formerly DataCrunch): H100 SXM $2.29-3.42/hr OD, ~$1.71/hr reserved, Iceland/EU green energy
+- FluidStack: H100 SXM $2.10/hr OD, bare metal options, US/UK
+- Oblivus: H100 $3.50-4.31/hr OD — capable bare metal but ~2x Latitude pricing
+- Oracle OCI: BM.GPU.H100.8 bare metal = $10/GPU-hr ($80/node) — enterprise economics, kills mining margins
+- CoreWeave: K8s-native, containers only for customers (CKS on bare-metal nodes but no raw metal access) — structurally unsuitable for bare-metal-required subnets
+- Cross-checked platform: github-scraper.ts already extracts bareMetalOnly/TEE/staticIp flags per subnet — routing hook exists
+- Verdict delivered in chat (English only per user instruction): Latitude.sh #1, FluidStack #2, Verda #3, Oblivus #4, Oracle #5, CoreWeave #6
+
+Stage Summary:
+- None of the 6 are in the infranex provider registry (runpod/vast/lambda/akash/nvidia) — follow-up offer: add Latitude.sh offers adapter
+- Complements earlier GPU-Provider-Analysis-Operator-Brief.pdf (Vast/RunPod/Akash/Lambda): Vast=interruptible, RunPod=SLA, Latitude.sh=bare-metal-required subnets
