@@ -2404,3 +2404,18 @@ Work Log:
 
 Stage Summary:
 - Final pick: RunPod (Secure Cloud) — best runtime-per-dollar, only budget provider with 99% SLA, and the only top pick already wired end-to-end into the platform (rental adapter, deploy wizard, monitoring, migration). Vast.ai runner-up for interruptible; Latitude.sh when a subnet demands bare metal.
+
+---
+Task ID: runpod-challenge-verify-1
+Agent: Super Z (main)
+Task: Pressure-test RunPod best-pick claim against platform data
+
+Work Log:
+- Checked subnetOverride DB: 0 scraped hosting requirements (fresh DB post-reset, github worker not yet accumulated)
+- Top-5 targets (SN5/41/123/61/67) have no curated seeds; worker scrapes from on-chain identity
+- Read rent-earn.ts computeRentEarn: hosting.bareMetalOnly / teeRequired -> rentable=false, "container clouds excluded"
+- CURATED_RENT_BLOCKS (from all-subnet README audit subnet-hosting-audit-1): SN64 (bare metal+TDX+static IPs — RunPod/Vast/Akash excluded), SN4 (NVIDIA CC), SN28 (Phala TDX CVM), SN51 (TDX dstacktee), SN90 (TEE-attested K8s)
+- Conclusion: top current picks are container-compatible (RunPod/Vast both legal); 5 known subnets exclude ALL container clouds
+
+Stage Summary:
+- Revised honest verdict: RunPod vs Vast is 1a/1b split by subnet + ops style, NOT skip-Vast. Akash skippable for now. Routing is per-subnet and the platform already computes it (rent-earn engine)
