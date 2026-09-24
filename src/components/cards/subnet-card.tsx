@@ -8,6 +8,8 @@ import { Progress } from "@/components/ui/progress";
 import { Users, Shield, Cpu, TrendingUp, TrendingDown, Settings2, FileText } from "lucide-react";
 import { assessSeatChance } from "@/lib/infranex/miner-score";
 import { SeatChanceBadge } from "@/components/subnets/seat-chance-badge";
+import { CompatBadge } from "@/components/subnets/compat-badge";
+import type { SubnetCompat } from "@/lib/infranex/compat";
 import type { Subnet } from "@/lib/infranex/types";
 
 interface SubnetCardProps {
@@ -18,6 +20,8 @@ interface SubnetCardProps {
   };
   score?: number;
   rank?: number;
+  /** GPU hosting compatibility (bare metal / TEE / cloud-OK tier). */
+  compat?: SubnetCompat;
   onSelect?: (s: Subnet) => void;
   onEdit?: (s: Subnet) => void;
   onViewRequirements?: (s: Subnet) => void;
@@ -53,7 +57,7 @@ function FieldBadge({
   return <span>{children}</span>;
 }
 
-export function SubnetCard({ subnet: s, score, rank, onSelect, onEdit, onViewRequirements }: SubnetCardProps) {
+export function SubnetCard({ subnet: s, score, rank, compat, onSelect, onEdit, onViewRequirements }: SubnetCardProps) {
   const status = getStatusColor(s.status);
   const up = s.change24h >= 0;
   const util = Math.min(100, (s.minersCount / s.maxNeurons) * 100);
@@ -162,6 +166,7 @@ export function SubnetCard({ subnet: s, score, rank, onSelect, onEdit, onViewReq
           <span className={cn("badge-status", status.bg, status.text)}>
             <FieldBadge field="status" liveFields={liveFields} overriddenFields={overriddenFields}>{s.status}</FieldBadge>
           </span>
+          {compat && <CompatBadge compat={compat} compact />}
           {seat.verdict !== "unknown" ? (
             <SeatChanceBadge seat={seat} />
           ) : s.registrationOpen ? (

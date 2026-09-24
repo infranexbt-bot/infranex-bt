@@ -11,7 +11,7 @@
 // Never        : silently render nothing (the old `if (!req) return null` bug
 //                that made Requirements appear broken for live-only subnets).
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   Dialog,
   DialogContent,
@@ -44,6 +44,9 @@ import {
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { assessSeatChance, formatBurnTao } from "@/lib/infranex/miner-score";
+import { useSubnetOverrides } from "@/lib/infranex/use-subnet-overrides";
+import { resolveCompat } from "@/lib/infranex/compat";
+import { CompatSection } from "@/components/subnets/compat-section";
 import type { Subnet } from "@/lib/infranex/types";
 import type { SubnetRequirementsProfile } from "@/lib/devops/subnet-requirements";
 
@@ -69,6 +72,13 @@ export function SubnetRequirementsDialog({
   const { toast } = useToast();
   const [state, setState] = useState<FetchState>({ phase: "idle" });
   const [refreshing, setRefreshing] = useState(false);
+  // COMPAT-LAYER — GPU hosting compatibility (bare metal / TEE / cloud-OK).
+  const { data: overrides } = useSubnetOverrides();
+  const compat = useMemo(() => {
+    if (!subnet) return null;
+    const ov = overrides?.get(subnet.netuid);
+    return resolveCompat(subnet.netuid, ov?.hosting, subnet.githubUrl ?? null);
+  }, [subnet, overrides]);
 
   const netuid = subnet?.netuid;
 
@@ -163,6 +173,8 @@ export function SubnetRequirementsDialog({
         </DialogHeader>
 
         <SeatAvailabilitySection subnet={subnet} />
+
+        {compat && <CompatSection compat={compat} subnetName={subnet.name} />}
 
         {state.phase === "loading" && <LoadingState netuid={subnet.netuid} />}
 

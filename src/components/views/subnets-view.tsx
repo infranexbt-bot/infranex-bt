@@ -10,14 +10,23 @@ import { SubnetEditDialog } from "@/components/subnets/subnet-edit-dialog";
 import { SubnetRequirementsDialog } from "@/components/subnets/subnet-requirements-dialog";
 import { useNetwork, mergeSubnets, mergeOpportunities } from "@/lib/infranex/use-network";
 import { useSubnetOverrides, useSyncAllSubnets } from "@/lib/infranex/use-subnet-overrides";
+import {
+  resolveCompat,
+  matchCompatFilter,
+  COMPAT_TIER_META,
+  type CompatFilter,
+  type SubnetCompat,
+} from "@/lib/infranex/compat";
+import { CompatLegend } from "@/components/subnets/compat-badge";
 import { useToast } from "@/hooks/use-toast";
-import { Search, RefreshCw, Network, Info, Github, CheckCircle2, AlertTriangle } from "lucide-react";
+import { Search, RefreshCw, Network, Info, Github, CheckCircle2, AlertTriangle, ServerCrash } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Subnet } from "@/lib/infranex/types";
 
 export function SubnetsView() {
   const [search, setSearch] = useState("");
   const [activeOnly, setActiveOnly] = useState<"all" | "active">("all");
+  const [compatFilter, setCompatFilter] = useState<CompatFilter>("all");
   const [editSubnet, setEditSubnet] = useState<Subnet | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [reqSubnet, setReqSubnet] = useState<Subnet | null>(null);
@@ -29,6 +38,32 @@ export function SubnetsView() {
   const didAutoSync = useRef(false);
 
   const subnets = mergeSubnets(snap, overrides);
+
+  // COMPAT-LAYER — resolve each subnet's GPU hosting compatibility
+  // (live GitHub scrape > full-audit seed > structural caveats).
+  const compatByNetuid = useMemo(() => {
+    const map = new Map<number, SubnetCompat>();
+    for (const s of subnets) {
+      const ov = overrides?.get(s.netuid);
+      map.set(
+        s.netuid,
+        resolveCompat(s.netuid, ov?.hosting, s.githubUrl ?? null)
+      );
+    }
+    return map;
+  }, [subnets, overrides]);
+
+  const compatCounts = useMemo(() => {
+    const c = { bareMetal: 0, tee: 0, cloudOk: 0, cpu: 0, caveats: 0 };
+    for (const v of compatByNetuid.values()) {
+      if (v.tier === "bare-metal-only") c.bareMetal++;
+      else if (v.tier === "tee-required") c.tee++;
+      else if (v.containerCloudsOk) c.cloudOk++;
+      if (v.tier === "cpu-only") c.cpu++;
+      if (COMPAT_TIER_META[v.tier].caveat) c.caveats++;
+    }
+    return c;
+  }, [compatByNetuid]);
 
   // DATA-AUDIT-1 — card scores/ranks come from the LIVE Miner's Ledger run
   // over the current snapshot (the old static fabricated scores are gone).
@@ -55,11 +90,18 @@ export function SubnetsView() {
       );
     }
     if (activeOnly === "active") r = r.filter((s) => s.status === "active");
+    // COMPAT-LAYER — GPU hosting compatibility filter chips
+    if (compatFilter !== "all") {
+      r = r.filter((s) => {
+        const c = compatByNetuid.get(s.netuid);
+        return c ? matchCompatFilter(compatFilter, c) : false;
+      });
+    }
     // DATA-AUDIT-1: the "registration open" filter is gone — the chain scan
     // has no registration-open signal, so the old fabricated flags were
     // removed instead of being presented as data.
     return r;
-  }, [search, activeOnly, subnets]);
+  }, [search, activeOnly, compatFilter, subnets, compatByNetuid]);
 
   const handleEdit = (s: Subnet) => {
     setEditSubnet(s);
@@ -173,28 +215,64 @@ export function SubnetsView() {
         </CardContent>
       </Card>
 
+      {/* COMPAT-LAYER — tier color legend */}
       <Card className="border-border/60 bg-card/40 backdrop-blur-sm">
-        <CardContent className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Search by name, category, netuid or tag…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-9"
-              aria-label="Search subnets"
-            />
+        <CardContent className="py-2.5">
+          <CompatLegend />
+        </CardContent>
+      </Card>
+
+      <Card className="border-border/60 bg-card/40 backdrop-blur-sm">
+        <CardContent className="flex flex-col gap-3 py-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Search by name, category, netuid or tag…"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-9"
+                aria-label="Search subnets"
+              />
+            </div>
+            <div className="flex gap-2">
+              {(["all", "active"] as const).map((k) => (
+                <Button
+                  key={k}
+                  variant={activeOnly === k ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setActiveOnly(k)}
+                  className="capitalize"
+                >
+                  {k}
+                </Button>
+              ))}
+            </div>
           </div>
-          <div className="flex gap-2">
-            {(["all", "active"] as const).map((k) => (
+          {/* COMPAT-LAYER — GPU hosting compatibility filter chips */}
+          <div className="flex flex-wrap items-center gap-1.5 border-t pt-3">
+            <ServerCrash className="mr-1 h-3.5 w-3.5 text-muted-foreground" />
+            <span className="mr-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+              GPU compat
+            </span>
+            {(
+              [
+                ["all", `All (${subnets.length})`],
+                ["bare-metal-only", `Bare metal only (${compatCounts.bareMetal})`],
+                ["tee-required", `TEE required (${compatCounts.tee})`],
+                ["cloud-ok", `RunPod/Vast OK (${compatCounts.cloudOk})`],
+                ["cpu", `CPU only (${compatCounts.cpu})`],
+                ["caveats", `Caveats (${compatCounts.caveats})`],
+              ] as Array<[CompatFilter, string]>
+            ).map(([k, label]) => (
               <Button
                 key={k}
-                variant={activeOnly === k ? "default" : "outline"}
+                variant={compatFilter === k ? "default" : "outline"}
                 size="sm"
-                onClick={() => setActiveOnly(k)}
-                className="capitalize"
+                className="h-7 px-2.5 text-[11px]"
+                onClick={() => setCompatFilter(k)}
               >
-                {k}
+                {label}
               </Button>
             ))}
           </div>
@@ -218,6 +296,7 @@ export function SubnetsView() {
                 subnet={s}
                 score={sr?.score}
                 rank={sr?.rank}
+                compat={compatByNetuid.get(s.netuid)}
                 onEdit={handleEdit}
                 onViewRequirements={handleViewRequirements}
               />

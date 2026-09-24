@@ -2541,3 +2541,23 @@ Work Log:
 
 Stage Summary:
 - App live and healthy, admin authenticated, chain data current
+
+---
+Task ID: compat-layer-build-1
+Agent: main
+Task: Build the Subnet GPU Compatibility layer (badges, filters, hosting card) per approved plan
+
+Work Log:
+- Sandbox reset had wiped tool-results + download CSV (both gitignored); scripts/rebuild-audit.py now regenerates the full audit from DB + GitHub in ~1 min; re-ran harvest/classify/seed
+- New src/lib/infranex/compat-seed.ts: AUTO-GENERATED 128-subnet audit classification (3 bare-metal-only, 8 tee-required, 39 gpu-flexible, 41 cpu-only, 22 no-repo, 11 unclear, 4 parked) with verbatim README quotes for strict tiers
+- New src/lib/infranex/compat.ts: CompatTier types, COMPAT_TIER_META (colors/labels/descriptions), resolveCompat() with live-scrape > audit seed > structural precedence, matchCompatFilter()
+- New components: compat-badge.tsx (color-coded badge + tooltip with instructions/evidence, CompatLegend row), compat-section.tsx (Hosting Compatibility card: verdict, requirement chips, evidence quote, where-to-rent hints)
+- Wired into subnet-card.tsx (badge on every card), subnets-view.tsx (6 filter chips with live counts + legend card), subnet-requirements-dialog.tsx (compat card at top)
+- Generator scripts/gen-compat-seed.py (note-comma TS syntax bug fixed); lint clean on all new files
+- E2E verified in browser: 129 cards with badges; Bare-metal-only filter shows exactly Chutes + Ormas; Chutes dialog shows verdict "Cannot run on RunPod/Vast...", chips [bare metal, static 1:1 IP, TEE, GPU required], LIVE-SCRAPE evidence quote (current chutes README: TEE-exclusive - live-over-curate precedence working), Latitude.sh rent hint; zero console errors
+- Dev server via managed init script (setsid/nohup processes get reaped; EADDRINUSE resolved on init re-run)
+
+Stage Summary:
+- Feature shipped: GPU hosting compatibility layer live in Subnets view + requirements dialog
+- Data precedence: live GitHub scrape beats audit seed beats structural caveats; caveat subnets (no-repo/discord-only) surfaced with amber warnings, never shown as OK
+- CSV deliverable regenerated at download/subnet-gpu-hosting-requirements.csv
