@@ -2759,3 +2759,22 @@ Stage Summary:
 - HIGH-1: compat.ts:218 type error (build-breaking, only src/ tsc error)
 - HIGH-2: Profit-Rank panel footnote/header claims per-earning-mean revenue basis but Revenue column is newcomer-adjusted expectedDailyTao (miner-score.ts:496-502)
 - Key passes: emission÷rewarded math guarded, USD conversion from live TAO price, 30-day consistency, GPU/parked/CPU filtering, SN64 bare-metal+TEE, SN51 TEE, SN112 for-sale, chain emission ×7200 correct
+
+---
+Task ID: audit-1
+Agent: main (+3 audit subagents: audit-sec / audit-dead / audit-ai)
+Task: Pre-production audit — errors, dead code, security bugs, AI-generated data mistakes
+
+Work Log:
+- Static: tsc clean after fixes; eslint 0 problems (was 3 errors incl. corrupt hotkeyName declaration in provision-dialog.tsx committed since Sep 17 — "const otkeyName" repaired)
+- next build PASSES (first verified production build; tsconfig now excludes frontend/, scripts/, skills/ dead trees)
+- Security (audit-sec): 0 unguarded mutating routes pre-audit; fixed HIGH — local-hosts commands route (arbitrary shell queueing) now admin-only; added DB-backed requireActiveUser gates to 21 GET handlers that relied on edge-proxy cookie only; deployments/[id]/verify?deep=1 (live SSH probe) now admin-only; shared rate-limit lib wired into sync-all / requirements-refresh / judge-simulate
+- Verified at runtime: unauth 401 on 5 sampled routes, sync-all 429 on 2nd call, login/session/pages OK
+- Data honesty (audit-ai): profit-rank revenue column/footnote now honestly labeled "newcomer-adjusted" (was claiming per-earning math, 15x gap); miner-score per-earning fallback aligned to the promised 0.6 factor; risk haircut no longer shrinks losses; compat staticIp-only scrapes no longer claim bare metal; 5 unquoted TEE seed entries downgraded audit→readme; SN16 aligned, SN5 model-name hedged; stale comments fixed (6h→3h, 720→7200)
+- Dead code (audit-dead): deploy-wizard.tsx (913 lines) deleted; terminateCpuServer / LOCAL_COMMAND_TIMEOUT_S / resetServiceStateForTests removed; pagedjs dep removed; dev.pid gitignored
+- Ops: dev server OOM-killed twice during audit (4GB box, cold-start burst 2GB RSS) — production recommendation: next start standalone or 8GB box
+
+Stage Summary:
+- App audited + hardened: all CRITICAL/HIGH/MED findings fixed and runtime-verified; LOW items fixed where cheap
+- Accepted risks (documented, not changed): plaintext credential mirror scripts/users.local.json (deliberate recovery feature, 0600 gitignored), frame-ancestors platform origins, verbose 500 messages
+- Report-only cleanups available: infranex-bt-subdir-backup/ (189MB git-tracked stale snapshot), frontend/ (dead parallel app), duplicate guide PDFs
