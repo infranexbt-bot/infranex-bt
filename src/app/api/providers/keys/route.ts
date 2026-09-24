@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireActiveUserCookies } from "@/lib/auth-admin";
 import { db } from "@/lib/db";
 import { requireActiveAdmin } from "@/lib/auth-admin";
 import { decryptSecret, encryptSecret } from "@/lib/devops/crypto";
@@ -49,6 +50,11 @@ function serialize(row: {
 
 /** List every provider with its key-management state (never the key itself). */
 export async function GET() {
+  // AUDIT-SEC-2: DB-backed session gate (revocation + active check),
+  // not just the edge-proxy cookie check.
+  const gate = await requireActiveUserCookies();
+  if ("error" in gate) return NextResponse.json({ error: gate.error }, { status: gate.status });
+
   const rows = await db.providerKey.findMany();
   const keys = PROVIDER_META.map((meta) => {
     const row = rows.find((r) => r.provider === meta.id);

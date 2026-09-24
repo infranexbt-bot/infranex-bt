@@ -39,7 +39,7 @@ import {
 } from "lucide-react";
 
 const usd = (n: number) =>
-  `${n < 0 ? "-" : "+"}$${Math.round(Math.abs(n)).toLocaleString()}`;
+  `$${Math.round(Math.abs(n)).toLocaleString()}`;
 
 const usdFlat = (n: number) => `$${Math.round(Math.abs(n)).toLocaleString()}`;
 
@@ -174,7 +174,7 @@ export function ProfitRankPanel({
                   <th className="py-1.5 pr-2 text-right font-medium">
                     Emission /miner
                   </th>
-                  <th className="py-1.5 pr-2 text-right font-medium">Revenue</th>
+                  <th className="py-1.5 pr-2 text-right font-medium" title="Newcomer-adjusted gross from the Opportunities Ledger (per-registered × median incentive share, ramp-adjusted) × live TAO price — what a NEW mid-pack miner should expect, not the per-earning average">Revenue (newcomer-adj.)</th>
                   <th className="py-1.5 pr-2 text-right font-medium">Rig rent</th>
                   <th className="py-1.5 pr-2 text-right font-medium">Net /mo</th>
                   <th className="py-1.5 pr-2 text-right font-medium">Margin</th>
@@ -376,8 +376,11 @@ export function ProfitRankPanel({
 
         {/* Assumptions footnote */}
         <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">
-          Revenue = subnet miner emission ÷ rewarded UIDs (per-earning miner) ×
-          live TAO price. Rig rent = hosting-aware GPU-class rate × fleet count
+          Emission/miner = subnet miner emission ÷ rewarded UIDs (per-earning
+          top-line) × live TAO price. Revenue = the Opportunities Ledger's
+          NEWCOMER-adjusted gross (per-registered × median incentive share,
+          ramp-adjusted) — deliberately more conservative than the per-earning
+          top-line. Rig rent = hosting-aware GPU-class rate × fleet count
           (Vast/RunPod-class container rate, or the dedicated bare-metal rate
           where hourly clouds are rejected) — then storage, infra and opex from
           Profitability settings. Ranked by net; flags surface whale-means,

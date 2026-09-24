@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireActiveUser } from "@/lib/auth-admin";
 import {
   createDeployment,
   listDeployments,
@@ -26,6 +27,11 @@ export const dynamic = "force-dynamic";
 // deployments (ownerUserId). Default (no scope) returns everything — the
 // team-shared model: pre-tenancy rows have no owner and stay visible to all.
 export async function GET(req: NextRequest) {
+  // AUDIT-SEC-2: DB-backed session gate (revocation + active check),
+  // not just the edge-proxy cookie check.
+  const gate = await requireActiveUser(req);
+  if ("error" in gate) return NextResponse.json({ error: gate.error }, { status: gate.status });
+
   const scope = req.nextUrl.searchParams.get("scope");
   if (scope === "mine") {
     const session = await verifySessionToken(req.cookies.get(SESSION_COOKIE)?.value);

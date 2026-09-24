@@ -2698,3 +2698,64 @@ Work Log:
 Stage Summary:
 - Feature shipped: every subnet dialog now answers "what does this subnet do and what would I actually be doing as a miner" with always-visible evidence confidence
 - Seed regenerable from synthesis batches: python3 scripts/gen-subnet-jobs-seed.py
+
+---
+Task ID: audit-dead
+Agent: general-purpose
+Task: Dead code sweep (read-only)
+
+Work Log:
+- Scanned all 266 .ts/.tsx under src/ (71 entry points excluded); per-file stem grep + import-path grep (relative + @/ forms) + dynamic-import string check for every non-entry file
+- Traced every ≤3-reference file to its concrete importer; verified relative-subpath imports (./deployment/ticker, ./providers/*) manually — all resolved live
+- deploy-wizard.tsx: 0 references by stem, 0 by export name DeployWizard, 0 dynamic-import strings across src/ (913 lines, full GPU-rental wizard)
+- Export spot-check: 15 largest lib files + next 30 by exports vs references incl. same-file usage (avoids false positives from internal registry maps); 4 truly dead exports found
+- UI components: all 23 src/components/ui/* verified imported; npm deps verified per package (incl. dynamic import of z-ai-web-dev-sdk in ops-agent.ts, CSS @import of tw-animate-css, implicit react-dom)
+- Artifacts: console.log census = 0 in src (18 console.warn/error only); comment-run scan of all files — 55 runs ≥10 lines all proved to be doc headers (sampled 4 mid-file ones); TODO/FIXME census = 0 real markers
+- Characterized infranex-bt-subdir-backup/ (189MB git-tracked snapshot of early 8-view iteration w/ own package.json+bun.lock+Caddyfile), frontend/ (parallel Supabase Next app superseded per docs/migration-v2.md), stale dev.pid, triple duplicate devops-engine-miner-guide.pdf (md5-identical)
+- Duplicate-logic groups identified via cross-lib export census + formula-string greps (TAO formatters, band classifiers, emission math, crypto token helpers, merge helpers)
+
+Stage Summary:
+- Files unused: 1 (src/components/deployments/deploy-wizard.tsx, 913 lines, HIGH); unused UI components: 0/23; unused npm deps: 1 (pagedjs, app-side)
+- Dead exports: 4 (terminateCpuServer, buildLauncherScript [script-only consumer], resetServiceStateForTests, LOCAL_COMMAND_TIMEOUT_S) + ~20 over-exported internal-only names
+- Hygiene: console.log 0; TODO/FIXME 0; commented-out code blocks 0; root strays: backup dir + frontend/ + dev.log/dev.pid + 2 dup PDFs + 3 one-off root scripts
+- Suggested next actions: delete deploy-wizard.tsx + pagedjs dep, untrack infranex-bt-subdir-backup/ + frontend/, remove dup PDFs, drop 4 dead exports
+---
+Task ID: audit-sec
+Agent: general-purpose
+Task: Security audit (read-only)
+
+Work Log:
+- Read auth libs fully (src/lib/auth.ts, auth-admin.ts, auth-users.ts, src/proxy.ts): HMAC-signed 7d session cookie (httpOnly/lax/conditional-secure), fail-closed DB-backed gates requireActiveUser/requireActiveAdmin with live role re-read, scrypt+timingSafeEqual code verify, edge proxy gates everything except 10 public paths
+- Enumerated all 70 API routes (src/app/api/**/route.ts) and grepped every file for requireActive* imports; read ~20 route files to verify guard placement per-handler (GET vs POST)
+- Found 46/70 route files DB-gated on all mutating handlers; 15 files fully proxy-only (all GET-only: cpu-offers, gpu-offers, judge/profiles, judge/runs, monitoring, network, subnet-overrides, subnets metadata, odds-history, workers/status, devops/monitor, devops/subnet-options, devops/subnet-requirements, devops/wallet-registration, deployments/[id]/verify); 3 auth endpoints + 6 machine endpoints (HMAC/one-time-token) public by design; ZERO unguarded mutating routes
+- Verified machine auth: daemon bridge HMAC-SHA256 (path-bound, ±5min skew, timing-safe, 6min replay cache); local agent enrollment (one-time sha256-hashed token, 30min expiry) then per-host HMAC
+- Injection sweep: zero $queryRaw/$executeRaw; SSH command construction reviewed (installer.ts env/unit lines escaped '...'\''+dqEscape, NAME_RE charset validation, repo URL host-pinned to github.com with strict owner/repo charset per AUDIT-SEC-2); daemon apply_config env uses shlex.quote; local agent runs queued commands shell=True (finding)
+- SSRF sweep: webhook URLs AES-encrypted + validated at create AND delivery (prod blocks loopback/RFC1918/169.254/ULA); github-scraper fetches pinned to github.com/raw.githubusercontent; provider APIs fixed hosts; no user-controlled URL fetch
+- XSS sweep: only 2 static inline scripts in layout.tsx; scraped README never HTML-rendered (no markdown lib, no dangerouslySetInnerHTML on user data)
+- Secrets sweep: no ghp_/github_pat_/sk-/AKIA/PEM in tracked source (only doc placeholders + redacted fixtures); .env, .devops-secret, scripts/users.local.json all gitignored and untracked (git check-ignore verified); DEVOPS_SECRET/.devops-secret (0600) AES-256-GCM key management reviewed
+- Reviewed authz: deployments have ownerUserId "light tenancy" (opt-in ?scope=mine; default list = everything; per-ID reads/deep SSH verify unscoped); hosts GET strips secretEnc (length hint only); provider keys GET returns maskKey (first/last 4 chars) to any session
+- Checked misc: no CORS headers (same-origin), frame-ancestors *.z.ai/*.space-z.ai, e.message echoed in many 500s, rate limiting only on login (10/5min/IP, x-real-ip) + devops/agent (15s/40 per day); none on sync-all/subnet-requirements?refresh=1/judge/simulate
+
+Stage Summary:
+- Counts: 1 HIGH, 4 MEDIUM, 7 LOW findings; 0 unauthenticated mutating routes (15 of 70 route files proxy-only, all GET-only)
+- HIGH: any non-admin user can queue arbitrary shell commands (agent runs shell=True) on operator laptops via POST /api/devops/local-hosts/[id]/commands
+- MEDIUM: 7d revocation gap on proxy-only GETs (incl. verify?deep=1 live SSH probes + fleet logs); no object-level tenancy on deployment reads/verify; plaintext access-code mirror scripts/users.local.json + /tmp copy; no throttling on expensive scrape/compute routes
+- Strong baseline: fail-closed DB gates, timing-safe crypto everywhere, no raw SQL, no XSS, no hardcoded secrets, SSRF/injection previously hardened (AUDIT-SEC-1/2 comments verified in place)
+---
+Task ID: audit-ai
+Agent: general-purpose
+Task: AI-mistake data/logic audit (read-only)
+
+Work Log:
+- Read all target files fully: profit-rank.ts, profit-rank-panel.tsx, economics.ts, compat-seed.ts, compat.ts, subnet-jobs-seed.ts, data.ts, live-merge.ts, mechanics.ts, compat-badge.tsx + supporting profitability.ts, miner-score.ts, chain.ts, subnets-view.tsx, use-profitability.ts
+- Cross-checked db/custom.db (read-only sqlite3): ChainSnapshot latest (129 subnets, taoPriceUsd 294.03), ProfitabilitySettings (minNetProfitTargetUsd=300), SubnetOverride hosting flags (bareMetalOnly: [64]; teeRequired: [4,28,51,64,90])
+- Node/python parse of subnet-jobs-seed.ts (129/129 netuids 0-128, no gaps/dups) and compat-seed.ts (128/128, 1-128); checked confidence-vs-source contradictions, empty fields, parked-category work descriptions, quote coverage
+- Ran npx tsc --noEmit: exactly 1 error in src/ (compat.ts:218 'readme' not in SubnetCompat source union); frontend/ errors pre-existing/out of scope
+- Recomputed SN64 P&L from live chain: per-earning 45.24 TAO/d ($399k/mo) vs Revenue column 2.93 TAO/d ($25.9k/mo) — 15.4x gap between footnote formula and code
+- Verified math curve comments in miner-score (netRoi log10), rent multiples (2.5-2.8x), emission/day ×7200 fix, ground truths SN64/SN51/SN0/SN112/SN16
+
+Stage Summary:
+- 13 findings: 0 CRITICAL / 2 HIGH / 5 MEDIUM / 6 LOW; verdict logic (minNetProfitTargetUsd 300 → AVOID below) verified correct end-to-end; seed data internally consistent and matches live chain magnitudes
+- HIGH-1: compat.ts:218 type error (build-breaking, only src/ tsc error)
+- HIGH-2: Profit-Rank panel footnote/header claims per-earning-mean revenue basis but Revenue column is newcomer-adjusted expectedDailyTao (miner-score.ts:496-502)
+- Key passes: emission÷rewarded math guarded, USD conversion from live TAO price, 30-day consistency, GPU/parked/CPU filtering, SN64 bare-metal+TEE, SN51 TEE, SN112 for-sale, chain emission ×7200 correct

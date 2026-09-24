@@ -487,8 +487,8 @@ export function scoreMinersLedger(inputs: {
     rewarded > 0 && minerEmissionTaoPerDay > 0
       ? minerEmissionTaoPerDay / rewarded
       : minerEmissionTaoPerDay > 0
-        ? perRegisteredDailyTao // vec unavailable — no zero-slot discount available
-        : 0;
+        ? perRegisteredDailyTao * 0.6 // AUDIT-AI-1: vec unavailable — match the
+        : 0; // conservative 0.6 factor the "est." tooltip promises (was 1.0)
   const rewardMedianShare = live.incentiveMedianShare ?? 1;
   // Newcomer-adjusted mid-pack revenue:
   //  - reward vec available  → perRegistered × medianShare

@@ -5,6 +5,7 @@ import {
   type OddsHistorySample,
   type WinnerTrend,
 } from "@/lib/infranex/registration-odds";
+import { requireActiveUserRequest } from "@/lib/auth-admin";
 
 export const dynamic = "force-dynamic";
 
@@ -77,6 +78,11 @@ async function loadSamplesByNetuid(): Promise<Map<number, OddsHistorySample[]>> 
 let batchCache: { at: number; trends: Record<string, WinnerTrend> } | null = null;
 
 export async function GET(request: Request) {
+  // AUDIT-SEC-2: DB-backed session gate (revocation + active check),
+  // not just the edge-proxy cookie check.
+  const gate = await requireActiveUserRequest(request);
+  if ("error" in gate) return NextResponse.json({ error: gate.error }, { status: gate.status });
+
   const url = new URL(request.url);
   const raw = url.searchParams.get("netuid");
 

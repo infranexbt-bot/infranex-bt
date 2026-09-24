@@ -41,7 +41,7 @@ export interface HostingScrape {
 export interface SubnetCompat {
   tier: CompatTier;
   /** Where the classification came from. */
-  source: "live-scrape" | "audit" | "inferred" | "structural";
+  source: "live-scrape" | "audit" | "readme" | "inferred" | "structural";
   /** Plain-English verdict for the operator. */
   instructions: string;
   /** RunPod / Vast / Akash container clouds allowed? */
@@ -191,17 +191,27 @@ export function resolveCompat(
     const tee = !!h.teeRequired;
     const sip = !!h.staticIpRequired;
     const quote = h.notes?.[0] ?? h.evidence?.[0];
+    // AUDIT-FIX-1: staticIp-only scrapes must NOT claim bare metal — a static
+    // IP is satisfiable on a container cloud with a dedicated-IP add-on. Only
+    // an explicit bareMetalOnly flag lifts the tier to bare-metal-only.
+    const tier: CompatTier = bareMetal
+      ? "bare-metal-only"
+      : tee
+        ? "tee-required"
+        : "provider-friendly";
     return {
-      tier: bareMetal ? "bare-metal-only" : "tee-required",
+      tier,
       source: "live-scrape",
       instructions: bareMetal
         ? INSTRUCTIONS["bare-metal-only"]
-        : INSTRUCTIONS["tee-required"],
-      containerCloudsOk: false,
-      needsBareMetal: true,
+        : tee
+          ? INSTRUCTIONS["tee-required"]
+          : INSTRUCTIONS["provider-friendly"],
+      containerCloudsOk: !bareMetal,
+      needsBareMetal: bareMetal,
       needsTee: tee,
       needsStaticIp: sip,
-      requirements: chips({ bareMetal: true, tee, staticIp: sip, gpu: true }),
+      requirements: chips({ bareMetal, tee, staticIp: sip, gpu: true }),
       quote,
       evidenceSource: "GitHub sync (subnet README)",
       note: h.notes?.slice(0, 2).join(" · "),

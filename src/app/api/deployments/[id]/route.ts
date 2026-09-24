@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireActiveUserRequest } from "@/lib/auth-admin";
 import {
   getDeployment,
   deleteDeployment,
@@ -12,6 +13,11 @@ export async function GET(
   _req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // AUDIT-SEC-2: DB-backed session gate (revocation + active check),
+  // not just the edge-proxy cookie check.
+  const gate = await requireActiveUserRequest(_req);
+  if ("error" in gate) return NextResponse.json({ error: gate.error }, { status: gate.status });
+
   const { id } = await params;
   const deployment = await getDeployment(id);
   if (!deployment) return NextResponse.json({ error: "Not found" }, { status: 404 });

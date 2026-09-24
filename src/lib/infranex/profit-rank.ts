@@ -39,7 +39,9 @@ export interface ProfitRankRow {
   /** True when the per-miner figure used the conservative fallback
    *  (no reward vec → 0.6 × mean-over-registered estimate). */
   estimatedPerMiner: boolean;
-  /** Gross revenue per earning miner, monthly USD. */
+  /** Newcomer-adjusted gross revenue (Opportunities Ledger: per-registered ×
+   *  median incentive share, ramp-adjusted), monthly USD — NOT the
+   *  per-earning top-line. See the panel footnote. */
   revenueMonthlyUsd: number;
   revenueDailyUsd: number;
 

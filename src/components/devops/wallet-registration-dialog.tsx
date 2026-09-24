@@ -190,7 +190,7 @@ export function WalletRegistrationDialog({
     if (open && journey && reg.netuid !== journey.netuid) {
       saveWalletRegistration({ ...reg, netuid: journey.netuid });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [open, journey?.netuid]);
 
   // Deployment hand-off: lock onto the deployment's subnet + wallet names.
@@ -209,7 +209,7 @@ export function WalletRegistrationDialog({
         });
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [open, deployment?.deploymentId]);
 
   const netuid = deployment ? deployment.netuid : (reg.netuid ?? journey?.netuid ?? null);

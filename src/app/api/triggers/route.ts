@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireActiveUserCookies } from "@/lib/auth-admin";
 import {
   listTriggerEvents,
   runTriggerPass,
@@ -26,6 +27,11 @@ async function actorOf(req: NextRequest): Promise<string> {
 // GET /api/triggers — open + recent events, plus UID-defense telemetry
 // (latest + 40-sample history per started deployment).
 export async function GET() {
+  // AUDIT-SEC-2: DB-backed session gate (revocation + active check),
+  // not just the edge-proxy cookie check.
+  const gate = await requireActiveUserCookies();
+  if ("error" in gate) return NextResponse.json({ error: gate.error }, { status: gate.status });
+
   try {
     const events = await listTriggerEvents();
     let uid: Awaited<ReturnType<typeof getUidDefensePayload>> = [];

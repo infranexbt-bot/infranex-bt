@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireActiveUser, requireActiveAdmin } from "@/lib/auth-admin";
 import { db } from "@/lib/db";
 import { checkRegistration, isDecodableSs58 } from "@/lib/infranex/deployment/registration";
 import { transportFor } from "@/lib/infranex/deployment/real-setup";
@@ -219,9 +220,23 @@ export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // AUDIT-SEC-2: DB-backed session gate (revocation + active check),
+  // not just the edge-proxy cookie check.
+  const gate = await requireActiveUser(req);
+  if ("error" in gate) return NextResponse.json({ error: gate.error }, { status: gate.status });
+
   try {
     const { id } = await params;
     const deep = new URL(req.url).searchParams.get("deep") === "1";
+
+    // AUDIT-SEC-3: deep mode opens the deployment's live SSH transport and
+    // runs probes on the remote host — restrict it to admins. Plain verify
+    // stays available to every active role.
+    if (deep) {
+      const adminGate = await requireActiveAdmin(req);
+      if ("error" in adminGate)
+        return NextResponse.json({ error: adminGate.error }, { status: adminGate.status });
+    }
 
     const row = await db.deployment.findUnique({ where: { id } });
     if (!row) return NextResponse.json({ error: "Not found" }, { status: 404 });

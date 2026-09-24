@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireActiveUser } from "@/lib/auth-admin";
+import { rateLimit, rateLimitRecord } from "@/lib/infranex/rate-limit";
 import { runSimulation } from "@/lib/infranex/judge/service";
 import type { MinerSpec } from "@/lib/infranex/judge/types";
 
@@ -25,6 +26,11 @@ export async function POST(req: NextRequest) {
   if ("error" in gate) {
     return NextResponse.json({ error: gate.error }, { status: gate.status });
   }
+  // AUDIT-SEC-4: simulation is a compute-burn endpoint — cap per operator.
+  const rl = rateLimit(`judge-sim:${gate.session.uid}`, 15_000, 40);
+  if (!rl.ok) return NextResponse.json({ error: rl.message }, { status: 429 });
+  rateLimitRecord(`judge-sim:${gate.session.uid}`);
+
   try {
     const body = (await req.json()) as { netuid?: number; spec?: unknown };
     const netuid = Number(body.netuid);

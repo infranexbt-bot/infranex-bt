@@ -26,7 +26,16 @@ export type ActiveGate =
   | { error: string; status: 401 | 403 | 503 };
 
 async function gate(req: NextRequest, requireAdminRole: boolean): Promise<ActiveGate> {
-  const session = await verifySessionToken(req.cookies.get(SESSION_COOKIE)?.value);
+  return gateForToken(req.cookies.get(SESSION_COOKIE)?.value, requireAdminRole);
+}
+
+/**
+ * AUDIT-SEC-2 — token-level gate shared by all entry shapes.
+ * The DB re-check (revocation + role) is the security core; the cookie can
+ * arrive via NextRequest map, a plain Request header, or next/headers jar.
+ */
+async function gateForToken(token: string | undefined | null, requireAdminRole: boolean): Promise<ActiveGate> {
+  const session = await verifySessionToken(token);
   if (!session) return { error: "Not signed in", status: 401 };
 
   // Revocation + role check — a deactivated or deleted account's token is
@@ -60,4 +69,28 @@ export function requireActiveAdmin(req: NextRequest): Promise<ActiveGate> {
 /** Valid session + account still active (any role). */
 export function requireActiveUser(req: NextRequest): Promise<ActiveGate> {
   return gate(req, false);
+}
+
+/**
+ * AUDIT-SEC-2 — gate for handlers that receive a standard `Request`
+ * (no NextRequest cookie map). Same DB-backed revocation/role semantics.
+ */
+export async function requireActiveUserRequest(req: Request): Promise<ActiveGate> {
+  const header = req.headers.get("cookie") ?? "";
+  const pair = header
+    .split(";")
+    .map((c) => c.trim())
+    .find((c) => c.startsWith(SESSION_COOKIE + "="));
+  const token = pair ? decodeURIComponent(pair.slice(SESSION_COOKIE.length + 1)) : undefined;
+  return gateForToken(token, false);
+}
+
+/**
+ * AUDIT-SEC-2 — gate for handlers with NO request parameter at all.
+ * Reads the session cookie via next/headers (works in route handlers).
+ */
+export async function requireActiveUserCookies(): Promise<ActiveGate> {
+  const { cookies } = await import("next/headers");
+  const jar = await cookies();
+  return gateForToken(jar.get(SESSION_COOKIE)?.value, false);
 }

@@ -13,6 +13,7 @@ import {
 } from "@/lib/infranex/miner-mindset";
 import { fetchLiveSnapshot, type LiveNetworkSnapshot } from "@/lib/infranex/chain";
 import { computeRunway, SS58_RE, type RunwayAssessment } from "@/lib/infranex/runway";
+import { requireActiveUserCookies } from "@/lib/auth-admin";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
@@ -179,6 +180,11 @@ export interface DevopsMonitorPayload {
 // ---------------------------------------------------------------------------
 
 export async function GET() {
+  // AUDIT-SEC-2: DB-backed session gate (revocation + active check),
+  // not just the edge-proxy cookie check.
+  const gate = await requireActiveUserCookies();
+  if ("error" in gate) return NextResponse.json({ error: gate.error }, { status: gate.status });
+
   try {
     const cached = globalForCache.__devopsMonitorCache;
     if (cached && Date.now() - cached.at < CACHE_TTL_MS) {

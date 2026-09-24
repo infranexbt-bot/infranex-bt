@@ -176,7 +176,7 @@ export interface LiveSubnetMetrics {
   movingPrice: number; // alpha price in TAO raw units
   /** Whole-subnet emission value in TAO per block (alpha issued × alpha price). */
   emission: number | null;
-  /** Whole-subnet emission value in TAO per day (per-block × 720). */
+  /** Whole-subnet emission value in TAO per day (per-block × 7200 — see AUDIT-MATH-1). */
   emissionTaoPerDay: number | null;
   /** Emission flowing to miners (incentive uids) in TAO per day. */
   minerEmissionTaoPerDay: number | null;

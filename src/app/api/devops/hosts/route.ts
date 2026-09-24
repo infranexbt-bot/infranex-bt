@@ -4,6 +4,7 @@
 // GET stays session-gated so operators can see the fleet they operate on.
 
 import { NextRequest, NextResponse } from "next/server";
+import { requireActiveUserCookies } from "@/lib/auth-admin";
 import { db } from "@/lib/db";
 import { requireActiveAdmin } from "@/lib/auth-admin";
 import { encryptSecret } from "@/lib/devops/crypto";
@@ -34,6 +35,11 @@ function publicHost(h: {
 }
 
 export async function GET() {
+  // AUDIT-SEC-2: DB-backed session gate (revocation + active check),
+  // not just the edge-proxy cookie check.
+  const gate = await requireActiveUserCookies();
+  if ("error" in gate) return NextResponse.json({ error: gate.error }, { status: gate.status });
+
   try {
     const hosts = await db.gpuHost.findMany({ orderBy: { createdAt: "desc" } });
     const installs = await db.hostInstall.findMany({ orderBy: { updatedAt: "desc" } });

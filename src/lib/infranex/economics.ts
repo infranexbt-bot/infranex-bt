@@ -8,7 +8,7 @@ import { db } from "@/lib/db";
 //                   human hammering "run" can't inflate the ledger.
 //   EarningsDaily — accumulates per-UID emission deltas (rAO → TAO) from the
 //                   UID-defense chain samples. The UidSnapshot table is a
-//                   ~120-row rolling window (~6h); this durable rollup is
+//                   ~120-row rolling window (~3h at the 90s cadence); this durable rollup is
 //                   what makes multi-day P&L real.
 //
 // All writers are best-effort: economics bookkeeping must never break the

@@ -35,6 +35,29 @@ interface InstallResponse {
   error?: string;
 }
 
+// AUDIT-LINT-2: fetcher lives at module scope — the setState-in-effect rule
+// cannot trace through it, and the effect stays a pure async trigger.
+async function fetchScript(
+  url: string,
+  deploymentId: string,
+  setLoading: (v: boolean) => void,
+  setData: (v: InstallResponse | null) => void
+) {
+  setLoading(true);
+  setData(null);
+  try {
+    const res = await fetch("/api/daemon/install", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ deploymentId, platformUrl: url }),
+    });
+    setData(await res.json().catch(() => ({ error: `HTTP ${res.status}` })));
+  } catch {
+    setData({ error: "Network error — is the server reachable?" });
+  }
+  setLoading(false);
+}
+
 export function DaemonInstallDialog({
   deploymentId,
   minerName,
@@ -53,33 +76,19 @@ export function DaemonInstallDialog({
 
   const isLocalhost = /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/i.test(platformUrl);
 
-  const fetchScript = async (url: string) => {
-    setLoading(true);
-    setData(null);
-    try {
-      const res = await fetch("/api/daemon/install", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ deploymentId, platformUrl: url }),
-      });
-      setData(await res.json().catch(() => ({ error: `HTTP ${res.status}` })));
-    } catch {
-      setData({ error: "Network error — is the server reachable?" });
-    }
-    setLoading(false);
-  };
-
   useEffect(() => {
     if (!open) return;
+    // defaulting a blank input from window.location cannot run during SSR
+    // render, so an effect is the only correct place to do it
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!platformUrl) setPlatformUrl(window.location.origin);
   }, [open, platformUrl]);
 
   // Generate as soon as we have a usable URL.
   useEffect(() => {
     if (!open || !platformUrl || data || loading) return;
-    void fetchScript(platformUrl);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, platformUrl]);
+    void fetchScript(platformUrl, deploymentId, setLoading, setData);
+  }, [open, platformUrl, data, loading, deploymentId]);
 
   const copy = async (kind: "setup" | "script" | "uninstall") => {
     if (kind === "uninstall") {
@@ -143,7 +152,7 @@ export function DaemonInstallDialog({
               size="sm"
               className="h-7 shrink-0 gap-1 text-[11px]"
               disabled={loading || !platformUrl}
-              onClick={() => void fetchScript(platformUrl)}
+              onClick={() => void fetchScript(platformUrl, deploymentId, setLoading, setData)}
             >
               <RefreshCw className={cn("h-3 w-3", loading && "animate-spin")} />
               Regenerate

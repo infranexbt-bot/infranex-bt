@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireActiveUser } from "@/lib/auth-admin";
+import { rateLimit, rateLimitRecord } from "@/lib/infranex/rate-limit";
 import { db } from "@/lib/db";
 import { curatedSubnetSeeds } from "@/lib/infranex/data";
 import { scrapeGithubMetadata } from "@/lib/infranex/github-scraper";
@@ -30,6 +31,11 @@ export async function POST(req: NextRequest) {
   // overwrites shared catalog overrides from live scraping → active-user gated
   const gate = await requireActiveUser(req);
   if ("error" in gate) return NextResponse.json({ error: gate.error }, { status: gate.status });
+  // AUDIT-SEC-4: sync-all re-scrapes GitHub for the whole catalog — cap it.
+  const rl = rateLimit(`sync-all:${gate.session.uid}`, 60_000, 20);
+  if (!rl.ok) return NextResponse.json({ error: rl.message }, { status: 429 });
+  rateLimitRecord(`sync-all:${gate.session.uid}`);
+
   const url = new URL(req.url);
   const force = url.searchParams.get("force") === "true";
 

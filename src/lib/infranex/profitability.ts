@@ -271,8 +271,13 @@ export function computeProfitabilityReport(
     grossMonthlyUsd > 0 ? (netMonthlyUsd / grossMonthlyUsd) * 100 : 0;
 
   const riskFactor = computeRiskFactor(score);
+  // AUDIT-AI-2: the risk haircut models uncertainty about FUTURE profit — it
+  // must shrink a positive net, not soften a loss (a −$30k/mo rig was being
+  // displayed as −$12k with rf=0.6, understating the downside).
   const riskAdjustedMonthlyUsd = config.riskAdjustment
-    ? netMonthlyUsd * (1 - riskFactor)
+    ? netMonthlyUsd > 0
+      ? netMonthlyUsd * (1 - riskFactor)
+      : netMonthlyUsd
     : netMonthlyUsd;
 
   // --- Minimum entry rule ---------------------------------------------------

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { requireActiveUser } from "@/lib/auth-admin";
+import { requireActiveAdmin } from "@/lib/auth-admin";
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +13,10 @@ export async function POST(
   req: NextRequest,
   ctx: { params: Promise<{ id: string }> }
 ) {
-  const gate = await requireActiveUser(req);
+  // AUDIT-SEC-1: only admins may queue shell commands for the local
+  // agent — arbitrary command execution must never be reachable by
+  // viewer/analyst roles.
+  const gate = await requireActiveAdmin(req);
   if ("error" in gate) return NextResponse.json({ error: gate.error }, { status: gate.status });
 
   const { id } = await ctx.params;

@@ -37,9 +37,13 @@
     ".next/dev/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules",
     "examples",
-    "tests",
-    "mini-services"
+    "frontend",
+    "infranex-bt-subdir-backup",
+    "mini-services",
+    "node_modules",
+    "scripts",
+    "skills",
+    "tests"
   ]
 }

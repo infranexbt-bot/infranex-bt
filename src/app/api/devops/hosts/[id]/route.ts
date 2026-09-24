@@ -3,6 +3,7 @@
 // history); GET stays session-gated.
 
 import { NextRequest, NextResponse } from "next/server";
+import { requireActiveUserRequest } from "@/lib/auth-admin";
 import { db } from "@/lib/db";
 import { requireActiveAdmin } from "@/lib/auth-admin";
 import { secretHint, decryptSecret } from "@/lib/devops/crypto";
@@ -13,6 +14,11 @@ export async function GET(
   _req: Request,
   ctx: { params: Promise<{ id: string }> }
 ) {
+  // AUDIT-SEC-2: DB-backed session gate (revocation + active check),
+  // not just the edge-proxy cookie check.
+  const gate = await requireActiveUserRequest(_req);
+  if ("error" in gate) return NextResponse.json({ error: gate.error }, { status: gate.status });
+
   const { id } = await ctx.params;
   try {
     const host = await db.gpuHost.findUnique({ where: { id } });

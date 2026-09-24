@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireActiveUser } from "@/lib/auth-admin";
 import { getUidState } from "@/lib/infranex/metagraph";
 
 /**
@@ -16,6 +17,11 @@ const SS58_RE = /^5[1-9A-HJ-NP-Za-km-z]{47}$/;
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
+  // AUDIT-SEC-2: DB-backed session gate (revocation + active check),
+  // not just the edge-proxy cookie check.
+  const gate = await requireActiveUser(req);
+  if ("error" in gate) return NextResponse.json({ error: gate.error }, { status: gate.status });
+
   const url = new URL(req.url);
   const netuid = Number(url.searchParams.get("netuid"));
   const hotkey = (url.searchParams.get("hotkey") ?? "").trim();

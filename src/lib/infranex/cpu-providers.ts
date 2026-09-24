@@ -638,25 +638,3 @@ export async function getCpuServerStatus(
     j?.droplet?.networks?.v4?.find((n) => n.type === "public")?.ip_address ?? null;
   return { status: j?.droplet?.status ?? "unknown", ip };
 }
-
-/** Destroy the rented box (used when a host is removed from the platform). */
-export async function terminateCpuServer(
-  providerId: "hetzner" | "digitalocean",
-  key: string,
-  providerServerId: string
-): Promise<{ success: boolean; message: string }> {
-  const url =
-    providerId === "hetzner"
-      ? `https://api.hetzner.cloud/v1/servers/${providerServerId}`
-      : `https://api.digitalocean.com/v2/droplets/${providerServerId}`;
-  const res = await fetch(url, {
-    method: "DELETE",
-    headers: { Authorization: `Bearer ${key}` },
-    cache: "no-store",
-    signal: AbortSignal.timeout(HTTP_TIMEOUT_MS),
-  });
-  if (res.status === 204 || res.ok) {
-    return { success: true, message: `${providerId} server ${providerServerId} deleted.` };
-  }
-  return { success: false, message: `${providerId} delete returned HTTP ${res.status}` };
-}

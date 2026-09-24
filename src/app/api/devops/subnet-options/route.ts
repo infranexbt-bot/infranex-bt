@@ -5,10 +5,16 @@
 import { NextResponse } from "next/server";
 import { fetchLiveSnapshot } from "@/lib/infranex/chain";
 import { classifySubnetHardware } from "@/lib/infranex/miner-score";
+import { requireActiveUserCookies } from "@/lib/auth-admin";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
+  // AUDIT-SEC-2: DB-backed session gate (revocation + active check),
+  // not just the edge-proxy cookie check.
+  const gate = await requireActiveUserCookies();
+  if ("error" in gate) return NextResponse.json({ error: gate.error }, { status: gate.status });
+
   try {
     const snap = await fetchLiveSnapshot();
     const rows = snap.subnets

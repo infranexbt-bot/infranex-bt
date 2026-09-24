@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireActiveUser } from "@/lib/auth-admin";
 import { db } from "@/lib/db";
 import { scrapeGithubMetadata } from "@/lib/infranex/github-scraper";
 import { curatedGithubUrl } from "@/lib/infranex/data";
@@ -13,6 +14,11 @@ export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ netuid: string }> }
 ) {
+  // AUDIT-SEC-2: DB-backed session gate (revocation + active check),
+  // not just the edge-proxy cookie check.
+  const gate = await requireActiveUser(_req);
+  if ("error" in gate) return NextResponse.json({ error: gate.error }, { status: gate.status });
+
   const { netuid } = await params;
   const n = parseInt(netuid, 10);
 

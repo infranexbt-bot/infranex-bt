@@ -133,9 +133,14 @@ export function CpuProvisionDialog({
   const netuid = Number.isFinite(Number(netuidStr)) && netuidStr !== "" ? Number(netuidStr) : null;
 
   // Reset transient state whenever the dialog opens for a different box.
-  useEffect(() => {
-    if (open && offer) setRegion("");
-  }, [open, offer]);
+  // AUDIT-LINT-1: adjust-during-render pattern (react.dev/learn/you-might-
+  // not-need-an-effect) — the old setState-in-effect cascaded renders.
+  const openKey = open && offer ? offer.id : null;
+  const [lastOpenKey, setLastOpenKey] = useState<string | null>(null);
+  if (openKey !== lastOpenKey) {
+    setLastOpenKey(openKey);
+    setRegion("");
+  }
 
   // CPU-classified quick picks — the same engine the Opportunities scanner
   // runs (min VRAM ≤ 0), top 8 by score.

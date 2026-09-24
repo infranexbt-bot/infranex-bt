@@ -30,7 +30,6 @@ import { encryptSecret } from "@/lib/devops/crypto";
  */
 
 export const LOCAL_POLL_SECONDS = 15;
-export const LOCAL_COMMAND_TIMEOUT_S = 30 * 60; // 30 min per command (evals/builds)
 export const LOCAL_OUTPUT_CAP = 64 * 1024; // 64KB per command output
 export const LOCAL_HOST_TELEMETRY_CAP = 8 * 1024; // 8KB telemetry JSON cap
 

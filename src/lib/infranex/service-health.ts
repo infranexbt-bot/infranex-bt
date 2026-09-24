@@ -94,15 +94,6 @@ const serviceState: ServicePassState =
     lastRunAt: null,
   });
 
-/** Test-only: wipe in-memory streaks/baselines between scenarios. */
-export function resetServiceStateForTests(): void {
-  serviceState.failStreaks.clear();
-  serviceState.slowStreaks.clear();
-  serviceState.droughtStreaks.clear();
-  serviceState.trafficHistory.clear();
-  serviceState.lastRunAt = null;
-}
-
 // ---------------------------------------------------------------------------
 // Pure helpers — exported so tests classify EXACTLY like the evaluator
 // ---------------------------------------------------------------------------
