@@ -2578,3 +2578,18 @@ Work Log:
 
 Stage Summary:
 - App live and healthy with the GPU hosting compatibility layer fully operational; chain data current at block 9,138,760
+
+---
+Task ID: compat-walkthrough-1
+Agent: main
+Task: User-guided walkthrough of Subnets GPU COMPAT badges + TEE/RunPod filters
+
+Work Log:
+- Chutes (a64) compat card: verdict "Cannot run on RunPod / Vast / container clouds...", chips [bare metal, static 1:1 IP, GPU required], verbatim README evidence ("ALL servers must be bare metal/VM... 1:1 port mapping" — chutesai/chutes-miner), SOURCE: AUDIT, verified 2026-09-24; rent hint Latitude.sh BITTENSOR27 / Hydrahost / own-colo
+- TEE required filter: exactly 9 cards (a4, a7, a21, a28, a38, a45, a51, a82, a90) matching audit
+- lium (a51) compat card: verdict "Requires confidential-compute hardware (Intel TDX / NVIDIA CC-mode H100). Plain RunPod/Vast containers do not expose a TEE...", chips [bare metal, TEE (TDX / CC-mode), GPU required], SOURCE: LIVE-SCRAPE (live-over-curate precedence confirmed working)
+- RunPod/Vast OK filter: 80 cards = 39 GPU-flexible + 41 CPU-only; Minos (a107) card: verdict "No hosting restriction stated in the repo — RunPod / Vast rentals are allowed. Bare metal works too (it always does).", SOURCE: README, rent hint Vast.ai/RunPod
+- Reset filter to All (129); screenshots: compat-chutes-card.png, compat-lium-tee-card.png, compat-minos-card.png, compat-runpod-ok-filter.png, subnets-compat-all-129.png
+
+Stage Summary:
+- Full E2E walkthrough passed: plain-English verdicts, verbatim README evidence, requirement chips, where-to-rent hints all render correctly per tier; live-scrape > audit precedence visible in lium card
