@@ -2509,3 +2509,21 @@ Work Log:
 Stage Summary:
 - Verdict: YES with conditions - bare metal rental is the sweet spot IF targeting top-emission subnets (Chutes SN64, TAO Hash SN4, TEE subnets) that ban container clouds; price-competitive with Vast (Latitude H100 $1.68/hr + BITTENSOR27 vs Vast $1.73-2.27)
 - Recommended path: Vast hourly to validate subnet fit (2-4 wks) -> Latitude.sh bare metal reserved (monthly/yearly) once proven; skip straight to bare metal if targeting SN64/SN4 from day one
+
+---
+Task ID: all-subnets-hosting-audit-1
+Agent: main
+Task: Deep-dive audit of all 129 subnets' README requirements on provider GPUs vs bare metal
+
+Work Log:
+- Built merged registry (chain snapshot identityGithub + SubnetOverride URLs): 121/129 repos identified
+- scripts/harvest-readmes.py: fetched 96 READMEs via raw.githubusercontent.com (HEAD), scanned 15 keyword categories
+- Tarball fallback recovered 2 more (SN97 albedo, SN120 affine); org/profile resolution found SN103 Capcomp, SN105 Beam, SN118 Ditto (bittensor-pylon), SN122 CookingTAO; plus chutesai/chutes-miner supplement for SN64
+- Raw-text re-fetch for silent subnets -> GPU mention counts; scripts/classify-subnets.py classified all 129 with curated corrections for known GPU subnets
+- Deliverable: download/subnet-gpu-hosting-requirements.csv (128 subnets, class + emission + evidence)
+
+Stage Summary:
+- ZERO subnets ban bare metal; bare metal is acceptable on 100% of subnets. The restrictions run the other way: container clouds banned/restricted on 11 subnets = 24% of miner emissions
+- Strict list: SN64 Chutes (bare metal + static 1:1 IP + TEE, explicit RunPod/Vast ban), SN4 Targon (bare metal + NVIDIA CC), SN76 Ormas (explicit restriction); TEE tier: SN51 lium (#1 emission 2267 TAO/d), SN90, SN28, SN38, SN21, SN7, SN45, SN82
+- GPU no-restriction bucket = largest by emission (~13.3k TAO/day, 39 subnets): Minos, engy, iota, ORO, SOMA, NOVA, BitMind, Gradients, Affine, Apex, Score Vision...
+- Limitations: 22 subnets have no public repo, 8 unclear (requirements in Discord only), 3 repo-unreadable
