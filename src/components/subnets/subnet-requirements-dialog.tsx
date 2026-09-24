@@ -47,6 +47,7 @@ import { assessSeatChance, formatBurnTao } from "@/lib/infranex/miner-score";
 import { useSubnetOverrides } from "@/lib/infranex/use-subnet-overrides";
 import { resolveCompat } from "@/lib/infranex/compat";
 import { CompatSection } from "@/components/subnets/compat-section";
+import { WhatMinersDoCard } from "@/components/subnets/what-miners-do-card";
 import type { Subnet } from "@/lib/infranex/types";
 import type { SubnetRequirementsProfile } from "@/lib/devops/subnet-requirements";
 
@@ -175,6 +176,7 @@ export function SubnetRequirementsDialog({
         <SeatAvailabilitySection subnet={subnet} />
 
         {compat && <CompatSection compat={compat} subnetName={subnet.name} />}
+        <WhatMinersDoCard netuid={subnet.netuid} />
 
         {state.phase === "loading" && <LoadingState netuid={subnet.netuid} />}
 

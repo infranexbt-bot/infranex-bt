@@ -2682,3 +2682,19 @@ Stage Summary:
 - Deliverable: download/subnet-miner-jobs.csv — first complete per-subnet "what does the miner actually do" dataset across all 129 slots
 - Landscape: 23 AI-training, 16 inference, 11 prediction/trading, 10 agents, 10 compute-infra, 9 data/scraping, 9 media, 7 finance-data, 5 bio/health, 12 parked/deprecated
 - Key pattern: most subnets pay few rewarded miners (king-of-the-hill); wide-payout outliers (Hone 246/256, ReadyAI 244, DataUniverse 236, Beam 204) matter more than raw emission
+
+---
+Task ID: subnet-ui-1
+Agent: main
+Task: Surface "What miners do here" card in the subnet requirements dialog
+
+Work Log:
+- scripts/gen-subnet-jobs-seed.py → src/lib/infranex/subnet-jobs-seed.ts (AUTO-GENERATED, 129 entries, 141KB, node-parse verified)
+- New src/components/subnets/what-miners-do-card.tsx: category chip (15-tone map), "The subnet" / "The miner's job" (emphasized) / "How validators score you" blocks, minerWorkType + rewards chips, evidence-tier footer (README-verified · repo slug / Web research / Chain identity only), parked compact variant, missing-entry fallback
+- Wired into subnet-requirements-dialog.tsx directly under CompatSection
+- ESLint clean; E2E via scripts/verify-jobs-card{,2,-3}.sh (search-fill approach failed → netuid-badge click targeting α120/α112 worked)
+- Verified 4 variants: SN0 chain-only, Chutes readme (control-plane text + repo footer), Affine research (honest not-documented hedging), α112 parked; screenshots jobs-card2-chutes / jobs-card3-affine / jobs-card3-forsale
+
+Stage Summary:
+- Feature shipped: every subnet dialog now answers "what does this subnet do and what would I actually be doing as a miner" with always-visible evidence confidence
+- Seed regenerable from synthesis batches: python3 scripts/gen-subnet-jobs-seed.py
