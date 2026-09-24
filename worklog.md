@@ -2610,3 +2610,18 @@ Stage Summary:
 - Feature shipped: Profit Rank panel answers "which subnet pays miners the most AFTER the rig is paid for" with hosting-aware costs and honesty flags
 - Data honesty preserved: zero new numbers invented — ranking is a pure reshape of the live chain emission + Profitability Engine costs; whale-mean/knife-fight/estimated rows flagged inline
 - Key insight surfaced by the feature: top net earners are cloud-OK flexible subnets (NOVA, Actual, Affine); the biggest emission names become money pits once true hosting costs are counted (KubeTEE, Chutes)
+
+---
+Task ID: git-push-profit-rank
+Agent: main
+Task: Save all work and push infranex-bt to GitHub with user-provided PAT
+
+Work Log:
+- Profit-rank feature was already committed locally (ebb2525) with E2E verification done in profit-rank-1
+- Updated origin remote URL with the user's new GitHub PAT (infranexbt-bot/infranex-bt)
+- Committed runtime .alpha-price-history.json refresh + worklog (62cff26)
+- Pushed main to origin: ebb2525..62cff26 (carried b043f4e + 62cff26)
+- Verified sync: local main == origin/main, ahead 0 / behind 0
+
+Stage Summary:
+- Repo fully saved and pushed; GitHub main at 62cff26 with the Profit Rank panel feature live in the codebase
