@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { fetchLiveSnapshot } from "./chain";
-import { mergeOpportunities } from "./use-network";
+import { mergeOpportunities } from "./live-merge";
 import {
   sanitizeProfitabilityConfig,
   DEFAULT_PROFITABILITY_CONFIG,

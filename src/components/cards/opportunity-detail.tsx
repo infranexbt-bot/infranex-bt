@@ -19,7 +19,7 @@ import { RegisterOddsBlock, RegisterOddsInline } from "@/components/cards/regist
 import { HostingWarningBlock, HostingChips } from "@/components/cards/hosting-requirements";
 import { OfficialMechanicsBlock, MechanicsChips, rampWeeksSourceNote } from "@/components/cards/mechanics-block";
 import { DiligencePanel } from "@/components/opportunities/diligence-panel";
-import { useOddsTrends } from "@/lib/infranex/use-odds";
+import { useOddsTrends } from "@/hooks/use-odds";
 import type { Opportunity } from "@/lib/infranex/types";
 
 interface OpportunityDetailDialogProps {

@@ -1,9 +1,9 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import type { HotkeyPortfolio, StakePortfolioReport } from "./stake-portfolio";
+import type { HotkeyPortfolio, StakePortfolioReport } from "../lib/infranex/stake-portfolio";
 
-export type { HotkeyPortfolio, StakePortfolioReport, StakePosition } from "./stake-portfolio";
+export type { HotkeyPortfolio, StakePortfolioReport, StakePosition } from "../lib/infranex/stake-portfolio";
 
 interface StakePortfolioResponse extends StakePortfolioReport {
   /** "query" = explicit ?hotkey= params; "registry" = platform-known hotkeys. */

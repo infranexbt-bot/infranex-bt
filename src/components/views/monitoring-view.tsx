@@ -23,11 +23,11 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { cn, formatCurrency, formatNumber, formatRelativeTime, formatDuration } from "@/lib/utils";
-import { useMonitoring, type MonitoringOverview } from "@/lib/infranex/use-monitoring";
+import { useMonitoring, type MonitoringOverview } from "@/hooks/use-monitoring";
 import type { MonitoredDeployment } from "@/lib/infranex/monitoring";
 import { TriggerCenter } from "@/components/cards/trigger-center";
 import { UidDefensePanel } from "@/components/cards/uid-defense-panel";
-import { useTriggers } from "@/lib/infranex/use-triggers";
+import { useTriggers } from "@/hooks/use-triggers";
 import type { ViewKey } from "@/lib/infranex/types";
 
 interface MonitoringViewProps {

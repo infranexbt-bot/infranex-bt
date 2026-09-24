@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   DEFAULT_PROFITABILITY_CONFIG,
   type ProfitabilityConfig,
-} from "./profitability";
+} from "../lib/infranex/profitability";
 
 /**
  * Profitability Engine settings — the minimum entry rule ($/mo net profit

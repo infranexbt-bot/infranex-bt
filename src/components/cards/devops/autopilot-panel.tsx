@@ -23,7 +23,7 @@ import {
   Zap,
 } from "lucide-react";
 import { cn, formatRelativeTime } from "@/lib/utils";
-import type { DevopsMonitorPayload } from "@/lib/infranex/use-devops-monitor";
+import type { DevopsMonitorPayload } from "@/hooks/use-devops-monitor";
 
 /**
  * TIER3 — Autopilot control panel (policy rules + recent auto-actions) and

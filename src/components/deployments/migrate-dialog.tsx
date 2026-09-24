@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useMergedGpuOffers, type MergedGpuOffer } from "@/lib/infranex/use-gpu-offers";
+import { useMergedGpuOffers, type MergedGpuOffer } from "@/hooks/use-gpu-offers";
 import { offerProviderId } from "@/lib/infranex/types";
 import { cn } from "@/lib/utils";
 

@@ -8,9 +8,9 @@ import { Badge } from "@/components/ui/badge";
 import { SubnetCard } from "@/components/cards/subnet-card";
 import { SubnetEditDialog } from "@/components/subnets/subnet-edit-dialog";
 import { SubnetRequirementsDialog } from "@/components/subnets/subnet-requirements-dialog";
-import { useNetwork, mergeSubnets, mergeOpportunities } from "@/lib/infranex/use-network";
-import { useSubnetOverrides, useSyncAllSubnets } from "@/lib/infranex/use-subnet-overrides";
-import { useProfitabilityConfig } from "@/lib/infranex/use-profitability";
+import { useNetwork, mergeSubnets, mergeOpportunities } from "@/hooks/use-network";
+import { useSubnetOverrides, useSyncAllSubnets } from "@/hooks/use-subnet-overrides";
+import { useProfitabilityConfig } from "@/hooks/use-profitability";
 import { buildProfitRank } from "@/lib/infranex/profit-rank";
 import { ProfitRankPanel } from "@/components/subnets/profit-rank-panel";
 import {

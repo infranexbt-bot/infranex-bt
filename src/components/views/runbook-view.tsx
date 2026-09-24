@@ -24,7 +24,7 @@ import {
 import type { ViewKey } from "@/lib/infranex/types";
 import { listCuratedMechanics } from "@/lib/infranex/mechanics";
 import { OfficialMechanicsBlock } from "@/components/cards/mechanics-block";
-import { useSubnetOverrides } from "@/lib/infranex/use-subnet-overrides";
+import { useSubnetOverrides } from "@/hooks/use-subnet-overrides";
 import { useMemo } from "react";
 
 interface RunbookViewProps {

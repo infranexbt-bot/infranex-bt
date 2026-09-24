@@ -2,7 +2,7 @@
 
 import { Loader2, Zap, WifiOff, Database } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useNetwork } from "@/lib/infranex/use-network";
+import { useNetwork } from "@/hooks/use-network";
 
 /**
  * Reports the live data source status: connected to the Finney chain,

@@ -14,9 +14,9 @@ import {
 import { OpportunityTable } from "@/components/tables/opportunity-table";
 import { OpportunityCard } from "@/components/cards/opportunity-detail";
 import { ProfitabilitySettingsDialog } from "@/components/cards/profitability-settings";
-import { useNetwork, mergeOpportunities } from "@/lib/infranex/use-network";
-import { useProfitabilityConfig } from "@/lib/infranex/use-profitability";
-import { useSubnetOverrides } from "@/lib/infranex/use-subnet-overrides";
+import { useNetwork, mergeOpportunities } from "@/hooks/use-network";
+import { useProfitabilityConfig } from "@/hooks/use-profitability";
+import { useSubnetOverrides } from "@/hooks/use-subnet-overrides";
 import {
   computeRentEarnMap,
   RENT_EARN_BAND_STYLE,

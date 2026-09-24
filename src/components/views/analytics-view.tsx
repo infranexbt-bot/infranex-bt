@@ -22,8 +22,8 @@ import {
   mergeOpportunities,
   getLiveDashboardMetrics,
   buildEmissionShares,
-} from "@/lib/infranex/use-network";
-import { useProfitabilityConfig } from "@/lib/infranex/use-profitability";
+} from "@/hooks/use-network";
+import { useProfitabilityConfig } from "@/hooks/use-profitability";
 import { cn, formatCurrency, scoreBand } from "@/lib/utils";
 import { BarChart3, TrendingUp, PieChart, Layers } from "lucide-react";
 

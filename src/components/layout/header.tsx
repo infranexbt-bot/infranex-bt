@@ -22,9 +22,9 @@ import {
 } from "@/components/ui/tooltip";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
-import { useTriggers } from "@/lib/infranex/use-triggers";
+import { useTriggers } from "@/hooks/use-triggers";
 import { cn, formatRelativeTime } from "@/lib/utils";
-import type { TriggerEventDTO } from "@/lib/infranex/use-triggers";
+import type { TriggerEventDTO } from "@/hooks/use-triggers";
 
 interface HeaderProps {
   onMenuClick: () => void;

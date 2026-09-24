@@ -39,7 +39,7 @@ import {
   useRegistrationWatcher,
   type DeploymentRecord,
   type RegistrationWizardContext,
-} from "@/lib/infranex/use-deployments";
+} from "@/hooks/use-deployments";
 import { DeployStepper } from "@/components/deployments/deploy-stepper";
 import { PreflightChecklist } from "@/components/deployments/preflight-checklist";
 import { RevisionsDialog } from "@/components/deployments/revisions-dialog";

@@ -29,7 +29,7 @@ import {
 import { SeatChanceBadge } from "@/components/subnets/seat-chance-badge";
 import { RegisterOddsInline } from "@/components/cards/register-odds";
 import { HostingChips } from "@/components/cards/hosting-requirements";
-import { useOddsTrends } from "@/lib/infranex/use-odds";
+import { useOddsTrends } from "@/hooks/use-odds";
 import { Swords, AlertTriangle, Ban } from "lucide-react";
 import type { Opportunity } from "@/lib/infranex/types";
 

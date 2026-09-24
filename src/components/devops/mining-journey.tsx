@@ -59,7 +59,7 @@ import { useWalletRegistration } from "@/lib/devops/wallet-registration";
 import {
   useDeployments,
   type RegistrationWizardContext,
-} from "@/lib/infranex/use-deployments";
+} from "@/hooks/use-deployments";
 import { resolveJourneyProgress } from "@/lib/infranex/journey-progress";
 
 // ---------------------------------------------------------------------------

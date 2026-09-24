@@ -11,7 +11,7 @@ import {
   tickRemainingBlocks,
   type UidImmunityInfo,
 } from "@/lib/infranex/immunity";
-import type { UidDefenseState } from "@/lib/infranex/use-triggers";
+import type { UidDefenseState } from "@/hooks/use-triggers";
 
 /**
  * UID Defense panel — the miner's own metagraph telemetry: incentive

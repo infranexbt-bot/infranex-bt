@@ -25,7 +25,7 @@ import { Settings2, Target, Loader2, CheckCircle2 } from "lucide-react";
 import {
   useProfitabilityConfig,
   useSaveProfitabilityConfig,
-} from "@/lib/infranex/use-profitability";
+} from "@/hooks/use-profitability";
 import {
   DEFAULT_PROFITABILITY_CONFIG,
   type ProfitabilityConfig,

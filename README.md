@@ -168,43 +168,56 @@ The `vercel.json` file configures:
 
 ### Project structure
 
+The product is a **single unified Next.js 16 app** — frontend and backend live
+side by side in `src/` (App Router pages + API route handlers over Prisma/SQLite).
+Everything outside `src/` is tooling, docs, or legacy MVP-era services kept for
+reference and explicitly excluded from typecheck, lint and build.
+
 ```
-src/
-├── app/
-│   ├── api/
-│   │   ├── network/route.ts          # Chain + price snapshot
-│   │   ├── gpu-offers/route.ts       # RunPod live GPU offers
-│   │   └── deployments/              # Deployment engine API
-│   ├── layout.tsx                    # Root layout (fonts, providers)
-│   └── page.tsx                      # Main page (view orchestration)
-├── components/
-│   ├── views/                        # 8 view components
-│   ├── deployments/                  # Create deployment dialog
-│   ├── cards/                        # Metric, subnet, opportunity cards
-│   ├── tables/                       # Opportunity table
-│   ├── charts/                       # Revenue chart, emission donut
-│   └── layout/                       # Sidebar, header, footer
-└── lib/
-    ├── infranex/
-    │   ├── types.ts                  # Domain types
-    │   ├── data.ts                   # Curated subnet/opportunity data
-    │   ├── chain.ts                  # Bittensor chain client + cache
-    │   ├── runpod.ts                 # RunPod GraphQL client + cache
-    │   ├── deployment/               # Deployment engine
-    │   │   ├── config.ts             # Config builder
-    │   │   ├── state-machine.ts      # 11-state machine
-    │   │   ├── engine.ts             # Lifecycle orchestrator
-    │   │   └── providers/            # Mock + RunPod adapters
-    │   ├── use-network.ts            # React Query hook (chain)
-    │   ├── use-gpu-offers.ts         # React Query hook (GPU)
-    │   ├── use-deployments.ts        # React Query hook (deployments)
-    │   ├── use-health-checks.ts      # System health probes
-    │   └── use-error-log.ts          # Client error capture
-    ├── db.ts                         # Prisma client singleton
-    └── utils.ts                      # Formatting utilities
-prisma/
-└── schema.prisma                     # Deployment model (PostgreSQL)
+infranex-bt/
+├── src/                        # THE WEB APP (frontend + backend in one)
+│   ├── app/
+│   │   ├── api/                #   70 route.ts handlers — the backend
+│   │   │                       #   (network, subnets, deployments, devops,
+│   │   │                       #    judge, monitoring, auth, …)
+│   │   ├── login/              #   Auth page
+│   │   ├── layout.tsx          #   Root layout (fonts, providers)
+│   │   └── page.tsx            #   Main page (view orchestration)
+│   ├── components/             #   UI by domain: views/ subnets/ deployments/
+│   │   │                       #   devops/ cpus/ gpus/ cards/ tables/ charts/
+│   │   │                       #   layout/ ui/ (shadcn)
+│   ├── hooks/                  #   Client React Query hooks (use-network,
+│   │   │                       #   use-deployments, use-gpu-offers, use-trust, …)
+│   ├── lib/                    #   Shared + server logic (no React)
+│   │   ├── infranex/           #     Domain engine: chain, live-merge,
+│   │   │                       #     profitability, compat, daemon-bridge,
+│   │   │                       #     deployment/, judge/, monitoring, …
+│   │   ├── devops/             #     Host installer / inspector / transport
+│   │   ├── auth.ts             #     Session + user gates
+│   │   ├── auth-admin.ts       #     Admin gating helpers
+│   │   └── db.ts               #     Prisma client singleton
+│   ├── instrumentation.ts      #   Boot-time background worker startup
+│   └── proxy.ts                #   Proxy config
+├── prisma/schema.prisma        # Database schema (SQLite at db/custom.db)
+├── scripts/                    # Dev/ops tooling, generators, research pipelines
+├── docs/                       # Architecture docs, setup guides, deployment notes
+├── database/migrations/        # SQL schema history (FastAPI backend lineage)
+├── backend/                    # LEGACY: FastAPI service from the MVP architecture
+│                               #   (superseded by the Next.js API routes — reference only)
+├── frontend/                   # LEGACY: standalone React frontend from the MVP era
+│                               #   (superseded by src/app — reference only)
+├── worker/                     # LEGACY: Python miner worker container (reference)
+├── mini-services/              # Platform placeholder (empty)
+└── infranex-bt-subdir-backup/  # Local-only snapshot of an older tree (untracked,
+                                #   gitignored — never part of the app)
 ```
+
+Backend rules of thumb: code under `src/app/api/**/route.ts` may import from
+`src/lib/**` but never from `src/components/**` or `src/hooks/**`; client hooks
+in `src/hooks/**` talk to the backend only over `/api/*` fetches; pure shared
+logic lives in `src/lib/infranex/**` and must stay React-free so both sides can
+use it.
+
 
 ---
 

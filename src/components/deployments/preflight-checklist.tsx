@@ -25,13 +25,13 @@ import { useToast } from "@/hooks/use-toast";
 import {
   useLocalHosts,
   type LocalHostDTO,
-} from "@/lib/infranex/use-local-hosts";
+} from "@/hooks/use-local-hosts";
 import {
   useCreateWallet,
   useUpdateWallet,
   useWallets,
   type WalletProfile,
-} from "@/lib/infranex/use-platform";
+} from "@/hooks/use-platform";
 import { cn, formatRelativeTime } from "@/lib/utils";
 import {
   ArrowRight,

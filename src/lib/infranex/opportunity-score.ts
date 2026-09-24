@@ -1,7 +1,7 @@
 import type { LiveNetworkSnapshot } from "./chain";
 import { computeStakingStrategies, type StakingStrategy, STAKING_MODEL } from "./staking";
 import type { ProfitabilityConfig } from "./profitability";
-import { mergeOpportunities, type LiveOpportunity } from "./use-network";
+import { mergeOpportunities, type LiveOpportunity } from "./live-merge";
 import { computeDiligence } from "./diligence";
 
 // ---------------------------------------------------------------------------

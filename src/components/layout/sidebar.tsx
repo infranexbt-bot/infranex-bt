@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTitle, SheetDescription } from "@/components/ui/sheet";
-import { useNetwork } from "@/lib/infranex/use-network";
+import { useNetwork } from "@/hooks/use-network";
 import { useQuery } from "@tanstack/react-query";
 import {
   LayoutDashboard,

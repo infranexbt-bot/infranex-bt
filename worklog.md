@@ -2778,3 +2778,42 @@ Stage Summary:
 - App audited + hardened: all CRITICAL/HIGH/MED findings fixed and runtime-verified; LOW items fixed where cheap
 - Accepted risks (documented, not changed): plaintext credential mirror scripts/users.local.json (deliberate recovery feature, 0600 gitignored), frame-ancestors platform origins, verbose 500 messages
 - Report-only cleanups available: infranex-bt-subdir-backup/ (189MB git-tracked stale snapshot), frontend/ (dead parallel app), duplicate guide PDFs
+
+---
+Task ID: structure-1
+Agent: main (Super Z)
+Task: Correct the web app file structure — verify frontend/backend files are correctly placed and aligned
+
+Work Log:
+- Audited full repo tree: live app (src/ App Router, 70 route.ts, zero stray
+  api files) was already conventional; misalignment was all around it
+- Removed stale gitlink `infranex-bt-subdir-backup` (mode 160000, own .git/.env
+  inside repo root) from the index; dir kept on disk, now gitignored
+- Relocated 8 root strays: uv.lock -> backend/ (pairs pyproject.toml),
+  2 PDFs -> docs/, 3 VERCEL_*.md -> docs/deployment/, convert_to_pdf.py +
+  append-recovery2.js -> scripts/ (PDF scripts reference download/ copies, so
+  zero breakage — verified)
+- Moved 18 client React Query hooks from src/lib/infranex{,/judge}/ to
+  src/hooks/ (canonical layout); scripts/restructure-hook-imports.py remapped
+  relative imports (./X -> ../lib/infranex/X); 40 import sites rewritten
+  @/lib/infranex/use-* -> @/hooks/use-*
+- Finished DATA-AUDIT-1 migration: opportunity-score.ts + trust.ts now import
+  merge logic from ./live-merge directly (server code no longer routes through
+  a client hook re-export)
+- Fenced scopes: eslint ignores now cover backend/ frontend/ worker/
+  mini-services/ scripts/ docs/ download/ tests/ .zscripts/ database/ backup;
+  package.json name nextjs_tailwind_shadcn_ts -> infranex-bt
+- README Project structure section rewritten: top-level map separating the
+  unified Next.js app (src/) from legacy MVP services (backend/ frontend/
+  worker/), plus import-direction rules (api -> lib only; hooks -> /api only;
+  lib stays React-free)
+- Verified: stale-ref sweep clean, npx tsc --noEmit exit 0, npx eslint . exit 0,
+  next build exit 0, prod-server smoke /login 200, / 307, /api/network 401,
+  ready in 345ms
+
+Stage Summary:
+- Repo layout now explicit: one unified app in src/ (frontend+backend),
+  legacy services clearly labeled and out of every build/lint/type path
+- All 18 client hooks canonicalized in src/hooks/; server->hook import
+  dependency eliminated
+- Committed and pushed to origin/main

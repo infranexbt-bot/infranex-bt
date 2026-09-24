@@ -8,7 +8,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { DevopsMinerDTO } from "@/lib/infranex/use-devops-monitor";
+import type { DevopsMinerDTO } from "@/hooks/use-devops-monitor";
 
 /**
  * DEVOPS-3 — the Miner Mindset strategy board. Per running miner, the

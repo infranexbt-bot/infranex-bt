@@ -30,7 +30,7 @@ import type {
   DevopsThresholds,
   MinerHealthDTO,
   RunwayAssessmentDTO,
-} from "@/lib/infranex/use-devops-monitor";
+} from "@/hooks/use-devops-monitor";
 
 /**
  * DEVOPS-1 — one live operations card per running miner: GPU vitals +

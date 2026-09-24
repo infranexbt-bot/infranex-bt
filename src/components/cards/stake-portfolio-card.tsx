@@ -12,7 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Loader2, Wallet, TrendingUp, TrendingDown, Info, ExternalLink, RefreshCw } from "lucide-react";
-import { useStakePortfolio, type HotkeyPortfolio } from "@/lib/infranex/use-stake-portfolio";
+import { useStakePortfolio, type HotkeyPortfolio } from "@/hooks/use-stake-portfolio";
 import { cn, formatCurrency, shortAddress } from "@/lib/utils";
 
 // STAKE-PORTFOLIO-1 — read-only view of where mining rewards actually land:

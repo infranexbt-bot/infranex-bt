@@ -7,7 +7,7 @@ import type {
   JudgeCohort,
   JudgeDimension,
   JudgeSource,
-} from "./types";
+} from "../lib/infranex/judge/types";
 
 export type { JudgeProfileData, JudgeKind, JudgeCohort, JudgeDimension, JudgeSource };
 

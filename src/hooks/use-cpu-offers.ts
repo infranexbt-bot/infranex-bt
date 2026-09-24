@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import type { CPUOffer } from "./types";
+import type { CPUOffer } from "../lib/infranex/types";
 
 // ---------------------------------------------------------------------------
 // CPU-CATALOG-1 — the CPU-catalog data hook. Polls /api/cpu-offers every 60s

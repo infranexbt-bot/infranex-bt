@@ -1,6 +1,6 @@
 "use client";
 
-import { useNetwork } from "@/lib/infranex/use-network";
+import { useNetwork } from "@/hooks/use-network";
 
 export function Footer() {
   const { data } = useNetwork();

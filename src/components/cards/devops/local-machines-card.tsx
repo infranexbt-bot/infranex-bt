@@ -18,7 +18,7 @@ import {
   CircleDot,
 } from "lucide-react";
 import { cn, formatRelativeTime } from "@/lib/utils";
-import { useLocalHosts, type LocalCommandDTO, type LocalHostDTO } from "@/lib/infranex/use-local-hosts";
+import { useLocalHosts, type LocalCommandDTO, type LocalHostDTO } from "@/hooks/use-local-hosts";
 
 /**
  * LOCALHOST-1 — Local machines card (DevOps Engine). The user's own

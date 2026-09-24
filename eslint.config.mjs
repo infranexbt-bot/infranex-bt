@@ -44,7 +44,29 @@ const eslintConfig = [...nextCoreWebVitals, ...nextTypescript, {
     "no-useless-escape": "off",
   },
 }, {
-  ignores: ["node_modules/**", ".next/**", "out/**", "build/**", "next-env.d.ts", "examples/**", "skills"]
+  // Lint scope = the live Next.js app only. Everything outside src/ is either
+  // platform scaffold, legacy MVP services, tooling or docs — kept out of the
+  // lint pass so `npm run lint` mirrors what tsc + next build actually gate.
+  ignores: [
+    "node_modules/**",
+    ".next/**",
+    "out/**",
+    "build/**",
+    "next-env.d.ts",
+    "examples/**",
+    "skills",
+    "infranex-bt-subdir-backup/**",
+    "backend/**",
+    "frontend/**",
+    "worker/**",
+    "mini-services/**",
+    "scripts/**",
+    "docs/**",
+    "download/**",
+    "tests/**",
+    ".zscripts/**",
+    "database/**",
+  ]
 }];
 
 export default eslintConfig;

@@ -18,12 +18,12 @@ import {
 import {
   useDeployments,
   type DeploymentRecord,
-} from "@/lib/infranex/use-deployments";
+} from "@/hooks/use-deployments";
 import {
   useTrustReport,
   trustVerdictStyle,
   type TrustRow,
-} from "@/lib/infranex/use-trust";
+} from "@/hooks/use-trust";
 import { cn, formatCurrency, formatRelativeTime, shortAddress } from "@/lib/utils";
 import { StakePortfolioCard } from "@/components/cards/stake-portfolio-card";
 import type { ViewKey } from "@/lib/infranex/types";

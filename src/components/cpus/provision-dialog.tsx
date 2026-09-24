@@ -37,8 +37,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import { useNetwork, mergeOpportunities } from "@/lib/infranex/use-network";
-import { useProfitabilityConfig } from "@/lib/infranex/use-profitability";
+import { useNetwork, mergeOpportunities } from "@/hooks/use-network";
+import { useProfitabilityConfig } from "@/hooks/use-profitability";
 import type { CPUOffer } from "@/lib/infranex/types";
 import type { ViewKey } from "@/lib/infranex/types";
 

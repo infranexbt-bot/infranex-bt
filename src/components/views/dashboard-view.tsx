@@ -20,13 +20,13 @@ import {
   mergeOpportunities,
   getLiveDashboardMetrics,
   buildEmissionShares,
-} from "@/lib/infranex/use-network";
-import { useWorkerStatus } from "@/lib/infranex/use-worker-status";
-import { useEconomics } from "@/lib/infranex/use-platform";
+} from "@/hooks/use-network";
+import { useWorkerStatus } from "@/hooks/use-worker-status";
+import { useEconomics } from "@/hooks/use-platform";
 import { cn, formatNumber, formatCurrency, formatTao, formatRelativeTime, opportunityBand } from "@/lib/utils";
-import { useProfitabilityConfig } from "@/lib/infranex/use-profitability";
-import { useSubnetOverrides } from "@/lib/infranex/use-subnet-overrides";
-import { useTrustReport, trustVerdictStyle } from "@/lib/infranex/use-trust";
+import { useProfitabilityConfig } from "@/hooks/use-profitability";
+import { useSubnetOverrides } from "@/hooks/use-subnet-overrides";
+import { useTrustReport, trustVerdictStyle } from "@/hooks/use-trust";
 import type { Opportunity, ViewKey } from "@/lib/infranex/types";
 
 interface DashboardViewProps {

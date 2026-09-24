@@ -27,7 +27,7 @@ import {
   useSubnetMetadata,
   useSaveOverride,
   useDeleteOverride,
-} from "@/lib/infranex/use-subnet-overrides";
+} from "@/hooks/use-subnet-overrides";
 import { useToast } from "@/hooks/use-toast";
 import type { Subnet } from "@/lib/infranex/types";
 

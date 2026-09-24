@@ -33,7 +33,7 @@ import {
   KeyRound,
 } from "lucide-react";
 import { gpuModels, gpuProviders } from "@/lib/infranex/data";
-import { useMergedGpuOffers } from "@/lib/infranex/use-gpu-offers";
+import { useMergedGpuOffers } from "@/hooks/use-gpu-offers";
 import { ProviderKeysDialog } from "@/components/gpus/provider-keys-dialog";
 import { cn, formatCurrency } from "@/lib/utils";
 

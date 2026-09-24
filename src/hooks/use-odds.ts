@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import type { WinnerTrend } from "./registration-odds";
+import type { WinnerTrend } from "../lib/infranex/registration-odds";
 
 export type OddsTrendsMap = Record<number, WinnerTrend>;
 

@@ -33,8 +33,8 @@ import {
   TimerReset,
 } from "lucide-react";
 import { cn, formatRelativeTime } from "@/lib/utils";
-import { useDevopsMonitor } from "@/lib/infranex/use-devops-monitor";
-import { useTriggerActions, type TriggerEventDTO } from "@/lib/infranex/use-triggers";
+import { useDevopsMonitor } from "@/hooks/use-devops-monitor";
+import { useTriggerActions, type TriggerEventDTO } from "@/hooks/use-triggers";
 import type { ViewKey } from "@/lib/infranex/types";
 import { MinerOpsCard } from "@/components/cards/devops/miner-ops-card";
 import { StrategyBoard } from "@/components/cards/devops/strategy-board";

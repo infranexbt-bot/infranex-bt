@@ -44,7 +44,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { assessSeatChance, formatBurnTao } from "@/lib/infranex/miner-score";
-import { useSubnetOverrides } from "@/lib/infranex/use-subnet-overrides";
+import { useSubnetOverrides } from "@/hooks/use-subnet-overrides";
 import { resolveCompat } from "@/lib/infranex/compat";
 import { CompatSection } from "@/components/subnets/compat-section";
 import { WhatMinersDoCard } from "@/components/subnets/what-miners-do-card";

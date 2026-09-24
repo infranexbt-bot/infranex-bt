@@ -1,8 +1,8 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { mergeGpuOffers, type LiveGpuSnapshot } from "./runpod";
-import type { GPUOffer } from "./types";
+import { mergeGpuOffers, type LiveGpuSnapshot } from "../lib/infranex/runpod";
+import type { GPUOffer } from "../lib/infranex/types";
 
 export type { LiveGpuSnapshot };
 

@@ -20,7 +20,7 @@ import {
   useTriggers,
   useTriggerActions,
   type TriggerEventDTO,
-} from "@/lib/infranex/use-triggers";
+} from "@/hooks/use-triggers";
 import type { ViewKey } from "@/lib/infranex/types";
 
 const KIND_META = {

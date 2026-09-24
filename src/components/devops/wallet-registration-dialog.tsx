@@ -57,7 +57,7 @@ import {
   type WalletRegistrationState,
   type WalletVerifyResponse,
 } from "@/lib/devops/wallet-registration";
-import type { RegistrationWizardContext } from "@/lib/infranex/use-deployments";
+import type { RegistrationWizardContext } from "@/hooks/use-deployments";
 import type { JourneySubnet } from "./mining-journey";
 
 type VerifyPhase = "idle" | "checking" | "registered" | "none" | "error";

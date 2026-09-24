@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import type { TrustReport, TrustVerdict, TrustRow } from "./trust";
+import type { TrustReport, TrustVerdict, TrustRow } from "../lib/infranex/trust";
 
 export type { TrustReport, TrustVerdict, TrustRow };
 

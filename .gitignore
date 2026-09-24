@@ -74,3 +74,6 @@ download/
 # local credential mirrors (plaintext login codes) — never commit
 /infranex-users.local.json
 dev.pid
+
+# stale full-app snapshot kept on disk only (old subdir-era copy with its own .git/.env)
+/infranex-bt-subdir-backup/

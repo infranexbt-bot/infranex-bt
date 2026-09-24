@@ -21,7 +21,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { cn, formatCurrency } from "@/lib/utils";
-import { useMonitoring } from "@/lib/infranex/use-monitoring";
+import { useMonitoring } from "@/hooks/use-monitoring";
 import type { DeploymentRecommendation, RecommendationType } from "@/lib/infranex/optimization";
 import type { ViewKey } from "@/lib/infranex/types";
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import type { TriggerEventDTO } from "@/lib/infranex/use-triggers";
+import type { TriggerEventDTO } from "@/hooks/use-triggers";
 
 /**
  * DEVOPS-1 — live payload for the DevOps Engine view. Polls every 20s;

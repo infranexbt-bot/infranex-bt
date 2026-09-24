@@ -38,7 +38,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { cn, formatRelativeTime } from "@/lib/utils";
-import { useNetwork } from "@/lib/infranex/use-network";
+import { useNetwork } from "@/hooks/use-network";
 import {
   useJudgeProfiles,
   useJudgeRuns,
@@ -47,7 +47,7 @@ import {
   type JudgeProfileData,
   type JudgeKind,
   type JudgeRunRecord,
-} from "@/lib/infranex/judge/use-judge";
+} from "@/hooks/use-judge";
 
 const KIND_BADGE: Record<JudgeKind, { label: string; className: string }> = {
   latency_race: { label: "Latency Race", className: "bg-cyan-500/15 text-cyan-300 border-cyan-500/30" },

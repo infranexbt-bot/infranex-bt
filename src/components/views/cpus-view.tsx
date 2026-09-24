@@ -35,8 +35,8 @@ import {
   HardDrive,
   PiggyBank,
 } from "lucide-react";
-import { useCpuOffers, type CpuOffersSnapshot } from "@/lib/infranex/use-cpu-offers";
-import { useMergedGpuOffers } from "@/lib/infranex/use-gpu-offers";
+import { useCpuOffers, type CpuOffersSnapshot } from "@/hooks/use-cpu-offers";
+import { useMergedGpuOffers } from "@/hooks/use-gpu-offers";
 import { ProviderKeysDialog } from "@/components/gpus/provider-keys-dialog";
 import { CpuProvisionDialog } from "@/components/cpus/provision-dialog";
 import { LocalMachineSection } from "@/components/cpus/local-machine-section";

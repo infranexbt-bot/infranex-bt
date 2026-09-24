@@ -26,10 +26,10 @@ import {
   Star,
 } from "lucide-react";
 import { cn, formatRelativeTime } from "@/lib/utils";
-import { useNetwork } from "@/lib/infranex/use-network";
-import { useHealthChecks } from "@/lib/infranex/use-health-checks";
-import { useErrorLog } from "@/lib/infranex/use-error-log";
-import { useWorkerStatus, useTriggerWorkers } from "@/lib/infranex/use-worker-status";
+import { useNetwork } from "@/hooks/use-network";
+import { useHealthChecks } from "@/hooks/use-health-checks";
+import { useErrorLog } from "@/hooks/use-error-log";
+import { useWorkerStatus, useTriggerWorkers } from "@/hooks/use-worker-status";
 import {
   useWallets,
   useCreateWallet,
@@ -40,7 +40,7 @@ import {
   useAckMasterKeyBackup,
   useAudit,
   type WalletProfile,
-} from "@/lib/infranex/use-platform";
+} from "@/hooks/use-platform";
 import { useQuery } from "@tanstack/react-query";
 import type { ViewKey } from "@/lib/infranex/types";
 

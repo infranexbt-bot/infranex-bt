@@ -15,7 +15,7 @@ import {
   Rocket,
 } from "lucide-react";
 import { cn, formatRelativeTime } from "@/lib/utils";
-import { useLocalHosts, type LocalHostDTO } from "@/lib/infranex/use-local-hosts";
+import { useLocalHosts, type LocalHostDTO } from "@/hooks/use-local-hosts";
 import { setDeployPreselect } from "@/components/deployments/deploy-preselect";
 import type { ViewKey } from "@/lib/infranex/types";
 

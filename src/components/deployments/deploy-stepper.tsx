@@ -31,11 +31,11 @@ import {
   Activity,
 } from "lucide-react";
 import { cn, formatCurrency, formatRelativeTime } from "@/lib/utils";
-import { useNetwork, mergeSubnets } from "@/lib/infranex/use-network";
-import { useMergedGpuOffers, type MergedGpuOffer } from "@/lib/infranex/use-gpu-offers";
-import { useCpuOffers } from "@/lib/infranex/use-cpu-offers";
-import { useLocalHosts, type LocalHostDTO } from "@/lib/infranex/use-local-hosts";
-import { useWallets } from "@/lib/infranex/use-platform";
+import { useNetwork, mergeSubnets } from "@/hooks/use-network";
+import { useMergedGpuOffers, type MergedGpuOffer } from "@/hooks/use-gpu-offers";
+import { useCpuOffers } from "@/hooks/use-cpu-offers";
+import { useLocalHosts, type LocalHostDTO } from "@/hooks/use-local-hosts";
+import { useWallets } from "@/hooks/use-platform";
 import {
   useCreateDeployment,
   useDeploymentDetail,
@@ -43,12 +43,12 @@ import {
   useRegistrationAction,
   type DeploymentStep,
   type RegistrationWizardContext,
-} from "@/lib/infranex/use-deployments";
+} from "@/hooks/use-deployments";
 import { WalletRegistrationDialog } from "@/components/devops/wallet-registration-dialog";
 import { DaemonInstallDialog } from "@/components/deployments/daemon-install-dialog";
 import { takeDeployPreselect } from "@/components/deployments/deploy-preselect";
 import { assessSeatChance } from "@/lib/infranex/miner-score";
-import { useSubnetOverrides } from "@/lib/infranex/use-subnet-overrides";
+import { useSubnetOverrides } from "@/hooks/use-subnet-overrides";
 import { hostingFlags } from "@/components/cards/hosting-requirements";
 import type { HostingRequirements } from "@/lib/infranex/github-scraper";
 import type { SubnetRequirementsProfile } from "@/lib/devops/subnet-requirements";
