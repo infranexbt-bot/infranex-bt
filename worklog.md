@@ -2527,3 +2527,17 @@ Stage Summary:
 - Strict list: SN64 Chutes (bare metal + static 1:1 IP + TEE, explicit RunPod/Vast ban), SN4 Targon (bare metal + NVIDIA CC), SN76 Ormas (explicit restriction); TEE tier: SN51 lium (#1 emission 2267 TAO/d), SN90, SN28, SN38, SN21, SN7, SN45, SN82
 - GPU no-restriction bucket = largest by emission (~13.3k TAO/day, 39 subnets): Minos, engy, iota, ORO, SOMA, NOVA, BitMind, Gradients, Affine, Apex, Score Vision...
 - Limitations: 22 subnets have no public repo, 8 unclear (requirements in Discord only), 3 repo-unreadable
+
+---
+Task ID: app-load-verify-3
+Agent: main
+Task: Load the web app and verify health
+
+Work Log:
+- Server already running on port 3000 (HTTP 307)
+- Browser session had expired; re-logged in as admin
+- Dashboard verified: CHAIN SYNCED, Finney block 9,136,800, 129 subnets, TAO $281.04
+- Screenshot: tool-results/app-load-verify-3.png
+
+Stage Summary:
+- App live and healthy, admin authenticated, chain data current
