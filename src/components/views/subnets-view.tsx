@@ -10,6 +10,9 @@ import { SubnetEditDialog } from "@/components/subnets/subnet-edit-dialog";
 import { SubnetRequirementsDialog } from "@/components/subnets/subnet-requirements-dialog";
 import { useNetwork, mergeSubnets, mergeOpportunities } from "@/lib/infranex/use-network";
 import { useSubnetOverrides, useSyncAllSubnets } from "@/lib/infranex/use-subnet-overrides";
+import { useProfitabilityConfig } from "@/lib/infranex/use-profitability";
+import { buildProfitRank } from "@/lib/infranex/profit-rank";
+import { ProfitRankPanel } from "@/components/subnets/profit-rank-panel";
 import {
   resolveCompat,
   matchCompatFilter,
@@ -33,6 +36,7 @@ export function SubnetsView() {
   const [reqOpen, setReqOpen] = useState(false);
   const { data: snap, isFetching, refetch } = useNetwork();
   const { data: overrides } = useSubnetOverrides();
+  const { data: profConfig } = useProfitabilityConfig();
   const syncMut = useSyncAllSubnets();
   const { toast } = useToast();
   const didAutoSync = useRef(false);
@@ -67,14 +71,28 @@ export function SubnetsView() {
 
   // DATA-AUDIT-1 — card scores/ranks come from the LIVE Miner's Ledger run
   // over the current snapshot (the old static fabricated scores are gone).
-  // With no snapshot yet there is no honest score to badge.
+  // With no snapshot yet there is no honest score to badge. Runs with the
+  // user's Profitability config so the P&L matches the Opportunities view.
+  const opportunities = useMemo(
+    () => mergeOpportunities(snap, profConfig, overrides),
+    [snap, profConfig, overrides]
+  );
+
   const scoreByNetuid = useMemo(() => {
     const map = new Map<number, { score: number; rank: number }>();
-    for (const o of mergeOpportunities(snap, undefined, overrides)) {
+    for (const o of opportunities) {
       map.set(o.netuid, { score: o.score, rank: o.rank });
     }
     return map;
-  }, [snap, overrides]);
+  }, [opportunities]);
+
+  // PROFIT-RANK — per-subnet emission-vs-rental-cost ranking, computed from
+  // the same live P&L rows (per-earning-miner revenue − hosting-aware rig
+  // rent − opex) plus the compat tiers for cost-basis flags.
+  const profitRows = useMemo(
+    () => buildProfitRank(opportunities, subnets, compatByNetuid),
+    [opportunities, subnets, compatByNetuid]
+  );
 
   const filtered = useMemo(() => {
     let r = subnets;
@@ -278,6 +296,16 @@ export function SubnetsView() {
           </div>
         </CardContent>
       </Card>
+
+      {/* PROFIT-RANK — emission vs. rental cost, ranked by net */}
+      <ProfitRankPanel
+        rows={profitRows}
+        taoPriceUsd={snap?.taoPriceUsd ?? 0}
+        onViewRequirements={(netuid) => {
+          const s = subnets.find((x) => x.netuid === netuid);
+          if (s) handleViewRequirements(s);
+        }}
+      />
 
       {filtered.length === 0 ? (
         <Card className="border-border/60 bg-card/40 backdrop-blur-sm">

@@ -2593,3 +2593,20 @@ Work Log:
 
 Stage Summary:
 - Full E2E walkthrough passed: plain-English verdicts, verbatim README evidence, requirement chips, where-to-rent hints all render correctly per tier; live-scrape > audit precedence visible in lium card
+
+---
+Task ID: profit-rank-1
+Agent: main
+Task: Add per-subnet profit ranking (emission vs. rental cost) to the Subnets view
+
+Work Log:
+- New src/lib/infranex/profit-rank.ts: pure buildProfitRank() reshaping the live Miner's Ledger P&L rows (mergeOpportunities) into ranked rows — per-earning-miner emission (chain), hosting-aware rig rent (container vs dedicated bare-metal rate), net/mo + net/d, margin %, rent-coverage x, verdict, honesty flags (whale-mean, knife-fight, estimated revenue, bare-metal cost basis, CPU-class exclusion from GPU filter)
+- New src/components/subnets/profit-rank-panel.tsx: sortable table (Net profit / Emission per miner / Rig rent / Margin %), GPU-subnets vs All toggle, top-10 + Show-all expand, compat dots, flag icons with tooltips, verdict chips mirroring the Opportunities styling, assumptions footnote
+- Wired into subnets-view.tsx: now runs mergeOpportunities with the user's persisted Profitability config (same P&L as the Opportunities Ledger); ProfitRankPanel rendered above the subnet grid; row click opens the subnet's requirements dialog
+- Ops: dev server had been OOM-killed (dmesg: next-server 2.2GB RSS on 4GB box) — restarting with NODE_OPTIONS=--max-old-space-size=1024 keeps it stable alongside Chrome; E2E done via single-call scripts (scripts/verify-profit-rank*.sh) since spawned processes are reaped at tool-call boundaries
+- E2E verified live: 43 GPU-relevant rows (46/9/73 profitable/marginal/below across all 128); Net-profit sort tops NOVA α68 (+$17,844/mo, 57x rent coverage); Rig-rent sort surfaces the cost traps — KubeTEE α90 24x H200 $60k rent vs $40k revenue (-$19.6k), Chutes α64 8x H200 dedicated $56k rent vs $25.8k (-$30.4k, red bare-metal dot + dedicated flag); compat dots color-correct (TEE amber, bare-metal red); row click opens requirements dialog; screenshots profit-rank-closeup-{1,2,3}.png + panel/all-toggle/row-dialog shots
+
+Stage Summary:
+- Feature shipped: Profit Rank panel answers "which subnet pays miners the most AFTER the rig is paid for" with hosting-aware costs and honesty flags
+- Data honesty preserved: zero new numbers invented — ranking is a pure reshape of the live chain emission + Profitability Engine costs; whale-mean/knife-fight/estimated rows flagged inline
+- Key insight surfaced by the feature: top net earners are cloud-OK flexible subnets (NOVA, Actual, Affine); the biggest emission names become money pits once true hosting costs are counted (KubeTEE, Chutes)
