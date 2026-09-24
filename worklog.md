@@ -2561,3 +2561,20 @@ Stage Summary:
 - Feature shipped: GPU hosting compatibility layer live in Subnets view + requirements dialog
 - Data precedence: live GitHub scrape beats audit seed beats structural caveats; caveat subnets (no-repo/discord-only) surfaced with amber warnings, never shown as OK
 - CSV deliverable regenerated at download/subnet-gpu-hosting-requirements.csv
+
+---
+Task ID: app-load-verify-4
+Agent: main
+Task: Load the web app and verify health post compat-layer build
+
+Work Log:
+- Server already running (next dev, port 3000, HTTP 307)
+- Session had expired; re-logged in as admin
+- Background sync worker observed scraping GitHub hosting requirements into SubnetOverride on cold start (UI showed SYNCING until done)
+- Dashboard verified: CHAIN SYNCED, Finney block 9,138,760, 129/129 subnets tracked, TAO $293.13
+- Subnets view E2E re-check of compat layer: filter chips render with counts (Bare metal only 2, TEE required 9, RunPod/Vast OK 80, CPU only 41); GPU COMPAT badges on cards; Bare-metal filter returns exactly Chutes (SN64) + Ormas (SN76)
+- Screenshots: tool-results/app-load-verify-4.png, tool-results/subnets-compat-verify-4.png
+- git status clean of real changes (only file-mode diffs from sandbox restore); feature commit 65f4b4e already on main
+
+Stage Summary:
+- App live and healthy with the GPU hosting compatibility layer fully operational; chain data current at block 9,138,760
