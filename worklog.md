@@ -2496,3 +2496,16 @@ Stage Summary:
 - Verdict: BOTH paths used, split by commitment level + subnet strictness. Renters (hobbyists, discovery, CPU subnets) -> Vast #1, RunPod #2. Committed GPU-subnet miners -> own/colo bare metal (top subnets ban container clouds)
 - Advice: rent-to-validate on Vast dedicated, buy/colo only after a subnet proves sustained positive net earnings; for Chutes/TAO-hash tier subnets rented marketplace clouds are disqualified outright
 - Matches app design: rent-earn curated blocks + migration engine + reward tracking automate the rent-vs-own decision loop
+
+---
+Task ID: baremetal-verdict-1
+Agent: main
+Task: Advise whether bare metal GPUs are a good option for the user's Bittensor mining plan
+
+Work Log:
+- Synthesized from session evidence: Chutes SN64 bare-metal/static-IP ban on container clouds, Vast vs Latitude pricing ($1.73-2.27 H100 SXM vs $1.68 H100 PCIe w/ BITTENSOR27), TEE/CC-mode subnet requirements, rent-to-validate strategy
+- Chat advice only, no new searches needed
+
+Stage Summary:
+- Verdict: YES with conditions - bare metal rental is the sweet spot IF targeting top-emission subnets (Chutes SN64, TAO Hash SN4, TEE subnets) that ban container clouds; price-competitive with Vast (Latitude H100 $1.68/hr + BITTENSOR27 vs Vast $1.73-2.27)
+- Recommended path: Vast hourly to validate subnet fit (2-4 wks) -> Latitude.sh bare metal reserved (monthly/yearly) once proven; skip straight to bare metal if targeting SN64/SN4 from day one
