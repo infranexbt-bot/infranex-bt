@@ -2465,3 +2465,19 @@ Stage Summary:
 - NVIDIA first-party options (DGX Cloud enterprise clusters, NVIDIA Brev developer cloud, Academic grants, Inception startup program) are all wrong-audience or 3-5x over marketplace pricing, and container clouds fail SN64/bare-metal subnet requirements per rent-earn engine
 - NVIDIA's only crypto product (CMP, 2021 PoW era) is discontinued and useless for Bittensor ML workloads
 - NVIDIA relevance is indirect: H100/H200 CC-mode hardware feature (required by SN4), CUDA stack, driver probes in real-setup.ts
+
+---
+Task ID: app-load-verify-2
+Agent: main
+Task: Load the web app and verify health
+
+Work Log:
+- Checked port 3000: HTTP 307 (server already running)
+- Opened http://localhost:3000 in browser -> redirected to /login (fresh session)
+- Logged in as admin via login form
+- Dashboard loaded; screenshot saved to tool-results/app-load-verify-2.png
+- Verified live chain data: Finney block 9,135,730, TAO $289.99, 129 subnets tracked, SYNCED v1.1
+- No console errors
+
+Stage Summary:
+- App confirmed live and healthy on localhost:3000, admin authenticated, dashboard rendering with live Bittensor chain data
