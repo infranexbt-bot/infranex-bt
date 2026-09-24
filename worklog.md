@@ -2481,3 +2481,18 @@ Work Log:
 
 Stage Summary:
 - App confirmed live and healthy on localhost:3000, admin authenticated, dashboard rendering with live Bittensor chain data
+
+---
+Task ID: miner-hardware-research-1
+Agent: main
+Task: Research whether Bittensor miners use provider GPUs vs own GPUs, and which providers dominate
+
+Work Log:
+- 12+ web searches: official bittensor.ai mining hardware page (updated Sep 23 2026), docs.vast.ai Bittensor tutorial, Chutes SN64 miner docs, millionminer 2026 guide, Reddit/community sentiment, misar.blog 2026 cost analysis, TensorDock/Hetzner/TensorPool
+- Attempted full-page fetches (misar.blog, bittensor.ai, millionminer) - Cloudflare/404 blocked; relied on search snippets with dates
+- Key evidence: bittensor.ai officially names AWS/RunPod/Vast.ai as rental path ($0.50-3.00/hr); Chutes SN64 docs ban RunPod/Vast ("ALL servers must be bare metal... static 1:1 IPs"); Vast has official Mining-on-Bittensor tutorial; misar.blog: $40/mo VPS CPU subnets to $2-4/hr H100 frontier subnets; colo for serious ops
+
+Stage Summary:
+- Verdict: BOTH paths used, split by commitment level + subnet strictness. Renters (hobbyists, discovery, CPU subnets) -> Vast #1, RunPod #2. Committed GPU-subnet miners -> own/colo bare metal (top subnets ban container clouds)
+- Advice: rent-to-validate on Vast dedicated, buy/colo only after a subnet proves sustained positive net earnings; for Chutes/TAO-hash tier subnets rented marketplace clouds are disqualified outright
+- Matches app design: rent-earn curated blocks + migration engine + reward tracking automate the rent-vs-own decision loop
