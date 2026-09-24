@@ -1,0 +1,68 @@
+{
+  "total": 129,
+  "readme_ok": 96,
+  "readme_fail": [
+    {
+      "netuid": 39,
+      "repo": "deprecated/deprecated"
+    },
+    {
+      "netuid": 95,
+      "repo": "actual-computer/actual-subnet-95"
+    },
+    {
+      "netuid": 97,
+      "repo": "unarbos/albedo"
+    },
+    {
+      "netuid": 103,
+      "repo": "orgs/Capcomp-AI"
+    },
+    {
+      "netuid": 105,
+      "repo": "orgs/Beam-Network"
+    },
+    {
+      "netuid": 117,
+      "repo": "everyframe-studios/everyframe-miner"
+    },
+    {
+      "netuid": 118,
+      "repo": "orgs/ditto-assistant"
+    },
+    {
+      "netuid": 120,
+      "repo": "AffineFoundation/affine"
+    },
+    {
+      "netuid": 126,
+      "repo": "attelierai/attelierai_subnet"
+    }
+  ],
+  "no_repo": [
+    0,
+    16,
+    30,
+    31,
+    35,
+    42,
+    47,
+    57,
+    58,
+    59,
+    70,
+    73,
+    84,
+    86,
+    87,
+    92,
+    99,
+    108,
+    109,
+    110,
+    112,
+    113,
+    116,
+    122
+  ]
+}

@@ -2625,3 +2625,60 @@ Work Log:
 
 Stage Summary:
 - Repo fully saved and pushed; GitHub main at 62cff26 with the Profit Rank panel feature live in the codebase
+---
+Task ID: 2-d
+Agent: general-purpose
+Task: Synthesize subnet summaries netuid 102-128
+
+Work Log:
+- Read all 27 extract files (102-128) plus the websearch JSONs for research-backed netuids (103/105/108/109/110/113/116/117/118/120/122/126) to check snippet substance before choosing confidence
+- Wrote batch-4.json: 27 objects, exact 10-field schema, ordered by netuid; categories constrained to the allowed enum; parked/dormant slots (112 for sale) marked Parked with "nothing" miner descriptions
+- Honesty pass: kept research-only subnets general with uncertainty flags; spotted bittensor.ai listing-page snippet contamination (identical "GPU rental marketplace" blurb under 116 and 126) and refused to use it as subnet-specific evidence
+- Verified: python3 json.load -> 27; schema/order/enum check passed (readme 14 / research 10 / chain-only 3)
+
+Stage Summary:
+- 27/27 synthesized: 14 readme-backed (102,104,106,107,111,114,115,119,121,123,124,125,127,128), 10 research (103,105,108,109,110,113,117,118,120,122), 3 chain-only (112,116,126)
+---
+Task ID: 2-c
+Agent: general-purpose
+Task: Synthesize subnet summaries netuid 68-101
+
+Work Log:
+- Read all 34 extract files (subnet-info-extracts/68.md-101.md) plus cross-checked the thin ones (70/84/86/87/95/97/99) against subnet-info-extracts/websearch/*.json to confirm snippet substance before grading confidence
+- Wrote scripts/subnet-info-synth/batch-3.json: 34 objects ordered by netuid with exact field set (netuid/name/category/whatItDoes/whatMinerDoes/whatValidatorDoes/rewardBasis/minerWorkType/confidence/source); no invented specifics — truncated READMEs (68, 72, 83, 100) and repo-less slots get explicitly flagged uncertainty
+- Classified 5 slots as Parked/Placeholder (70, 73 Parked, 84, 86, 92 Available) per 0x descriptions/no repo; 94 named "BitSota" since on-chain name is still "pending..."
+- Validated with python3 json.load: 34 objects parse clean, netuids == range(68,102), all field sets exact
+
+Stage Summary:
+- 34 entries: 25 readme-backed, 4 research-only (87 Provenonce, 95 Actual, 97 Albedo, 99 Thirty Spokes), 5 chain-only (all parked slots)
+---
+Task ID: 2-a
+Agent: general-purpose
+Task: Synthesize subnet summaries netuid 0-33 (retry after interruption)
+
+Work Log:
+- Read all 34 extract files (0.md-33.md); cross-checked the repo-less ones (16 kenju, 30 Endure, 31 rec4ll) against websearch/*.json to grade snippet substance before picking confidence
+- Wrote scripts/subnet-info-synth/batch-1.json: 34 objects ordered by netuid, exact 10-field schema, enum-constrained categories; verified json.load = 34, field sets exact, order == range(34)
+- Honesty pass: no invented specifics; thin-README subnets (4 Targon, 22 Desearch, 32 ItsAI, 28 validator side) kept general with "not documented in extract" flags; 16 kenju web snippets identified as generic listing-page boilerplate (incl. the recycled "GPU rental marketplace" blurb) -> chain-only
+- Verified hint list against files: SN1=Apex (confirmed), but SN8=Vanta not BitAds, SN18=Zeus not Corvus, SN27=Orion not Compute, SN29=hotfloat not Vision; flagged that coldint/hotfloat README still carries Cacheon SN14 branding (rebrand/migration lineage) inside the SN29 entry
+
+Stage Summary:
+- 34 entries: 30 readme-backed, 1 research (30 Endure), 3 chain-only (0 root, 16 kenju parked, 31 rec4ll rich on-chain desc); 1 parked/placeholder slot (16)
+
+---
+Task ID: subnet-info-1
+Agent: main (+4 general-purpose synthesis batches 2-a/2-b/2-c/2-d)
+Task: Pull per-subnet capability info — what each subnet does + what the miner does
+
+Work Log:
+- Sources: live ChainSnapshot (identityDescription/github/emission), SubnetOverride (verified requirementsSource repos), raw.githubusercontent READMEs (96/129 fetched, branch+path fallback), web search for 27 gaps
+- Extracted README intro/purpose/miner/validator sections via scripts/pull-subnet-info.py → scripts/subnet-info-extracts/<n>.md
+- Parked slots identified (desc 0x / "Parked"/"for sale"/"Available") and flagged, never guessed
+- 4 parallel subagent batches synthesized 129 summaries with strict 10-field schema + honesty rules; batch-2/3 written by agents despite interruption, batch-1 retried clean
+- scripts/merge-subnet-jobs.py merged with chain stats → download/subnet-miner-jobs.csv (129 rows: category, whatItDoes, whatMinerDoes, whatValidatorDoes, rewardBasis, emission/tao+usd per rewarding miner, miners, rewardedMiners, alpha price, confidence, source, hosting notes)
+- Quality: 96 readme-backed, 16 research, 17 chain-only; websearch contamination screened (recycled bittensor.ai boilerplate downgraded)
+
+Stage Summary:
+- Deliverable: download/subnet-miner-jobs.csv — first complete per-subnet "what does the miner actually do" dataset across all 129 slots
+- Landscape: 23 AI-training, 16 inference, 11 prediction/trading, 10 agents, 10 compute-infra, 9 data/scraping, 9 media, 7 finance-data, 5 bio/health, 12 parked/deprecated
+- Key pattern: most subnets pay few rewarded miners (king-of-the-hill); wide-payout outliers (Hone 246/256, ReadyAI 244, DataUniverse 236, Beam 204) matter more than raw emission

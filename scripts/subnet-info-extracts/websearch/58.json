@@ -1,0 +1,47 @@
+[
+  {
+    "url": "https://www.bittensor.com",
+    "name": "Mining — Bittensor Docs",
+    "snippet": "A miner is a hotkey registered on a subnet , doing whatever work that subnet's incentive mechanism rewards. The chain side of mining is small: register, ... Read more",
+    "host_name": "www.bittensor.com",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://github.com",
+    "name": "Handshake58/HS58: AI Provider Templates & Docs",
+    "snippet": "For Miners (Bittensor Subnet 58). Run a provider + register as a Bittensor miner to earn TAO incentives. 10 Minute Setup. Read more",
+    "host_name": "github.com",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://subnetalpha.ai",
+    "name": "Greevils",
+    "snippet": "Miners on SN58 are Bittensor neurons who claim ownership of a Hyperliquid trading account on-chain via an EIP-191 cryptographic commitment.",
+    "host_name": "subnetalpha.ai",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://taostats.io",
+    "name": "Subnets",
+    "snippet": "The most widely used platform in the ecosystem for staking, portfolio tracking, tax reports, subnet discovery, and validator analytics.",
+    "host_name": "taostats.io",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://handshake58.com",
+    "name": "Bittensor Subnet Profitability Ranking - Handshake58",
+    "snippet": "Bittensor Subnet Profitability Ranking. Ranks all Bittensor subnets by estimated miner profit ability with detailed metrics and recommendations. bittensorsubnet ... Read more",
+    "host_name": "handshake58.com",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  }
+]

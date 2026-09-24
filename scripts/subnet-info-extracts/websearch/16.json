@@ -1,0 +1,38 @@
+[
+  {
+    "url": "https://www.bittensor.com",
+    "name": "Mining — Bittensor Docs",
+    "snippet": "A miner is a hotkey registered on a subnet , doing whatever work that subnet's incentive mechanism rewards. The chain side of mining is small: register, ...",
+    "host_name": "www.bittensor.com",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://bittensor.ai",
+    "name": "Bittensor Subnets — dTAO Prices & Emissions",
+    "snippet": "Decentralized GPU rental marketplace powered by incentivized validation. Miners rent hardware , validators verify specs, renters access compute on Bittensor.",
+    "host_name": "bittensor.ai",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://taostats.io",
+    "name": "Subnets",
+    "snippet": "taostats has been the official Bittensor block explorer since 2022. The most widely used platform in the ecosystem for staking, portfolio tracking, tax reports, ...",
+    "host_name": "taostats.io",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.bankless.com",
+    "name": "5 Cool Bittensor Subnets to Test Out",
+    "snippet": "Sep 5, 2024 — BitAds is a subnet on Bittensor that flips the script by rewarding miners (marketers) based on actual sales they generate. ... — BitAds | ...",
+    "host_name": "www.bankless.com",
+    "rank": 3,
+    "date": "Sep 5, 2024",
+    "favicon": ""
+  }
+]

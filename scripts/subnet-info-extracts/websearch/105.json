@@ -1,0 +1,47 @@
+[
+  {
+    "url": "https://subnetalpha.ai",
+    "name": "Beam",
+    "snippet": "Beam operates as Subnet 105 on the Bittensor blockchain , so it follows Bittensor's general model of miners and validators. In this model, Beam miners run ... Read more",
+    "host_name": "subnetalpha.ai",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.tao.bot",
+    "name": "TAO.BOT - Your Gateway to Bittensor",
+    "snippet": "Beam BEAM # 27 SUBNET-105 0.33% BEAM emitted daily by the network. officially registered on the Bittensor network. A global network. Powering the open internet.",
+    "host_name": "www.tao.bot",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://taostats.io",
+    "name": "0.0057 · SN105 · Beam · taostats · Official Block Explorer &",
+    "snippet": "This chart shows the incentive values for all miners on the subnet . The lowest active key shows where the cutoff is for active miners , and the next UID to ...",
+    "host_name": "taostats.io",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://github.com",
+    "name": "Beam-Network/beam",
+    "snippet": "7 days ago — BEAM participant software runs orchestrator, worker, and validator processes for subnet 105 . Bittensor hotkey registered on subnet 105 Network ...",
+    "host_name": "github.com",
+    "rank": 3,
+    "date": "Sep 17, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://bittensor.ai",
+    "name": "Bittensor Subnets — dTAO Prices & Emissions",
+    "snippet": "Probabilistic price forecasting network . Miners generate simulated price paths; validators score accuracy with CRPS. Earn emissions based on prediction quality. Read more",
+    "host_name": "bittensor.ai",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  }
+]

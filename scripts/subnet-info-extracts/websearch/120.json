@@ -1,0 +1,47 @@
+[
+  {
+    "url": "https://subnetalpha.ai",
+    "name": "Affine",
+    "snippet": "Affine (Bittensor Subnet-120 ) serves as an infrastructure layer that connects and coordinates multiple AI subnets to enable seamless interoperability and ... Read more",
+    "host_name": "subnetalpha.ai",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://simplytao.ai",
+    "name": "Your Simple Guide to Affine (SN120)",
+    "snippet": "Mar 11, 2026 — Affine pays miners who make incremental improvements to AI models on a defined set of tasks such as program abduction and coding.",
+    "host_name": "simplytao.ai",
+    "rank": 1,
+    "date": "Mar 11, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.bittensor.com",
+    "name": "Mining — Bittensor Docs",
+    "snippet": "A miner is a hotkey registered on a subnet , doing whatever work that subnet's incentive mechanism rewards. The chain side of mining is small: register, tell ...",
+    "host_name": "www.bittensor.com",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://bittensor.ai",
+    "name": "Affine (SN120) — Reasoning Model Competition",
+    "snippet": "3 days ago — Affine is an incentivized reinforcement learning subnet on Bittensor that rewards miners for improving reasoning models. Miners commit Qwen3- ... Read more",
+    "host_name": "bittensor.ai",
+    "rank": 3,
+    "date": "Sep 21, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.altcoinbuzz.io",
+    "name": "Why Bittensor Subnets 62, 123, 120 Have Top Potential",
+    "snippet": "Sep 5, 2025 — Subnet 120 , known as Affine , It serves as an infrastructure layer, connecting and composing multiple subnets to deliver AI inference out of the ...",
+    "host_name": "www.altcoinbuzz.io",
+    "rank": 4,
+    "date": "Sep 5, 2025",
+    "favicon": ""
+  }
+]

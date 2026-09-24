@@ -1,0 +1,38 @@
+[
+  {
+    "url": "https://subnetalpha.ai",
+    "name": "Actual",
+    "snippet": "Actual ( Bittensor Subnet 95 ) is a decentralised, heterogeneous AI inference network … consumer MacBooks and single-board computers .",
+    "host_name": "subnetalpha.ai",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://bittensor.ai",
+    "name": "Actual (SN95)",
+    "snippet": "For Miners 45.9% of emission Slots 256/256Competitive Neurons 256 About Heterogeneous inference network by Actual Computer Inc.",
+    "host_name": "bittensor.ai",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.bittensor.com",
+    "name": "Mining — Bittensor Docs",
+    "snippet": "A miner is a hotkey registered on a subnet , Mining (and validating) is not supported on Windows. Wallet operations work under WSL 2, but run miners on Linux or ...",
+    "host_name": "www.bittensor.com",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.altcoinbuzz.io",
+    "name": "Top 10 Bittensor Subnets by Mindshare",
+    "snippet": "Sep 5, 2025 — Quantum Compute (SN48) – 1.99%. This subnet explores quantum computing by simulating advanced quantum circuits using GPUs and CPUs on Bittensor . Read more",
+    "host_name": "www.altcoinbuzz.io",
+    "rank": 3,
+    "date": "Sep 5, 2025",
+    "favicon": ""
+  }
+]

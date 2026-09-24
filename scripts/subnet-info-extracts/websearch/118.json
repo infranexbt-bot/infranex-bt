@@ -1,0 +1,47 @@
+[
+  {
+    "url": "https://subnetalpha.ai",
+    "name": "Ditto",
+    "snippet": "On Bittensor , each subnet defines how miners create its output and validators score it. Ditto operates as a Bittensor subnet (netuid 118 ) under this model. Read more",
+    "host_name": "subnetalpha.ai",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://github.com",
+    "name": "Official DittoBench miner starter kit for Bittensor subnet 118",
+    "snippet": "Aug 11, 2026 — An agent and memory harness for DittoBench, the benchmark on Bittensor subnet 118 (SN118). Miners run an agent that the validator probes with ...",
+    "host_name": "github.com",
+    "rank": 1,
+    "date": "Aug 11, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://libraries.io",
+    "name": "github.com/ditto-assistant/ditto-subnet v0.254.0 on Go",
+    "snippet": "Sep 10, 2026 — Ditto Subnet ( Bittensor SN118 ). A Bittensor subnet that incentivizes agent memory harnesses. Miners submit a Docker build context that serves ... Read more",
+    "host_name": "libraries.io",
+    "rank": 2,
+    "date": "Sep 10, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.desearch.ai",
+    "name": "Ditto (SN118) Partner",
+    "snippet": "Memory research on Bittensor Ditto runs Bittensor Subnet 118 (SN118), where miners develop programs that help agents store information and recall it when ...",
+    "host_name": "www.desearch.ai",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.tao.media",
+    "name": "Ditto (SN118): The Open Source Agentic Operating System",
+    "snippet": "Jun 1, 2026 — The Bittensor subnet says its miners found a Lean-verified counterexample to a long-standing conjecture about unit distances in convex polygons. Read more",
+    "host_name": "www.tao.media",
+    "rank": 4,
+    "date": "Jun 1, 2026",
+    "favicon": ""
+  }
+]

@@ -1,0 +1,38 @@
+[
+  {
+    "url": "https://bittensor.ai",
+    "name": "Bittensor Subnets — dTAO Prices & Emissions",
+    "snippet": "Decentralized GPU rental marketplace powered by incentivized validation. Miners rent hardware, validators verify specs, renters access compute on Bittensor . Read more",
+    "host_name": "bittensor.ai",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://docs.vast.ai",
+    "name": "Mining on Bittensor",
+    "snippet": "This tutorial shows how to use the Bittensor testnet to create a subnet and run your incentive mechanism on it. and for subnet miner .",
+    "host_name": "docs.vast.ai",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://onfinality.io",
+    "name": "How to Mine Bittensor: TAO, Subnets, and RPC Setup",
+    "snippet": "Aug 1, 2026 — How do I mine Bittensor and keep my miner connected?",
+    "host_name": "onfinality.io",
+    "rank": 2,
+    "date": "Aug 1, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://docs.taostats.io",
+    "name": "Introduction - Getting Started with Bittensor - Taostats",
+    "snippet": "But, There are just 9 miners active (and 256 slots). So your miner will not be deregistered, and you can learn how to maximize your returns on the subnet along ... Read more",
+    "host_name": "docs.taostats.io",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  }
+]

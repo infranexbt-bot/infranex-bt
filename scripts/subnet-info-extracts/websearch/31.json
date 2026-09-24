@@ -1,0 +1,47 @@
+[
+  {
+    "url": "https://bittensor.ai",
+    "name": "Bittensor Subnets — dTAO Prices & Emissions",
+    "snippet": "rec4llSN31 Recall provides decentralized retrieval-augmented generation to Bittensor. Miners serve embedding models, vector search, and LLM inference.",
+    "host_name": "bittensor.ai",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.bittensor.com",
+    "name": "Bittensor Documentation",
+    "snippet": "Bittensor is an open network where independent subnets produce digital commodities — compute, inference, storage, prediction — and the chain pays ... Read more",
+    "host_name": "www.bittensor.com",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://taostats.io",
+    "name": "Official Block Explorer & Gateway to Bittensor",
+    "snippet": "taostats has been the official Bittensor block explorer since 2022. The most widely used platform in the ecosystem for staking, portfolio tracking, tax reports, ... Read more",
+    "host_name": "taostats.io",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://docs.vast.ai",
+    "name": "Mining on Bittensor",
+    "snippet": "This tutorial shows how to use the Bittensor testnet to create a subnet and run your incentive mechanism on it. for subnet miner . Run subnet miner and subnet ...",
+    "host_name": "docs.vast.ai",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://heyditto.ai",
+    "name": "Mining on Ditto (Subnet 118)",
+    "snippet": "Jul 13, 2026 — Ditto is Bittensor Subnet 118. Miners submit an agent-memory harness; validators score it on tool-calling accuracy and memory recall against a ... Read more",
+    "host_name": "heyditto.ai",
+    "rank": 4,
+    "date": "Jul 13, 2026",
+    "favicon": ""
+  }
+]

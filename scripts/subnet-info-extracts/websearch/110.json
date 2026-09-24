@@ -1,0 +1,47 @@
+[
+  {
+    "url": "https://subnetalpha.ai",
+    "name": "Green Compute",
+    "snippet": "Green Compute is Bittensor subnet 110 – an inference marketplace where only verifiably green compute is rewarded. It targets enterprise-grade AI inference ...",
+    "host_name": "subnetalpha.ai",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://taostats.io",
+    "name": "Green Compute SN110",
+    "snippet": "generate tax reports, analyse subnets and access historical data. for staking, portfolio tracking, tax reports, subnet discovery, and validator analytics.  ...",
+    "host_name": "taostats.io",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://neuralteq.com",
+    "name": "Green Compute subnet 110 | dTAO",
+    "snippet": "Compute presents netuid 110 as infrastructure for renting GPU capacity, running inference, and rewarding miners who provide qualifying compute.",
+    "host_name": "neuralteq.com",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.bittensor.com",
+    "name": "Mining — Bittensor Docs",
+    "snippet": "A miner is a hotkey registered on a subnet , doing whatever work that subnet's incentive mechanism rewards. The chain side of mining is small: register, ... Read more",
+    "host_name": "www.bittensor.com",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://taomarketcap.com",
+    "name": "Subnet 110 | Bittensor Trade",
+    "snippet": "TaoMarketCap delivers real-time insights for Validators, Traders, and Miners across the Bittensor network. Track Subnet performance, TAO price action, validator ... Read more",
+    "host_name": "taomarketcap.com",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  }
+]
