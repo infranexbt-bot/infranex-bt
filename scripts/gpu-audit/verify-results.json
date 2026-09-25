@@ -1,0 +1,1845 @@
+[
+  {
+    "netuid": 1,
+    "name": "Apex",
+    "repo": "https://github.com/macrocosm-os/apex",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 2,
+    "name": "DSperse",
+    "repo": "https://github.com/inference-labs-inc/subnet-2",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 3,
+    "name": "Teutonic",
+    "repo": "https://github.com/unarbos/teutonic",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 4,
+    "name": "Targon",
+    "repo": "https://github.com/manifold-inc/targon",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 5,
+    "name": "Hone",
+    "repo": "https://github.com/hone-subnet-org/hone-subnet",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 6,
+    "name": "Numinous",
+    "repo": "https://github.com/numinouslabs/numinous",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 7,
+    "name": "Allways",
+    "repo": "https://github.com/entrius/allways",
+    "verdict": "OK",
+    "reason": "CPU-only per official min_compute.yml (gpu.required: False)",
+    "display": {
+      "gpu": "None (CPU-only)",
+      "vram": 0
+    },
+    "gt": {
+      "cdGpu": null,
+      "cdVram": 0,
+      "cdCpuOnly": true,
+      "cdQpu": false,
+      "cdBoilerplate": false
+    },
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 8,
+    "name": "Vanta",
+    "repo": "https://github.com/taoshidev/vanta-network",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 9,
+    "name": "iota",
+    "repo": "https://github.com/macrocosm-os/iota",
+    "verdict": "ESTIMATE",
+    "reason": "no machine-readable GT in repo — display is a labeled estimate (RTX 4090, vram 16)",
+    "display": {
+      "gpu": "RTX 4090",
+      "vram": 16
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 10,
+    "name": "Pareton",
+    "repo": "https://github.com/Pareton-ai/pareton",
+    "verdict": "ESTIMATE",
+    "reason": "no machine-readable GT in repo — display is a labeled estimate (RTX 5090, vram null)",
+    "display": {
+      "gpu": "RTX 5090",
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 11,
+    "name": "TrajectoryRL",
+    "repo": "https://github.com/trajectoryRL/trajectoryRL",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 12,
+    "name": "Compute Horde",
+    "repo": "https://github.com/backend-developers-ltd/ComputeHorde",
+    "verdict": "OK",
+    "reason": "repo-sourced \"A100\"; README evidence: \"Currently, A6000 is the supported class, with A100 coming next.\"",
+    "display": {
+      "gpu": "A100",
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": [
+      "Currently, A6000 is the supported class, with A100 coming next.",
+      "1. trusted miner (requires A6000 - the only GPU supported now) for cross-validation"
+    ]
+  },
+  {
+    "netuid": 13,
+    "name": "Data Universe",
+    "repo": "https://github.com/macrocosm-os/data-universe",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 14,
+    "name": "Cacheon",
+    "repo": "https://github.com/latent-to/cacheon",
+    "verdict": "ESTIMATE",
+    "reason": "no machine-readable GT in repo — display is a labeled estimate (B300, vram null)",
+    "display": {
+      "gpu": "B300",
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 15,
+    "name": "ORO",
+    "repo": "https://github.com/ORO-AI/oro",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 16,
+    "name": "kenju",
+    "repo": null,
+    "verdict": "NO-REPO",
+    "reason": "no usable repo on-chain (parked/for-sale) — display is a labeled classifier/revenue estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 17,
+    "name": "404—GEN",
+    "repo": "https://github.com/404-Repo/404-gen-subnet",
+    "verdict": "OK",
+    "reason": "repo-sourced \"4x H200\"; README evidence: \"2. Pod deployment: Deploy the image on a GPU pod via the batch generation API, using the hardware th\"",
+    "display": {
+      "gpu": "4x H200",
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": [
+      "2. Pod deployment: Deploy the image on a GPU pod via the batch generation API, using the hardware the miner declared in hardware.json (4×H200 by default)"
+    ]
+  },
+  {
+    "netuid": 18,
+    "name": "Zeus",
+    "repo": "https://github.com/Orpheus-AI/Zeus",
+    "verdict": "OK",
+    "reason": "CPU-only per official min_compute.yml (gpu.required: False)",
+    "display": {
+      "gpu": "None (CPU-only)",
+      "vram": 0
+    },
+    "gt": {
+      "cdGpu": null,
+      "cdVram": 0,
+      "cdCpuOnly": true,
+      "cdQpu": false,
+      "cdBoilerplate": false
+    },
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 19,
+    "name": "blockmachine",
+    "repo": "https://github.com/taostat/blockmachine",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 20,
+    "name": "Witness",
+    "repo": "https://github.com/witnessvision/witness_subnet",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 21,
+    "name": "AdTAO",
+    "repo": "https://github.com/ippcteam/SN21-adtao",
+    "verdict": "OK",
+    "reason": "CPU-only per official min_compute.yml (gpu.required: False)",
+    "display": {
+      "gpu": "None (CPU-only)",
+      "vram": 0
+    },
+    "gt": {
+      "cdGpu": null,
+      "cdVram": 0,
+      "cdCpuOnly": true,
+      "cdQpu": false,
+      "cdBoilerplate": false
+    },
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 22,
+    "name": "Desearch",
+    "repo": "https://github.com/datura-ai/desearch",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": {
+      "cdGpu": null,
+      "cdVram": null,
+      "cdCpuOnly": false,
+      "cdQpu": false,
+      "cdBoilerplate": false
+    },
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 23,
+    "name": "Trishool",
+    "repo": "https://github.com/TrishoolAI/trishool-phase2",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 24,
+    "name": "Quasar",
+    "repo": "https://github.com/SILX-LABS/QUASAR-SUBNET",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 25,
+    "name": "UR",
+    "repo": "https://github.com/urfoundation/sn",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 26,
+    "name": "Perturb",
+    "repo": "https://github.com/0xsigurd/Perturb",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 27,
+    "name": "Orion",
+    "repo": "https://github.com/SILX-LABS/Orion",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 28,
+    "name": "SayGM",
+    "repo": "https://github.com/taostat/gm-miner",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 29,
+    "name": "hoτfloaτ",
+    "repo": "https://github.com/coldint/hotfloat",
+    "verdict": "OK",
+    "reason": "repo-sourced \"8x B300\"; README evidence: \"GPU requirements: NVLink/SXM 8-GPU pod (8x H200, 8x B200, or 8x B300 are Tier A; 8x H100 is Tier B f\"",
+    "display": {
+      "gpu": "8x B300",
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": [
+      "GPU requirements: NVLink/SXM 8-GPU pod (8x H200, 8x B200, or 8x B300 are Tier A; 8x H100 is Tier B fallback), 400 GB storage, model weights at /workspace/models"
+    ]
+  },
+  {
+    "netuid": 30,
+    "name": "Endure Network",
+    "repo": null,
+    "verdict": "NO-REPO",
+    "reason": "no usable repo on-chain (parked/for-sale) — display is a labeled classifier/revenue estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 31,
+    "name": "rec4ll",
+    "repo": null,
+    "verdict": "NO-REPO",
+    "reason": "no usable repo on-chain (parked/for-sale) — display is a labeled classifier/revenue estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 32,
+    "name": "ItsAI",
+    "repo": "https://github.com/It-s-AI/llm-detection",
+    "verdict": "OK",
+    "reason": "matches min_compute.yml (min_vram=24, rec_gpu=NVIDIA RTX 4090)",
+    "display": {
+      "gpu": "RTX 4090",
+      "vram": 24
+    },
+    "gt": {
+      "cdGpu": "NVIDIA RTX 4090",
+      "cdVram": 24,
+      "cdCpuOnly": false,
+      "cdQpu": false,
+      "cdBoilerplate": false
+    },
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 33,
+    "name": "ReadyAI",
+    "repo": "https://github.com/afterpartyai/bittensor-conversation-genome-project",
+    "verdict": "OK",
+    "reason": "min_compute.yml is unmodified template boilerplate (no info) — display from README/classifier estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": {
+      "cdGpu": null,
+      "cdVram": null,
+      "cdCpuOnly": false,
+      "cdQpu": false,
+      "cdBoilerplate": true
+    },
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 34,
+    "name": "BitMind",
+    "repo": "https://github.com/BitMind-AI/bitmind-subnet",
+    "verdict": "OK",
+    "reason": "matches min_compute.yml (min_vram=80, rec_gpu=NVIDIA A100 80GB PCIE)",
+    "display": {
+      "gpu": "A100",
+      "vram": 80
+    },
+    "gt": {
+      "cdGpu": "NVIDIA A100 80GB PCIE",
+      "cdVram": 80,
+      "cdCpuOnly": false,
+      "cdQpu": false,
+      "cdBoilerplate": false
+    },
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 35,
+    "name": null,
+    "repo": null,
+    "verdict": "NO-REPO",
+    "reason": "no usable repo on-chain (parked/for-sale) — display is a labeled classifier/revenue estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 36,
+    "name": "Epago",
+    "repo": "https://github.com/EpagoFoundation/epago",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 37,
+    "name": "Aurelius",
+    "repo": "https://github.com/Aurelius-Protocol/Aurelius-Protocol",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 38,
+    "name": "ChronoLLM",
+    "repo": "https://github.com/chronollm/sn38",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 39,
+    "name": "deprecated",
+    "repo": "https://github.com/deprecated/deprecated",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 40,
+    "name": "Ralph",
+    "repo": "https://github.com/RalphLabsAI/ralph",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 41,
+    "name": "Almanac",
+    "repo": "https://github.com/corvxai/almanac",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 42,
+    "name": "Unknown",
+    "repo": null,
+    "verdict": "NO-REPO",
+    "reason": "no usable repo on-chain (parked/for-sale) — display is a labeled classifier/revenue estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 43,
+    "name": "Graphite",
+    "repo": "https://github.com/GraphiteAI/Graphite-Subnet",
+    "verdict": "OK",
+    "reason": "CPU-only per official min_compute.yml (gpu.required: False)",
+    "display": {
+      "gpu": "None (CPU-only)",
+      "vram": 0
+    },
+    "gt": {
+      "cdGpu": null,
+      "cdVram": 0,
+      "cdCpuOnly": true,
+      "cdQpu": false,
+      "cdBoilerplate": false
+    },
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 44,
+    "name": "Score",
+    "repo": "https://github.com/score-technologies/turbovision",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 45,
+    "name": "AlphaRidge.ai",
+    "repo": "https://github.com/Team-Rizzo/alpharidge-ai",
+    "verdict": "OK",
+    "reason": "min_compute.yml is unmodified template boilerplate (no info) — display from README/classifier estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": {
+      "cdGpu": null,
+      "cdVram": null,
+      "cdCpuOnly": false,
+      "cdQpu": false,
+      "cdBoilerplate": true
+    },
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 46,
+    "name": "Instant",
+    "repo": "https://github.com/Subnet46/sn46-validator",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 47,
+    "name": "GPUForge",
+    "repo": "https://github.com/forgenet47/gpuforge",
+    "verdict": "ESTIMATE",
+    "reason": "README states GPU evidence but display is empty/estimate: \"GPUForge is a proposed Bittensor subnet for verifiable GPU training work. A job publisher supplies a\"",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": [
+      "GPUForge is a proposed Bittensor subnet for verifiable GPU training work. A job publisher supplies a signed, immutable training workload. Miners execute that wo",
+      "Miner capability discovery accepts an injectable provider that returns only GPU name, memory, driver version, runtime version, and interconnect. The public prot",
+      "Driver/runtime acceptance is controlled by an explicit compatibility policy supplied by the operator rather than an implicit local default. The resulting hotkey",
+      "The optional NVIDIA adapter targets the NVAT 1.x command-line JSON contract and GPU claims schema 3.0. It requires a separately installed nvattest executable an"
+    ]
+  },
+  {
+    "netuid": 48,
+    "name": "Quantum Compute",
+    "repo": "https://github.com/qbittensor-labs/quantum-compute",
+    "verdict": "OK",
+    "reason": "QPU (no GPU) per official min_compute.yml",
+    "display": {
+      "gpu": "None (QPU — quantum hardware)",
+      "vram": 0
+    },
+    "gt": {
+      "cdGpu": null,
+      "cdVram": 0,
+      "cdCpuOnly": true,
+      "cdQpu": true,
+      "cdBoilerplate": false
+    },
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 49,
+    "name": "Nepher Robotics",
+    "repo": "https://github.com/nepher-ai/nepher-subnet",
+    "verdict": "OK",
+    "reason": "repo-sourced \"A100\"; README evidence: \"Requires NVIDIA GPU (A100+ recommended), Isaac Sim 5.1, Isaac Lab 2.3.0, Docker + NVIDIA Container T\"",
+    "display": {
+      "gpu": "A100",
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": [
+      "Requires NVIDIA GPU (A100+ recommended), Isaac Sim 5.1, Isaac Lab 2.3.0, Docker + NVIDIA Container Toolkit."
+    ]
+  },
+  {
+    "netuid": 50,
+    "name": "Synth",
+    "repo": "https://github.com/mode-network/synth-subnet",
+    "verdict": "OK",
+    "reason": "CPU-only per official min_compute.yml (gpu.required: False)",
+    "display": {
+      "gpu": "None (CPU-only)",
+      "vram": 0
+    },
+    "gt": {
+      "cdGpu": null,
+      "cdVram": 0,
+      "cdCpuOnly": true,
+      "cdQpu": false,
+      "cdBoilerplate": false
+    },
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 51,
+    "name": "lium.io",
+    "repo": "https://github.com/Datura-ai/lium-io",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 52,
+    "name": "Dojo",
+    "repo": "https://github.com/tensorplex-labs/dojo",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 53,
+    "name": "engy",
+    "repo": "https://github.com/hanlinai/engy",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 54,
+    "name": "Yanez",
+    "repo": "https://github.com/yanez-compliance/MIID-subnet",
+    "verdict": "OK",
+    "reason": "CPU-only per official min_compute.yml (gpu.required: False)",
+    "display": {
+      "gpu": "None (CPU-only)",
+      "vram": 0
+    },
+    "gt": {
+      "cdGpu": null,
+      "cdVram": 0,
+      "cdCpuOnly": true,
+      "cdQpu": false,
+      "cdBoilerplate": false
+    },
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 55,
+    "name": "NIOME",
+    "repo": "https://github.com/genomesio/subnet-niome",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 56,
+    "name": "Gradients",
+    "repo": "https://github.com/gradients-ai/G.O.D",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 57,
+    "name": null,
+    "repo": null,
+    "verdict": "NO-REPO",
+    "reason": "no usable repo on-chain (parked/for-sale) — display is a labeled classifier/revenue estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 58,
+    "name": "0x",
+    "repo": null,
+    "verdict": "NO-REPO",
+    "reason": "no usable repo on-chain (parked/for-sale) — display is a labeled classifier/revenue estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 59,
+    "name": null,
+    "repo": null,
+    "verdict": "NO-REPO",
+    "reason": "no usable repo on-chain (parked/for-sale) — display is a labeled classifier/revenue estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 60,
+    "name": "Bitsec.ai",
+    "repo": "https://github.com/Bitsec-AI/sandbox",
+    "verdict": "OK",
+    "reason": "min_compute.yml is unmodified template boilerplate (no info) — display from README/classifier estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": {
+      "cdGpu": null,
+      "cdVram": null,
+      "cdCpuOnly": false,
+      "cdQpu": false,
+      "cdBoilerplate": true
+    },
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 61,
+    "name": "RedTeam",
+    "repo": "https://github.com/RedTeamSubnet/RedTeam",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 62,
+    "name": "Ridges",
+    "repo": "https://github.com/ridgesai/ridges",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 63,
+    "name": "Enigma",
+    "repo": "https://github.com/qbittensor-labs/enigma",
+    "verdict": "OK",
+    "reason": "CPU-only per official min_compute.yml (gpu.required: False)",
+    "display": {
+      "gpu": "None (CPU-only)",
+      "vram": 0
+    },
+    "gt": {
+      "cdGpu": null,
+      "cdVram": 0,
+      "cdCpuOnly": true,
+      "cdQpu": false,
+      "cdBoilerplate": false
+    },
+    "readmeEvidence": [
+      "Factor large semiprimes to break RSA encryption. Solutions run in Docker containers on validator hardware (NVIDIA RTX PRO 6000, 24 vCPU, 85 GB RAM, --network no"
+    ]
+  },
+  {
+    "netuid": 64,
+    "name": "Chutes",
+    "repo": "https://github.com/chutesai/chutes-miner",
+    "verdict": "OK",
+    "reason": "repo-sourced \"8x H200\"; README evidence: \"It is very important to have as much RAM (or very close to it) per GPU as VRAM.  This means, for exa\"",
+    "display": {
+      "gpu": "8x H200",
+      "vram": 48
+    },
+    "gt": null,
+    "readmeEvidence": [
+      "It is very important to have as much RAM (or very close to it) per GPU as VRAM.  This means, for example, if you are using a server with 4x a40 GPUs (48GB VRAM)"
+    ]
+  },
+  {
+    "netuid": 65,
+    "name": "True Performance Network",
+    "repo": "https://github.com/taofu-labs/true-performance-network",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 66,
+    "name": "conjectures",
+    "repo": "https://github.com/conjectures-io/conjectures-validator",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 67,
+    "name": "Harnyx",
+    "repo": "https://github.com/harnyx/harnyx",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 68,
+    "name": "NOVA",
+    "repo": "https://github.com/metanova-labs/nova",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 69,
+    "name": "Herald",
+    "repo": "https://github.com/HeraldMedia/herald",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": {
+      "cdGpu": null,
+      "cdVram": null,
+      "cdCpuOnly": false,
+      "cdQpu": false,
+      "cdBoilerplate": false
+    },
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 70,
+    "name": null,
+    "repo": null,
+    "verdict": "NO-REPO",
+    "reason": "no usable repo on-chain (parked/for-sale) — display is a labeled classifier/revenue estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 71,
+    "name": "Leadpoet",
+    "repo": "https://github.com/leadpoet/leadpoet",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 72,
+    "name": "StreetVision by NATIX",
+    "repo": "https://github.com/natixnetwork/streetvision-subnet",
+    "verdict": "OK",
+    "reason": "matches min_compute.yml (min_vram=4, rec_gpu=NVIDIA GTX 1660 Super)",
+    "display": {
+      "gpu": "GTX 1660 Super",
+      "vram": 4
+    },
+    "gt": {
+      "cdGpu": "NVIDIA GTX 1660 Super",
+      "cdVram": 4,
+      "cdCpuOnly": false,
+      "cdQpu": false,
+      "cdBoilerplate": false
+    },
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 73,
+    "name": "Parked",
+    "repo": null,
+    "verdict": "NO-REPO",
+    "reason": "no usable repo on-chain (parked/for-sale) — display is a labeled classifier/revenue estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 74,
+    "name": "Gittensor",
+    "repo": "https://github.com/entrius/gittensor",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": {
+      "cdGpu": null,
+      "cdVram": null,
+      "cdCpuOnly": false,
+      "cdQpu": false,
+      "cdBoilerplate": false
+    },
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 75,
+    "name": "Hippius",
+    "repo": "https://github.com/thenervelab/thebrain",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 76,
+    "name": "Ormas",
+    "repo": "https://github.com/heroncovelabs/ormas-subnet",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 77,
+    "name": "Liquidity",
+    "repo": "https://github.com/creativebuilds/sn77",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 78,
+    "name": "Umi",
+    "repo": "https://github.com/Umi-BitSign/umi",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 79,
+    "name": "MVTRX",
+    "repo": "https://github.com/taos-im/sn-79",
+    "verdict": "OK",
+    "reason": "CPU-only per official min_compute.yml (gpu.required: False)",
+    "display": {
+      "gpu": "None (CPU-only)",
+      "vram": 0
+    },
+    "gt": {
+      "cdGpu": null,
+      "cdVram": 0,
+      "cdCpuOnly": true,
+      "cdQpu": false,
+      "cdBoilerplate": false
+    },
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 80,
+    "name": "OpenRoboto",
+    "repo": "https://github.com/openroboto-ai/openroboto-subnet",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 81,
+    "name": "Reliquary",
+    "repo": "https://github.com/reliquadotai/reliquary",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 82,
+    "name": "Compelle",
+    "repo": "https://github.com/compelle/compelle-validator",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 83,
+    "name": "CliqueAI",
+    "repo": "https://github.com/toptensor/CliqueAI",
+    "verdict": "OK",
+    "reason": "CPU-only per official min_compute.yml (gpu.required: False)",
+    "display": {
+      "gpu": "None (CPU-only)",
+      "vram": 0
+    },
+    "gt": {
+      "cdGpu": null,
+      "cdVram": 0,
+      "cdCpuOnly": true,
+      "cdQpu": false,
+      "cdBoilerplate": false
+    },
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 84,
+    "name": null,
+    "repo": null,
+    "verdict": "NO-REPO",
+    "reason": "no usable repo on-chain (parked/for-sale) — display is a labeled classifier/revenue estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 85,
+    "name": "Vidaio",
+    "repo": "https://github.com/vidaio-subnet/vidaio-subnet",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 86,
+    "name": null,
+    "repo": null,
+    "verdict": "NO-REPO",
+    "reason": "no usable repo on-chain (parked/for-sale) — display is a labeled classifier/revenue estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 87,
+    "name": "Provenonce",
+    "repo": null,
+    "verdict": "NO-REPO",
+    "reason": "no usable repo on-chain (parked/for-sale) — display is a labeled classifier/revenue estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 88,
+    "name": "Investing",
+    "repo": "https://github.com/mobiusfund/investing",
+    "verdict": "OK",
+    "reason": "CPU-only per official min_compute.yml (gpu.required: False)",
+    "display": {
+      "gpu": "None (CPU-only)",
+      "vram": 0
+    },
+    "gt": {
+      "cdGpu": null,
+      "cdVram": 0,
+      "cdCpuOnly": true,
+      "cdQpu": false,
+      "cdBoilerplate": false
+    },
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 89,
+    "name": "InfiniteQuant",
+    "repo": "https://github.com/DeltaCompute24/InfiniteQuant-Subnet",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 90,
+    "name": "KubeTEE",
+    "repo": "https://github.com/KubeTEE-AI/kubetee-subnet",
+    "verdict": "OK",
+    "reason": "repo-sourced \"24x H200\"; README evidence: \"My expertise in Confidential Computing, Kubernetes, networking, and security at the kernel and hardw\"",
+    "display": {
+      "gpu": "24x H200",
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": [
+      "My expertise in Confidential Computing, Kubernetes, networking, and security at the kernel and hardware level can benefit the Bittensor ecosystem. Having run in",
+      "- First external miner live: BTLABS (UID 97) operates the first production miner cluster (na-us-michigan-97, 7 nodes, 56 GPUs — H100 + H200) — real hardware, TD",
+      " The first miner cluster is live in production: BTLABS (UID 97), na-us-michigan-97 — 7 nodes (8-GPU H100 + 3× 8-GPU H200), Intel TDX, NVIDIA CC. Subsequent mine",
+      "- [x] Deploy 2 US clusters (one hotkey each, each cluster's nodes co-located in a single DC): subnet-owner staging (na-us-oakland-56, West Coast) + first produc"
+    ]
+  },
+  {
+    "netuid": 91,
+    "name": "cascade",
+    "repo": "https://github.com/TensorLink-AI/cascade",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 92,
+    "name": "Available",
+    "repo": null,
+    "verdict": "NO-REPO",
+    "reason": "no usable repo on-chain (parked/for-sale) — display is a labeled classifier/revenue estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 93,
+    "name": "Bitcast",
+    "repo": "https://github.com/bitcast-network/bitcast",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 94,
+    "name": "pending...",
+    "repo": "https://github.com/AlveusLabs/SN94-BitSota",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 95,
+    "name": "Actual",
+    "repo": "https://github.com/actual-computer/actual-subnet-95",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 96,
+    "name": "Verathos",
+    "repo": "https://github.com/verathos-ai/verathos",
+    "verdict": "OK",
+    "reason": "matches min_compute.yml (min_vram=24, rec_gpu=NVIDIA RTX 4090)",
+    "display": {
+      "gpu": "RTX 4090",
+      "vram": 24
+    },
+    "gt": {
+      "cdGpu": "NVIDIA RTX 4090",
+      "cdVram": 24,
+      "cdCpuOnly": false,
+      "cdQpu": false,
+      "cdBoilerplate": false
+    },
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 97,
+    "name": "Albedo",
+    "repo": "https://github.com/unarbos/albedo",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 98,
+    "name": "NeverPlayAlone",
+    "repo": "https://github.com/neverplayalone/neverplayalone_subnet",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 99,
+    "name": "Thirty Spokes",
+    "repo": null,
+    "verdict": "NO-REPO",
+    "reason": "no usable repo on-chain (parked/for-sale) — display is a labeled classifier/revenue estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 100,
+    "name": "Cortex",
+    "repo": "https://github.com/CortexLM/cortex",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 101,
+    "name": "Tag101",
+    "repo": "https://github.com/tag101-ai/tag101",
+    "verdict": "OK",
+    "reason": "CPU-only per official min_compute.yml (gpu.required: False)",
+    "display": {
+      "gpu": "None (CPU-only)",
+      "vram": 0
+    },
+    "gt": {
+      "cdGpu": null,
+      "cdVram": 0,
+      "cdCpuOnly": true,
+      "cdQpu": false,
+      "cdBoilerplate": false
+    },
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 102,
+    "name": "ConnitoAI",
+    "repo": "https://github.com/Connito-AI/Connito",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 103,
+    "name": "Capcomp",
+    "repo": "https://github.com/orgs/Capcomp-AI",
+    "verdict": "ESTIMATE",
+    "reason": "no machine-readable GT in repo — display is a labeled estimate (None (CPU-only), vram 0)",
+    "display": {
+      "gpu": "None (CPU-only)",
+      "vram": 0
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 104,
+    "name": "TAOstatus",
+    "repo": "https://github.com/taostatus/taostatus-subnet",
+    "verdict": "OK",
+    "reason": "CPU-only per official min_compute.yml (gpu.required: False)",
+    "display": {
+      "gpu": "None (CPU-only)",
+      "vram": 0
+    },
+    "gt": {
+      "cdGpu": null,
+      "cdVram": 0,
+      "cdCpuOnly": true,
+      "cdQpu": false,
+      "cdBoilerplate": false
+    },
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 105,
+    "name": "Beam",
+    "repo": "https://github.com/orgs/Beam-Network",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 106,
+    "name": "Nodexo",
+    "repo": "https://github.com/nodexo-ai/nodexo",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 107,
+    "name": "Minos",
+    "repo": "https://github.com/minos-protocol/minos_subnet",
+    "verdict": "OK",
+    "reason": "CPU-only per official min_compute.yml (gpu.required: False)",
+    "display": {
+      "gpu": "None (CPU-only)",
+      "vram": 0
+    },
+    "gt": {
+      "cdGpu": null,
+      "cdVram": 0,
+      "cdCpuOnly": true,
+      "cdQpu": false,
+      "cdBoilerplate": false
+    },
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 108,
+    "name": "ChipForge",
+    "repo": "https://github.com/TatsuProject/ChipForge_SN108",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 109,
+    "name": "Finsight",
+    "repo": null,
+    "verdict": "NO-REPO",
+    "reason": "no usable repo on-chain (parked/for-sale) — display is a labeled classifier/revenue estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 110,
+    "name": "Green Compute",
+    "repo": null,
+    "verdict": "NO-REPO",
+    "reason": "no usable repo on-chain (parked/for-sale) — display is a labeled classifier/revenue estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 111,
+    "name": "Claims",
+    "repo": "https://github.com/DeSciClaims/Claims",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 112,
+    "name": "for sale",
+    "repo": null,
+    "verdict": "NO-REPO",
+    "reason": "no usable repo on-chain (parked/for-sale) — display is a labeled classifier/revenue estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 113,
+    "name": "LongShort",
+    "repo": null,
+    "verdict": "NO-REPO",
+    "reason": "no usable repo on-chain (parked/for-sale) — display is a labeled classifier/revenue estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 114,
+    "name": "SOMA",
+    "repo": "https://github.com/DendriteHQ/SOMA",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 115,
+    "name": "MoirAI",
+    "repo": "https://github.com/moirai115/MoirAI",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 116,
+    "name": "Memo",
+    "repo": null,
+    "verdict": "NO-REPO",
+    "reason": "no usable repo on-chain (parked/for-sale) — display is a labeled classifier/revenue estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 117,
+    "name": "everyframe.studio",
+    "repo": "https://github.com/everyframe-studios/everyframe-miner",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 118,
+    "name": "Ditto",
+    "repo": "https://github.com/orgs/ditto-assistant",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 119,
+    "name": "CapabilityForge Next",
+    "repo": "https://github.com/capabilityforge-next/capabilityforge",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 120,
+    "name": "Affine",
+    "repo": "https://github.com/AffineFoundation/affine",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 121,
+    "name": "sundae_bar",
+    "repo": "https://github.com/sundae-bar/bittensor-subnet",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 122,
+    "name": "CookingTAO",
+    "repo": null,
+    "verdict": "NO-REPO",
+    "reason": "no usable repo on-chain (parked/for-sale) — display is a labeled classifier/revenue estimate",
+    "display": {
+      "gpu": "None (CPU-only)",
+      "vram": 0
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 123,
+    "name": "MANTIS",
+    "repo": "https://github.com/Barbariandev/MANTIS",
+    "verdict": "OK",
+    "reason": "matches min_compute.yml (min_vram=n/a, rec_gpu=NVIDIA GeForce RTX 4090)",
+    "display": {
+      "gpu": "RTX 4090",
+      "vram": null
+    },
+    "gt": {
+      "cdGpu": "NVIDIA GeForce RTX 4090",
+      "cdVram": null,
+      "cdCpuOnly": false,
+      "cdQpu": false,
+      "cdBoilerplate": false
+    },
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 124,
+    "name": "Swarm",
+    "repo": "https://github.com/swarm-subnet/swarm",
+    "verdict": "OK",
+    "reason": "CPU-only per official min_compute.yml (gpu.required: False)",
+    "display": {
+      "gpu": "None (CPU-only)",
+      "vram": 0
+    },
+    "gt": {
+      "cdGpu": null,
+      "cdVram": 0,
+      "cdCpuOnly": true,
+      "cdQpu": false,
+      "cdBoilerplate": false
+    },
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 125,
+    "name": "Refinery",
+    "repo": "https://github.com/Barbariandev/refinery",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 126,
+    "name": "Attelier",
+    "repo": "https://github.com/attelierai/attelierai_subnet",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 127,
+    "name": "Astrid",
+    "repo": "https://github.com/astridintelligence/sn-127",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  },
+  {
+    "netuid": 128,
+    "name": "ByteLeap",
+    "repo": "https://github.com/byteleapai/byteleap-Miner",
+    "verdict": "ESTIMATE",
+    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "display": {
+      "gpu": null,
+      "vram": null
+    },
+    "gt": null,
+    "readmeEvidence": []
+  }
+]

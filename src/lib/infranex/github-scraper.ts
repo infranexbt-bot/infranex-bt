@@ -35,6 +35,14 @@ export interface ScrapedMetadata {
   gpuCount: number | null;
   /** Raw model+count string as found, e.g. "8x H200". */
   gpuModelRaw: string | null;
+  /**
+   * GPU-TAXONOMY: machine-readable GPU requirement from the repo's official
+   * min_compute.yml (Bittensor CDL). True = gpu.required: True, false =
+   * declared CPU-only, null = no CDL file / no gpu declaration.
+   */
+  gpuRequired: boolean | null;
+  /** URL of the min_compute.yml the spec came from (null when absent). */
+  minComputeUrl: string | null;
   /** Hosting constraints detected in the README(s). Null flags = unknown. */
   hosting: HostingRequirements | null;
   /**
@@ -86,8 +94,17 @@ interface RepoInfo {
 
 function parseGithubUrl(url: string): RepoInfo | null {
   try {
-    const u = new URL(url);
-    if (!u.hostname.includes("github.com")) return null;
+    // Tolerate scheme-less chain identities: "owner/repo" shorthand
+    // ("forgenet47/gpuforge" — SN47) or a bare org name ("CookingTao").
+    const trimmed = url.trim();
+    const SHORTHAND = /^[A-Za-z0-9][A-Za-z0-9._-]*(\/[A-Za-z0-9][A-Za-z0-9._-]*)?$/;
+    const normalized = /^https?:\/\//i.test(trimmed)
+      ? trimmed
+      : SHORTHAND.test(trimmed)
+        ? `https://github.com/${trimmed}`
+        : `https://${trimmed}`;
+    const u = new URL(normalized);
+    if (u.hostname !== "github.com" && u.hostname !== "www.github.com") return null;
     let parts = u.pathname.split("/").filter(Boolean);
     // github.com/orgs/X/repositories -> org repo listing
     if (parts[0] === "orgs" && parts.length >= 2) parts = [parts[1], "repositories"];
@@ -210,33 +227,182 @@ async function fetchRequirements(info: RepoInfo): Promise<{ content: string; url
 }
 
 // MIN-COMPUTE-YML: the official Bittensor compute-spec template
-// (opentensor/bittensor-subnet-template/min_compute.yml). Some subnets
-// (SN96 Verathos) state hardware requirements ONLY here while the README is
-// GPU-silent — keyword classification then guesses wrong (LLM-inference
-// wording → H100 tier, when the repo actually recommends an RTX 4090 with
-// 24 GB min / 48 GB rec VRAM). Parse the structured fields and synthesize a
-// requirement line the prose parsers already understand — machine-readable
-// ground truth beats keyword classification. Note: the first `min_vram:`
-// occurrence is parsed; in the official template the miner block precedes
-// the validator block, so this is the miner requirement.
+// (opentensor/bittensor-subnet-template/min_compute.yml). Machine-readable
+// ground truth beats keyword classification AND README prose (SN96 Verathos
+// states RTX 4090 / 24 GB min / 48 GB rec ONLY here; SN63 Enigma declares
+// gpu.required: False while README prose mentions an RTX Pro 6000).
+//
+// The CDL ships in three shapes in the wild (GPU-TAXONOMY audit, all 128):
+//   1. compute_spec: → miner: → gpu: {...}     — current official template
+//   2. minimum_compute: → (flat gpu keys)      — older template revision
+//   3. min_compute: → gpu: "NVIDIA RTX 4090"   — short custom form (SN123)
+// Special cases honored:
+//   - gpu.required: False        → CPU-only miner (SN21/43/48/50/63/79/83/88/
+//                                  101/104/124) — README GPU prose must NOT
+//                                  override this declaration.
+//   - qpu: <model> in miner spec → quantum hardware, no GPU (SN48 qbittensor).
+//   - UNMODIFIED template boilerplate (min_vram 8 / rec_vram 24 / "NVIDIA
+//     A100" defaults) → carries NO information → ignored (SN33/45/60).
+export interface MinComputeSpec {
+  /** Synthesized evidence line for the prose parsers / UI notes. */
+  line: string;
+  url: string;
+  /** Miner needs NO GPU (gpu.required: False / "None required"). */
+  cpuOnly: boolean;
+  /** Miner min_vram in GB (null when undeclared); 0 when cpuOnly. */
+  minVramGb: number | null;
+  /** recommended_gpu string exactly as written (null when undeclared). */
+  recommendedGpu: string | null;
+  /** Miner spec declares a qpu: (quantum processor) instead of a GPU. */
+  qpuRequired: boolean;
+}
+
+/** Extract the YAML block following `key:` (deeper-indented lines only). */
+function yamlBlock(lines: string[], keyRe: RegExp): string | null {
+  for (let i = 0; i < lines.length; i++) {
+    const m = lines[i].match(keyRe);
+    if (!m) continue;
+    const indent = m[1].length;
+    const out: string[] = [];
+    for (let j = i + 1; j < lines.length; j++) {
+      const line = lines[j];
+      if (!line.trim()) continue;
+      const ind = line.match(/^(\s*)/)?.[1].length ?? 0;
+      if (ind <= indent) break;
+      out.push(line);
+    }
+    return out.join("\n");
+  }
+  return null;
+}
+
+// opentensor/bittensor-subnet-template defaults — a gpu block equal to these
+// was never customized by the subnet team and states nothing.
+const TEMPLATE_BOILERPLATE: Record<string, string> = {
+  min_vram: "8",
+  recommended_vram: "24",
+  cuda_cores: "1024",
+  recommended_gpu: "NVIDIA A100",
+};
+
+export function parseMinComputeSpec(raw: string, url: string): MinComputeSpec | null {
+  const lines = raw.split("\n");
+  const container =
+    yamlBlock(lines, /^(\s*)compute_spec\s*:/) ??
+    yamlBlock(lines, /^(\s*)minimum_compute\s*:/) ??
+    yamlBlock(lines, /^(\s*)min_compute\s*:/) ??
+    raw;
+  const cLines = container.split("\n");
+  const minerBlock = yamlBlock(cLines, /^(\s*)miner\s*:/) ?? container;
+  const mLines = minerBlock.split("\n");
+  const gpuBlock = yamlBlock(mLines, /^(\s*)gpu\s*:/);
+
+  const field = (text: string, key: string): string | null =>
+    text
+      // Same-line whitespace only ([ \t], never \s): a "gpu:" key followed by
+      // an indented child block must not swallow the child's value across the
+      // newline (SN48 bug: gpu → "required: False" read from the next line).
+      .match(new RegExp(`^[ \\t]*${key}[ \\t]*:[ \\t]*["']?([^"'#\\n]*?)["']?[ \\t]*(?:#.*)?$`, "m"))?.[1]
+      ?.trim() ?? null;
+
+  // Short custom form: `min_compute:` with a bare `gpu: "model"` string.
+  const shortGpu = gpuBlock ? null : field(container, "gpu");
+  // Boolean short forms: `gpu: false` = CPU-only (SN7 Allways); `gpu: true`
+  // states no model → no information.
+  if (shortGpu != null && /^(false|no)$/i.test(shortGpu)) {
+    return {
+      line: "min_compute.yml (official compute spec): GPU not required — CPU-only miner",
+      url,
+      cpuOnly: true,
+      minVramGb: 0,
+      recommendedGpu: null,
+      qpuRequired: false,
+    };
+  }
+  if (shortGpu != null && /^(true|yes)$/i.test(shortGpu)) return null;
+  if (!gpuBlock && !shortGpu) {
+    const qpu = field(minerBlock, "qpu");
+    if (qpu) {
+      return {
+        line: `min_compute.yml (official compute spec): miner requires a QPU (${qpu}) — no GPU required`,
+        url,
+        cpuOnly: true,
+        minVramGb: 0,
+        recommendedGpu: null,
+        qpuRequired: true,
+      };
+    }
+    return null;
+  }
+
+  if (shortGpu) {
+    return {
+      line: `min_compute.yml (official compute spec): recommended GPU: ${shortGpu}`,
+      url,
+      cpuOnly: false,
+      minVramGb: null,
+      recommendedGpu: shortGpu,
+      qpuRequired: false,
+    };
+  }
+
+  const val = (k: string) => field(gpuBlock!, k);
+  const requiredRaw = val("required");
+  const required = requiredRaw == null || requiredRaw === "" ? null : /^(true|yes)$/i.test(requiredRaw);
+  const minVramRaw = val("min_vram");
+  const minVram = minVramRaw != null && /^\d{1,3}$/.test(minVramRaw) ? parseInt(minVramRaw, 10) : null;
+  const recVramRaw = val("recommended_vram");
+  const recVram = recVramRaw != null && /^\d{1,3}$/.test(recVramRaw) ? parseInt(recVramRaw, 10) : null;
+  const recGpu = val("recommended_gpu");
+
+  // CPU-only declaration wins over any leftover (boilerplate) numbers.
+  const recGpuSaysNone = recGpu != null && /^(none.*required|cpu-only|none|n\/?a)$/i.test(recGpu);
+  if (required === false || recGpuSaysNone) {
+    return {
+      line: "min_compute.yml (official compute spec): GPU not required — CPU-only miner",
+      url,
+      cpuOnly: true,
+      minVramGb: 0,
+      recommendedGpu: null,
+      qpuRequired: false,
+    };
+  }
+
+  // Unmodified template boilerplate → no information.
+  const isBoilerplate =
+    (minVram == null || minVram === Number(TEMPLATE_BOILERPLATE.min_vram)) &&
+    (recVram == null || recVram === Number(TEMPLATE_BOILERPLATE.recommended_vram)) &&
+    (recGpu == null || recGpu === TEMPLATE_BOILERPLATE.recommended_gpu);
+  if (isBoilerplate) return null;
+
+  const parts: string[] = [];
+  if (minVram != null) parts.push(`Minimum GPU required: ${minVram} GB VRAM (min_compute.yml)`);
+  if (recGpu) parts.push(`recommended GPU: ${recGpu} (recommended spec)`);
+  if (parts.length === 0) return null;
+  return {
+    line: `min_compute.yml (official compute spec): ${parts.join("; ")}`,
+    url,
+    cpuOnly: false,
+    minVramGb: minVram,
+    recommendedGpu: recGpu,
+    qpuRequired: false,
+  };
+}
+
 async function fetchMinComputeRequirement(
   info: RepoInfo
-): Promise<{ line: string; url: string } | null> {
+): Promise<MinComputeSpec | null> {
   const branches = ["HEAD", info.branch, "main", "master"];
   for (const branch of branches) {
-    const raw = await fetchRaw(info.owner, info.repo, branch, "min_compute.yml");
-    if (!raw) continue;
-    const minVram = raw.match(/^\s*min_vram:\s*["']?(\d{1,3})/m);
-    const recGpu = raw.match(/^\s*recommended_gpu:\s*["']?([^"'\n#]+?)["']?\s*(?:#.*)?$/m);
-    if (!minVram && !recGpu) continue;
-    const parts: string[] = [];
-    if (minVram) parts.push(`Minimum GPU required: ${minVram[1]} GB VRAM (min_compute.yml)`);
-    if (recGpu) parts.push(`recommended GPU: ${recGpu[1].trim()} (recommended spec)`);
-    if (parts.length === 0) continue;
-    return {
-      line: parts.join("; "),
-      url: `https://github.com/${info.owner}/${info.repo}/blob/${branch}/min_compute.yml`,
-    };
+    for (const path of ["min_compute.yml", "min_compute.yaml"]) {
+      const raw = await fetchRaw(info.owner, info.repo, branch, path);
+      if (!raw) continue;
+      const spec = parseMinComputeSpec(
+        raw,
+        `https://github.com/${info.owner}/${info.repo}/blob/${branch}/${path}`
+      );
+      if (spec) return spec;
+    }
   }
   return null;
 }
@@ -250,6 +416,8 @@ interface GpuMatch {
   model: string;
   count: number;
   raw: string;
+  /** VRAM stated on the SAME line as the model (null when unstated). */
+  vramGb: number | null;
 }
 
 const GPU_MODEL_PATTERNS: Array<[RegExp, string]> = [
@@ -260,6 +428,7 @@ const GPU_MODEL_PATTERNS: Array<[RegExp, string]> = [
   [/\b(RTX\s*Pro\s*6000)\b/i, "RTX Pro 6000"],
   [/\b(RTX\s*6000\s*Ada)\b/i, "RTX 6000 Ada"],
   [/\b(A100)\b/i, "A100"],
+  [/\b(H800|A800)\b/i, "H800/A800"],
   [/\b(L40S)\b/i, "L40S"],
   [/\b(L40)\b/i, "L40"],
   [/\b(A40)\b/i, "A40"],
@@ -268,8 +437,15 @@ const GPU_MODEL_PATTERNS: Array<[RegExp, string]> = [
   [/\b(L4)\b/i, "L4"],
   [/\b(A10)\b/i, "A10"],
   [/\b(T4)\b/i, "T4"],
+  [/\b(GTX\s*1660\s*Super)\b/i, "GTX 1660 Super"],
+  [/\b(GTX\s*1660\s*Ti)\b/i, "GTX 1660 Ti"],
+  [/\b(GTX\s*1660)\b/i, "GTX 1660"],
+  [/\b(GTX\s*1650)\b/i, "GTX 1650"],
+  [/\b(GTX\s*1080\s*Ti)\b/i, "GTX 1080 Ti"],
+  [/\b(GTX\s*1080)\b/i, "GTX 1080"],
   [/\b(RTX\s*5090)\b/i, "RTX 5090"],
   [/\b(RTX\s*4090)\b/i, "RTX 4090"],
+  [/\b(RTX\s*3090\s*Ti)\b/i, "RTX 3090 Ti"],
   [/\b(RTX\s*3090)\b/i, "RTX 3090"],
   [/\b(MI300X)\b/i, "MI300X"],
 ];
@@ -298,9 +474,18 @@ function parseGpuRequirement(text: string): GpuMatch | null {
       const n = parseInt(countM[1], 10);
       if (n >= 2 && n <= 64) count = n;
     }
+    // VRAM stated on the SAME line — keeps (model, VRAM) coherent. A bare
+    // "RTX 4090" must never inherit "141" parsed from an unrelated H200
+    // line elsewhere in the README (GPU-TAXONOMY audit finding).
+    const vramM =
+      text.match(/(\d{1,3})\s*GB\s*(?:VRAM|vram)/i) ??
+      text.match(/VRAM\s*[:（(]?\s*(\d{1,3})\s*GB/i) ??
+      text.match(/\((\d{1,3})\s*GB\)/i);
+    const vram = vramM ? parseInt(vramM[1], 10) : null;
     return {
       model,
       count,
+      vramGb: vram != null && vram >= 4 && vram <= 320 ? vram : null,
       raw: count > 1 ? `${count}x ${model}` : model,
     };
   }
@@ -589,17 +774,18 @@ export function parseInfraStack(text: string): InfraStack | null {
 // Parse VRAM requirements from text (README or requirements)
 function parseVram(text: string): number | null {
   // Look for patterns like "80GB VRAM", "80 GB", "VRAM: 80GB", "min 80GB"
+  // (\d{1,3}: min_vram 4-8 GB specs are legitimate — SN72 declares 4 GB).
   const patterns = [
-    /(\d{2,3})\s*gb\s*vram/i,
-    /vram[:\s]*(\d{2,3})\s*gb/i,
-    /min(?:imum)?\s*(?:vram|gpu|memory)?[:\s]*(\d{2,3})\s*gb/i,
-    /(\d{2,3})\s*gb\s*(?:required|minimum|recommended)/i,
+    /(\d{1,3})\s*gb\s*vram/i,
+    /vram[:\s]*(\d{1,3})\s*gb/i,
+    /min(?:imum)?\s*(?:vram|gpu|memory)?[:\s]*(\d{1,3})\s*gb/i,
+    /(\d{1,3})\s*gb\s*(?:required|minimum|recommended)/i,
   ];
   for (const p of patterns) {
     const m = text.match(p);
     if (m) {
       const v = parseInt(m[1], 10);
-      if (v >= 4 && v <= 200) return v;
+      if (v >= 4 && v <= 320) return v;
     }
   }
   return null;
@@ -714,7 +900,7 @@ export async function scrapeGithubMetadata(
   githubUrl: string,
   opts?: { netuid?: number; subnetName?: string | null }
 ): Promise<ScrapedMetadata> {
-  const NO_MECHANICS: ScrapedMetadata = { description: null, minVramGb: null, recommendedGpu: null, gpuCount: null, gpuModelRaw: null, hosting: null, mechanics: null, infra: null, requirementsSource: null, readmeUrl: null, requirementsUrl: null, rawReadmeSnippet: null, source: "error" };
+  const NO_MECHANICS: ScrapedMetadata = { description: null, minVramGb: null, recommendedGpu: null, gpuCount: null, gpuModelRaw: null, gpuRequired: null, minComputeUrl: null, hosting: null, mechanics: null, infra: null, requirementsSource: null, readmeUrl: null, requirementsUrl: null, rawReadmeSnippet: null, source: "error" };
   try {
     let info = parseGithubUrl(githubUrl);
     if (!info) {
@@ -825,9 +1011,45 @@ export async function scrapeGithubMetadata(
     const gpu = reqCombined ? parseGpuRequirementSmart(reqCombined) : null;
     // Identity-README GPU fallback — only lines with requirement context.
     const gpuFromIdentity = !gpu && identity.readme ? parseGpuWithContext(identity.readme) : null;
-    const gpuFinal = gpu ?? gpuFromIdentity;
     const hosting = hostingCombined ? parseHosting(hostingCombined) : null;
-    const vram = reqCombined ? parseVram(reqCombined) : null;
+
+    // GPU-TAXONOMY: the machine-readable CDL spec is the strongest evidence.
+    //   - cpuOnly (gpu.required: False / QPU): README prose GPU mentions must
+    //     NOT resurrect a GPU requirement (the SN63 class of bug).
+    //   - Otherwise CDL min_vram/recommended_gpu win over prose, and any
+    //     prose model keeps only its SAME-LINE VRAM (never a VRAM figure
+    //     parsed from an unrelated line — the SN9/49/107 incoherence class).
+    let vram: number | null;
+    let recommendedGpu: string | null;
+    let gpuCount: number | null;
+    let gpuModelRaw: string | null;
+    if (minCompute?.cpuOnly) {
+      vram = 0;
+      recommendedGpu = minCompute.qpuRequired ? "None (QPU — quantum hardware)" : "None (CPU-only)";
+      gpuCount = null;
+      gpuModelRaw = null;
+    } else {
+      const gpuFinal = gpu ?? gpuFromIdentity;
+      if (minCompute?.recommendedGpu) {
+        const cdlMatch = parseGpuRequirement(`recommended GPU: ${minCompute.recommendedGpu}`);
+        recommendedGpu = cdlMatch
+          ? cdlMatch.raw
+          : minCompute.recommendedGpu;
+        gpuCount = cdlMatch?.count ?? null;
+        gpuModelRaw = recommendedGpu;
+        vram = minCompute.minVramGb ?? cdlMatch?.vramGb ?? null;
+      } else if (gpuFinal) {
+        recommendedGpu = gpuFinal.raw;
+        gpuCount = gpuFinal.count;
+        gpuModelRaw = gpuFinal.raw;
+        vram = minCompute?.minVramGb ?? gpuFinal.vramGb ?? (reqCombined ? parseVram(reqCombined) : null);
+      } else {
+        recommendedGpu = null;
+        gpuCount = null;
+        gpuModelRaw = null;
+        vram = minCompute?.minVramGb ?? (reqCombined ? parseVram(reqCombined) : null);
+      }
+    }
 
     // MECHANICS-ALL: derive mechanics from the same combined README text the
     // hosting/GPU parsers read. Sparse by design — null when nothing hit.
@@ -856,13 +1078,15 @@ export async function scrapeGithubMetadata(
     return {
       description: identity.readme ? parseDescription(identity.readme) : null,
       minVramGb: vram,
-      recommendedGpu: gpuFinal ? gpuFinal.raw : null,
-      gpuCount: gpuFinal ? gpuFinal.count : null,
-      gpuModelRaw: gpuFinal ? gpuFinal.raw : null,
+      recommendedGpu,
+      gpuCount,
+      gpuModelRaw,
+      gpuRequired: minCompute ? !minCompute.cpuOnly && !minCompute.qpuRequired : null,
+      minComputeUrl: minCompute?.url ?? null,
       hosting,
       mechanics,
       infra,
-      requirementsSource: gpuFinal || hosting || minCompute ? requirementsSource : null,
+      requirementsSource: recommendedGpu || hosting || minCompute ? requirementsSource : null,
       readmeUrl: identity.readmeUrl,
       requirementsUrl: miner?.requirementsUrl ?? identity.requirementsUrl ?? minCompute?.url ?? null,
       rawReadmeSnippet: identity.readme?.slice(0, 500) ?? null,

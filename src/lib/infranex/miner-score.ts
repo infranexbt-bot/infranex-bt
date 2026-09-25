@@ -164,6 +164,7 @@ export function resolveGpuTierFromModel(model: string): GpuTier | null {
   if (/\ba40\b/.test(m)) return GPU_TIERS.a6000;
   if (/\ba6000\b/.test(m)) return GPU_TIERS.a6000;
   if (/\ba5000\b/.test(m)) return GPU_TIERS.vram16; // 24GB but older — mid tier
+  if (/gtx\s*1660/.test(m)) return GPU_TIERS.entry; // 6GB Pascal — entry class
   if (/\ba10\b/.test(m)) return GPU_TIERS.vram16;
   if (/\bt4\b/.test(m)) return GPU_TIERS.entry;
   if (/\b(?:rtx\s*)?(?:4090|3090|5090)\b/.test(m)) return GPU_TIERS.consumer24;
@@ -174,6 +175,54 @@ export function resolveGpuTierFromModel(model: string): GpuTier | null {
 /** Infra cost on top of the GPU: VPS, monitoring, alerting. Scraping adds proxies. */
 const INFRA_BASE_USD = 40;
 const INFRA_SCRAPER_USD = 120; // + residential proxies
+
+/**
+ * GPU-TAXONOMY: nominal VRAM (GB) per GPU model — keeps minVramGb COHERENT
+ * with the recommended GPU when the repo states a model but no VRAM figure
+ * (an "RTX 4090" must never inherit 141 GB parsed from an unrelated H200
+ * line). Longest keys first: "gtx 1660 super" before "gtx 1660".
+ */
+const GPU_MODEL_VRAM_GB: Array<[string, number]> = [
+  ["b300", 288],
+  ["b200", 180],
+  ["mi300x", 192],
+  ["h200", 141],
+  ["h800", 80],
+  ["a800", 80],
+  ["h100", 80],
+  ["rtx pro 6000", 96],
+  ["rtx 6000 ada", 48],
+  ["a100", 80],
+  ["l40s", 48],
+  ["l40", 48],
+  ["a40", 48],
+  ["rtx a6000", 48],
+  ["a6000", 48],
+  ["rtx a5000", 24],
+  ["l4", 24],
+  ["a10", 24],
+  ["t4", 16],
+  ["rtx 5090", 32],
+  ["rtx 4090", 24],
+  ["rtx 3090 ti", 24],
+  ["rtx 3090", 24],
+  ["rtx 3080", 10],
+  ["gtx 1660 super", 6],
+  ["gtx 1660 ti", 6],
+  ["gtx 1660", 6],
+  ["gtx 1650", 4],
+  ["gtx 1080 ti", 11],
+  ["gtx 1080", 8],
+];
+
+export function vramForGpuModel(model: string | null | undefined): number | null {
+  if (!model) return null;
+  const m = model.toLowerCase();
+  for (const [key, vram] of GPU_MODEL_VRAM_GB) {
+    if (m.includes(key)) return vram;
+  }
+  return null;
+}
 
 // ---------------------------------------------------------------------------
 // Subnet work-type classifier — maps name/description keywords to the

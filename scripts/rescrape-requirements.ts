@@ -83,9 +83,11 @@ async function main() {
         },
         update: {
           description: r.description ?? undefined,
-          minVramGb: r.minVramGb ?? undefined,
-          recommendedGpu: r.recommendedGpu ?? undefined,
-          gpuCount: r.gpuCount ?? undefined,
+          // GPU-TAXONOMY: write nulls explicitly — a fresh scrape that finds
+          // no GPU figure must CLEAR the stale previous value, not keep it.
+          minVramGb: r.minVramGb ?? null,
+          recommendedGpu: r.recommendedGpu ?? null,
+          gpuCount: r.gpuCount ?? null,
           hostingRequirements: hostingJson ?? undefined,
           requirementsSource: r.requirementsSource ?? undefined,
           requirementsScrapedAt: new Date(),

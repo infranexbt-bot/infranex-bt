@@ -122,7 +122,7 @@ export const COMPAT_SEED: Record<number, CompatSeedEntry> = {
   },
   47: { tier: "no-repo", source: "audit", note: "no public GitHub registered on-chain",
   },
-  48: { tier: "cpu-only", source: "inferred", note: "no GPU mention in README -> CPU/API/data task likely",
+  48: { tier: "cpu-only", source: "audit", note: "min_compute.yml: miner spec declares a QPU (quantum processor), no GPU; validator gpu.required: False",
   },
   49: { tier: "gpu-flexible", source: "readme", note: "GPU specs stated, no hosting restriction in README",
   },
@@ -153,7 +153,8 @@ export const COMPAT_SEED: Record<number, CompatSeedEntry> = {
   },
   62: { tier: "cpu-only", source: "inferred", note: "no GPU mention in README -> CPU/API/data task likely",
   },
-  63: { tier: "gpu-flexible", source: "readme", note: "GPU specs stated, no hosting restriction in README",
+  63: { tier: "cpu-only", source: "audit", note: "min_compute.yml: gpu.required: False, 'None required (CPU-only)' — README RTX Pro 6000 prose is not a miner requirement",
+    quote: "gpu: required: False ... recommended_gpu: 'None required (CPU-only)'", evidenceSource: "qbittensor-labs/enigma min_compute.yml"
   },
   64: { tier: "bare-metal-only", source: "audit", note: "bare metal stated; explicit provider restriction; TEE/confidential compute; static/dedicated IP",
     quote: "ALL servers must be bare metal/VM, meaning it will not work on Runpod, Vast, etc., and we do not currently support shared or dynamic IPs - the IPs must be unique, static, and provide a 1:1 port mapping.", evidenceSource: "chutesai/chutes-miner README"
@@ -172,7 +173,8 @@ export const COMPAT_SEED: Record<number, CompatSeedEntry> = {
   },
   71: { tier: "cpu-only", source: "inferred", note: "no GPU mention in README -> CPU/API/data task likely",
   },
-  72: { tier: "cpu-only", source: "inferred", note: "no GPU mention in README -> CPU/API/data task likely",
+  72: { tier: "gpu-flexible", source: "audit", note: "min_compute.yml: NVIDIA GTX 1660 Super recommended, 4 GB min / 8 GB rec VRAM — a light-GPU subnet, not RTX 4090 class",
+    quote: "gpu: required: True ... min_vram: 4 ... recommended_gpu: 'NVIDIA GTX 1660 Super'", evidenceSource: "natixnetwork/streetvision-subnet min_compute.yml"
   },
   73: { tier: "parked", source: "audit", note: "subnet parked/for-sale/inactive",
   },
@@ -195,7 +197,8 @@ export const COMPAT_SEED: Record<number, CompatSeedEntry> = {
   },
   82: { tier: "tee-required", source: "readme", note: "TEE/confidential compute mentioned (hardware constraints likely)",
   },
-  83: { tier: "gpu-flexible", source: "inferred", note: "CliqueAI LLM math solving; README silent -> no stated ban (manual)",
+  83: { tier: "cpu-only", source: "audit", note: "min_compute.yml: gpu.required: False — miners call LLM APIs, no local GPU (leftover template numbers ignored)",
+    quote: "gpu: required: False", evidenceSource: "toptensor/CliqueAI min_compute.yml"
   },
   84: { tier: "no-repo", source: "audit", note: "no public GitHub registered on-chain",
   },
@@ -276,9 +279,11 @@ export const COMPAT_SEED: Record<number, CompatSeedEntry> = {
   },
   122: { tier: "no-repo", source: "audit", note: "no public GitHub registered on-chain",
   },
-  123: { tier: "cpu-only", source: "inferred", note: "no GPU mention in README -> CPU/API/data task likely",
+  123: { tier: "gpu-flexible", source: "audit", note: "min_compute.yml (short form): gpu: NVIDIA GeForce RTX 4090 — a GPU subnet, not CPU",
+    quote: "min_compute: gpu: 'NVIDIA GeForce RTX 4090'", evidenceSource: "Barbariandev/MANTIS min_compute.yml"
   },
-  124: { tier: "cpu-only", source: "inferred", note: "no GPU mention in README -> CPU/API/data task likely",
+  124: { tier: "cpu-only", source: "audit", note: "min_compute.yml: gpu.required: False (miner + validator) — CPU-only",
+    quote: "gpu: required: False  # Will came handy to train models, but not a req itself", evidenceSource: "swarm-subnet/swarm min_compute.yml"
   },
   125: { tier: "gpu-flexible", source: "readme", note: "GPU specs stated, no hosting restriction in README",
   },

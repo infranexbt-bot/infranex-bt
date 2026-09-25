@@ -1,0 +1,1077 @@
+=== OFFICIAL TEMPLATE min_compute.yml ===
+# Use this document to specify the minimum compute requirements.
+# This document will be used to generate a list of recommended hardware for your subnet.
+
+# This is intended to give a rough estimate of the minimum requirements
+# so that the user can make an informed decision about whether or not
+# they want to run a miner or validator on their machine.
+
+# NOTE: Specification for miners may be different from validators
+
+version: '1.0' # update this version key as needed, ideally should match your release version
+
+compute_spec:
+
+  miner:
+
+    cpu:
+      min_cores: 4            # Minimum number of CPU cores
+      min_speed: 2.5          # Minimum speed per core (GHz)
+      recommended_cores: 8    # Recommended number of CPU cores
+      recommended_speed: 3.5  # Recommended speed per core (GHz)
+      architecture: "x86_64"  # Architecture type (e.g., x86_64, arm64)
+
+    gpu:
+      required: True                       # Does the application require a GPU?
+      min_vram: 8                          # Minimum GPU VRAM (GB)
+      recommended_vram: 24                 # Recommended GPU VRAM (GB)
+      cuda_cores: 1024                     # Minimum number of CUDA cores (if applicable)
+      min_compute_capability: 6.0          # Minimum CUDA compute capability
+      recommended_compute_capability: 7.0  # Recommended CUDA compute capability
+      recommended_gpu: "NVIDIA A100"       # provide a recommended GPU to purchase/rent
+
+    memory:
+      min_ram: 16          # Minimum RAM (GB)
+      min_swap: 4          # Minimum swap space (GB)
+      recommended_swap: 8  # Recommended swap space (GB)
+      ram_type: "DDR4"     # RAM type (e.g., DDR4, DDR3, etc.)
+
+    storage:
+      min_space: 10           # Minimum free storage space (GB)
+      recommended_space: 100  # Recommended free storage space (GB)
+      type: "SSD"             # Preferred storage type (e.g., SSD, HDD)
+      min_iops: 1000          # Minimum I/O operations per second (if applicable)
+      recommended_iops: 5000  # Recommended I/O operations per second
+
+    os:
+      name: "Ubuntu"  # Name of the preferred operating system(s)
+      version: 20.04  # Version of the preferred operating system(s)
+
+  validator:
+
+    cpu:
+      min_cores: 4            # Minimum number of CPU cores
+      min_speed: 2.5          # Minimum speed per core (GHz)
+      recommended_cores: 8    # Recommended number of CPU cores
+      recommended_speed: 3.5  # Recommended speed per core (GHz)
+      architecture: "x86_64"  # Architecture type (e.g., x86_64, arm64)
+
+    gpu:
+      required: True                       # Does the application require a GPU?
+      min_vram: 8                          # Minimum GPU VRAM (GB)
+      recommended_vram: 24                 # Recommended GPU VRAM (GB)
+      cuda_cores: 1024                     # Minimum number of CUDA cores (if applicable)
+      min_compute_capability: 6.0          # Minimum CUDA compute capability
+      recommended_compute_capability: 7.0  # Recommended CUDA compute capability
+      recommended_gpu: "NVIDIA A100"       # provide a recommended GPU to purchase/rent
+
+    memory:
+      min_ram: 16          # Minimum RAM (GB)
+      min_swap: 4          # Minimum swap space (GB)
+      recommended_swap: 8  # Recommended swap space (GB)
+      ram_type: "DDR4"     # RAM type (e.g., DDR4, DDR3, etc.)
+
+    storage:
+      min_space: 10           # Minimum free storage space (GB)
+      recommended_space: 100  # Recommended free storage space (GB)
+      type: "SSD"             # Preferred storage type (e.g., SSD, HDD)
+      min_iops: 1000          # Minimum I/O operations per second (if applicable)
+      recommended_iops: 5000  # Recommended I/O operations per second
+
+    os:
+      name: "Ubuntu"  # Name of the preferred operating system(s)
+      version: 20.04  # Version of the preferred operating system(s)
+
+network_spec:
+  bandwidth:
+    download: 100  # Minimum download bandwidth (Mbps)
+    upload: 20     # Minimum upload bandwidth (Mbps)
+
+
+--- SN7 Allways (https://raw.githubusercontent.com/entrius/allways/HEAD/min_compute.yml)
+min_compute:
+  gpu: false
+  cpu:
+    min_cores: 2
+    min_speed: 2.0
+  ram:
+    min_gb: 4
+  storage:
+    min_gb: 20
+  os:
+    - linux
+  python:
+    - "3.12"
+
+
+--- SN18 Zeus (https://raw.githubusercontent.com/Orpheus-AI/Zeus/HEAD/min_compute.yml)
+# Use this document to specify the minimum compute requirements.
+# This document will be used to generate a list of recommended hardware for your subnet.
+
+# This is intended to give a rough estimate of the minimum requirements
+# so that the user can make an informed decision about whether or not
+# they want to run a miner or validator on their machine.
+
+# NOTE: Specification for miners may be different from validators
+
+version: '1.0' # update this version key as needed, ideally should match your release version
+
+compute_spec:
+
+  miner:
+
+    cpu:
+      min_cores: 4            # Minimum number of CPU cores
+      min_speed: 2.5          # Minimum speed per core (GHz)
+      recommended_cores: 8    # Recommended number of CPU cores
+      recommended_speed: 3.5  # Recommended speed per core (GHz)
+      architecture: "x86_64"  # Architecture type (e.g., x86_64, arm64)
+
+    gpu:
+      required: False                       # No GPU required for the miners
+      min_vram: 0                          # Minimum GPU VRAM (GB)
+      recommended_vram: 0                 # Recommended GPU VRAM (GB)
+      cuda_cores: 0                     # No CUDA cores needed
+      min_compute_capability: "N.A."      # No CUDA compute capability required
+      recommended_compute_capability: "N.A."  # No specific GPU needed
+
+    memory:
+      min_ram: 16          # Minimum RAM (GB)
+      min_swap: 4          # Minimum swap space (GB)
+      recommended_swap: 8  # Recommended swap space (GB)
+      ram_type: "DDR4"     # RAM type (e.g., DDR4, DDR3, etc.)
+
+    storage:
+      min_space: 10           # Minimum free storage space (GB)
+      recommended_space: 100  # Recommended free storage space (GB)
+      type: "SSD"             # Preferred storage type (e.g., SSD, HDD)
+
+--- SN21 AdTAO (https://raw.githubusercontent.com/ippcteam/SN21-adtao/HEAD/min_compute.yml)
+# Minimum compute requirements for running an SN21 miner or validator.
+#
+# These are guidance figures; production miners with sophisticated models
+# will use more, especially for training. Validator requirements are bounded
+# by orchestration + scoring, not by ML inference.
+
+version: '1.0'
+
+compute_spec:
+
+  miner:
+
+    cpu:
+      min_cores: 2
+      min_speed: 2.0           # GHz per core
+      recommended_cores: 4
+      recommended_speed: 3.0
+      architecture: "x86_64"
+
+    gpu:
+      required: False  # Reference baseline runs on CPU; GPU optional for larger models.
+
+    memory:
+      min_ram: 4               # GB
+      min_swap: 2
+      recommended_swap: 4
+      ram_type: "DDR4"
+
+    storage:
+      min_space: 5             # GB
+      recommended_space: 20
+      type: "SSD"
+      min_iops: 500
+      recommended_iops: 2000
+
+    os:
+      name: "Ubuntu"
+      version: 22.04
+
+  validator:
+
+--- SN22 Desearch (https://raw.githubusercontent.com/datura-ai/desearch/HEAD/min_compute.yml)
+# Use this document to specify the minimum compute requirements.
+# This document will be used to generate a list of recommended hardware for your subnet.
+
+# This is intended to give a rough estimate of the minimum requirements
+# so that the user can make an informed decision about whether or not
+# they want to run a miner or validator on their machine.
+
+# NOTE: Specification for miners may be different from validators
+
+version: "1.0.4" # update this version key as needed, ideally should match your release version
+
+compute_spec:
+    miner:
+        cpu:
+            min_cores: 2 # Minimum number of CPU cores
+            min_speed: 2.5 # Minimum speed per core (GHz)
+            recommended_cores: 4 # Recommended number of CPU cores
+            recommended_speed: 3.5 # Recommended speed per core (GHz)
+            architecture: "x86_64" # Architecture type (e.g., x86_64, arm64)
+
+        memory:
+            min_ram: 8 # Minimum RAM (GB)
+            min_swap: 4 # Minimum swap space (GB)
+            recommended_swap: 8 # Recommended swap space (GB)
+            ram_type: "DDR4" # RAM type (e.g., DDR4, DDR3, etc.)
+
+        storage:
+            min_space: 48 # Minimum free storage space (GB)
+            recommended_space: 100 # Recommended free storage space (GB)
+            type: "SSD" # Preferred storage type (e.g., SSD, HDD)
+            min_iops: 1000 # Minimum I/O operations per second (if applicable)
+            recommended_iops: 5000 # Recommended I/O operations per second
+
+        os:
+            name: "Ubuntu" # Name of the preferred operating system(s)
+            version: 24.04 # Version of the preferred operating system(s)
+
+    validator:
+        cpu:
+            min_cores: 4 # Minimum number of CPU cores
+
+--- SN32 ItsAI (https://raw.githubusercontent.com/It-s-AI/llm-detection/HEAD/min_compute.yml)
+# Use this document to specify the minimum compute requirements.
+# This document will be used to generate a list of recommended hardware for your subnet.
+
+# This is intended to give a rough estimate of the minimum requirements
+# so that the user can make an informed decision about whether or not
+# they want to run a miner or validator on their machine.
+
+# NOTE: Specification for miners may be different from validators
+
+version: '1.0' # update this version key as needed, ideally should match your release version
+
+compute_spec:
+
+  miner:
+
+    cpu:
+      min_cores: 4            # Minimum number of CPU cores
+      min_speed: 2.5          # Minimum speed per core (GHz)
+      recommended_cores: 8    # Recommended number of CPU cores
+      recommended_speed: 3.5  # Recommended speed per core (GHz)
+      architecture: "x86_64"  # Architecture type (e.g., x86_64, arm64)
+
+    gpu:
+      required: True                       # Does the application require a GPU?
+      min_vram: 24                          # Minimum GPU VRAM (GB)
+      recommended_vram: 24                 # Recommended GPU VRAM (GB)
+      cuda_cores: 1024                     # Minimum number of CUDA cores (if applicable)
+      min_compute_capability: 6.0          # Minimum CUDA compute capability
+      recommended_compute_capability: 7.0  # Recommended CUDA compute capability
+      recommended_gpu: "NVIDIA RTX 4090"       # provide a recommended GPU to purchase/rent
+
+    memory:
+      min_ram: 24          # Minimum RAM (GB)
+      min_swap: 4          # Minimum swap space (GB)
+      recommended_swap: 8  # Recommended swap space (GB)
+      ram_type: "DDR4"     # RAM type (e.g., DDR4, DDR3, etc.)
+
+    storage:
+      min_space: 20           # Minimum free storage space (GB)
+      recommended_space: 100  # Recommended free storage space (GB)
+
+--- SN33 ReadyAI (https://raw.githubusercontent.com/afterpartyai/bittensor-conversation-genome-project/HEAD/min_compute.yml)
+# Use this document to specify the minimum compute requirements.
+# This document will be used to generate a list of recommended hardware for your subnet.
+
+# This is intended to give a rough estimate of the minimum requirements
+# so that the user can make an informed decision about whether or not
+# they want to run a miner or validator on their machine.
+
+# NOTE: Specification for miners may be different from validators
+
+version: '1.0' # update this version key as needed, ideally should match your release version
+
+compute_spec:
+
+  miner:
+
+    cpu:
+      min_cores: 4            # Minimum number of CPU cores
+      min_speed: 2.5          # Minimum speed per core (GHz)
+      recommended_cores: 8    # Recommended number of CPU cores
+      recommended_speed: 3.5  # Recommended speed per core (GHz)
+      architecture: "x86_64"  # Architecture type (e.g., x86_64, arm64)
+
+    gpu:
+      required: True                       # Does the application require a GPU?
+      min_vram: 8                          # Minimum GPU VRAM (GB)
+      recommended_vram: 24                 # Recommended GPU VRAM (GB)
+      cuda_cores: 1024                     # Minimum number of CUDA cores (if applicable)
+      min_compute_capability: 6.0          # Minimum CUDA compute capability
+      recommended_compute_capability: 7.0  # Recommended CUDA compute capability
+      recommended_gpu: "NVIDIA A100"       # provide a recommended GPU to purchase/rent
+
+    memory:
+      min_ram: 16          # Minimum RAM (GB)
+      min_swap: 4          # Minimum swap space (GB)
+      recommended_swap: 8  # Recommended swap space (GB)
+      ram_type: "DDR4"     # RAM type (e.g., DDR4, DDR3, etc.)
+
+    storage:
+      min_space: 10           # Minimum free storage space (GB)
+      recommended_space: 100  # Recommended free storage space (GB)
+
+--- SN34 BitMind (https://raw.githubusercontent.com/BitMind-AI/bitmind-subnet/HEAD/min_compute.yml)
+# NOTE FOR MINERS:
+# Miner min compute varies based on selected model architecture.
+# For model training, you will most likely need a GPU. For miner deployment, depending
+# on your model, you may be able to get away with CPU.
+
+version: '3.0.0'
+
+compute_spec:
+
+  validator:
+
+    cpu:
+      min_cores: 4            # Minimum number of CPU cores
+      min_speed: 2.5          # Minimum speed per core (GHz)
+      recommended_cores: 8    # Recommended number of CPU cores
+      recommended_speed: 3.5  # Recommended speed per core (GHz)
+      architecture: "x86_64"  # Architecture type (e.g., x86_64, arm64)
+
+    gpu:
+      required: True                            # Does the application require a GPU?
+      min_vram: 80                              # Minimum GPU VRAM (GB)
+      recommended_vram: 80                      # Recommended GPU VRAM (GB)
+      min_compute_capability: 8.0               # Minimum CUDA compute capability
+      recommended_compute_capability: 8.0       # Recommended CUDA compute capability
+      recommended_gpu: "NVIDIA A100 80GB PCIE"  # Recommended GPU to purchase/rent
+      fp64: 9.7                  # TFLOPS
+      fp64_tensor_core: 19.5     # TFLOPS
+      fp32: 19.5                 # TFLOPS
+      tf32: 156                  # TFLOPS*
+      bfloat16_tensor_core: 312  # TFLOPS*
+      int8_tensor_core: 624      # TOPS*
+
+      # See NVIDIA A100 datasheet for details:
+      # https://www.nvidia.com/content/dam/en-zz/Solutions/Data-Center/a100/pdf/
+      # nvidia-a100-datasheet-nvidia-us-2188504-web.pdf
+
+      # *double with sparsity
+
+    memory:
+      min_ram: 32          # Minimum RAM (GB)
+
+--- SN43 Graphite (https://raw.githubusercontent.com/GraphiteAI/Graphite-Subnet/HEAD/min_compute.yml)
+# This is intended to give a rough estimate of the minimum requirements
+# so that the user can make an informed decision about whether or not
+# they want to run a miner or validator on their machine.
+
+# NOTE: Specification for miners may be different from validators
+
+version: '0.0.0'
+
+compute_spec:
+
+  miner:
+
+    cpu:
+      min_cores: 4            # Minimum number of CPU cores
+      min_speed: 2.5          # Minimum speed per core (GHz)
+      recommended_cores: 8    # Recommended number of CPU cores
+      recommended_speed: 3.0  # Recommended speed per core (GHz)
+      architecture: "x86_64"  # Architecture type (e.g., x86_64, arm64)
+
+    gpu:
+      required: False                       # Does the application require a GPU?
+
+    memory:
+      min_ram: 8          # Minimum RAM (GB)
+      min_swap: 4          # Minimum swap space (GB)
+      recommended_ram: 16  # Recommended RAM (GB)
+      recommended_swap: 8  # Recommended swap space (GB)
+      ram_type: "DDR4"     # RAM type (e.g., DDR4, DDR3, etc.)
+
+    storage:
+      min_space: 10           # Minimum free storage space (GB)
+      recommended_space: 50  # Recommended free storage space (GB)
+
+    os:
+      name: "Ubuntu"  # Name of the preferred operating system(s)
+      version: 22.04  # Version of the preferred operating system(s)
+
+  validator:
+
+    cpu:
+
+--- SN45 AlphaRidge.ai (https://raw.githubusercontent.com/Team-Rizzo/alpharidge-ai/HEAD/min_compute.yml)  *** UNMODIFIED TEMPLATE BOILERPLATE ***
+# Use this document to specify the minimum compute requirements.
+# This document will be used to generate a list of recommended hardware for your subnet.
+
+# This is intended to give a rough estimate of the minimum requirements
+# so that the user can make an informed decision about whether or not
+# they want to run a miner or validator on their machine.
+
+# NOTE: Specification for miners may be different from validators
+
+version: '1.0' # update this version key as needed, ideally should match your release version
+
+compute_spec:
+
+  miner:
+
+    cpu:
+      min_cores: 4            # Minimum number of CPU cores
+      min_speed: 2.5          # Minimum speed per core (GHz)
+      recommended_cores: 8    # Recommended number of CPU cores
+      recommended_speed: 3.5  # Recommended speed per core (GHz)
+      architecture: "x86_64"  # Architecture type (e.g., x86_64, arm64)
+
+    gpu:
+      required: True                       # Does the application require a GPU?
+      min_vram: 8                          # Minimum GPU VRAM (GB)
+      recommended_vram: 24                 # Recommended GPU VRAM (GB)
+      cuda_cores: 1024                     # Minimum number of CUDA cores (if applicable)
+      min_compute_capability: 6.0          # Minimum CUDA compute capability
+      recommended_compute_capability: 7.0  # Recommended CUDA compute capability
+      recommended_gpu: "NVIDIA A100"       # provide a recommended GPU to purchase/rent
+
+    memory:
+      min_ram: 16          # Minimum RAM (GB)
+      min_swap: 4          # Minimum swap space (GB)
+      recommended_swap: 8  # Recommended swap space (GB)
+      ram_type: "DDR4"     # RAM type (e.g., DDR4, DDR3, etc.)
+
+    storage:
+      min_space: 10           # Minimum free storage space (GB)
+      recommended_space: 100  # Recommended free storage space (GB)
+
+--- SN48 Quantum Compute (https://raw.githubusercontent.com/qbittensor-labs/quantum-compute/HEAD/min_compute.yml)
+# Use this document to specify the minimum compute requirements.
+# This document will be used to generate a list of recommended hardware for your subnet.
+
+# This is intended to give a rough estimate of the minimum requirements
+# so that the user can make an informed decision about whether or not
+# they want to run a miner or validator on their machine.
+
+# NOTE: Specification for miners may be different from validators
+
+version: '1.0' # update this version key as needed, ideally should match your release version
+
+compute_spec:
+
+  miner:
+
+    qpu: qpu
+
+  validator:
+
+    cpu:
+      vcpu_count: 2
+      architecture: "x86_64"  # Architecture type (e.g., x86_64, arm64)
+
+    gpu:
+      required: False                       # Does the application require a GPU?
+
+    memory:
+      min_ram: 8         # Minimum RAM (GB)
+      min_swap: 4          # Minimum swap space (GB)
+      recommended_swap: 8  # Recommended swap space (GB)
+      ram_type: "DDR4"     # RAM type (e.g., DDR4, DDR3, etc.)
+
+    storage:
+      min_space: 80           # Minimum free storage space (GB)
+      recommended_space: 100  # Recommended free storage space (GB)
+      type: "SSD"             # Preferred storage type (e.g., SSD, HDD)
+      min_iops: 1000          # Minimum I/O operations per second (if applicable)
+      recommended_iops: 5000  # Recommended I/O operations per second
+
+    os:
+
+--- SN50 Synth (https://raw.githubusercontent.com/mode-network/synth-subnet/HEAD/min_compute.yml)
+# Use this document to specify the minimum compute requirements.
+# This document will be used to generate a list of recommended hardware for your subnet.
+
+# This is intended to give a rough estimate of the minimum requirements
+# so that the user can make an informed decision about whether or not
+# they want to run a miner or validator on their machine.
+
+# NOTE: Specification for miners may be different from validators
+
+version: "1.0" # update this version key as needed, ideally should match your release version
+
+compute_spec:
+  miner:
+    cpu:
+      min_cores: 2 # Minimum number of CPU cores
+      min_speed: 2.5 # Minimum speed per core (GHz)
+      recommended_cores: 4 # Recommended number of CPU cores
+      recommended_speed: 3.5 # Recommended speed per core (GHz)
+      architecture: "x86_64" # Architecture type (e.g., x86_64, arm64)
+
+    gpu:
+      required: False # Does the application require a GPU?
+      min_vram: 0 # Minimum GPU VRAM (GB)
+      recommended_vram: 0 # Recommended GPU VRAM (GB)
+      cuda_cores: 0 # Minimum number of CUDA cores (if applicable)
+      min_compute_capability: 0.0 # Minimum CUDA compute capability
+      recommended_compute_capability: 0.0 # Recommended CUDA compute capability
+      recommended_gpu: "N/A" # provide a recommended GPU to purchase/rent
+
+    memory:
+      min_ram: 16 # Minimum RAM (GB)
+      min_swap: 12 # Minimum swap space (GB)
+      recommended_swap: 8 # Recommended swap space (GB)
+      ram_type: "DDR4" # RAM type (e.g., DDR4, DDR3, etc.)
+
+    storage:
+      min_space: 10 # Minimum free storage space (GB)
+      recommended_space: 25 # Recommended free storage space (GB)
+      type: "SSD" # Preferred storage type (e.g., SSD, HDD)
+      min_iops: 1000 # Minimum I/O operations per second (if applicable)
+
+--- SN54 Yanez (https://raw.githubusercontent.com/yanez-compliance/MIID-subnet/HEAD/min_compute.yml)
+version: '1.1'  # Updated version for hardware tuning
+
+compute_spec:
+
+  miner:
+
+    cpu:
+      min_cores: 4
+      min_speed: 2.5
+      recommended_cores: 8
+      recommended_speed: 3.5
+      architecture: "x86_64"
+
+    gpu:
+      required: False
+      min_vram: 16  # Increased from 8GB to 16GB for better LLM inference
+      recommended_vram: 32  # Increased for heavy LLM workloads
+      cuda_cores: 1024
+      min_compute_capability: 6.0
+      recommended_compute_capability: 7.5  # Increased for advanced LLMs
+      recommended_gpu: "NVIDIA A100 or RTX 4090"  # Added a consumer alternative
+
+    memory:
+      min_ram: 16
+      recommended_ram: 32  # Increased for handling larger datasets
+      min_swap: 4
+      recommended_swap: 8
+      ram_type: "DDR4"
+
+    storage:
+      min_space: 50  # Increased from 10GB to 50GB for model storage
+      recommended_space: 200  # Increased to allow multiple models and datasets
+      type: "SSD"
+      min_iops: 1000
+      recommended_iops: 5000
+
+    os:
+      name: "Ubuntu"
+      version: 20.04
+
+
+--- SN60 Bitsec.ai (https://raw.githubusercontent.com/Bitsec-AI/sandbox/HEAD/min_compute.yml)  *** UNMODIFIED TEMPLATE BOILERPLATE ***
+# Use this document to specify the minimum compute requirements.
+# This document will be used to generate a list of recommended hardware for your subnet.
+
+# This is intended to give a rough estimate of the minimum requirements
+# so that the user can make an informed decision about whether or not
+# they want to run a miner or validator on their machine.
+
+# NOTE: Specification for miners may be different from validators
+
+version: '1.0' # update this version key as needed, ideally should match your release version
+
+compute_spec:
+
+  miner:
+
+    cpu:
+      min_cores: 4            # Minimum number of CPU cores
+      min_speed: 2.5          # Minimum speed per core (GHz)
+      recommended_cores: 8    # Recommended number of CPU cores
+      recommended_speed: 3.5  # Recommended speed per core (GHz)
+      architecture: "x86_64"  # Architecture type (e.g., x86_64, arm64)
+
+    gpu:
+      required: True                       # Does the application require a GPU?
+      min_vram: 8                          # Minimum GPU VRAM (GB)
+      recommended_vram: 24                 # Recommended GPU VRAM (GB)
+      cuda_cores: 1024                     # Minimum number of CUDA cores (if applicable)
+      min_compute_capability: 6.0          # Minimum CUDA compute capability
+      recommended_compute_capability: 7.0  # Recommended CUDA compute capability
+      recommended_gpu: "NVIDIA A100"       # provide a recommended GPU to purchase/rent
+
+    memory:
+      min_ram: 16          # Minimum RAM (GB)
+      min_swap: 4          # Minimum swap space (GB)
+      recommended_swap: 8  # Recommended swap space (GB)
+      ram_type: "DDR4"     # RAM type (e.g., DDR4, DDR3, etc.)
+
+    storage:
+      min_space: 10           # Minimum free storage space (GB)
+      recommended_space: 100  # Recommended free storage space (GB)
+
+--- SN63 Enigma (https://raw.githubusercontent.com/qbittensor-labs/enigma/HEAD/min_compute.yml)
+# Use this document to specify the minimum compute requirements.
+# This document will be used to generate a list of recommended hardware for your subnet.
+
+# This is intended to give a rough estimate of the minimum requirements
+# so that the user can make an informed decision about whether or not
+# they want to run a miner or validator on their machine.
+
+# NOTE: Specification for miners may be different from validators
+
+version: '1.0' # update this version key as needed, ideally should match your release version
+
+compute_spec:
+
+  miner:
+    cpu:
+      min_cores: 1
+      min_speed: 2.0
+      recommended_cores: 1
+      recommended_speed: 3.0
+      architecture: "x86_64"
+
+    gpu:
+      required: False
+      min_vram: 0
+      recommended_vram: 0
+      recommended_gpu: "None required (CPU-only)"
+
+    memory:
+      min_ram: 8
+      recommended_ram: 8
+
+    storage:
+      min_space: 100
+      recommended_space: 100
+      type: "SSD"
+      min_iops: 1000
+      recommended_iops: 5000
+
+    os:
+      name: "Ubuntu"
+
+--- SN69 Herald (https://raw.githubusercontent.com/HeraldMedia/herald/HEAD/min_compute.yml)
+# Use this document to specify the minimum compute requirements.
+# This document will be used to generate a list of recommended hardware for your subnet.
+
+# This is intended to give a rough estimate of the minimum requirements
+# so that the user can make an informed decision about whether or not
+# they want to run a miner or validator on their machine.
+
+# NOTE: Specification for miners may be different from validators
+
+version: '1.0'
+
+compute_spec:
+
+  miner:
+    cpu: 2  # Minimum number of CPU cores
+    ram: 4  # Minimum RAM (GB)
+
+  validator:
+    cpu: 2  # Minimum number of CPU cores
+    ram: 8  # Minimum RAM (GB)
+
+
+--- SN72 StreetVision by NATIX (https://raw.githubusercontent.com/natixnetwork/streetvision-subnet/HEAD/min_compute.yml)
+version: '2.0.0'
+
+compute_spec:
+
+  miner:
+
+    cpu:
+      min_cores: 2
+      min_speed: 2.5
+      recommended_cores: 4
+      recommended_speed: 3.5
+      architecture: "x86_64"
+
+    gpu:
+      required: True
+      min_vram: 4
+      recommended_vram: 8
+      cuda_cores: 2000
+      min_compute_capability: 6.1
+      recommended_compute_capability: 7.5
+      recommended_gpu: "NVIDIA GTX 1660 Super"
+
+    memory:
+      min_ram: 8
+      min_swap: 2
+      recommended_swap: 4
+      ram_type: "DDR4"
+
+    storage:
+      min_space: 50
+      recommended_space: 100
+      type: "SSD"
+      min_iops: 500
+      recommended_iops: 1000
+
+    os:
+      name: "Ubuntu"
+      version: 22.04
+
+  validator:
+
+--- SN74 Gittensor (https://raw.githubusercontent.com/entrius/gittensor/HEAD/min_compute.yml)
+# Use this document to specify the minimum compute requirements.
+# This document will be used to generate a list of recommended hardware for your subnet.
+
+# This is intended to give a rough estimate of the minimum requirements
+# so that the user can make an informed decision about whether or not
+# they want to run a miner or validator on their machine.
+
+version: "1.0"
+
+compute_spec:
+  miner:
+    cpu: 2 # Minimum number of CPU cores
+    ram: 4 # Minimum RAM (GB)
+
+  validator:
+    cpu: 2 # Minimum number of CPU cores
+    ram: 8 # Minimum RAM (GB)
+
+
+--- SN79 MVTRX (https://raw.githubusercontent.com/taos-im/sn-79/HEAD/min_compute.yml)
+# This is intended to give a rough estimate of the minimum requirements
+# so that the user can make an informed decision about whether or not
+# they want to run a miner or validator on their machine.
+
+version: '0.1.0'
+
+compute_spec:
+  miner:
+    cpu:
+      min_cores: 4            # Minimum number of CPU cores
+      min_speed: 2.5          # Minimum speed per core (GHz)
+      recommended_cores: 8    # Recommended number of CPU cores
+      recommended_speed: 3.5  # Recommended speed per core (GHz)
+      architecture: "x86_64"  # Architecture type (e.g., x86_64, arm64)
+
+    gpu:
+      required: false                    # Does the application require a GPU?
+      min_vram: 0                        # Minimum GPU VRAM (GB)
+      recommended_vram: 0                # Recommended GPU VRAM (GB)
+      cuda_cores: 0                      # Minimum number of CUDA cores (if applicable)
+      min_compute_capability: 0          # Minimum CUDA compute capability
+      recommended_compute_capability: 0  # Recommended CUDA compute capability
+      recommended_gpu: null              # provide a recommended GPU to purchase/rent
+
+    memory:
+      min_ram: 4              # Minimum RAM (GB)
+      min_swap: 1             # Minimum swap space (GB)
+      recommended_swap: 2     # Recommended swap space (GB)
+      ram_type: "DDR4"        # RAM type (e.g., DDR4, DDR3, etc.)
+
+    storage:
+      min_space: 100          # Minimum free storage space (GB)
+      recommended_space: 250  # Recommended free storage space (GB)
+      type: "SSD"             # Preferred storage type (e.g., SSD, HDD)
+      min_iops: 1000          # Minimum I/O operations per second (if applicable)
+      recommended_iops: 5000  # Recommended I/O operations per second
+
+    os:
+      name: "Ubuntu"          # Name of the preferred operating system(s)
+      version: 22.04          # Version of the preferred operating system(s)
+
+--- SN83 CliqueAI (https://raw.githubusercontent.com/toptensor/CliqueAI/HEAD/min_compute.yml)
+# Use this document to specify the minimum compute requirements.
+# This document will be used to generate a list of recommended hardware for your subnet.
+
+# This is intended to give a rough estimate of the minimum requirements
+# so that the user can make an informed decision about whether or not
+# they want to run a miner or validator on their machine.
+
+# NOTE: Specification for miners may be different from validators
+
+version: '0.0.17' # update this version key as needed, ideally should match your release version
+
+compute_spec:
+
+  miner:
+
+    cpu:
+      min_cores: 4            # Minimum number of CPU cores
+      min_speed: 2.5          # Minimum speed per core (GHz)
+      recommended_cores: 8    # Recommended number of CPU cores
+      recommended_speed: 3.5  # Recommended speed per core (GHz)
+      architecture: "x86_64"  # Architecture type (e.g., x86_64, arm64)
+
+    gpu:
+      required: False                      # Does the application require a GPU?
+      min_vram: 8                          # Minimum GPU VRAM (GB)
+      recommended_vram: 24                 # Recommended GPU VRAM (GB)
+      cuda_cores: 1024                     # Minimum number of CUDA cores (if applicable)
+      min_compute_capability: 6.0          # Minimum CUDA compute capability
+      recommended_compute_capability: 7.0  # Recommended CUDA compute capability
+      recommended_gpu: "NVIDIA A100"       # provide a recommended GPU to purchase/rent
+
+    memory:
+      min_ram: 16          # Minimum RAM (GB)
+      min_swap: 4          # Minimum swap space (GB)
+      recommended_swap: 8  # Recommended swap space (GB)
+      ram_type: "DDR4"     # RAM type (e.g., DDR4, DDR3, etc.)
+
+    storage:
+      min_space: 10           # Minimum free storage space (GB)
+      recommended_space: 100  # Recommended free storage space (GB)
+
+--- SN88 Investing (https://raw.githubusercontent.com/mobiusfund/investing/HEAD/min_compute.yml)
+# Use this document to specify the minimum compute requirements.
+# This document will be used to generate a list of recommended hardware for your subnet.
+
+# This is intended to give a rough estimate of the minimum requirements
+# so that the user can make an informed decision about whether or not
+# they want to run a miner or validator on their machine.
+
+# NOTE: Specification for miners may be different from validators
+
+version: '1.0' # update this version key as needed, ideally should match your release version
+
+compute_spec:
+
+  miner:
+
+    gpu:
+      required: False                      # Does the application require a GPU?
+
+    storage:
+      min_space: 20           # Minimum free storage space (GB)
+      recommended_space: 100  # Recommended free storage space (GB)
+
+    os:
+      name: "Ubuntu"  # Name of the preferred operating system(s)
+      version: 22.04  # Version of the preferred operating system(s)
+
+  validator:
+
+    gpu:
+      required: False                      # Does the application require a GPU?
+
+    storage:
+      min_space: 20           # Minimum free storage space (GB)
+      recommended_space: 100  # Recommended free storage space (GB)
+
+    os:
+      name: "Ubuntu"  # Name of the preferred operating system(s)
+      version: 22.04  # Version of the preferred operating system(s)
+
+network_spec:
+
+--- SN96 Verathos (https://raw.githubusercontent.com/verathos-ai/verathos/HEAD/min_compute.yml)
+# Verathos (Subnet 96) — Minimum Compute Requirements
+# https://github.com/verathos-ai/verathos
+#
+# Format follows the official Bittensor subnet template:
+# https://github.com/opentensor/bittensor-subnet-template/blob/main/min_compute.yml
+
+version: '1.0'
+
+compute_spec:
+
+  miner:
+    cpu:
+      min_cores: 4
+      min_speed: 2.5  # GHz
+      recommended_cores: 8
+      architecture: x86_64
+    gpu:
+      required: true
+      min_vram: 24  # GB — RTX 4090 / RTX 3090 Ti / L4 / A10
+      recommended_vram: 48  # GB — A6000 / A40 / L40S
+      min_compute_capability: 7.0  # SM 7.0 (Volta+), practically 8.0+ recommended
+      recommended_gpu: "NVIDIA RTX 4090"
+      cuda_version: "12.8+"
+    memory:
+      min_ram: 32  # GB
+      recommended_ram: 64  # GB
+      min_swap: 8  # GB
+    storage:
+      min_space: 100  # GB — model weights + Merkle tree cache
+      recommended_space: 200  # GB
+      type: SSD
+    os:
+      name: Ubuntu
+      version: 22.04
+
+  validator:
+    cpu:
+      min_cores: 4
+      min_speed: 2.0  # GHz
+      recommended_cores: 8
+
+--- SN101 Tag101 (https://raw.githubusercontent.com/tag101-ai/tag101/HEAD/min_compute.yml)
+# Use this document to specify the minimum compute requirements.
+# This document will be used to generate a list of recommended hardware for your subnet.
+
+# This is intended to give a rough estimate of the minimum requirements
+# so that the user can make an informed decision about whether or not
+# they want to run a miner or validator on their machine.
+
+# NOTE: Specification for miners may be different from validators.
+
+version: '0.2.0'
+
+compute_spec:
+
+  miner:
+
+    cpu:
+      min_cores: 2            # Minimum number of CPU cores
+      min_speed: 2.0          # Minimum speed per core (GHz)
+      recommended_cores: 4    # Recommended number of CPU cores
+      recommended_speed: 3.0  # Recommended speed per core (GHz)
+      architecture: "x86_64"  # Architecture type (e.g., x86_64, arm64)
+
+    gpu:
+      required: False                     # Does the application require a GPU?
+      min_vram: 0                         # Minimum GPU VRAM (GB)
+      recommended_vram: 0                 # Recommended GPU VRAM (GB)
+      cuda_cores: 0                       # Minimum number of CUDA cores (if applicable)
+      min_compute_capability: 0.0         # Minimum CUDA compute capability
+      recommended_compute_capability: 0.0 # Recommended CUDA compute capability
+      recommended_gpu: "none"             # Recommended GPU to purchase/rent
+
+    memory:
+      min_ram: 8           # Minimum RAM (GB)
+      min_swap: 4          # Minimum swap space (GB)
+      recommended_swap: 8  # Recommended swap space (GB)
+      ram_type: "DDR4"     # RAM type (e.g., DDR4, DDR5)
+
+    storage:
+      min_space: 20          # Minimum free storage space (GB)
+      recommended_space: 50  # Recommended free storage space (GB)
+
+--- SN104 TAOstatus (https://raw.githubusercontent.com/taostatus/taostatus-subnet/HEAD/min_compute.yml)
+# Minimum compute requirements for the MASXAI subnet.
+#
+# Both roles are I/O-bound (HTTP calls to the protocol backend, lightweight
+# NaCl/Fernet encryption) -- no local model inference happens on either the
+# miner or the validator, so no GPU is required for either role.
+
+version: '2.0'
+
+compute_spec:
+
+  miner:
+
+    cpu:
+      min_cores: 2
+      min_speed: 2.0
+      recommended_cores: 4
+      recommended_speed: 2.5
+      architecture: "x86_64"
+
+    gpu:
+      required: False
+
+    memory:
+      min_ram: 2
+      min_swap: 2
+      recommended_swap: 4
+      ram_type: "DDR4"
+
+    storage:
+      min_space: 5
+      recommended_space: 10
+      type: "SSD"
+      min_iops: 500
+      recommended_iops: 1000
+
+    os:
+      name: "Ubuntu"
+      version: 22.04
+
+  validator:
+
+--- SN107 Minos (https://raw.githubusercontent.com/minos-protocol/minos_subnet/HEAD/min_compute.yml)
+# Use this document to specify the minimum compute requirements.
+# This document will be used to generate a list of recommended hardware for your subnet.
+
+# This is intended to give a rough estimate of the minimum requirements
+# so that the user can make an informed decision about whether or not
+# they want to run a miner or validator on their machine.
+
+# NOTE: Specification for miners may be different from validators
+
+version: '1.0'
+
+compute_spec:
+
+  miner:
+
+    cpu:
+      min_cores: 4              # Minimum number of CPU cores (GATK HaplotypeCaller scales with cores)
+      min_speed: 2.5            # Minimum speed per core (GHz)
+      recommended_cores: 8      # Recommended number of CPU cores (for faster variant calling)
+      recommended_speed: 3.5    # Recommended speed per core (GHz)
+      architecture: "x86_64"    # Architecture type (required for Docker containers)
+
+    gpu:
+      required: False                       # GPU not required (GATK and DeepVariant can run on CPU)
+      min_vram: 0                           # Minimum GPU VRAM (GB)
+      recommended_vram: 8                   # Recommended GPU VRAM for DeepVariant GPU mode (optional)
+      cuda_cores: 0                         # Minimum number of CUDA cores
+      min_compute_capability: 0.0           # Minimum CUDA compute capability
+      recommended_compute_capability: 7.0   # For DeepVariant GPU acceleration (optional)
+      recommended_gpu: "NVIDIA T4 or better (optional for DeepVariant)" # GPU recommendation
+
+    memory:
+      min_ram: 8            # Minimum RAM (GB) - GATK/BCFtools run on 8GB; DeepVariant needs 16GB
+      min_swap: 8           # Minimum swap space (GB)
+      recommended_ram: 16   # Recommended RAM (required for DeepVariant template)
+      recommended_swap: 16  # Recommended swap space (GB)
+      ram_type: "DDR4"      # RAM type (e.g., DDR4, DDR5)
+
+    storage:
+      min_space: 60            # Minimum free storage (GB) - 30GB BAM cache + ~7GB Docker images + temp files
+
+--- SN123 MANTIS (https://raw.githubusercontent.com/Barbariandev/MANTIS/HEAD/min_compute.yml)
+min_compute:
+  gpu: "NVIDIA GeForce RTX 4090"
+
+
+--- SN124 Swarm (https://raw.githubusercontent.com/swarm-subnet/swarm/HEAD/min_compute.yml)
+# Use this document to specify the minimum compute requirements.
+# This document will be used to generate a list of recommended hardware for your subnet.
+
+# This is intended to give a rough estimate of the minimum requirements
+# so that the user can make an informed decision about whether or not
+# they want to run a miner or validator on their machine.
+
+# NOTE: Specification for miners may be different from validators
+
+version: '1.0' # update this version key as needed, ideally should match your release version
+
+compute_spec:
+
+  miner:
+
+    cpu:
+      min_cores: 3            # Minimum number of CPU cores
+      min_speed: 2.5          # Minimum speed per core (GHz)
+      recommended_cores: 8    # Recommended number of CPU cores
+      recommended_speed: 3.5  # Recommended speed per core (GHz)
+      architecture: "x86_64"  # Architecture type (e.g., x86_64, arm64)
+
+    gpu:
+      required: False                       # Will came handy to train models, but not a req itself
+
+    memory:
+      min_ram: 8          # Minimum RAM (GB)
+      min_swap: 4          # Minimum swap space (GB)
+      recommended_swap: 8  # Recommended swap space (GB)
+      ram_type: "DDR4"     # RAM type (e.g., DDR4, DDR3, etc.)
+
+    storage:
+      min_space: 20           # Minimum free storage space (GB)
+      recommended_space: 100  # Recommended free storage space (GB)
+
+    os:
+      name: "Ubuntu"  # Name of the preferred operating system(s)
+      version: 20.04  # Version of the preferred operating system(s)
+
+  validator:

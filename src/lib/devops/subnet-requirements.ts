@@ -19,7 +19,7 @@
 
 import { db } from "@/lib/db";
 import { fetchLiveSnapshot } from "@/lib/infranex/chain";
-import { classifySubnetHardware } from "@/lib/infranex/miner-score";
+import { classifySubnetHardware, vramForGpuModel } from "@/lib/infranex/miner-score";
 import {
   scrapeGithubMetadata,
   CURATED_MINER_REPOS,
@@ -92,8 +92,16 @@ interface RepoInfo {
 function parseGithubUrl(url: string): RepoInfo | null {
   try {
     // Tolerate user-pasted links: "github.com/org/repo", ".../tree/dev",
-    // ".git" suffixes — normalize before parsing.
-    const normalized = /^https?:\/\//i.test(url) ? url : `https://${url}`;
+    // ".git" suffixes — normalize before parsing. Also accept the bare
+    // "owner/repo" shorthand and org-only names some chain identities use
+    // ("forgenet47/gpuforge" — SN47, "CookingTao" — SN122).
+    const trimmed = url.trim();
+    const SHORTHAND = /^[A-Za-z0-9][A-Za-z0-9._-]*(\/[A-Za-z0-9][A-Za-z0-9._-]*)?$/;
+    const normalized = /^https?:\/\//i.test(trimmed)
+      ? trimmed
+      : SHORTHAND.test(trimmed)
+        ? `https://github.com/${trimmed}`
+        : `https://${trimmed}`;
     const u = new URL(normalized);
     // AUDIT-SEC-2 — exact-host check ("evilgithub.com" previously passed the
     // substring test) + strict charset on owner/repo: these values become
@@ -543,14 +551,37 @@ async function buildProfile(netuid: number): Promise<SubnetRequirementsProfile> 
   let minVramGb = hw.minVramGb;
   let recommendedGpu = hw.recommendedGpu;
   let gpuSource: SubnetRequirementsProfile["gpuSource"] = "curated";
-  if (scraped?.minVramGb || scraped?.recommendedGpu) {
-    minVramGb = scraped?.minVramGb ?? minVramGb;
-    recommendedGpu = scraped?.recommendedGpu ?? recommendedGpu;
+  // GPU-TAXONOMY: repo-sourced values are kept COHERENT — the GPU model and
+  // the VRAM floor must come from the same evidence (the official
+  // min_compute.yml spec, or the README line that named the model), never
+  // model-from-one-line + vram-from-another. A declared CPU-only spec
+  // (gpu.required: False) is honored literally: minVramGb 0, no GPU.
+  const scrapedVram = scraped?.minVramGb ?? null;
+  const scrapedGpu = scraped?.recommendedGpu ?? null;
+  const cpuOnly =
+    scrapedVram === 0 || (scrapedGpu != null && /cpu-only|qpu/i.test(scrapedGpu));
+  if (scrapedGpu != null || scrapedVram != null) {
     gpuSource = "repo";
+    if (cpuOnly) {
+      minVramGb = 0;
+      recommendedGpu = scrapedGpu ?? "None (CPU-only)";
+    } else {
+      recommendedGpu = scrapedGpu ?? hw.recommendedGpu;
+      minVramGb = scrapedVram ?? vramForGpuModel(scrapedGpu) ?? minVramGb;
+    }
   } else if (hw.classified) {
     gpuSource = "classifier";
   } else if (minerEmissionTaoPerDay != null) {
     gpuSource = "revenue-est"; // tier derived from what the reward stream can fund
+  }
+  if (scraped?.gpuRequired === false) {
+    notes.push(
+      "min_compute.yml (official Bittensor compute spec) declares the miner workload CPU-only (gpu.required: False) — no GPU needed."
+    );
+  } else if (scraped?.gpuRequired === true) {
+    notes.push(
+      "GPU requirement comes from the repo's official min_compute.yml compute spec (machine-readable ground truth)."
+    );
   }
 
   // Confidence: repo found + deps parsed = high; repo but thin parse = medium; none = low

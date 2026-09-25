@@ -1,0 +1,2066 @@
+[
+  {
+    "netuid": 0,
+    "name": null,
+    "github": null,
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": null
+    }
+  },
+  {
+    "netuid": 1,
+    "name": "Apex",
+    "github": "https://github.com/macrocosm-os/apex",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/macrocosm-os/apex"
+    }
+  },
+  {
+    "netuid": 2,
+    "name": "DSperse",
+    "github": "https://github.com/inference-labs-inc/subnet-2",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/inference-labs-inc/subnet-2"
+    }
+  },
+  {
+    "netuid": 3,
+    "name": "Teutonic",
+    "github": "https://github.com/unarbos/teutonic",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/unarbos/teutonic"
+    }
+  },
+  {
+    "netuid": 4,
+    "name": "Targon",
+    "github": "https://github.com/manifold-inc/targon",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/manifold-inc/targon"
+    }
+  },
+  {
+    "netuid": 5,
+    "name": "Hone",
+    "github": "https://github.com/hone-subnet-org/hone-subnet",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/hone-subnet-org/hone-subnet"
+    }
+  },
+  {
+    "netuid": 6,
+    "name": "Numinous",
+    "github": "https://github.com/numinouslabs/numinous",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/numinouslabs/numinous"
+    }
+  },
+  {
+    "netuid": 7,
+    "name": "Allways",
+    "github": "https://github.com/entrius/allways",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/entrius/allways"
+    }
+  },
+  {
+    "netuid": 8,
+    "name": "Vanta",
+    "github": "https://github.com/taoshidev/vanta-network",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/taoshidev/vanta-network"
+    }
+  },
+  {
+    "netuid": 9,
+    "name": "iota",
+    "github": "https://github.com/macrocosm-os/iota",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": "RTX 4090",
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/macrocosm-os/iota"
+    }
+  },
+  {
+    "netuid": 10,
+    "name": "Pareton",
+    "github": "https://github.com/Pareton-ai/pareton",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": "RTX 5090",
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/Pareton-ai/pareton"
+    }
+  },
+  {
+    "netuid": 11,
+    "name": "TrajectoryRL",
+    "github": "https://github.com/trajectoryRL/trajectoryRL",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/trajectoryRL/trajectoryRL"
+    }
+  },
+  {
+    "netuid": 12,
+    "name": "Compute Horde",
+    "github": "https://github.com/backend-developers-ltd/ComputeHorde/",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": "A100",
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/backend-developers-ltd/ComputeHorde/"
+    }
+  },
+  {
+    "netuid": 13,
+    "name": "Data Universe",
+    "github": "https://github.com/macrocosm-os/data-universe",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/macrocosm-os/data-universe"
+    }
+  },
+  {
+    "netuid": 14,
+    "name": "Cacheon",
+    "github": "https://github.com/latent-to/cacheon",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": "B300",
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/latent-to/cacheon"
+    }
+  },
+  {
+    "netuid": 15,
+    "name": "ORO",
+    "github": "https://github.com/ORO-AI/oro",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/ORO-AI/oro"
+    }
+  },
+  {
+    "netuid": 16,
+    "name": "kenju",
+    "github": "0x",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": null
+    }
+  },
+  {
+    "netuid": 17,
+    "name": "404—GEN",
+    "github": "https://github.com/404-Repo/404-gen-subnet",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": "4x H200",
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/404-Repo/404-gen-subnet"
+    }
+  },
+  {
+    "netuid": 18,
+    "name": "Zeus",
+    "github": "https://github.com/Orpheus-AI/Zeus",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/Orpheus-AI/Zeus"
+    }
+  },
+  {
+    "netuid": 19,
+    "name": "blockmachine",
+    "github": "https://github.com/taostat/blockmachine/",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/taostat/blockmachine"
+    }
+  },
+  {
+    "netuid": 20,
+    "name": "Witness",
+    "github": "https://github.com/witnessvision/witness_subnet/",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/witnessvision/witness_subnet/"
+    }
+  },
+  {
+    "netuid": 21,
+    "name": "AdTAO",
+    "github": "https://github.com/ippcteam/SN21-adtao",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/ippcteam/SN21-adtao"
+    }
+  },
+  {
+    "netuid": 22,
+    "name": "Desearch",
+    "github": "https://github.com/datura-ai/desearch",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/datura-ai/desearch"
+    }
+  },
+  {
+    "netuid": 23,
+    "name": "Trishool",
+    "github": "https://github.com/TrishoolAI/trishool-phase2",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/TrishoolAI/trishool-phase2"
+    }
+  },
+  {
+    "netuid": 24,
+    "name": "Quasar",
+    "github": "https://github.com/SILX-LABS/QUASAR-SUBNET/",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/SILX-LABS/QUASAR-SUBNET/"
+    }
+  },
+  {
+    "netuid": 25,
+    "name": "UR",
+    "github": "https://github.com/urfoundation/sn",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/urfoundation/sn"
+    }
+  },
+  {
+    "netuid": 26,
+    "name": "Perturb",
+    "github": "https://github.com/0xsigurd/Perturb",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/0xsigurd/Perturb"
+    }
+  },
+  {
+    "netuid": 27,
+    "name": "Orion",
+    "github": "https://github.com/SILX-LABS/Orion",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/SILX-LABS/Orion"
+    }
+  },
+  {
+    "netuid": 28,
+    "name": "SayGM",
+    "github": "https://github.com/taostat/gm-miner",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/taostat/gm-miner"
+    }
+  },
+  {
+    "netuid": 29,
+    "name": "hoτfloaτ",
+    "github": "https://github.com/coldint/hotfloat",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": "8x B300",
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/coldint/hotfloat"
+    }
+  },
+  {
+    "netuid": 30,
+    "name": "Endure Network",
+    "github": "0x",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": null
+    }
+  },
+  {
+    "netuid": 31,
+    "name": "rec4ll",
+    "github": "0x",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": null
+    }
+  },
+  {
+    "netuid": 32,
+    "name": "ItsAI",
+    "github": "https://github.com/It-s-AI/llm-detection",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": "RTX 4090",
+      "ovrMinVramGb": 24,
+      "ovrGithubUrl": "https://github.com/It-s-AI/llm-detection"
+    }
+  },
+  {
+    "netuid": 33,
+    "name": "ReadyAI",
+    "github": "https://github.com/afterpartyai/bittensor-conversation-genome-project",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": "A100",
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/afterpartyai/bittensor-conversation-genome-project"
+    }
+  },
+  {
+    "netuid": 34,
+    "name": "BitMind",
+    "github": "https://github.com/BitMind-AI/bitmind-subnet",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": "A100",
+      "ovrMinVramGb": 80,
+      "ovrGithubUrl": "https://github.com/BitMind-AI/bitmind-subnet"
+    }
+  },
+  {
+    "netuid": 35,
+    "name": null,
+    "github": null,
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": null
+    }
+  },
+  {
+    "netuid": 36,
+    "name": "Epago",
+    "github": "https://github.com/EpagoFoundation/epago",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/EpagoFoundation/epago"
+    }
+  },
+  {
+    "netuid": 37,
+    "name": "Aurelius",
+    "github": "https://github.com/Aurelius-Protocol/Aurelius-Protocol",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/Aurelius-Protocol/Aurelius-Protocol"
+    }
+  },
+  {
+    "netuid": 38,
+    "name": "ChronoLLM",
+    "github": "https://github.com/chronollm/sn38",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/chronollm/sn38"
+    }
+  },
+  {
+    "netuid": 39,
+    "name": "deprecated",
+    "github": "https://github.com/deprecated/deprecated",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": null
+    }
+  },
+  {
+    "netuid": 40,
+    "name": "Ralph",
+    "github": "https://github.com/RalphLabsAI/ralph",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/RalphLabsAI/ralph"
+    }
+  },
+  {
+    "netuid": 41,
+    "name": "Almanac",
+    "github": "https://github.com/corvxai/almanac",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/corvxai/almanac"
+    }
+  },
+  {
+    "netuid": 42,
+    "name": "Unknown",
+    "github": "0x",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": null
+    }
+  },
+  {
+    "netuid": 43,
+    "name": "Graphite",
+    "github": "https://github.com/GraphiteAI/Graphite-Subnet",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/GraphiteAI/Graphite-Subnet"
+    }
+  },
+  {
+    "netuid": 44,
+    "name": "Score",
+    "github": "https://github.com/score-technologies/turbovision",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/score-technologies/turbovision"
+    }
+  },
+  {
+    "netuid": 45,
+    "name": "AlphaRidge.ai",
+    "github": "https://github.com/Team-Rizzo/alpharidge-ai",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": "A100",
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/Team-Rizzo/alpharidge-ai"
+    }
+  },
+  {
+    "netuid": 46,
+    "name": "Instant",
+    "github": "https://github.com/Subnet46/sn46-validator",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/Subnet46/sn46-validator"
+    }
+  },
+  {
+    "netuid": 47,
+    "name": "GPUForge",
+    "github": "forgenet47/gpuforge",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": null
+    }
+  },
+  {
+    "netuid": 48,
+    "name": "Quantum Compute",
+    "github": "https://github.com/qbittensor-labs/quantum-compute",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/qbittensor-labs/quantum-compute"
+    }
+  },
+  {
+    "netuid": 49,
+    "name": "Nepher Robotics",
+    "github": "https://github.com/nepher-ai/nepher-subnet",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": "A100",
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/nepher-ai/nepher-subnet"
+    }
+  },
+  {
+    "netuid": 50,
+    "name": "Synth",
+    "github": "https://github.com/mode-network/synth-subnet",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/mode-network/synth-subnet"
+    }
+  },
+  {
+    "netuid": 51,
+    "name": "lium.io",
+    "github": "https://github.com/Datura-ai/lium-io",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/Datura-ai/lium-io"
+    }
+  },
+  {
+    "netuid": 52,
+    "name": "Dojo",
+    "github": "https://github.com/tensorplex-labs/dojo",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/tensorplex-labs/dojo"
+    }
+  },
+  {
+    "netuid": 53,
+    "name": "engy",
+    "github": "https://github.com/hanlinai/engy",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/hanlinai/engy"
+    }
+  },
+  {
+    "netuid": 54,
+    "name": "Yanez",
+    "github": "https://github.com/yanez-compliance/MIID-subnet",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": "A100",
+      "ovrMinVramGb": 16,
+      "ovrGithubUrl": "https://github.com/yanez-compliance/MIID-subnet"
+    }
+  },
+  {
+    "netuid": 55,
+    "name": "NIOME",
+    "github": "https://github.com/genomesio/subnet-niome",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/genomesio/subnet-niome"
+    }
+  },
+  {
+    "netuid": 56,
+    "name": "Gradients",
+    "github": "https://github.com/gradients-ai/G.O.D",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/gradients-ai/G.O.D"
+    }
+  },
+  {
+    "netuid": 57,
+    "name": null,
+    "github": null,
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": null
+    }
+  },
+  {
+    "netuid": 58,
+    "name": "0x",
+    "github": "0x",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": null
+    }
+  },
+  {
+    "netuid": 59,
+    "name": null,
+    "github": null,
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": null
+    }
+  },
+  {
+    "netuid": 60,
+    "name": "Bitsec.ai",
+    "github": "https://github.com/Bitsec-AI/sandbox",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": "A100",
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/Bitsec-AI/sandbox"
+    }
+  },
+  {
+    "netuid": 61,
+    "name": "RedTeam",
+    "github": "https://github.com/RedTeamSubnet/RedTeam",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/RedTeamSubnet/RedTeam"
+    }
+  },
+  {
+    "netuid": 62,
+    "name": "Ridges",
+    "github": "https://github.com/ridgesai/ridges",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/ridgesai/ridges"
+    }
+  },
+  {
+    "netuid": 63,
+    "name": "Enigma",
+    "github": "https://github.com/qbittensor-labs/enigma",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": "RTX Pro 6000",
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/qbittensor-labs/enigma"
+    }
+  },
+  {
+    "netuid": 64,
+    "name": "Chutes",
+    "github": "https://github.com/chutesai/chutes",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": "8x H200",
+      "ovrMinVramGb": 48,
+      "ovrGithubUrl": "https://github.com/chutesai/chutes"
+    }
+  },
+  {
+    "netuid": 65,
+    "name": "True Performance Network",
+    "github": "https://github.com/taofu-labs/true-performance-network",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/taofu-labs/true-performance-network"
+    }
+  },
+  {
+    "netuid": 66,
+    "name": "conjectures",
+    "github": "https://github.com/conjectures-io/conjectures-validator",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/conjectures-io/conjectures-validator"
+    }
+  },
+  {
+    "netuid": 67,
+    "name": "Harnyx",
+    "github": "https://github.com/harnyx/harnyx",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/harnyx/harnyx"
+    }
+  },
+  {
+    "netuid": 68,
+    "name": "NOVA",
+    "github": "https://github.com/metanova-labs/nova/",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/metanova-labs/nova/"
+    }
+  },
+  {
+    "netuid": 69,
+    "name": "Herald",
+    "github": "https://github.com/HeraldMedia/herald",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/HeraldMedia/herald"
+    }
+  },
+  {
+    "netuid": 70,
+    "name": null,
+    "github": null,
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": null
+    }
+  },
+  {
+    "netuid": 71,
+    "name": "Leadpoet",
+    "github": "https://github.com/leadpoet/leadpoet",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/leadpoet/leadpoet"
+    }
+  },
+  {
+    "netuid": 72,
+    "name": "StreetVision by NATIX",
+    "github": "https://github.com/natixnetwork/streetvision-subnet",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/natixnetwork/streetvision-subnet"
+    }
+  },
+  {
+    "netuid": 73,
+    "name": "Parked",
+    "github": "0x",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": null
+    }
+  },
+  {
+    "netuid": 74,
+    "name": "Gittensor",
+    "github": "https://github.com/entrius/gittensor/tree/main",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/entrius/gittensor/tree/main"
+    }
+  },
+  {
+    "netuid": 75,
+    "name": "Hippius",
+    "github": "https://github.com/thenervelab/thebrain",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/thenervelab/thebrain"
+    }
+  },
+  {
+    "netuid": 76,
+    "name": "Ormas",
+    "github": "https://github.com/heroncovelabs/ormas-subnet",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/heroncovelabs/ormas-subnet"
+    }
+  },
+  {
+    "netuid": 77,
+    "name": "Liquidity",
+    "github": "https://github.com/creativebuilds/sn77",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/creativebuilds/sn77"
+    }
+  },
+  {
+    "netuid": 78,
+    "name": "Umi",
+    "github": "https://github.com/Umi-BitSign/umi",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/Umi-BitSign/umi"
+    }
+  },
+  {
+    "netuid": 79,
+    "name": "MVTRX",
+    "github": "https://github.com/taos-im/sn-79",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/taos-im/sn-79"
+    }
+  },
+  {
+    "netuid": 80,
+    "name": "OpenRoboto",
+    "github": "https://github.com/openroboto-ai/openroboto-subnet",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/openroboto-ai/openroboto-subnet"
+    }
+  },
+  {
+    "netuid": 81,
+    "name": "Reliquary",
+    "github": "https://github.com/reliquadotai/reliquary",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/reliquadotai/reliquary"
+    }
+  },
+  {
+    "netuid": 82,
+    "name": "Compelle",
+    "github": "https://github.com/compelle/compelle-validator",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/compelle/compelle-validator"
+    }
+  },
+  {
+    "netuid": 83,
+    "name": "CliqueAI",
+    "github": "https://github.com/toptensor/CliqueAI",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": "A100",
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/toptensor/CliqueAI"
+    }
+  },
+  {
+    "netuid": 84,
+    "name": null,
+    "github": null,
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": null
+    }
+  },
+  {
+    "netuid": 85,
+    "name": "Vidaio",
+    "github": "https://github.com/vidaio-subnet/vidaio-subnet",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/vidaio-subnet/vidaio-subnet"
+    }
+  },
+  {
+    "netuid": 86,
+    "name": null,
+    "github": null,
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": null
+    }
+  },
+  {
+    "netuid": 87,
+    "name": "Provenonce",
+    "github": "0x",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": null
+    }
+  },
+  {
+    "netuid": 88,
+    "name": "Investing",
+    "github": "https://github.com/mobiusfund/investing",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/mobiusfund/investing"
+    }
+  },
+  {
+    "netuid": 89,
+    "name": "InfiniteQuant",
+    "github": "https://github.com/DeltaCompute24/InfiniteQuant-Subnet",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/DeltaCompute24/InfiniteQuant-Subnet"
+    }
+  },
+  {
+    "netuid": 90,
+    "name": "KubeTEE",
+    "github": "https://github.com/KubeTEE-AI/kubetee-subnet",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": "24x H200",
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/KubeTEE-AI/kubetee-subnet"
+    }
+  },
+  {
+    "netuid": 91,
+    "name": "cascade",
+    "github": "https://github.com/TensorLink-AI/cascade",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/TensorLink-AI/cascade"
+    }
+  },
+  {
+    "netuid": 92,
+    "name": "Available",
+    "github": "0x",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": null
+    }
+  },
+  {
+    "netuid": 93,
+    "name": "Bitcast",
+    "github": "https://github.com/bitcast-network/bitcast",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/bitcast-network/bitcast"
+    }
+  },
+  {
+    "netuid": 94,
+    "name": "pending...",
+    "github": "https://github.com/AlveusLabs/SN94-BitSota",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/AlveusLabs/SN94-BitSota"
+    }
+  },
+  {
+    "netuid": 95,
+    "name": "Actual",
+    "github": "https://github.com/actual-computer/actual-subnet-95",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": null
+    }
+  },
+  {
+    "netuid": 96,
+    "name": "Verathos",
+    "github": "https://github.com/verathos-ai/verathos",
+    "display": {
+      "reqRecommendedGpu": "RTX 4090",
+      "reqMinVramGb": 24,
+      "gpuSource": "repo",
+      "confidence": "high",
+      "reqRepoUrl": "https://github.com/verathos-ai/verathos",
+      "fetchedAt": "2026-09-25T11:01:37.307Z",
+      "ovrRecommendedGpu": "RTX 4090",
+      "ovrMinVramGb": 24,
+      "ovrGithubUrl": "https://github.com/verathos-ai/verathos"
+    }
+  },
+  {
+    "netuid": 97,
+    "name": "Albedo",
+    "github": "https://github.com/unarbos/albedo",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/unarbos/albedo"
+    }
+  },
+  {
+    "netuid": 98,
+    "name": "NeverPlayAlone",
+    "github": "https://github.com/neverplayalone/neverplayalone_subnet",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/neverplayalone/neverplayalone_subnet"
+    }
+  },
+  {
+    "netuid": 99,
+    "name": "Thirty Spokes",
+    "github": "0x",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": null
+    }
+  },
+  {
+    "netuid": 100,
+    "name": "Cortex",
+    "github": "https://github.com/CortexLM/cortex",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/CortexLM/cortex"
+    }
+  },
+  {
+    "netuid": 101,
+    "name": "Tag101",
+    "github": "https://github.com/tag101-ai/tag101",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/tag101-ai/tag101"
+    }
+  },
+  {
+    "netuid": 102,
+    "name": "ConnitoAI",
+    "github": "https://github.com/Connito-AI/Connito",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/Connito-AI/Connito"
+    }
+  },
+  {
+    "netuid": 103,
+    "name": "Capcomp",
+    "github": "https://github.com/orgs/Capcomp-AI/repositories",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": 32,
+      "ovrGithubUrl": "https://github.com/orgs/Capcomp-AI/repositories"
+    }
+  },
+  {
+    "netuid": 104,
+    "name": "TAOstatus",
+    "github": "https://github.com/taostatus/taostatus-subnet",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/taostatus/taostatus-subnet"
+    }
+  },
+  {
+    "netuid": 105,
+    "name": "Beam",
+    "github": "https://github.com/orgs/Beam-Network/repositories",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/orgs/Beam-Network/repositories"
+    }
+  },
+  {
+    "netuid": 106,
+    "name": "Nodexo",
+    "github": "https://github.com/nodexo-ai/nodexo",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/nodexo-ai/nodexo"
+    }
+  },
+  {
+    "netuid": 107,
+    "name": "Minos",
+    "github": "https://github.com/minos-protocol/minos_subnet",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": "T4",
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/minos-protocol/minos_subnet"
+    }
+  },
+  {
+    "netuid": 108,
+    "name": "ChipForge",
+    "github": "https://github.com/TatsuProject/ChipForge_SN108",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/TatsuProject/ChipForge_SN108"
+    }
+  },
+  {
+    "netuid": 109,
+    "name": "Finsight",
+    "github": "0x",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": null
+    }
+  },
+  {
+    "netuid": 110,
+    "name": "Green Compute",
+    "github": "0x",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": null
+    }
+  },
+  {
+    "netuid": 111,
+    "name": "Claims",
+    "github": "https://github.com/DeSciClaims/Claims",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/DeSciClaims/Claims"
+    }
+  },
+  {
+    "netuid": 112,
+    "name": "for sale",
+    "github": "0x",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": null
+    }
+  },
+  {
+    "netuid": 113,
+    "name": "LongShort",
+    "github": "0x",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": null
+    }
+  },
+  {
+    "netuid": 114,
+    "name": "SOMA",
+    "github": "https://github.com/DendriteHQ/SOMA",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/DendriteHQ/SOMA"
+    }
+  },
+  {
+    "netuid": 115,
+    "name": "MoirAI",
+    "github": "https://github.com/moirai115/MoirAI",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/moirai115/MoirAI"
+    }
+  },
+  {
+    "netuid": 116,
+    "name": "Memo",
+    "github": "0x",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": null
+    }
+  },
+  {
+    "netuid": 117,
+    "name": "everyframe.studio",
+    "github": "https://github.com/everyframe-studios/everyframe-miner",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": null
+    }
+  },
+  {
+    "netuid": 118,
+    "name": "Ditto",
+    "github": "https://github.com/orgs/ditto-assistant/repositories",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/orgs/ditto-assistant/repositories"
+    }
+  },
+  {
+    "netuid": 119,
+    "name": "CapabilityForge Next",
+    "github": "https://github.com/capabilityforge-next/capabilityforge",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/capabilityforge-next/capabilityforge"
+    }
+  },
+  {
+    "netuid": 120,
+    "name": "Affine",
+    "github": "https://github.com/AffineFoundation/affine",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/AffineFoundation/affine"
+    }
+  },
+  {
+    "netuid": 121,
+    "name": "sundae_bar",
+    "github": "https://github.com/sundae-bar/bittensor-subnet",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/sundae-bar/bittensor-subnet"
+    }
+  },
+  {
+    "netuid": 122,
+    "name": "CookingTAO",
+    "github": "https://github.com/CookingTao",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/CookingTao"
+    }
+  },
+  {
+    "netuid": 123,
+    "name": "MANTIS",
+    "github": "https://github.com/Barbariandev/MANTIS",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/Barbariandev/MANTIS"
+    }
+  },
+  {
+    "netuid": 124,
+    "name": "Swarm",
+    "github": "https://github.com/swarm-subnet/swarm",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/swarm-subnet/swarm"
+    }
+  },
+  {
+    "netuid": 125,
+    "name": "Refinery",
+    "github": "https://github.com/Barbariandev/refinery",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/Barbariandev/refinery"
+    }
+  },
+  {
+    "netuid": 126,
+    "name": "Attelier",
+    "github": "https://github.com/attelierai/attelierai_subnet/",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": null
+    }
+  },
+  {
+    "netuid": 127,
+    "name": "Astrid",
+    "github": "https://github.com/astridintelligence/sn-127",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/astridintelligence/sn-127"
+    }
+  },
+  {
+    "netuid": 128,
+    "name": "ByteLeap",
+    "github": "https://github.com/byteleapai/byteleap-Miner",
+    "display": {
+      "reqRecommendedGpu": null,
+      "reqMinVramGb": null,
+      "gpuSource": null,
+      "confidence": null,
+      "reqRepoUrl": null,
+      "fetchedAt": null,
+      "ovrRecommendedGpu": null,
+      "ovrMinVramGb": null,
+      "ovrGithubUrl": "https://github.com/byteleapai/byteleap-Miner"
+    }
+  }
+]

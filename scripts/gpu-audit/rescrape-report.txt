@@ -1,0 +1,122 @@
+SN  6 | gpu=-                      vram=-    cdlspec=? | numinouslabs/numinous
+SN  1 | gpu=-                      vram=-    cdlspec=? | macrocosm-os/apex
+SN  5 | gpu=-                      vram=-    cdlspec=? | hone-subnet-org/hone-subnet
+SN  3 | gpu=-                      vram=-    cdlspec=? | unarbos/teutonic
+SN  7 | gpu=None (CPU-only)        vram=0    cdlspec=false | entrius/allways
+SN  8 | gpu=-                      vram=-    cdlspec=? | taoshidev/vanta-network
+SN 10 | gpu=RTX 5090               vram=-    cdlspec=? | Pareton-ai/pareton
+SN 11 | gpu=-                      vram=-    cdlspec=? | trajectoryRL/trajectoryRL
+SN  9 | gpu=RTX 4090               vram=16   cdlspec=? | macrocosm-os/iota
+SN  2 | gpu=-                      vram=-    cdlspec=? | inference-labs-inc/subnet-2
+SN 16 | ERROR: Invalid GitHub URL | 0x
+SN  4 | gpu=-                      vram=-    cdlspec=? | manifold-inc/targon
+SN 18 | gpu=None (CPU-only)        vram=0    cdlspec=false | Orpheus-AI/Zeus
+SN 13 | gpu=-                      vram=-    cdlspec=? | macrocosm-os/data-universe
+SN 15 | gpu=-                      vram=-    cdlspec=? | ORO-AI/oro
+SN 14 | gpu=B300                   vram=-    cdlspec=? | latent-to/cacheon
+SN 20 | gpu=-                      vram=-    cdlspec=? | witnessvision/witness_subnet/
+SN 21 | gpu=None (CPU-only)        vram=0    cdlspec=false | ippcteam/SN21-adtao
+SN 22 | gpu=-                      vram=-    cdlspec=? | datura-ai/desearch
+SN 12 | gpu=A100                   vram=-    cdlspec=? | backend-developers-ltd/ComputeHorde/
+SN 23 | gpu=-                      vram=-    cdlspec=? | TrishoolAI/trishool-phase2
+SN 24 | gpu=-                      vram=-    cdlspec=? | SILX-LABS/QUASAR-SUBNET/
+SN 17 | gpu=4x H200                vram=-    cdlspec=? | 404-Repo/404-gen-subnet
+SN 26 | gpu=-                      vram=-    cdlspec=? | 0xsigurd/Perturb
+SN 30 | ERROR: Invalid GitHub URL | 0x
+SN 31 | ERROR: Invalid GitHub URL | 0x
+SN 32 | gpu=RTX 4090               vram=24   cdlspec=true | It-s-AI/llm-detection
+SN 27 | gpu=-                      vram=-    cdlspec=? | SILX-LABS/Orion
+SN 29 | gpu=8x B300                vram=-    cdlspec=? | coldint/hotfloat
+SN 34 | gpu=A100                   vram=80   cdlspec=true | BitMind-AI/bitmind-subnet
+SN 33 | gpu=-                      vram=-    cdlspec=? | afterpartyai/bittensor-conversation-genome-project
+SN 36 | gpu=-                      vram=-    cdlspec=? | EpagoFoundation/epago
+SN 25 | gpu=-                      vram=-    cdlspec=? | urfoundation/sn
+SN 28 | gpu=-                      vram=-    cdlspec=? | taostat/gm-miner
+SN 37 | gpu=-                      vram=-    cdlspec=? | Aurelius-Protocol/Aurelius-Protocol
+SN 42 | ERROR: Invalid GitHub URL | 0x
+SN 38 | gpu=-                      vram=-    cdlspec=? | chronollm/sn38
+SN 43 | gpu=None (CPU-only)        vram=0    cdlspec=false | GraphiteAI/Graphite-Subnet
+SN 19 | gpu=-                      vram=-    cdlspec=? | taostat/blockmachine
+SN 40 | gpu=-                      vram=-    cdlspec=? | RalphLabsAI/ralph
+SN 47 | ERROR: Invalid GitHub URL | forgenet47/gpuforge
+SN 41 | gpu=-                      vram=-    cdlspec=? | corvxai/almanac
+SN 48 | gpu=None (QPU — quantum hardware) vram=0    cdlspec=false | qbittensor-labs/quantum-compute
+SN 45 | gpu=-                      vram=-    cdlspec=? | Team-Rizzo/alpharidge-ai
+SN 44 | gpu=-                      vram=-    cdlspec=? | score-technologies/turbovision
+SN 50 | gpu=None (CPU-only)        vram=0    cdlspec=false | mode-network/synth-subnet
+SN 49 | gpu=A100                   vram=-    cdlspec=? | nepher-ai/nepher-subnet
+SN 54 | gpu=None (CPU-only)        vram=0    cdlspec=false | yanez-compliance/MIID-subnet
+SN 51 | gpu=-                      vram=-    cdlspec=? | Datura-ai/lium-io
+SN 53 | gpu=-                      vram=-    cdlspec=? | hanlinai/engy
+SN 58 | ERROR: Invalid GitHub URL | 0x
+SN 46 | gpu=-                      vram=-    cdlspec=? | Subnet46/sn46-validator
+SN 55 | gpu=-                      vram=-    cdlspec=? | genomesio/subnet-niome
+SN 56 | gpu=-                      vram=-    cdlspec=? | gradients-ai/G.O.D
+SN 60 | gpu=-                      vram=-    cdlspec=? | Bitsec-AI/sandbox
+SN 63 | gpu=None (CPU-only)        vram=0    cdlspec=false | qbittensor-labs/enigma
+SN 39 | ERROR: No README or requirements found | https://github.com/deprecated/deprecated
+SN 61 | gpu=-                      vram=-    cdlspec=? | RedTeamSubnet/RedTeam
+SN 52 | gpu=-                      vram=-    cdlspec=? | tensorplex-labs/dojo
+SN 62 | gpu=-                      vram=-    cdlspec=? | ridgesai/ridges
+SN 65 | gpu=-                      vram=-    cdlspec=? | taofu-labs/true-performance-network
+SN 67 | gpu=-                      vram=-    cdlspec=? | harnyx/harnyx
+SN 69 | gpu=-                      vram=-    cdlspec=? | HeraldMedia/herald
+SN 73 | ERROR: Invalid GitHub URL | 0x
+SN 71 | gpu=-                      vram=-    cdlspec=? | leadpoet/leadpoet
+SN 66 | gpu=-                      vram=-    cdlspec=? | conjectures-io/conjectures-validator
+SN 74 | gpu=-                      vram=-    cdlspec=? | entrius/gittensor/tree/main
+SN 68 | gpu=-                      vram=-    cdlspec=? | metanova-labs/nova/
+SN 64 | gpu=8x H200                vram=48   cdlspec=? | chutesai/chutes
+SN 79 | gpu=None (CPU-only)        vram=0    cdlspec=false | taos-im/sn-79
+SN 72 | gpu=GTX 1660 Super         vram=4    cdlspec=true | natixnetwork/streetvision-subnet
+SN 76 | gpu=-                      vram=-    cdlspec=? | heroncovelabs/ormas-subnet
+SN 80 | gpu=-                      vram=-    cdlspec=? | openroboto-ai/openroboto-subnet
+SN 78 | gpu=-                      vram=-    cdlspec=? | Umi-BitSign/umi
+SN 83 | gpu=None (CPU-only)        vram=0    cdlspec=false | toptensor/CliqueAI
+SN 87 | ERROR: Invalid GitHub URL | 0x
+SN 88 | gpu=None (CPU-only)        vram=0    cdlspec=false | mobiusfund/investing
+SN 81 | gpu=-                      vram=-    cdlspec=? | reliquadotai/reliquary
+SN 75 | gpu=-                      vram=-    cdlspec=? | thenervelab/thebrain
+SN 85 | gpu=-                      vram=-    cdlspec=? | vidaio-subnet/vidaio-subnet
+SN 92 | ERROR: Invalid GitHub URL | 0x
+SN 82 | gpu=-                      vram=-    cdlspec=? | compelle/compelle-validator
+SN 89 | gpu=-                      vram=-    cdlspec=? | DeltaCompute24/InfiniteQuant-Subnet
+SN 77 | gpu=-                      vram=-    cdlspec=? | creativebuilds/sn77
+SN 90 | gpu=24x H200               vram=-    cdlspec=? | KubeTEE-AI/kubetee-subnet
+SN 96 | gpu=RTX 4090               vram=24   cdlspec=true | verathos-ai/verathos
+SN 94 | gpu=-                      vram=-    cdlspec=? | AlveusLabs/SN94-BitSota
+SN 99 | ERROR: Invalid GitHub URL | 0x
+SN 91 | gpu=-                      vram=-    cdlspec=? | TensorLink-AI/cascade
+SN 93 | gpu=-                      vram=-    cdlspec=? | bitcast-network/bitcast
+SN101 | gpu=None (CPU-only)        vram=0    cdlspec=false | tag101-ai/tag101
+SN103 | gpu=None (CPU-only)        vram=0    cdlspec=false | orgs/Capcomp-AI/repositories
+SN104 | gpu=None (CPU-only)        vram=0    cdlspec=false | taostatus/taostatus-subnet
+SN102 | gpu=-                      vram=-    cdlspec=? | Connito-AI/Connito
+SN 98 | gpu=-                      vram=-    cdlspec=? | neverplayalone/neverplayalone_subnet
+SN100 | gpu=-                      vram=-    cdlspec=? | CortexLM/cortex
+SN107 | gpu=None (CPU-only)        vram=0    cdlspec=false | minos-protocol/minos_subnet
+SN109 | ERROR: Invalid GitHub URL | 0x
+SN110 | ERROR: Invalid GitHub URL | 0x
+SN 97 | gpu=-                      vram=-    cdlspec=? | unarbos/albedo
+SN112 | ERROR: Invalid GitHub URL | 0x
+SN113 | ERROR: Invalid GitHub URL | 0x
+SN106 | gpu=-                      vram=-    cdlspec=? | nodexo-ai/nodexo
+SN108 | gpu=-                      vram=-    cdlspec=? | TatsuProject/ChipForge_SN108
+SN116 | ERROR: Invalid GitHub URL | 0x
+SN114 | gpu=-                      vram=-    cdlspec=? | DendriteHQ/SOMA
+SN111 | gpu=-                      vram=-    cdlspec=? | DeSciClaims/Claims
+SN 95 | ERROR: No README or requirements found | https://github.com/actual-computer/actual-subnet-95
+SN105 | gpu=-                      vram=-    cdlspec=? | orgs/Beam-Network/repositories
+SN118 | gpu=-                      vram=-    cdlspec=? | orgs/ditto-assistant/repositories
+SN115 | gpu=-                      vram=-    cdlspec=? | moirai115/MoirAI
+SN122 | gpu=None (CPU-only)        vram=0    cdlspec=false | CookingTao
+SN123 | gpu=RTX 4090               vram=-    cdlspec=true | Barbariandev/MANTIS
+SN124 | gpu=None (CPU-only)        vram=0    cdlspec=false | swarm-subnet/swarm
+SN120 | gpu=-                      vram=-    cdlspec=? | AffineFoundation/affine
+SN125 | gpu=-                      vram=-    cdlspec=? | Barbariandev/refinery
+SN119 | gpu=-                      vram=-    cdlspec=? | capabilityforge-next/capabilityforge
+SN128 | gpu=-                      vram=-    cdlspec=? | byteleapai/byteleap-Miner
+SN121 | gpu=-                      vram=-    cdlspec=? | sundae-bar/bittensor-subnet
+SN117 | ERROR: No README or requirements found | https://github.com/everyframe-studios/everyframe-miner
+SN127 | gpu=-                      vram=-    cdlspec=? | astridintelligence/sn-127
+SN126 | ERROR: No README or requirements found | https://github.com/attelierai/attelierai_subnet/
