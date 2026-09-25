@@ -2817,3 +2817,37 @@ Stage Summary:
 - All 18 client hooks canonicalized in src/hooks/; server->hook import
   dependency eliminated
 - Committed and pushed to origin/main
+
+---
+Task ID: sn96-verify-1
+Agent: main (Super Z)
+Task: Recheck SN96 Verathos GPU requirements vs official repo (user: RTX 4090, not H100)
+
+Work Log:
+- Fetched official verathos-ai/verathos min_compute.yml + docs/setup.md: min_vram 24
+  (RTX 4090 / 3090 Ti / L4 / A10), recommended_gpu "NVIDIA RTX 4090", rec vram 48
+  (A6000/A40/L40S), CUDA 12.8+, cap 7.0 — user's investigation confirmed; H100 is
+  only one tier in the 24..288GB eligibility ladder
+- Root cause of the wrong H100: SN96 chain description matches the classifier's
+  "Frontier inference" rule -> H100 80GB tier; README is GPU-silent and the
+  scraper never read min_compute.yml
+- github-scraper.ts: added fetchMinComputeRequirement() — parses the official
+  Bittensor compute template (first/miner min_vram + recommended_gpu) and
+  prepends a synthesized ground-truth line so prose parsers pick RTX 4090/24GB;
+  min_compute.yml alone now counts as a valid source (guard relaxed)
+- compat-seed.ts SN96: unclear/audit -> gpu-flexible/readme with the official
+  spec quoted in the note
+- scripts/recheck-sn96.ts: live scrape -> SubnetOverride upsert (24, RTX 4090, 1)
+  -> pullSubnetRequirements(96, refresh) -> profile minVramGb 24, recommendedGpu
+  RTX 4090, gpuSource "repo", confidence high; SubnetRequirements cache row
+  written (note: long chain fetch triggered 2 gateway cancels, but the script
+  completed underneath — evidence in scripts/recheck-sn96.log)
+- Jobs seed for SN96 (vLLM inference serving) was already correct — untouched
+- tsc --noEmit exit 0; eslint on touched files exit 0
+
+Stage Summary:
+- SN96 now serves the official RTX 4090 / 24 GB min / 48 GB rec spec with
+  "repo" source instead of the classifier's H100 guess
+- Scraper now honors min_compute.yml for ALL subnets following the official
+  template (machine-readable ground truth beats keyword classification)
+- Committed and pushed to origin/main
