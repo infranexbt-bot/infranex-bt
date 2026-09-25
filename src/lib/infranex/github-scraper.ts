@@ -209,6 +209,38 @@ async function fetchRequirements(info: RepoInfo): Promise<{ content: string; url
   return null;
 }
 
+// MIN-COMPUTE-YML: the official Bittensor compute-spec template
+// (opentensor/bittensor-subnet-template/min_compute.yml). Some subnets
+// (SN96 Verathos) state hardware requirements ONLY here while the README is
+// GPU-silent — keyword classification then guesses wrong (LLM-inference
+// wording → H100 tier, when the repo actually recommends an RTX 4090 with
+// 24 GB min / 48 GB rec VRAM). Parse the structured fields and synthesize a
+// requirement line the prose parsers already understand — machine-readable
+// ground truth beats keyword classification. Note: the first `min_vram:`
+// occurrence is parsed; in the official template the miner block precedes
+// the validator block, so this is the miner requirement.
+async function fetchMinComputeRequirement(
+  info: RepoInfo
+): Promise<{ line: string; url: string } | null> {
+  const branches = ["HEAD", info.branch, "main", "master"];
+  for (const branch of branches) {
+    const raw = await fetchRaw(info.owner, info.repo, branch, "min_compute.yml");
+    if (!raw) continue;
+    const minVram = raw.match(/^\s*min_vram:\s*["']?(\d{1,3})/m);
+    const recGpu = raw.match(/^\s*recommended_gpu:\s*["']?([^"'\n#]+?)["']?\s*(?:#.*)?$/m);
+    if (!minVram && !recGpu) continue;
+    const parts: string[] = [];
+    if (minVram) parts.push(`Minimum GPU required: ${minVram[1]} GB VRAM (min_compute.yml)`);
+    if (recGpu) parts.push(`recommended GPU: ${recGpu[1].trim()} (recommended spec)`);
+    if (parts.length === 0) continue;
+    return {
+      line: parts.join("; "),
+      url: `https://github.com/${info.owner}/${info.repo}/blob/${branch}/min_compute.yml`,
+    };
+  }
+  return null;
+}
+
 // ---------------------------------------------------------------------------
 // GPU requirement parsing — ordered strongest-first. Multi-GPU counts
 // ("8x H200", "4×A100") are captured too: hosting cost scales with count.
@@ -750,8 +782,20 @@ export async function scrapeGithubMetadata(
     }
 
     if (!identity.readme && !miner?.readme) {
-      return { ...NO_MECHANICS, error: "No README or requirements found" };
+      // MIN-COMPUTE-YML: a machine-readable compute spec alone is a valid
+      // source even when no README could be fetched.
+      if (!(await fetchMinComputeRequirement(info)) &&
+          !(minerRepoInfo && (await fetchMinComputeRequirement(minerRepoInfo)))) {
+        return { ...NO_MECHANICS, error: "No README or requirements found" };
+      }
     }
+
+    // MIN-COMPUTE-YML ground truth — identity repo first, then the miner
+    // repo. The synthesized line is PREPENDED so its min_vram/recommended_gpu
+    // win the first-match prose parsers over any weaker README prose.
+    const minCompute =
+      (await fetchMinComputeRequirement(info)) ??
+      (minerRepoInfo ? await fetchMinComputeRequirement(minerRepoInfo) : null);
 
     // Mining requirements prefer the MINER repo text (that's where operators
     // document hardware + hosting rules); description prefers the identity repo.
@@ -761,6 +805,7 @@ export async function scrapeGithubMetadata(
     // from it only with requirement-context, to avoid feature-prose
     // false positives (the SN64 class of bug).
     const hostingTexts = [
+      minCompute?.line ?? null,
       miner?.readme,
       ...extraTexts,
       miner?.requirements,
@@ -769,6 +814,7 @@ export async function scrapeGithubMetadata(
     ].filter(Boolean) as string[];
     const hostingCombined = hostingTexts.join("\n\n") || null;
     const reqTexts = [
+      minCompute?.line ?? null,
       miner?.readme,
       ...extraTexts,
       miner?.requirements,
@@ -816,9 +862,9 @@ export async function scrapeGithubMetadata(
       hosting,
       mechanics,
       infra,
-      requirementsSource: gpuFinal || hosting ? requirementsSource : null,
+      requirementsSource: gpuFinal || hosting || minCompute ? requirementsSource : null,
       readmeUrl: identity.readmeUrl,
-      requirementsUrl: miner?.requirementsUrl ?? identity.requirementsUrl,
+      requirementsUrl: miner?.requirementsUrl ?? identity.requirementsUrl ?? minCompute?.url ?? null,
       rawReadmeSnippet: identity.readme?.slice(0, 500) ?? null,
       source: "github",
     };

@@ -222,7 +222,7 @@ export const COMPAT_SEED: Record<number, CompatSeedEntry> = {
   },
   95: { tier: "gpu-flexible", source: "inferred", note: "Actual: repo unreachable; requirements live in subnet Discord -> no stated ban found",
   },
-  96: { tier: "unclear", source: "audit", note: "README silent on GPU/hosting (light requirements or non-GPU task)",
+  96: { tier: "gpu-flexible", source: "readme", note: "min_compute.yml: RTX 4090 recommended, 24 GB min / 48 GB rec VRAM, CUDA 12.8+; no hosting restriction stated",
   },
   97: { tier: "unclear", source: "audit", note: "README silent on GPU/hosting (light requirements or non-GPU task)",
   },
