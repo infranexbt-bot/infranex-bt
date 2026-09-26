@@ -116,7 +116,7 @@
     "verdict": "OK",
     "reason": "matches hand-verified repo docs (README.md): \"Cuda GPU with >= 16GB VRAM (RTX 4090, for example).\"",
     "display": {
-      "gpu": "RTX 4090 (example)",
+      "gpu": "RTX 4090",
       "vram": 16
     },
     "gt": null,
@@ -184,7 +184,7 @@
     "verdict": "OK",
     "reason": "matches hand-verified repo docs (docs/miner-guide/your-first-kernel.md): \"`[competition]` lines for arena `qwen36-35b-h100-bf16-tp1`\"",
     "display": {
-      "gpu": "H100 (arena target: qwen36-35b-h100-bf16-tp1)",
+      "gpu": "B300",
       "vram": 80
     },
     "gt": null,
@@ -665,7 +665,7 @@
     "verdict": "OK",
     "reason": "matches hand-verified repo docs (src/gpuforge/capability.py): \"GPU memory is below the configured H100 minimum\"",
     "display": {
-      "gpu": "NVIDIA H100 (approved variants)",
+      "gpu": "H100",
       "vram": 80
     },
     "gt": null,
@@ -1487,7 +1487,7 @@
     "verdict": "OK",
     "reason": "CPU-only per official min_compute.yml (gpu.required: False)",
     "display": {
-      "gpu": "None (CPU-only; GPU optional ≥32 GB VRAM for local evaluation)",
+      "gpu": "None (CPU-only)",
       "vram": 0
     },
     "gt": {
