@@ -1,0 +1,134 @@
+[
+ {
+  "netuid": 6,
+  "name": "Numinous",
+  "status": "verified",
+  "minVramGb": 0,
+  "recommendedGpu": "None (CPU-only)",
+  "gpuCount": null,
+  "sourceUrl": "https://github.com/numinouslabs/numinous/blob/main/docs/validator-setup.md",
+  "quote": "RAM: 16 GB minimum (32 GB recommended for concurrent sandbox execution); CPU: 4 cores minimum (8+ recommended); Disk: 100 GB SSD",
+  "notes": "Miners only need Python 3.11+ and gateway API keys (agents execute in validator sandboxes); repo documents CPU-only validator hardware, no GPU anywhere."
+ },
+ {
+  "netuid": 15,
+  "name": "ORO",
+  "status": "verified",
+  "minVramGb": 0,
+  "recommendedGpu": "None (CPU-only)",
+  "gpuCount": null,
+  "sourceUrl": "https://docs.oroagents.com/docs/validators/overview",
+  "quote": "RAM 16 GB 32 GB Storage 100 GB SSD 200 GB NVMe SSD Network 100 Mbps 1 Gbps GPU Not required Not required",
+  "notes": "Official ORO docs hardware table (linked from repo README) states GPU 'Not required' for min and recommended validator specs."
+ },
+ {
+  "netuid": 23,
+  "name": "Trishool",
+  "status": "not-documented",
+  "minVramGb": null,
+  "recommendedGpu": null,
+  "gpuCount": null,
+  "sourceUrl": "https://github.com/TrishoolAI/trishool-phase2",
+  "quote": null,
+  "notes": "Repo exists; requirements cover only Docker + Node.js 18+ and Chutes/OpenRouter API keys - no GPU or hardware spec documented."
+ },
+ {
+  "netuid": 36,
+  "name": "Epago",
+  "status": "verified",
+  "minVramGb": null,
+  "recommendedGpu": null,
+  "gpuCount": 1,
+  "sourceUrl": "https://github.com/EpagoFoundation/epago/blob/main/docs/MINING.md",
+  "quote": "which is why a single consumer GPU is enough to fine-tune and duel it",
+  "notes": "Miners fine-tune a 30B MoE (3.3B active) checkpoint; docs name no model/VRAM (single consumer GPU) and validator 'GPU eval box' is sized empirically (8x RTX 5090 cited only as a measurement)."
+ },
+ {
+  "netuid": 46,
+  "name": "Instant",
+  "status": "verified",
+  "minVramGb": 0,
+  "recommendedGpu": "None (CPU-only)",
+  "gpuCount": null,
+  "sourceUrl": "https://github.com/Subnet46/sn46-validator#minimum-requirements",
+  "quote": "1 vCPU; 2 GB RAM; 50 GB SSD; Ubuntu 22.04+ (x86_64); Stable internet connection; No GPU required",
+  "notes": "Rust validator README lists explicit minimum requirements ending with 'No GPU required'."
+ },
+ {
+  "netuid": 62,
+  "name": "Ridges",
+  "status": "not-documented",
+  "minVramGb": null,
+  "recommendedGpu": null,
+  "gpuCount": null,
+  "sourceUrl": "https://github.com/ridgesai/ridges",
+  "quote": null,
+  "notes": "Repo exists but README/docs contain no hardware or GPU requirements (agents are evaluated on the Ridges platform); no official hardware page found."
+ },
+ {
+  "netuid": 71,
+  "name": "Leadpoet",
+  "status": "not-documented",
+  "minVramGb": null,
+  "recommendedGpu": null,
+  "gpuCount": null,
+  "sourceUrl": "https://github.com/leadpoet/leadpoet",
+  "quote": null,
+  "notes": "Repo and docs/miner-model-submissions.md cover model submissions and the arena only - no hardware or GPU requirements documented."
+ },
+ {
+  "netuid": 78,
+  "name": "Umi",
+  "status": "verified",
+  "minVramGb": 0,
+  "recommendedGpu": "None (CPU-only)",
+  "gpuCount": null,
+  "sourceUrl": "https://bittensor.ai/subnets/78",
+  "quote": "GPU Not required ; OS Linux/Unix recommended; Docker deployment supported ; Network Must have outbound access to Chutes API, Bittensor network",
+  "notes": "Official bittensor.ai subnet directory page (Voice AI Model Evaluation - SN78) states miner GPU 'Not required'; repo README is hardware-silent."
+ },
+ {
+  "netuid": 95,
+  "name": "Actual",
+  "status": "repo-unreachable",
+  "minVramGb": null,
+  "recommendedGpu": null,
+  "gpuCount": null,
+  "sourceUrl": "https://github.com/actual-computer/actual-subnet-95",
+  "quote": null,
+  "notes": "Repo returns 404 (org actual-computer only hosts a llama.cpp fork); web search found only news mentions (NVIDIA Inception, Blackwell-optimized), no documented miner GPU requirement."
+ },
+ {
+  "netuid": 105,
+  "name": "Beam",
+  "status": "not-documented",
+  "minVramGb": null,
+  "recommendedGpu": null,
+  "gpuCount": null,
+  "sourceUrl": "https://github.com/Beam-Network/beam",
+  "quote": null,
+  "notes": "Real repo is Beam-Network/beam (org page lists beam, beam-core-public, beam-sdk-public); README/docs require only Go 1.24+/Python 3.10-3.12/hotkey/network - no GPU requirement documented."
+ },
+ {
+  "netuid": 117,
+  "name": "everyframe.studio",
+  "status": "verified",
+  "minVramGb": 0,
+  "recommendedGpu": "None (CPU-only)",
+  "gpuCount": null,
+  "sourceUrl": "https://bittensor.ai/subnets/117",
+  "quote": "Hardware Requirements Miner GPU Not required RAM 8 GB Storage 10 GB",
+  "notes": "Repo everyframe-studios/everyframe-miner deleted (404), but official bittensor.ai directory page documents CPU-only miner (GPU not required, 8 GB RAM)."
+ },
+ {
+  "netuid": 126,
+  "name": "Attelier",
+  "status": "verified",
+  "minVramGb": 0,
+  "recommendedGpu": "None (CPU-only)",
+  "gpuCount": null,
+  "sourceUrl": "https://bittensor.ai/subnets/126",
+  "quote": "GPU optional depending on model implementation. Reference model runs on CPU.",
+  "notes": "Repo attelierai/attelierai_subnet deleted (404); official bittensor.ai page (Poker Bot Detection) says miner GPU not required (optional), reference model runs on CPU."
+ }
+]

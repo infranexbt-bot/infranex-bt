@@ -13,7 +13,11 @@
 
 import { PrismaClient } from "@prisma/client";
 import { writeFileSync } from "fs";
-import { parseMinComputeSpec, CURATED_MINER_REPOS } from "../../src/lib/infranex/github-scraper";
+import {
+  parseMinComputeSpec,
+  CURATED_MINER_REPOS,
+  CURATED_GPU_SPECS,
+} from "../../src/lib/infranex/github-scraper";
 import { vramForGpuModel } from "../../src/lib/infranex/miner-score";
 
 const db = new PrismaClient();
@@ -145,6 +149,25 @@ async function main() {
       } else if (gt?.cdBoilerplate) {
         row.verdict = dispModel || d.vram ? "ESTIMATE" : "OK";
         row.reason = "min_compute.yml is unmodified template boilerplate (no info) — display from README/classifier estimate";
+      } else if (CURATED_GPU_SPECS[s.netuid]) {
+        // GPU-TAXONOMY 2: hand-verified repo-doc spec counts as ground truth.
+        const c = CURATED_GPU_SPECS[s.netuid];
+        if ((c.minVramGb ?? -1) === 0) {
+          const okCpu = dispModel == null && (d.vram === 0 || d.vram == null);
+          row.verdict = okCpu ? "OK" : "MISMATCH";
+          row.reason = okCpu
+            ? `CPU-only per hand-verified repo docs (${c.sourceFile})`
+            : `docs say no GPU required (${c.sourceFile}) but display shows "${d.gpu}" / vram ${d.vram}`;
+        } else {
+          const okVram = c.minVramGb == null || d.vram === c.minVramGb;
+          const okGpu = dispModel != null && compatible(dispModel, c.recommendedGpu, c.minVramGb);
+          row.verdict = okGpu && okVram ? "OK" : "MISMATCH";
+          if (row.verdict === "OK") {
+            row.reason = `matches hand-verified repo docs (${c.sourceFile}): "${c.quote.slice(0, 80)}"`;
+          } else {
+            row.reason = `display "${d.gpu}" / vram ${d.vram} vs curated docs spec (min_vram=${c.minVramGb}, gpu=${c.recommendedGpu})`;
+          }
+        }
       } else if (row.readmeEvidence.length) {
         row.verdict = dispModel ? "OK" : "ESTIMATE";
         row.reason = dispModel

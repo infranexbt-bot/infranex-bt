@@ -1,0 +1,62 @@
+[
+ {
+  "netuid": 5,
+  "name": "Hone",
+  "repo": "https://github.com/hone-subnet-org/hone-subnet"
+ },
+ {
+  "netuid": 13,
+  "name": "Data Universe",
+  "repo": "https://github.com/macrocosm-os/data-universe"
+ },
+ {
+  "netuid": 22,
+  "name": "Desearch",
+  "repo": "https://github.com/datura-ai/desearch"
+ },
+ {
+  "netuid": 27,
+  "name": "Orion",
+  "repo": "https://github.com/SILX-LABS/Orion"
+ },
+ {
+  "netuid": 44,
+  "name": "Score",
+  "repo": "https://github.com/score-technologies/turbovision"
+ },
+ {
+  "netuid": 61,
+  "name": "RedTeam",
+  "repo": "https://github.com/RedTeamSubnet/RedTeam"
+ },
+ {
+  "netuid": 69,
+  "name": "Herald",
+  "repo": "https://github.com/HeraldMedia/herald"
+ },
+ {
+  "netuid": 77,
+  "name": "Liquidity",
+  "repo": "https://github.com/creativebuilds/sn77"
+ },
+ {
+  "netuid": 93,
+  "name": "Bitcast",
+  "repo": "https://github.com/bitcast-network/bitcast"
+ },
+ {
+  "netuid": 103,
+  "name": "Capcomp",
+  "repo": "https://github.com/orgs/Capcomp-AI"
+ },
+ {
+  "netuid": 115,
+  "name": "MoirAI",
+  "repo": "https://github.com/moirai115/MoirAI"
+ },
+ {
+  "netuid": 121,
+  "name": "sundae_bar",
+  "repo": "https://github.com/sundae-bar/bittensor-subnet"
+ }
+]

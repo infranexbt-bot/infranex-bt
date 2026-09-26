@@ -1,0 +1,3200 @@
+[
+ {
+  "netuid": 1,
+  "name": "Apex",
+  "repo": "https://github.com/macrocosm-os/apex",
+  "error": null,
+  "files": []
+ },
+ {
+  "netuid": 2,
+  "name": "DSperse",
+  "repo": "https://github.com/inference-labs-inc/subnet-2",
+  "error": null,
+  "files": []
+ },
+ {
+  "netuid": 3,
+  "name": "Teutonic",
+  "repo": "https://github.com/unarbos/teutonic",
+  "error": null,
+  "files": [
+   {
+    "file": "website/llms.txt",
+    "hits": [
+     {
+      "line": "node (8x H200/B200-class or better) or multi-node setup; LoRA-style or",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "netuid": 4,
+  "name": "Targon",
+  "repo": "https://github.com/manifold-inc/targon",
+  "error": null,
+  "files": [
+   {
+    "file": "docs/miner/miner.md",
+    "hits": [
+     {
+      "line": "| `h200-8x` | Intel | H200 | 8 | 1.9 TiB (2,089,072,092,774 bytes) | 192 | 3 TB (3,000,000,000,000 bytes) |",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "netuid": 5,
+  "name": "Hone",
+  "repo": "https://github.com/hone-subnet-org/hone-subnet",
+  "error": null,
+  "files": []
+ },
+ {
+  "netuid": 6,
+  "name": "Numinous",
+  "repo": "https://github.com/numinouslabs/numinous",
+  "error": null,
+  "files": []
+ },
+ {
+  "netuid": 8,
+  "name": "Vanta",
+  "repo": "https://github.com/taoshidev/vanta-network",
+  "error": null,
+  "files": []
+ },
+ {
+  "netuid": 9,
+  "name": "iota",
+  "repo": "https://github.com/macrocosm-os/iota",
+  "error": null,
+  "files": [
+   {
+    "file": "README.md",
+    "hits": [
+     {
+      "line": "1. Cuda GPU with >= 16GB VRAM (RTX 4090, for example).",
+      "kind": "vram"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "netuid": 10,
+  "name": "Pareton",
+  "repo": "https://github.com/Pareton-ai/pareton",
+  "error": null,
+  "files": [
+   {
+    "file": "docs/campaign_launch_skill.md",
+    "hits": [
+     {
+      "line": "bytes of logits. Use a bare provider SKU, such as `H200`, and verify availability",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "The target needs the campaign's four RTX 5090 GPUs, working NVIDIA drivers and",
+      "kind": "model+req"
+     }
+    ]
+   },
+   {
+    "file": "ops/sglang-sample-round/README.md",
+    "hits": [
+     {
+      "line": "`flock`, and four available RTX5090 GPUs. Run as root. Internet access is required",
+      "kind": "model+req"
+     }
+    ]
+   },
+   {
+    "file": "bench/env.py",
+    "hits": [
+     {
+      "line": "# Loose match: ignore spaces/hyphens so RTX5090 matches \"NVIDIA GeForce RTX 5090\".",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "bench/sla_bench.py",
+    "hits": [
+     {
+      "line": "# SGLang/Qwen needs both a cold-prefix and a cached-prefix warmup. On H200,",
+      "kind": "model+req"
+     }
+    ]
+   },
+   {
+    "file": "ops/sglang-sample-round/prepare.py",
+    "hits": [
+     {
+      "line": "\"hardware\": {\"gpu_count\": bench[\"gpu_count\"], \"gpu_sku_expected\": \"RTX5090\"},",
+      "kind": "model+req"
+     }
+    ]
+   },
+   {
+    "file": "tests/test_bench_cli.py",
+    "hits": [
+     {
+      "line": "GpuInfo(index=0, name=\"NVIDIA GeForce RTX 5090\", vbios=\"\", memory_mb=32768)",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "tests/test_gpu_orchestrate.py",
+    "hits": [
+     {
+      "line": "gpu_type=spec.gpu_type or \"H200\",",
+      "kind": "model+req"
+     },
+     {
+      "line": "PodSpec(provider=\"auto\", gpu_type=\"H200\"), state_dir=tmp_path / \"st\"",
+      "kind": "model+req"
+     }
+    ]
+   },
+   {
+    "file": "tests/test_gpu_targon.py",
+    "hits": [
+     {
+      "line": "\"spec\": {\"gpu_type\": \"NVIDIA-H200\", \"gpu_count\": 1},",
+      "kind": "model+req"
+     },
+     {
+      "line": "\"spec\": {\"gpu_type\": \"NVIDIA-H100\", \"gpu_count\": 1},",
+      "kind": "model+req"
+     }
+    ]
+   },
+   {
+    "file": "tests/test_lium.py",
+    "hits": [
+     {
+      "line": "assert not _gpu_type_matches(\"A100\", \"H100\")",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "offers = provider.search(PodSpec(gpu_type=\"NVIDIA-H100\", max_hourly_cents=1000))",
+      "kind": "model+req"
+     },
+     {
+      "line": "FakeExecutor(\"e-nvl\", \"nvl\", \"H200 NVL\", 1, 3.0, True),",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "assert [o.instance_id for o in provider.search(PodSpec(gpu_type=\"H100\"))] == [",
+      "kind": "model+req"
+     },
+     {
+      "line": "\"e-h100\"",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "assert [o.instance_id for o in provider.search(PodSpec(gpu_type=\"H200\"))] == [",
+      "kind": "model+req"
+     },
+     {
+      "line": "FakeExecutor(\"e5\", \"two\", \"H200\", 2, 3.0, True),",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "PodSpec(gpu_count=1, gpu_type=\"H200\", max_hourly_cents=500)",
+      "kind": "model+req"
+     }
+    ]
+   },
+   {
+    "file": "tests/test_runpod.py",
+    "hits": [
+     {
+      "line": "\"name\": \"H100 PCIe\",",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"name\": \"RTX 4090\",",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "assert _gpu_type_matches(\"H100 PCIe\", \"H100\")",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "assert not _gpu_type_matches(\"H1000\", \"H100\")",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "PodSpec(gpu_type=\"H100\", gpu_count=1, max_hourly_cents=200)",
+      "kind": "model+req"
+     },
+     {
+      "line": "description=\"H100\",",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "raw={\"gpu_id\": \"NVIDIA H100 PCIe\", \"cloud\": \"COMMUNITY\"},",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "tests/test_seed.py",
+    "hits": [
+     {
+      "line": "\"H200\",",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "assert request[\"hardware\"][\"gpu_sku_expected\"] == \"RTX5090\"",
+      "kind": "model+req"
+     },
+     {
+      "line": "assert captured[\"profile_data\"][\"hardware\"] == [\"H200-SXM-141GB\"]",
+      "kind": "model+req"
+     },
+     {
+      "line": "assert captured[\"profile_data\"][\"hardware\"] == [\"H200-SXM-141GB\", \"B200\"]",
+      "kind": "model+req"
+     },
+     {
+      "line": "\"H200-SXM-141GB\",",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "tests/test_sglang_baseline_control.py",
+    "hits": [
+     {
+      "line": "assert request[\"hardware\"] == {\"gpu_count\": 4, \"gpu_sku_expected\": \"RTX5090\"}",
+      "kind": "model+req"
+     }
+    ]
+   },
+   {
+    "file": "tests/test_static_host.py",
+    "hits": [
+     {
+      "line": "([\"NVIDIA GeForce RTX 5090\"] * 8, \"NVIDIA-RTX5090\", 4, True),",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "([\"NVIDIA GeForce RTX 5090\"] * 4, \"NVIDIA-H200\", 4, False),",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "([\"NVIDIA GeForce RTX 5090\"] * 2, \"RTX5090\", 4, False),",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "([\"NVIDIA H200\", \"NVIDIA GeForce RTX 5090\"], \"RTX5090\", 1, False),",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "([], \"RTX5090\", 4, False),",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "([\"NVIDIA H200-SXM-141GB\"], \"H200\", 1, True),",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "([\"NVIDIA H1000 80GB HBM3\"], \"H100\", 1, False),",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "([\"NVIDIA GeForce RTX 50900\"], \"RTX5090\", 1, False),",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "netuid": 11,
+  "name": "TrajectoryRL",
+  "repo": "https://github.com/trajectoryRL/trajectoryRL",
+  "error": null,
+  "files": []
+ },
+ {
+  "netuid": 13,
+  "name": "Data Universe",
+  "repo": "https://github.com/macrocosm-os/data-universe",
+  "error": null,
+  "files": []
+ },
+ {
+  "netuid": 14,
+  "name": "Cacheon",
+  "repo": "https://github.com/latent-to/cacheon",
+  "error": null,
+  "files": [
+   {
+    "file": "docs/dev/gpu-setup.md",
+    "hits": [
+     {
+      "line": "Hopper, B200, or B300 architecture value from another machine without checking",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "docs/miner-guide/examples.md",
+    "hits": [
+     {
+      "line": "nodes. Its README specifies the B300 topology and checker inputs; its provenance",
+      "kind": "model+req"
+     }
+    ]
+   },
+   {
+    "file": "docs/miner-guide/your-first-kernel.md",
+    "hits": [
+     {
+      "line": "`[competition]` lines for arena `qwen36-35b-h100-bf16-tp1`.",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "docs/reference/manifest-schema.md",
+    "hits": [
+     {
+      "line": "require an explicit `arena`, for example `arena = \"qwen36-35b-h100-bf16-tp1\"`.",
+      "kind": "model+req"
+     }
+    ]
+   },
+   {
+    "file": "bundles/glm53_champion_nodes/README.md",
+    "hits": [
+     {
+      "line": "The supported runtime is the commissioned GLM-5.3 NVFP4 model on four B300 GPUs,",
+      "kind": "model+req"
+     }
+    ]
+   },
+   {
+    "file": "cacheon/eval/b300_arena_provider.py",
+    "hits": [
+     {
+      "line": "\"\"\"All non-public authorities needed by one B300/TP4 service.",
+      "kind": "model+req"
+     }
+    ]
+   },
+   {
+    "file": "cacheon/eval/b300_qualification_capabilities.py",
+    "hits": [
+     {
+      "line": "\"\"\"Explicit reusable B300 capabilities; no deployment discovery, launch, or grading.\"\"\"",
+      "kind": "model+req"
+     }
+    ]
+   },
+   {
+    "file": "cacheon/eval/b300_remote_qualification_adapter.py",
+    "hits": [
+     {
+      "line": "\"\"\"One fixed path-free adapter for a sealed B300 qualification deployment.\"\"\"",
+      "kind": "model+req"
+     }
+    ]
+   },
+   {
+    "file": "cacheon/eval/b300_screen_deployment.py",
+    "hits": [
+     {
+      "line": "DEPLOYMENT_SCHEMA = \"cacheon-b300-screen-deployment-v2\"",
+      "kind": "model+req"
+     }
+    ]
+   },
+   {
+    "file": "scripts/surface_baseline/digest_domains.json",
+    "hits": [
+     {
+      "line": "\"cacheon/eval/b300_qualification_deployment.py\": [\"cacheon.eval.b300-qualification-authority.v3\",\"cacheon.eval.b300-qualification-cohort.v2\",\"cacheon.eval.b300-qualification-construction.v3\",\"cacheon.eval.b300-qualification-policy.v2\",\"cac",
+      "kind": "model+req"
+     },
+     {
+      "line": "\"cacheon/eval/b300_screen_deployment.py\": [\"cacheon-b300-screen-deployment-v2\",\"cacheon-b300-screen-materialization-v1\",\"cacheon.eval.b300-resident-routing-factory.v1\",\"cacheon.eval.b300-screen-attribution.v1\",\"cacheon.eval.b300-screen-evi",
+      "kind": "model+req"
+     }
+    ]
+   },
+   {
+    "file": "tests/test_b300_screen_deployment.py",
+    "hits": [
+     {
+      "line": "(\"h100\", 8, (2,), (5,)),",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "tests/test_qualification_capability_loader.py",
+    "hits": [
+     {
+      "line": "correct. The deployed B300 factory is exactly this shape.\"\"\"",
+      "kind": "model+req"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "netuid": 15,
+  "name": "ORO",
+  "repo": "https://github.com/ORO-AI/oro",
+  "error": null,
+  "files": []
+ },
+ {
+  "netuid": 19,
+  "name": "blockmachine",
+  "repo": "https://github.com/taostat/blockmachine",
+  "error": null,
+  "files": []
+ },
+ {
+  "netuid": 20,
+  "name": "Witness",
+  "repo": "https://github.com/witnessvision/witness_subnet",
+  "error": null,
+  "files": []
+ },
+ {
+  "netuid": 22,
+  "name": "Desearch",
+  "repo": "https://github.com/datura-ai/desearch",
+  "error": null,
+  "files": []
+ },
+ {
+  "netuid": 23,
+  "name": "Trishool",
+  "repo": "https://github.com/TrishoolAI/trishool-phase2",
+  "error": null,
+  "files": []
+ },
+ {
+  "netuid": 24,
+  "name": "Quasar",
+  "repo": "https://github.com/SILX-LABS/QUASAR-SUBNET",
+  "error": null,
+  "files": []
+ },
+ {
+  "netuid": 25,
+  "name": "UR",
+  "repo": "https://github.com/urfoundation/sn",
+  "error": null,
+  "files": []
+ },
+ {
+  "netuid": 26,
+  "name": "Perturb",
+  "repo": "https://github.com/0xsigurd/Perturb",
+  "error": null,
+  "files": [
+   {
+    "file": "README.md",
+    "hits": [
+     {
+      "line": "- Recommended: 8 vCPU, 32 GB RAM, NVIDIA GPU with 8+ GB VRAM, 100+ GB SSD",
+      "kind": "vram"
+     },
+     {
+      "line": "- Minimum: 8 vCPU, 32 GB RAM, NVIDIA GPU with 12+ GB VRAM, 100 GB SSD",
+      "kind": "vram"
+     },
+     {
+      "line": "- Recommended: 16 vCPU, 64 GB RAM, NVIDIA GPU with 24+ GB VRAM, 200 GB SSD",
+      "kind": "vram"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "netuid": 27,
+  "name": "Orion",
+  "repo": "https://github.com/SILX-LABS/Orion",
+  "error": null,
+  "files": []
+ },
+ {
+  "netuid": 28,
+  "name": "SayGM",
+  "repo": "https://github.com/taostat/gm-miner",
+  "error": null,
+  "files": [
+   {
+    "file": "attestd/src/chutes_verify/references.rs",
+    "hits": [
+     {
+      "line": "\"h100\" | \"h200\" | \"h20\" => Some(\"HOPPER\"),",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"b200\" | \"b300\" | \"pro_6000\" | \"rtx_pro_6000\" => Some(\"BLACKWELL\"),",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "netuid": 36,
+  "name": "Epago",
+  "repo": "https://github.com/EpagoFoundation/epago",
+  "error": null,
+  "files": []
+ },
+ {
+  "netuid": 37,
+  "name": "Aurelius",
+  "repo": "https://github.com/Aurelius-Protocol/Aurelius-Protocol",
+  "error": null,
+  "files": [
+   {
+    "file": "scripts/run_benchmark_pipeline.py",
+    "hits": [
+     {
+      "line": "- GPU with ~16 GB VRAM for Llama 3.1 8B + LoRA",
+      "kind": "vram"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "netuid": 38,
+  "name": "ChronoLLM",
+  "repo": "https://github.com/chronollm/sn38",
+  "error": null,
+  "files": [
+   {
+    "file": "docs/validator.md",
+    "hits": [
+     {
+      "line": "- [Phala Cloud](https://cloud.phala.com/) account with a TEE instance provisioned (H200 GPU required)",
+      "kind": "model+req"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "netuid": 39,
+  "name": "deprecated",
+  "repo": "https://github.com/deprecated/deprecated",
+  "error": "download-failed",
+  "files": []
+ },
+ {
+  "netuid": 40,
+  "name": "Ralph",
+  "repo": "https://github.com/RalphLabsAI/ralph",
+  "error": null,
+  "files": [
+   {
+    "file": "eval/batch_invariance.py",
+    "hits": [
+     {
+      "line": "L40S  batch_size 8 -> 0.4837    batch_size 3 -> 0.3865     delta 0.097",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "eval/gpu_check.py",
+    "hits": [
+     {
+      "line": "passed, and live round 2 scored students on CPU at ~5x the time on an H100 it was paying for \u2014",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "heading for a signed, anchored record asserting `NVIDIA H100 PCIe`.",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "eval/ladder_probe.py",
+    "hits": [
+     {
+      "line": "it did the right thing (0.7287 > 0.6407); on an L40S the order INVERTED (0.5852 < 0.6114). A metric",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "eval/orchestrator.py",
+    "hits": [
+     {
+      "line": "gpu_type: str = \"H100\"",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "require_gpu: str = \"NVIDIA H100 PCIe\"",
+      "kind": "model+req"
+     },
+     {
+      "line": "threw the work away. Shadeform sells both under `gpu_type=H100`, so this is not a rare",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "eval/run_orchestrated.py",
+    "hits": [
+     {
+      "line": "gpu_type=e(\"RALPH_GPU_TYPE\", \"H100\"), require_gpu=e(\"RALPH_REQUIRE_GPU\", \"\"),",
+      "kind": "model+req"
+     }
+    ]
+   },
+   {
+    "file": "eval/runners.py",
+    "hits": [
+     {
+      "line": "# the same 24 prefixes returned FOUR DIFFERENT outputs. On an A100 and an L40S (torch",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "# 2.13+cu130) the same code was bit-exact. The A100/L40S \"noise floor is 0.0\" result was a",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "eval/validator_observer_loop.py",
+    "hits": [
+     {
+      "line": "A100 SXM4   (cap 8.0)                 0.6407                   0.6240",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "L40S        (cap 8.9)                 0.6114                   0.4508",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "# batch_size in {1,2,3,5,8} on fixed items: score spread 0.050 (H100), 0.178 (A100),",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "# 0.051 (L40S), and the generated STEP TEXT moved in every case. Left padding is the",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "#     there, while an A100 and an L40S returned exactly 1.0 on the same code. A validator that",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "experiments.md",
+    "hits": [
+     {
+      "line": "| A100 SXM4 | 1.000 | 0.636 | 0.563 |",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "| L40S | 1.000 | 0.678 | 0.638 |",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "and an L40S were bit-exact on the same code. Length-dependent \u2014 fine at 64 new tokens, not at 128+ \u2014",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "tests/test_bench_prompt_parity.py",
+    "hits": [
+     {
+      "line": "which is the point: the defect it guards against cost a rented H100 and a nearly-published claim.",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "tests/test_crown_path.py",
+    "hits": [
+     {
+      "line": "and an L40S returned exactly 1.0 on the same code. So determinism is a property of the hardware",
+      "kind": "model+req"
+     }
+    ]
+   },
+   {
+    "file": "tests/test_cuda_runtime_guard.py",
+    "hits": [
+     {
+      "line": "shared object on disk. On 2026-08-18 live round 2 rented an H100 on scaleway/warsaw-poland-1 whose",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"  Device 0: NVIDIA H100 PCIe, compute capability 9.0, VMM: yes\",",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "tests/test_gpu_pin_at_rent.py",
+    "hits": [
+     {
+      "line": "SXM = \"GPU 0: NVIDIA H100 80GB HBM3 (UUID: GPU-2222)\"",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "assert assert_gpu_present(_inst(), GpuSpec(require_gpu=\"NVIDIA H100 PCIe\")) == [PCIE]",
+      "kind": "model+req"
+     },
+     {
+      "line": "assert_gpu_present(_inst(), GpuSpec(require_gpu=\"NVIDIA H100 PCIe\"))",
+      "kind": "model+req"
+     },
+     {
+      "line": "assert assert_gpu_present(_inst(), GpuSpec(require_gpu=\"NVIDIA H100 PCIe\"))",
+      "kind": "model+req"
+     }
+    ]
+   },
+   {
+    "file": "tests/test_progress_timeout.py",
+    "hits": [
+     {
+      "line": "that rents an H100, scores every submission on CPU at ~6x, and says so in one log line nobody",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "assert O.gpu_devices(inst, spec) == [\"GPU 0: NVIDIA H100 PCIe (UUID: GPU-abc)\"]",
+      "kind": "model+req"
+     }
+    ]
+   },
+   {
+    "file": "tests/test_rent_out_of_stock.py",
+    "hits": [
+     {
+      "line": "inst = p.rent(GpuSpec(gpu_type=\"H100\"), \"ralph-round-9-1\")",
+      "kind": "model+req"
+     },
+     {
+      "line": "p.rent(GpuSpec(gpu_type=\"H100\"), \"ralph-round-9-1\")",
+      "kind": "model+req"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "netuid": 41,
+  "name": "Almanac",
+  "repo": "https://github.com/corvxai/almanac",
+  "error": null,
+  "files": []
+ },
+ {
+  "netuid": 44,
+  "name": "Score",
+  "repo": "https://github.com/score-technologies/turbovision",
+  "error": null,
+  "files": []
+ },
+ {
+  "netuid": 46,
+  "name": "Instant",
+  "repo": "https://github.com/Subnet46/sn46-validator",
+  "error": null,
+  "files": []
+ },
+ {
+  "netuid": 47,
+  "name": "GPUForge",
+  "repo": "https://github.com/forgenet47/gpuforge",
+  "error": null,
+  "files": [
+   {
+    "file": "README.md",
+    "hits": [
+     {
+      "line": "GPUForge is a proposed Bittensor subnet for verifiable GPU training work. A job publisher supplies a signed, immutable training workload. Miners execute that workload on eligible NVIDIA H100 hardware. Validators measure correct, useful trai",
+      "kind": "model+req"
+     }
+    ]
+   },
+   {
+    "file": "src/gpuforge/capability.py",
+    "hits": [
+     {
+      "line": "raise CapabilityDiscoveryError(\"GPU memory is below the configured H100 minimum\")",
+      "kind": "model+req"
+     },
+     {
+      "line": "raise CapabilityDiscoveryError(\"H100 variant cannot be normalized safely\")",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "tests/test_capability.py",
+    "hits": [
+     {
+      "line": "with pytest.raises(CapabilityDiscoveryError, match=\"not an approved H100\"):",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "discover_inventory(FixedProvider((sxm(name=\"NVIDIA A100\", memory_mb=81_920),)), policy())",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "netuid": 51,
+  "name": "lium.io",
+  "repo": "https://github.com/Datura-ai/lium-io",
+  "error": null,
+  "files": [
+   {
+    "file": "neurons/validators/src/incentive/miner_incentive_log.py",
+    "hits": [
+     {
+      "line": "8x H200/B200/B300 with no NCU profiling, GPU splitting or passed TDX",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "lium_protocol/lium_protocol/recorded/validator_to_backend.json",
+    "hits": [
+     {
+      "line": "\"NVIDIA H200\": 0.59",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "neurons/executor/tests/test_sysbox_setup_preflight.py",
+    "hits": [
+     {
+      "line": "--list-gpus) for i in $(seq \"${STUB_NV_GPUS:-8}\"); do echo \"GPU $((i - 1)): NVIDIA H100 80GB HBM3\"; done ;;",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "# 1x 81613 MiB = 79.7 GB VRAM -> 119.55 GB needed. The validator compares 79.7 * 1.5 unrounded with the rounded",
+      "kind": "vram"
+     }
+    ]
+   },
+   {
+    "file": "neurons/validators/src/core/config.py",
+    "hits": [
+     {
+      "line": "# reachable and rentable\"; the VRAM-filling matmul and the 128 GB RAM proof exist to make a",
+      "kind": "vram"
+     }
+    ]
+   },
+   {
+    "file": "neurons/validators/src/incentive/config.py",
+    "hits": [
+     {
+      "line": "High-end GPUs (B300, B200, H200) have lower caps due to scarcity, while mid-range",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "# PyPI at the version pinned in pdm.lock, which anchors the RTX PRO 6000 Server Edition at 0.86 and",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"NVIDIA RTX PRO 6000 Blackwell Workstation Edition\"",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "# `NVIDIA B300 SXM6 PC`: provider-observed on real hardware, 21 Sep 2026 (nvidia-smi: name NVIDIA B300",
+      "kind": "model+req"
+     },
+     {
+      "line": "\"RTX 4090\": {1: 10, 8: 64},",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"A100\": {1: 10, 8: 64},",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"RTX A6000\": {1: 10, 8: 64},",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"RTX 3090\": {1: 10, 8: 64},",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "neurons/validators/src/services/const.py",
+    "hits": [
+     {
+      "line": "\"NVIDIA H100 NVL\": .01,",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"NVIDIA H100 PCIe\": .01,",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"NVIDIA H800 80GB HBM3\": 0.02,",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"NVIDIA GeForce RTX 5090\": 0.025,",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"NVIDIA GeForce RTX 4080\": 0.0,",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"NVIDIA GeForce RTX 4090\": 0.05,",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"NVIDIA GeForce RTX 4090 D\": 0.02,",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"NVIDIA RTX 6000 Ada Generation\": 0.01,",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "neurons/validators/src/services/gpu_spec_table.py",
+    "hits": [
+     {
+      "line": "reports 23028 MB on a 24 GB card; L40 reports 46068 MB on a 48 GB card).",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "masquerading as a 192 GB B200. Per-variant windows reject those intermediate",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"NVIDIA H100 NVL\":                                    [96256],         # 94 GB; observed: 95830",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"NVIDIA H100 PCIe\":                                   [81920],         # 80 GB; observed: 81559",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"NVIDIA H800 80GB HBM3\":                              [81920],         # 80 GB",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"NVIDIA GeForce RTX 5080\":                            [16384],         # 16 GB",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"NVIDIA GeForce RTX 4090 D\":                          [24576],         # 24 GB",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"NVIDIA GeForce RTX 4080 SUPER\":                      [16384],         # 16 GB",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "neurons/validators/src/services/task/checks/capability.py",
+    "hits": [
+     {
+      "line": "# H100/H200 boards the NVLink fabric is not ready (Fabric Manager / fabric partition / driver).",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "# ticket-0318 (DAH-3362): a 1x H200 node failed every cycle with exactly this string.",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "neurons/validators/src/services/task/messages.py",
+    "hits": [
+     {
+      "line": "\"yet initialized'); on HGX H100/H200 boards the NVLink fabric is not ready. Start \"",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "neurons/validators/tests/fixtures/incentive_fixtures.py",
+    "hits": [
+     {
+      "line": "\"H200\": 0.25,",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"RTX4090\": 0.15,",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "neurons/validators/tests/prod_snapshot/fixtures/snapshot_2026-02-09/results_default.csv",
+    "hits": [
+     {
+      "line": "5HGyf9J3u5iByuRYwNLTjrkwSqrLVEeixhFMZUavVuzihUyj,a221d7ff-5947-45de-8f0a-437e4ec13e01,NVIDIA A100-SXM4-80GB,8,1.0,1.0,False,False,True,False,0.008614868545634122,0.8,0.8043154761904762,0.33471274645386967,200,False,,,,,,,,,,0.00143437995012",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "5HGyf9J3u5iByuRYwNLTjrkwSqrLVEeixhFMZUavVuzihUyj,c17a86f1-b4e0-45a2-ac3c-f73dfc27b983,NVIDIA A100-SXM4-80GB,8,1.0,1.0,False,False,True,False,0.008774255567755013,0.8,0.8191964285714286,0.33471274645386967,200,False,,,,,,,,,,0.00146091796955",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "5HGyf9J3u5iByuRYwNLTjrkwSqrLVEeixhFMZUavVuzihUyj,ce7c6667-bcd9-46c3-87b0-71de628edbd0,NVIDIA A100-SXM4-80GB,8,1.0,1.0,False,False,True,False,0.008726439461118746,0.8,0.8147321428571429,0.33471274645386967,200,False,,,,,,,,,,0.00145295656372",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "5HGyf9J3u5iByuRYwNLTjrkwSqrLVEeixhFMZUavVuzihUyj,ee6c6bad-7bfb-40e9-8730-882c36c99d06,NVIDIA A100-SXM4-80GB,8,1.0,1.0,True,False,True,False,0.01071080788652383,0.8,1,0.33471274645386967,200,False,,,,,,,,,,0.0017833549056171566,1.52409513865",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "5HGyf9J3u5iByuRYwNLTjrkwSqrLVEeixhFMZUavVuzihUyj,d77a3a7c-0ee5-467f-acdb-9c141b3da5d5,NVIDIA A100-SXM4-80GB,8,1.0,1.0,True,False,True,False,0.01071080788652383,0.8,1,0.33471274645386967,200,False,,,,,,,,,,0.0017833549056171566,1.52409513865",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "5HGyf9J3u5iByuRYwNLTjrkwSqrLVEeixhFMZUavVuzihUyj,156a2ad6-eec9-44e0-86b8-b4494e832ceb,NVIDIA RTX A6000,8,1.0,1.0,False,False,True,False,0.0037631685737578,0.8,1.0,0.01234789688264278,21,False,,,,,,,,,,0.0006265694621522479,0.535480328839736",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "5HGyf9J3u5iByuRYwNLTjrkwSqrLVEeixhFMZUavVuzihUyj,67107e5d-48f4-492c-9a62-eb4fd25c111d,NVIDIA RTX 6000 Ada Generation,8,1.0,1.0,False,False,True,False,0.006312998367146519,0.8,1.0,0.025646555866532732,26,False,,,,,,,,,,0.0010511174065001092,",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "5HGyf9J3u5iByuRYwNLTjrkwSqrLVEeixhFMZUavVuzihUyj,e3a470b9-654c-4397-8025-5be23b5edb00,NVIDIA RTX A6000,8,1.0,1.0,False,False,True,False,0.0037631685737578,0.8,1.0,0.01234789688264278,21,False,,,,,,,,,,0.0006265694621522479,0.535480328839736",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "neurons/validators/tests/prod_snapshot/fixtures/snapshot_2026-02-09/results_rental_price.csv",
+    "hits": [
+     {
+      "line": "5HGyf9J3u5iByuRYwNLTjrkwSqrLVEeixhFMZUavVuzihUyj,a221d7ff-5947-45de-8f0a-437e4ec13e01,NVIDIA A100-SXM4-80GB,8,1.0,1.0,False,False,True,False,0.008614868545634122,0.8,0.8043154761904762,0.33471274645386967,200,False,,,,,,,0.0,0.87,0.0,0.0014",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "5HGyf9J3u5iByuRYwNLTjrkwSqrLVEeixhFMZUavVuzihUyj,c17a86f1-b4e0-45a2-ac3c-f73dfc27b983,NVIDIA A100-SXM4-80GB,8,1.0,1.0,False,False,True,False,0.008774255567755013,0.8,0.8191964285714286,0.33471274645386967,200,False,,,,,,,0.0,0.87,0.0,0.0014",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "5HGyf9J3u5iByuRYwNLTjrkwSqrLVEeixhFMZUavVuzihUyj,ce7c6667-bcd9-46c3-87b0-71de628edbd0,NVIDIA A100-SXM4-80GB,8,1.0,1.0,False,False,True,False,0.008726439461118746,0.8,0.8147321428571429,0.33471274645386967,200,False,,,,,,,0.0,0.87,0.0,0.0014",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "5HGyf9J3u5iByuRYwNLTjrkwSqrLVEeixhFMZUavVuzihUyj,ee6c6bad-7bfb-40e9-8730-882c36c99d06,NVIDIA A100-SXM4-80GB,8,1.0,1.0,True,False,True,False,0.01071080788652383,0.8,1,0.33471274645386967,200,False,,,,,,,0.0,0.87,0.0,0.0018231499227087135,1.5",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "5HGyf9J3u5iByuRYwNLTjrkwSqrLVEeixhFMZUavVuzihUyj,d77a3a7c-0ee5-467f-acdb-9c141b3da5d5,NVIDIA A100-SXM4-80GB,8,1.0,1.0,True,False,True,False,0.01071080788652383,0.8,1,0.33471274645386967,200,False,,,,,,,0.0,0.87,0.0,0.0018231499227087135,1.5",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "5HGyf9J3u5iByuRYwNLTjrkwSqrLVEeixhFMZUavVuzihUyj,156a2ad6-eec9-44e0-86b8-b4494e832ceb,NVIDIA RTX A6000,8,1.0,1.0,False,False,True,False,0.0037631685737578,0.8,1.0,0.01234789688264278,21,False,,,,,,,0.0,0.87,0.0,0.000640551167295099,0.547429",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "5HGyf9J3u5iByuRYwNLTjrkwSqrLVEeixhFMZUavVuzihUyj,67107e5d-48f4-492c-9a62-eb4fd25c111d,NVIDIA RTX 6000 Ada Generation,8,1.0,1.0,False,False,True,False,0.006312998367146519,0.8,1.0,0.025646555866532732,26,False,,,,,,,0.0,0.87,0.0,0.0010745727",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "5HGyf9J3u5iByuRYwNLTjrkwSqrLVEeixhFMZUavVuzihUyj,e3a470b9-654c-4397-8025-5be23b5edb00,NVIDIA RTX A6000,8,1.0,1.0,False,False,True,False,0.0037631685737578,0.8,1.0,0.01234789688264278,21,False,,,,,,,0.0,0.87,0.0,0.000640551167295099,0.547429",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "neurons/validators/tests/prod_snapshot/fixtures/snapshot_2026-02-09/snapshot.json",
+    "hits": [
+     {
+      "line": "\"NVIDIA B200\": 56,",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"NVIDIA GeForce RTX 4090\": 19,",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"NVIDIA H200 NVL\": 2,",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"NVIDIA A100-SXM4-80GB\": 200,",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"NVIDIA RTX PRO 6000 Blackwell Server Edition\": 48,",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"NVIDIA L40S\": 4,",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"NVIDIA RTX A6000\": 0.01234789688264278,",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"NVIDIA RTX 6000 Ada Generation\": 0.025646555866532732,",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "neurons/validators/tests/prod_snapshot/fixtures/snapshot_2026-02-13/results_default.csv",
+    "hits": [
+     {
+      "line": "5G4MNptjsxfj8XGpgCZ8Jt6yBhzbo8qmNdUCWFQ6zUVf25zJ,b4ee9cce-9185-4abe-a1d9-761ef6798ac8,NVIDIA GeForce RTX 5090,2,1.0,1.0,True,True,False,False,0.0019016857736283215,1,1,0.0066559002076991254,7,False,,,,,,,,,,0.00031060499033120975,0.23495714",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "5CCwGES74ZGuyNey5mdLMZYCvGpMPi8Haz8744EyonfNWgZp,5b91d72b-8796-424c-8f9f-932ec196bee4,NVIDIA RTX PRO 6000 Blackwell Server Edition,1,1.0,1.0,False,False,False,False,0.0,0.8,1.0,0.0,24,False,,,,,,,,,,0.0,0.0",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "5CCwGES74ZGuyNey5mdLMZYCvGpMPi8Haz8744EyonfNWgZp,cf7b86e3-c38c-4f70-a3bc-bcd01f97de6b,NVIDIA RTX PRO 6000 Blackwell Server Edition,1,1.0,1.0,False,False,False,False,0.0,0.8,1.0,0.0,24,False,,,,,,,,,,0.0,0.0",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "5CCwGES74ZGuyNey5mdLMZYCvGpMPi8Haz8744EyonfNWgZp,58ea919e-fd5b-4035-ac86-6314b743c04c,NVIDIA RTX PRO 6000 Blackwell Server Edition,1,1.0,1.0,False,False,False,False,0.0,0.8,1.0,0.0,24,False,,,,,,,,,,0.0,0.0",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "5CCwGES74ZGuyNey5mdLMZYCvGpMPi8Haz8744EyonfNWgZp,259e456b-9f1a-4705-af3c-cf08125b262e,NVIDIA RTX PRO 6000 Blackwell Server Edition,1,1.0,1.0,False,False,False,False,0.0,0.8,1.0,0.0,24,False,,,,,,,,,,0.0,0.0",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "5CCwGES74ZGuyNey5mdLMZYCvGpMPi8Haz8744EyonfNWgZp,ac3a5fcd-443b-4925-8037-60589385a08b,NVIDIA RTX PRO 6000 Blackwell Server Edition,1,1.0,1.0,False,False,False,False,0.0,0.8,1.0,0.0,24,False,,,,,,,,,,0.0,0.0",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "5CCwGES74ZGuyNey5mdLMZYCvGpMPi8Haz8744EyonfNWgZp,a1a201d2-8a62-495b-be22-3b94a6d70340,NVIDIA RTX PRO 6000 Blackwell Server Edition,1,1.0,1.0,False,False,False,False,0.0,0.8,1.0,0.0,24,False,,,,,,,,,,0.0,0.0",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "5CCwGES74ZGuyNey5mdLMZYCvGpMPi8Haz8744EyonfNWgZp,7ad7f6b4-92d5-440b-bea2-f72ec677b3c9,NVIDIA RTX PRO 6000 Blackwell Server Edition,1,1.0,1.0,False,False,False,False,0.0,0.8,1.0,0.0,24,False,,,,,,,,,,0.0,0.0",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "netuid": 52,
+  "name": "Dojo",
+  "repo": "https://github.com/tensorplex-labs/dojo",
+  "error": null,
+  "files": []
+ },
+ {
+  "netuid": 53,
+  "name": "engy",
+  "repo": "https://github.com/hanlinai/engy",
+  "error": null,
+  "files": [
+   {
+    "file": "docs/ANNOUNCEMENT.md",
+    "hits": [
+     {
+      "line": "~35 GB of weights plus KV cache: **2\u00d7 RTX 4090** or **2\u00d7 RTX 5090**, a single",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "**L40S** or **RTX 6000 Ada** (48 GB), or a datacenter card (**H100, H200, or",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "B200**). More hardware, more throughput. GLM-5.2 stays 1st-party for now and opens",
+      "kind": "model+req"
+     }
+    ]
+   },
+   {
+    "file": "docs/SN53_ONE_PAGER.md",
+    "hits": [
+     {
+      "line": "| honest-fp8 | RTX 5090 | canonical FP8 checkpoint | ~0.23 | **pass** |",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "| int4-cheat | RTX 4090 | INT4 weights, claiming the FP8 `model_root` | ~0.55 | **caught** |",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "netuid": 55,
+  "name": "NIOME",
+  "repo": "https://github.com/genomesio/subnet-niome",
+  "error": null,
+  "files": []
+ },
+ {
+  "netuid": 56,
+  "name": "Gradients",
+  "repo": "https://github.com/gradients-ai/G.O.D",
+  "error": null,
+  "files": [
+   {
+    "file": "docs/miner.md",
+    "hits": [
+     {
+      "line": "`base_chain` when you supply `--base_chain`. Production runs on Basilica A100",
+      "kind": "model+req"
+     }
+    ]
+   },
+   {
+    "file": "core/models/trainer_contract_models.py",
+    "hits": [
+     {
+      "line": "A100 = \"A100\"",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "A6000 = \"A6000\"",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "ops/observability/grafana-tournament-costs.json",
+    "hits": [
+     {
+      "line": "\"description\": \"The three buckets that make up the weekly bill. Used = training + prep on H100. Idle = H100 you paid for but didn't use. Evaluation runs on A100.\",",
+      "kind": "model+req"
+     },
+     {
+      "line": "{ \"selector\": \"totals.idle_h100_cost_usd\", \"text\": \"Idle H100 (paid, unused)\", \"type\": \"number\" },",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "{ \"selector\": \"totals.evaluation_a100_cost_usd\", \"text\": \"Evaluation (A100)\", \"type\": \"number\" }",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "{ \"selector\": \"a100_hourly_rate_usd\", \"text\": \"A100 $/hr\", \"type\": \"number\" },",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "{ \"selector\": \"totals.idle_h100_cost_usd\", \"text\": \"Idle H100\", \"type\": \"number\" },",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "tests/validator/evaluation/test_runpod_backend.py",
+    "hits": [
+     {
+      "line": "\"name\": [\"A100\"],",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "trainer/host.py",
+    "hits": [
+     {
+      "line": "\"A100-SXM4-80GB\"). Plain \"H100 80GB HBM3\" on NVLink is typically SXM/HGX.",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "if \"H100\" in upper and \"HBM3\" in upper:",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "validator/evaluation/runpod.py",
+    "hits": [
+     {
+      "line": "\"name\": [\"A100\"],",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "validator/tournament/dstack_orchestrator.py",
+    "hits": [
+     {
+      "line": "if requirement == GpuRequirement.A100:",
+      "kind": "model+req"
+     }
+    ]
+   },
+   {
+    "file": "validator/tournament/models.py",
+    "hits": [
+     {
+      "line": "GpuRequirement.A100: 1,",
+      "kind": "model+req"
+     }
+    ]
+   },
+   {
+    "file": "validator/tournament/orchestrator.py",
+    "hits": [
+     {
+      "line": "available_a100s = [gpu for gpu in trainer_gpus if gpu.available and gpu.gpu_type == GPUType.A100]",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "if requirement == GpuRequirement.A100:",
+      "kind": "model+req"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "netuid": 61,
+  "name": "RedTeam",
+  "repo": "https://github.com/RedTeamSubnet/RedTeam",
+  "error": null,
+  "files": []
+ },
+ {
+  "netuid": 62,
+  "name": "Ridges",
+  "repo": "https://github.com/ridgesai/ridges",
+  "error": null,
+  "files": []
+ },
+ {
+  "netuid": 65,
+  "name": "True Performance Network",
+  "repo": "https://github.com/taofu-labs/true-performance-network",
+  "error": null,
+  "files": []
+ },
+ {
+  "netuid": 66,
+  "name": "conjectures",
+  "repo": "https://github.com/conjectures-io/conjectures-validator",
+  "error": null,
+  "files": [
+   {
+    "file": "docs/review-decisions/2026-09-21-classical-conjectures/audit/README.md",
+    "hits": [
+     {
+      "line": "| 25 | 1904 | [Brocard's prime-square conjecture](https://github.com/google-deepmind/formal-conjectures/blob/2f82a24192f64ac678557247e496b2381d3889a1/FormalConjectures/Wikipedia/BrocardConjecture.lean#L40) \u2014 Are at least four primes between",
+      "kind": "model+req"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "netuid": 67,
+  "name": "Harnyx",
+  "repo": "https://github.com/harnyx/harnyx",
+  "error": null,
+  "files": []
+ },
+ {
+  "netuid": 68,
+  "name": "NOVA",
+  "repo": "https://github.com/metanova-labs/nova",
+  "error": null,
+  "files": [
+   {
+    "file": "docs/MINER.md",
+    "hits": [
+     {
+      "line": "`Boltz-2` is an expensive scoring function. For typical target and molecule sizes, binding affinity prediction takes around 45s per molecule on an A100 GPU. This means that you want to decrease the amount of inferences you need to run as mu",
+      "kind": "model+req"
+     }
+    ]
+   },
+   {
+    "file": "README.md",
+    "hits": [
+     {
+      "line": "- 2 GPU devices with > 48 GB VRAM for parallel inference. If only one is available, inference will run sequentially which may result in delayed/missing scoring rounds.",
+      "kind": "vram"
+     }
+    ]
+   },
+   {
+    "file": "external_tools/boltzgen/README.md",
+    "hits": [
+     {
+      "line": "BoltzGen should be run on a GPU. On the right you can see the time required for each step in the pipeline for a single design on an A100 GPU.",
+      "kind": "model+req"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "netuid": 69,
+  "name": "Herald",
+  "repo": "https://github.com/HeraldMedia/herald",
+  "error": null,
+  "files": []
+ },
+ {
+  "netuid": 71,
+  "name": "Leadpoet",
+  "repo": "https://github.com/leadpoet/leadpoet",
+  "error": null,
+  "files": []
+ },
+ {
+  "netuid": 74,
+  "name": "Gittensor",
+  "repo": "https://github.com/entrius/gittensor",
+  "error": null,
+  "files": [
+   {
+    "file": "docker/sparkinfer.Dockerfile",
+    "hits": [
+     {
+      "line": "# sm_120 = RTX 5090. Add more (e.g. \"89;120\") only if the fleet blesses other hardware.",
+      "kind": "model+req"
+     }
+    ]
+   },
+   {
+    "file": "gittensor/controller/checks/full_check.py",
+    "hits": [
+     {
+      "line": "passed run the GPU proof \u2014 a box that already failed identity does not get ~30 GB of its VRAM filled for nothing.",
+      "kind": "vram"
+     }
+    ]
+   },
+   {
+    "file": "gittensor/controller/checks/verdict.py",
+    "hits": [
+     {
+      "line": "\"\"\"``skipped`` marks a check that did not run because an earlier one failed (the GPU proof fills ~30 GB of VRAM",
+      "kind": "vram"
+     }
+    ]
+   },
+   {
+    "file": "gittensor/controller/manifest.py",
+    "hits": [
+     {
+      "line": "GPU_TYPE_NAMES = {'NVIDIA GeForce RTX 5090': 'RTX5090'}",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "gittensor/controller/pay/fleet_pay.json",
+    "hits": [
+     {
+      "line": "\"RTX5090\": {\"idle_usd_per_hr\": 0.35, \"leased_usd_per_hr\": 1.00, \"target_fleet\": 64}",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "gittensor/controller/reconcile.py",
+    "hits": [
+     {
+      "line": "_SPEC_VRAM_GB = {'RTX5090': cfg.RTX_5090.vram_total_mib_min / 1024}  # our spec table, never the box's self-report",
+      "kind": "model+req"
+     }
+    ]
+   },
+   {
+    "file": "tests/controller/fixtures/manifest_27b.yaml",
+    "hits": [
+     {
+      "line": "min_vram_gb: 30            # model \u2248 25 GB + KV headroom; confirm at qualification",
+      "kind": "vram"
+     }
+    ]
+   },
+   {
+    "file": "tests/controller/fixtures/nvidia_smi_2x5090.csv",
+    "hits": [
+     {
+      "line": "GPU-9b8c7d6e-5f40-4132-a2b3-c4d5e6f70819, NVIDIA GeForce RTX 5090, 580.65.06, 32607, 575.00, 575.00, 600.00, 00000000:02:00.0, 12.0",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "tests/controller/test_manifest.py",
+    "hits": [
+     {
+      "line": "assert gpu_type_of('NVIDIA GeForce RTX 4090') == 'RTX4090'",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "assert gpu_type_of('NVIDIA H100 80GB HBM') == 'H10080GBHBM'",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "tests/controller/test_placement.py",
+    "hits": [
+     {
+      "line": "# 9/17 soak: min_vram_gb 32 sat above our 5090 spec floor (31.25 GB) and the entry could never place",
+      "kind": "vram"
+     }
+    ]
+   },
+   {
+    "file": "tests/controller/test_proof_slot.py",
+    "hits": [
+     {
+      "line": "return GpuInfo(uuid, 'NVIDIA GeForce RTX 5090', '580.65.06', 32607, 575.0, 575.0, 600.0, '00000000:01:00.0', '12.0')",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "tests/controller/test_scrape.py",
+    "hits": [
+     {
+      "line": "assert gpu.uuid == UUID_5090 and gpu.name == 'NVIDIA GeForce RTX 5090' and gpu.driver == DRIVER",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "'GPU-x, NVIDIA GeForce RTX 5090, 580.65.06, 32607, [N/A], [N/A], [N/A], 00000000:01:00.0, 12.0'",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "tests/controller/test_state.py",
+    "hits": [
+     {
+      "line": "[CheckResult('gpu_spec', True)], list(uuids), 'NVIDIA GeForce RTX 5090', '580.65.06', now=0.0",
+      "kind": "model+req"
+     },
+     {
+      "line": "assert idle.card_name == 'NVIDIA GeForce RTX 5090' and idle.last_check_at == 100.0 and idle.last_failed == []",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "netuid": 75,
+  "name": "Hippius",
+  "repo": "https://github.com/thenervelab/thebrain",
+  "error": null,
+  "files": []
+ },
+ {
+  "netuid": 76,
+  "name": "Ormas",
+  "repo": "https://github.com/heroncovelabs/ormas-subnet",
+  "error": null,
+  "files": []
+ },
+ {
+  "netuid": 77,
+  "name": "Liquidity",
+  "repo": "https://github.com/creativebuilds/sn77",
+  "error": null,
+  "files": []
+ },
+ {
+  "netuid": 78,
+  "name": "Umi",
+  "repo": "https://github.com/Umi-BitSign/umi",
+  "error": null,
+  "files": []
+ },
+ {
+  "netuid": 80,
+  "name": "OpenRoboto",
+  "repo": "https://github.com/openroboto-ai/openroboto-subnet",
+  "error": null,
+  "files": [
+   {
+    "file": "docs/MINER_DEPLOY.md",
+    "hits": [
+     {
+      "line": "| GPU | 1\u00d7 NVIDIA GPU, 24 GB VRAM | 1\u00d7 A100 80GB |",
+      "kind": "vram"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "netuid": 81,
+  "name": "Reliquary",
+  "repo": "https://github.com/reliquadotai/reliquary",
+  "error": null,
+  "files": [
+   {
+    "file": "docs/4b-auction-v3-production-runbook.md",
+    "hits": [
+     {
+      "line": "termination, and proof-parity tests. It must not be used to certify an H100",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "--hardware-class \"NVIDIA H100 80GB HBM3\" \\",
+      "kind": "model+req"
+     }
+    ]
+   },
+   {
+    "file": "docs/mining.md",
+    "hits": [
+     {
+      "line": "| GPU | 1x or 2x NVIDIA GPU, at least 24 GB VRAM each. Reference config: generation and proof on separate devices; one larger device also works. |",
+      "kind": "vram"
+     }
+    ]
+   },
+   {
+    "file": "docs/reliquary-v1-final-reconciliation.md",
+    "hits": [
+     {
+      "line": "isolated supported two-GPU CUDA host (training plus inference; H100/H200",
+      "kind": "model+req"
+     }
+    ]
+   },
+   {
+    "file": "docs/standalone-environment-qualification.md",
+    "hits": [
+     {
+      "line": "supported two-GPU CUDA host (one training GPU, one inference GPU; H100/H200",
+      "kind": "model+req"
+     }
+    ]
+   },
+   {
+    "file": "docs/validating.md",
+    "hits": [
+     {
+      "line": "| **Trainer** | the Reliquary core team | A100 40 GB+ GPU, 64 GB RAM | manual (sensitive \u2014 never restart mid-step) |",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "overnight-4b-test-verdict-2026-07-28.md",
+    "hits": [
+     {
+      "line": "**Date:** 2026-07-28 (run on a rented H100 80GB; base **Qwen3.5-4B**, real branch params)",
+      "kind": "model+req"
+     }
+    ]
+   },
+   {
+    "file": "reliquary/validator/training.py",
+    "hits": [
+     {
+      "line": "bf16 params its moments silently inherit bf16 (measured H100 08-12:",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "scripts/qualify_proof_capacity.py",
+    "hits": [
+     {
+      "line": "\"hardware_class\":\"NVIDIA H100 80GB HBM3\",",
+      "kind": "model+req"
+     }
+    ]
+   },
+   {
+    "file": "tests/gpu/targon_run.py",
+    "hits": [
+     {
+      "line": "\"\"\"Deploy Catalyst tests to a Targon H100 and run pytest.",
+      "kind": "model+req"
+     },
+     {
+      "line": "print(f\"Submitting test run on H100 for paths: {test_paths}\")",
+      "kind": "model+req"
+     }
+    ]
+   },
+   {
+    "file": "tests/gpu/targon_validator.py",
+    "hits": [
+     {
+      "line": "\"\"\"Deploy a Reliquary validator on a Targon H100.",
+      "kind": "model+req"
+     }
+    ]
+   },
+   {
+    "file": "tests/unit/test_observed_proof_rollout.py",
+    "hits": [
+     {
+      "line": "hardware_class=\"H100\", revision=revision)",
+      "kind": "model+req"
+     }
+    ]
+   },
+   {
+    "file": "tests/unit/test_proof_capacity.py",
+    "hits": [
+     {
+      "line": "\"hardware_class\": \"NVIDIA H100 80GB HBM3\",",
+      "kind": "model+req"
+     },
+     {
+      "line": "configured_hardware=tuple(\"NVIDIA H100 80GB HBM3\" for _ in range(9)),",
+      "kind": "model+req"
+     }
+    ]
+   },
+   {
+    "file": "tests/unit/test_proof_capacity_combined.py",
+    "hits": [
+     {
+      "line": "'runtime_fingerprint_hash': 'e'*64, 'hardware_class': 'H100'}",
+      "kind": "model+req"
+     },
+     {
+      "line": "args.update(configured_devices=('cuda:0',), configured_hardware=('H100',),",
+      "kind": "model+req"
+     },
+     {
+      "line": "slot = SimpleNamespace(device_id='cuda:0',device_uuid='GPU-0',runtime={'profile_hash':'e'*64},hardware_class='H100')",
+      "kind": "model+req"
+     }
+    ]
+   },
+   {
+    "file": "tests/unit/test_proof_slots.py",
+    "hits": [
+     {
+      "line": "\"\"\"The CPU move turns ~16-24 GB of VRAM into a permanent host-RSS floor.",
+      "kind": "vram"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "netuid": 82,
+  "name": "Compelle",
+  "repo": "https://github.com/compelle/compelle-validator",
+  "error": null,
+  "files": []
+ },
+ {
+  "netuid": 85,
+  "name": "Vidaio",
+  "repo": "https://github.com/vidaio-subnet/vidaio-subnet",
+  "error": null,
+  "files": [
+   {
+    "file": "docs/miner_setup.md",
+    "hits": [
+     {
+      "line": "- **VRAM**: At least 16 GB per GPU",
+      "kind": "vram"
+     }
+    ]
+   },
+   {
+    "file": "docs/validator_competition_checklist.md",
+    "hits": [
+     {
+      "line": "- [ ] Select only supported GPUs: `L4`, `L40S`, and/or `RTX-PRO-6000`.",
+      "kind": "model+req"
+     }
+    ]
+   },
+   {
+    "file": "docs/validator_setup.md",
+    "hits": [
+     {
+      "line": "- **GPU**: NVIDIA RTX A6000 with 48GB VRAM and 30 CPU Cores",
+      "kind": "vram"
+     },
+     {
+      "line": "PRO 6000 `$0.000842/s`, A100 80 GB `$0.000694/s`, A100 40 GB `$0.000583/s`,",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "L40S `$0.000542/s`, A10 `$0.000306/s`, L4 `$0.000222/s`, and T4 `$0.000164/s`.",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "miner/.env.template",
+    "hits": [
+     {
+      "line": "MODAL_SHORT_COMPRESSION_GPU=L4",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "miner/README.md",
+    "hits": [
+     {
+      "line": "- L4/L40S provide AV1-capable NVENC for short compression jobs. Keep `MODAL_SHORT_COMPRESSION_GPU` on AV1-capable GPU types when AV1 requests are expected.",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "- NVENC/NVDEC jobs usually do not occupy much VRAM. RTX PRO 6000 is useful here for encoder/decoder throughput and parallel segment work, not because ffmpeg should consume 96 GB of VRAM.",
+      "kind": "vram"
+     },
+     {
+      "line": "`$0.001261/s`, H100 `$0.001097/s`, RTX PRO 6000 `$0.000842/s`, A100 80 GB",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "`$0.000694/s`, A100 40 GB `$0.000583/s`, L40S `$0.000542/s`, A10 `$0.000306/s`,",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "L4 `$0.000222/s`, and T4 `$0.000164/s`. Modal's separate Sandbox CPU rate is",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "`L40S`, CPU request/limit `16/32`, and a 30-minute timeout. The SDK terminates",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "miner/competition_sdk.py",
+    "hits": [
+     {
+      "line": "\"A100-80GB\": Decimal(\"0.000694\"),",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"A100-40GB\": Decimal(\"0.000583\"),",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"L40S\": Decimal(\"0.000542\"),",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"B200+\",",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "if \"A100\" in normalized:",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "raise SdkError(f\"allocated A100 memory size is unknown: {nvidia_smi_name!r}\")",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "for sku in (\"B300\", \"B200\", \"H200\", \"H100\", \"L40S\", \"A10\", \"L4\", \"T4\"):",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "miner/modal_workers.py",
+    "hits": [
+     {
+      "line": "SHORT_COMPRESSION_GPU = _modal_gpu_spec(\"MODAL_SHORT_COMPRESSION_GPU\", [\"L4\", \"L40S\"])",
+      "kind": "model+req"
+     }
+    ]
+   },
+   {
+    "file": "tests/competition/test_miner_competition_sdk.py",
+    "hits": [
+     {
+      "line": "allowed_gpus=(\"L4\",),",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "tests/competition/test_phase2.py",
+    "hits": [
+     {
+      "line": "({\"cpus\": 17}, (\"L4\", \"L40S\"), 16),",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "tests/competition/test_phase3.py",
+    "hits": [
+     {
+      "line": "self.assertEqual(spec.gpu_type, \"L40S\")",
+      "kind": "model+req"
+     }
+    ]
+   },
+   {
+    "file": "tests/competition/test_phase4.py",
+    "hits": [
+     {
+      "line": "\"A100-80GB\",",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"A100-40GB\",",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"L40S\",",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "vidaio_subnet_core/competition/pricing.py",
+    "hits": [
+     {
+      "line": "\"A100-80GB\": Decimal(\"0.000694\"),",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"A100-40GB\": Decimal(\"0.000583\"),",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"L40S\": Decimal(\"0.000542\"),",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "if \"A100\" in normalized:",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "netuid": 89,
+  "name": "InfiniteQuant",
+  "repo": "https://github.com/DeltaCompute24/InfiniteQuant-Subnet",
+  "error": null,
+  "files": []
+ },
+ {
+  "netuid": 91,
+  "name": "cascade",
+  "repo": "https://github.com/TensorLink-AI/cascade",
+  "error": null,
+  "files": [
+   {
+    "file": "docs/MINER.md",
+    "hits": [
+     {
+      "line": "L40, A6000. King and every challenger train on the same type.",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "docs/MINER_FUNDED_QUICKSTART.md",
+    "hits": [
+     {
+      "line": "RTX4090 / RTX3090 / L40S / L40 / A6000, same for everyone in the round.",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "docs/SUBMISSION_SURFACE_ROADMAP.md",
+    "hits": [
+     {
+      "line": "| E3 \u2014 1B | 22M mirror (or 313M mirror, open) | 1B increments | compounding lineage | % of increment | 8\u00d7H100 fleet |",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "cascade/provision/health.py",
+    "hits": [
+     {
+      "line": "``L40`` != ``L40S``, and the final's ``expected_gpu`` pin is byte-compared",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "# Exact match on EVERY line \u2014 L40 != L40S, and a pod mixing SKUs is",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "cascade/provision/policy.py",
+    "hits": [
+     {
+      "line": "e.g. ``\"NVIDIA L40S\"``) the health gate asserts on every GPU of every pod \u2014",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "exact, because ``L40`` and ``L40S`` are different silicon and the final's",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "pins, exactly like L40 vs L40S.",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "cascade/trainer/loop.py",
+    "hits": [
+     {
+      "line": "on L40S operator lanes) would therefore score NOBODY. Keep the KING's",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "cascade/trainer/main.py",
+    "hits": [
+     {
+      "line": "\"practical on a GPU (BOOM full \u2248 26 min on an RTX 5090).\")",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "cascade/trainer/remote.py",
+    "hits": [
+     {
+      "line": "seam: heats can run on a cheaper SKU class (e.g. A6000) because heat",
+      "kind": "model+req"
+     }
+    ]
+   },
+   {
+    "file": "chain.toml",
+    "hits": [
+     {
+      "line": "#                             # 300M+ pins H100-class \u2014 mind SXM vs PCIe variants,",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "decisions/DEC-CA-0022-length-cap-long-context.md",
+    "hits": [
+     {
+      "line": "settling experiment is one instrumented run on the reference L40S at both",
+      "kind": "model+req"
+     }
+    ]
+   },
+   {
+    "file": "decisions/DEC-CA-0027-size-conditional-gpu-provisioning.md",
+    "hits": [
+     {
+      "line": "| 1B | ~12k (L40S) / ~33k (H100) | ~130M / ~330M | \u2014 | fleet territory (8\u00d7H100 \u2248 2.6B/round) |",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "HBM3\") \u2014 the same class of trap as lium's L40-vs-L40S",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "a duel pair \u2248 $16-21/round on top of the existing ~$8 L40S exposure \u2014",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "an H100 heat fleet, for WORSE per-entrant signal than a 1h increment on",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "| E3 \u2014 1B | 22M mirror (or 313M mirror \u2014 open, below) | 1B warm-start increments | compounding lineage | %-of-increment | H100 fleet (8x) final |",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "FLOP-bound shapes; take one only at H100-or-better pricing. RTX PRO 6000",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "decisions/DEC-CA-0041-multivariate-scoring.md",
+    "hits": [
+     {
+      "line": "Run on an RTX 6000 Ada, Toto2 backbone, L=4096/P=128, equal 240s wall per arm,",
+      "kind": "model+req"
+     },
+     {
+      "line": "RTX 6000 Ada with the allocator capped:",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "deploy/provision.mainnet.toml",
+    "hits": [
+     {
+      "line": "#   - FINAL duel: expected_gpu = \"NVIDIA L40S\" \u2014 king + challenger MUST train on",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "market_sku   = \"RTX4090\"",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "market_sku   = \"A6000\"",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "# expected_gpu pins the duel to L40S. Primary: one 2-GPU pod (king + challenger",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "# NOTE: lium mostly lists L40 (a DIFFERENT device \u2014 fails the pin); shadeform",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "# HBM3\" (SXM) and \"NVIDIA H100 PCIe\" are DIFFERENT pins with ~15-25% different",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "# market_sku   = \"H100\"",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "# sku          = \"NVIDIA H100 80GB HBM3\"",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "deploy/provision.py",
+    "hits": [
+     {
+      "line": "The one-shot CLI flow (``python deploy/provision.py --sku L40S -n 2 \u2026``) keeps",
+      "kind": "model+req"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "netuid": 93,
+  "name": "Bitcast",
+  "repo": "https://github.com/bitcast-network/bitcast",
+  "error": null,
+  "files": []
+ },
+ {
+  "netuid": 94,
+  "name": "pending...",
+  "repo": "https://github.com/AlveusLabs/SN94-BitSota",
+  "error": null,
+  "files": [
+   {
+    "file": "docs/public-validator-quickstart.html",
+    "hits": [
+     {
+      "line": "<li>One NVIDIA CUDA-capable GPU with at least 24 GB VRAM.</li>",
+      "kind": "vram"
+     },
+     {
+      "line": "<li>Tested EC2 class: <code>g5.2xlarge</code> with one NVIDIA A10G, 24 GB VRAM, 8 vCPU, and 32 GiB RAM.</li>",
+      "kind": "vram"
+     }
+    ]
+   },
+   {
+    "file": "docs/public-validator-quickstart.md",
+    "hits": [
+     {
+      "line": "- One NVIDIA CUDA-capable GPU with at least 24 GB VRAM.",
+      "kind": "vram"
+     },
+     {
+      "line": "- Tested EC2 class: `g5.2xlarge` with one NVIDIA A10G, 24 GB VRAM, 8 vCPU,",
+      "kind": "vram"
+     }
+    ]
+   },
+   {
+    "file": "docs/public-validator-runner.html",
+    "hits": [
+     {
+      "line": "<li>GPU: one NVIDIA CUDA-capable GPU with at least 24 GB VRAM.</li>",
+      "kind": "vram"
+     },
+     {
+      "line": "<li>Tested EC2 class: <code>g5.2xlarge</code> with one NVIDIA A10G, 24 GB VRAM, 8 vCPU, and 32 GiB system RAM.</li>",
+      "kind": "vram"
+     }
+    ]
+   },
+   {
+    "file": "docs/public-validator-runner.md",
+    "hits": [
+     {
+      "line": "- GPU: one NVIDIA CUDA-capable GPU with at least 24 GB VRAM.",
+      "kind": "vram"
+     },
+     {
+      "line": "- Tested EC2 class: `g5.2xlarge` with one NVIDIA A10G, 24 GB VRAM, 8 vCPU,",
+      "kind": "vram"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "netuid": 95,
+  "name": "Actual",
+  "repo": "https://github.com/actual-computer/actual-subnet-95",
+  "error": "download-failed",
+  "files": []
+ },
+ {
+  "netuid": 97,
+  "name": "Albedo",
+  "repo": "https://github.com/unarbos/albedo",
+  "error": null,
+  "files": []
+ },
+ {
+  "netuid": 98,
+  "name": "NeverPlayAlone",
+  "repo": "https://github.com/neverplayalone/neverplayalone_subnet",
+  "error": null,
+  "files": []
+ },
+ {
+  "netuid": 100,
+  "name": "Cortex",
+  "repo": "https://github.com/CortexLM/cortex",
+  "error": null,
+  "files": [
+   {
+    "file": "docs/PRISM.md",
+    "hits": [
+     {
+      "line": "| `PRISM_POD_GPU_NAME` | optional comma-separated offer needles (default `NVIDIA B200`/`B200`; fallbacks `RTX 5090` or `RTX PRO 6000`) |",
+      "kind": "model+req"
+     },
+     {
+      "line": "(needles `B200`, `NVIDIA B200`). Rent **one** GPU: a native 1\u00d7 offer, or an",
+      "kind": "model+req"
+     },
+     {
+      "line": "8\u00d7 B200 host that advertises Lium GPU splitting (`min_gpu_count_for_rental`",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "5090 as a B200.",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "docs/PRISM_RECIPE.md",
+    "hits": [
+     {
+      "line": "On consumer Blackwell (SM120 / RTX 5090) construct the recipe as",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "`PRISM_POD_GPU_COUNT=1` on **NVIDIA B200** (`PRISM_POD_GPU_NAME` needles",
+      "kind": "model+req"
+     },
+     {
+      "line": "SKUs in one job; never fall through to 8\u00d7 B200 or 8\u00d75090. Miner training",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "docs/spikes/prism-v3/research/14-scaling-laws-and-diagnostics.md",
+    "hits": [
+     {
+      "line": "**Hardware facts** (cited): RTX 5090 = 21 760 CUDA cores, 170 SM, 32 GB GDDR7, **1792 GB/s**, 575 W, PCIe, **no NVLink** ([NVIDIA](https://www.nvidia.com/en-gb/geforce/graphics-cards/50-series/rtx-5090/)). Dense tensor throughput: **BF16/FP",
+      "kind": "model+req"
+     },
+     {
+      "line": "- **Cross-order-of-magnitude extrapolation.** Farseer needed ~1000 LLMs / 3 M H100-hours for 0.5 % error at >1 OOM. Prism has ~1e-6 of that.",
+      "kind": "model+req"
+     },
+     {
+      "line": "- RTX 5090 peak BF16 tensor TFLOPS (NVIDIA devforum) \u2014 https://forums.developer.nvidia.com/t/rtx-5090-peak-bf16-tensor-tflops/350543",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "netuid": 102,
+  "name": "ConnitoAI",
+  "repo": "https://github.com/Connito-AI/Connito",
+  "error": null,
+  "files": [
+   {
+    "file": "docs/exp-legal-migration-plan.md",
+    "hits": [
+     {
+      "line": "Runtime: ~30 min on an A6000. Run on a single representative HF shard. Eyeball",
+      "kind": "model+req"
+     }
+    ]
+   },
+   {
+    "file": "docs/miner-faq/miner-config.md",
+    "hits": [
+     {
+      "line": "40 GB GPU (A100/H100 class) with ~24 GB allocated during eval. A miner holds",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "connito/miner/train.py",
+    "hits": [
+     {
+      "line": "#       (QLoRA/PEFT default) and required to fit this config on a 47GB A6000.",
+      "kind": "model+req"
+     }
+    ]
+   },
+   {
+    "file": "expert_groups/exp_legal/README.md",
+    "hits": [
+     {
+      "line": "Runtime: ~30 min on an A100. Inspect the resulting per-layer expert",
+      "kind": "model+req"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "netuid": 103,
+  "name": "Capcomp",
+  "repo": "https://github.com/orgs/Capcomp-AI",
+  "error": "download-failed",
+  "files": []
+ },
+ {
+  "netuid": 105,
+  "name": "Beam",
+  "repo": "https://github.com/orgs/Beam-Network",
+  "error": "download-failed",
+  "files": []
+ },
+ {
+  "netuid": 106,
+  "name": "Nodexo",
+  "repo": "https://github.com/nodexo-ai/nodexo",
+  "error": null,
+  "files": [
+   {
+    "file": "docs/CLI_REFERENCE.md",
+    "hits": [
+     {
+      "line": "nodexo quote --gpu H100 --gpu-count 4 --duration 4h --storage-gb 100 --memory-gb 64",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "docs/MINER_QUICKSTART.md",
+    "hits": [
+     {
+      "line": "nodexo rent --gpu A6000 --duration 1h --ssh-key ~/.ssh/id_ed25519.pub",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "docs/SUPPORTED_GPUS.md",
+    "hits": [
+     {
+      "line": "| NVIDIA A100-SXM4-80GB | 80 GB | 1-4 |",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "| NVIDIA A100 80GB PCIe | 80 GB | 1 |",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "| NVIDIA RTX A6000 | 48 GB | 1 |",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "| NVIDIA GeForce RTX 4090 | 24 GB | 1 |",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "cli/main.py",
+    "hits": [
+     {
+      "line": "nodexo rent --payment credits --gpu A6000 --api-key vc_... --ssh-key ~/.ssh/id_ed25519.pub",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "(\"VRAM total\",      12, \">\"),    # e.g. \"192 GB (4\u00d748)\"",
+      "kind": "vram"
+     },
+     {
+      "line": "\"  nodexo rent  --gpu A6000 --duration 1h --ssh-key ~/.ssh/id_ed25519.pub\\n\"",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"'A6000', '4090', 'H100', etc.\"",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"  nodexo rent --payment credits --gpu A6000 --api-key vc_...\\n\"",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"  nodexo rent --gpu A6000 --gpu-count 4 --duration 1h\\n\"",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"  nodexo rent --gpu H100  --image pytorch/pytorch:2.6.0-cuda12.4-cudnn9-runtime\\n\"",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"    <name>     substring of the model (e.g. A6000, 4090, H100).\\n\"",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "common/attestation.py",
+    "hits": [
+     {
+      "line": "2. The GPU is a specific H100 chip in CC mode (NOT spoofed).",
+      "kind": "model+req"
+     },
+     {
+      "line": "5090, A100 without CC mode, etc.). The behavioral defenses",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "common/bundled_subnet_config.json",
+    "hits": [
+     {
+      "line": "\"NVIDIA A100-PCIE-40GB\": 0.8,",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"NVIDIA A100-SXM4-40GB\": 0.8,",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"NVIDIA A100-SXM4-80GB\": 1.49,",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"NVIDIA B200\": 5.3,",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"NVIDIA GeForce RTX 3080\": 0.15,",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"NVIDIA GeForce RTX 3080 Ti\": 0.17,",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"NVIDIA GeForce RTX 3090\": 0.22,",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"NVIDIA GeForce RTX 3090 Ti\": 0.25,",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "common/config.py",
+    "hits": [
+     {
+      "line": "\"NVIDIA GeForce RTX 3080\": 10,",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"NVIDIA GeForce RTX 3080 Ti\": 12,",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"NVIDIA GeForce RTX 3090\": 24,",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"NVIDIA GeForce RTX 3090 Ti\": 24,",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"NVIDIA GeForce RTX 4080\": 16,",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"NVIDIA GeForce RTX 4080 SUPER\": 16,",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"NVIDIA GeForce RTX 4090\": 24,",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"NVIDIA GeForce RTX 5090\": 32,",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "common/db.py",
+    "hits": [
+     {
+      "line": "# (e.g., claiming 40 GB on an A6000 to hide 8 GB of sybil). The",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "common/proof_timing.py",
+    "hits": [
+     {
+      "line": "\"NVIDIA GeForce RTX 3080\": _assumed_timing_model(3.0, 7.0, 9, 6, \"Ampere consumer 10GB\"),",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"NVIDIA GeForce RTX 3080 Ti\": _assumed_timing_model(2.8, 6.5, 9, 6, \"Ampere consumer 12GB\"),",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"NVIDIA GeForce RTX 3090\": _assumed_timing_model(2.5, 6.0, 9, 6, \"Ampere consumer 24GB\"),",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"NVIDIA GeForce RTX 3090 Ti\": _assumed_timing_model(2.4, 5.8, 9, 6, \"Ampere consumer 24GB\"),",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"NVIDIA GeForce RTX 4080\": _assumed_timing_model(2.3, 5.2, 8, 5, \"Ada consumer 16GB\"),",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"NVIDIA GeForce RTX 4080 SUPER\": _assumed_timing_model(2.2, 5.0, 8, 5, \"Ada consumer 16GB\"),",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"NVIDIA RTX 6000 Ada Generation\": _assumed_timing_model(2.4, 5.5, 9, 6, \"Ada workstation 48GB\"),",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"NVIDIA A100-SXM4-40GB\": _assumed_timing_model(5.0, 12.0, 12, 8, \"A100 SXM 40GB\"),",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "common/subnet_runtime_config.py",
+    "hits": [
+     {
+      "line": "\"NVIDIA GeForce RTX 3080\": 0.15,",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"NVIDIA GeForce RTX 3080 Ti\": 0.17,",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"NVIDIA GeForce RTX 3090\": 0.22,",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"NVIDIA GeForce RTX 3090 Ti\": 0.25,",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"NVIDIA GeForce RTX 4080\": 0.30,",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"NVIDIA GeForce RTX 4080 SUPER\": 0.32,",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"NVIDIA GeForce RTX 4090\": 0.69,",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"NVIDIA GeForce RTX 5090\": 0.89,",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "neurons/monitor/__init__.py",
+    "hits": [
+     {
+      "line": "we have hardware attestation (H100+ confidential compute).",
+      "kind": "model+req"
+     }
+    ]
+   },
+   {
+    "file": "neurons/validator/api/routes/browse.py",
+    "hits": [
+     {
+      "line": "# float up. Across models with identical per-GPU VRAM (e.g. 48 GB",
+      "kind": "vram"
+     },
+     {
+      "line": "# for L40S / RTX 6000 Ada / RTX A6000), alphabetical for determinism.",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "#   1\u00d7 H100, 4\u00d7 RTX A6000, 1\u00d7 L40S, 1\u00d7 RTX A6000, 1\u00d7 RTX 5090,",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "#   1\u00d7 L4, 1\u00d7 RTX 4090",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "neurons/validator/api/routes/heartbeat.py",
+    "hits": [
+     {
+      "line": "# A miner who under-reports total VRAM (claims 40 GB on an A6000",
+      "kind": "vram"
+     }
+    ]
+   },
+   {
+    "file": "neurons/validator/canary/runner.py",
+    "hits": [
+     {
+      "line": "\"NVIDIA GeForce RTX 4090\": 200,",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"NVIDIA GeForce RTX 5090\": 200,",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"NVIDIA H100 80GB HBM3\": 220,",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"NVIDIA H100 NVL\": 220,",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"NVIDIA A100 80GB PCIe\": 240,",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"NVIDIA A100-SXM4-80GB\": 240,",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"NVIDIA A100-SXM4-40GB\": 220,",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"NVIDIA A100-PCIE-40GB\": 220,",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "netuid": 108,
+  "name": "ChipForge",
+  "repo": "https://github.com/TatsuProject/ChipForge_SN108",
+  "error": null,
+  "files": []
+ },
+ {
+  "netuid": 111,
+  "name": "Claims",
+  "repo": "https://github.com/DeSciClaims/Claims",
+  "error": null,
+  "files": []
+ },
+ {
+  "netuid": 114,
+  "name": "SOMA",
+  "repo": "https://github.com/DendriteHQ/SOMA",
+  "error": null,
+  "files": [
+   {
+    "file": "miner/plain_text_compression/sample_tasks/Context-Compression-4/challenge_QA.csv",
+    "hits": [
+     {
+      "line": "1081,5201,Which GPU model is specified for the training run?,5201,Nvidia Tesla P100 SXM2",
+      "kind": "model+req"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "netuid": 115,
+  "name": "MoirAI",
+  "repo": "https://github.com/moirai115/MoirAI",
+  "error": null,
+  "files": []
+ },
+ {
+  "netuid": 117,
+  "name": "everyframe.studio",
+  "repo": "https://github.com/everyframe-studios/everyframe-miner",
+  "error": "download-failed",
+  "files": []
+ },
+ {
+  "netuid": 118,
+  "name": "Ditto",
+  "repo": "https://github.com/orgs/ditto-assistant",
+  "error": "download-failed",
+  "files": []
+ },
+ {
+  "netuid": 119,
+  "name": "CapabilityForge Next",
+  "repo": "https://github.com/capabilityforge-next/capabilityforge",
+  "error": null,
+  "files": []
+ },
+ {
+  "netuid": 120,
+  "name": "Affine",
+  "repo": "https://github.com/AffineFoundation/affine",
+  "error": null,
+  "files": [
+   {
+    "file": "ops/teacher-swarm/enroll_miners.py",
+    "hits": [
+     {
+      "line": "if \"b300\" in g or \"b200\" in g:",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "affine/affine.toml",
+    "hits": [
+     {
+      "line": "# Small-VRAM miner GPUs (RTX PRO 6000, 96 GB; 2026-09-17): miner slots on GPUs",
+      "kind": "vram"
+     },
+     {
+      "line": "# under the price cap wins. RTXPRO6000 (8x96 GB Blackwell, ~$10-15/h) added",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "# regularly has 2\u00d7 H100 when all Blackwell/H200 2\u00d7 inventory is gone.",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "gpu_types = [\"H200\", \"B200\", \"B300\", \"H100\"]",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "gpu_type = \"H200\"",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "# scoring. ONE big-VRAM GPU: a 141GB H200 fits the \u226490GB king at TP=1 with",
+      "kind": "vram"
+     },
+     {
+      "line": "# KV headroom, costs ~$4/hr (vs ~$23 for the 2\u00d7H200 bench layout), and 1\u00d7",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "affine/evalsrv/engine.py",
+    "hits": [
+     {
+      "line": "# 'cuda_fp16.h: No such file or directory' king-launch failures on B300 pods.",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "# Small-VRAM miner slots (RTX PRO 6000, 96 GB): the fp32 logits",
+      "kind": "vram"
+     },
+     {
+      "line": "# pip nvidia-cu13 wheel headers often trip B300/Blackwell builds).",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "affine/website/code/affine.toml",
+    "hits": [
+     {
+      "line": "# Small-VRAM miner GPUs (RTX PRO 6000, 96 GB; 2026-09-17): miner slots on GPUs",
+      "kind": "vram"
+     },
+     {
+      "line": "# under the price cap wins. RTXPRO6000 (8x96 GB Blackwell, ~$10-15/h) added",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "# regularly has 2\u00d7 H100 when all Blackwell/H200 2\u00d7 inventory is gone.",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "gpu_types = [\"H200\", \"B200\", \"B300\", \"H100\"]",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "gpu_type = \"H200\"",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "# scoring. ONE big-VRAM GPU: a 141GB H200 fits the \u226490GB king at TP=1 with",
+      "kind": "vram"
+     },
+     {
+      "line": "# KV headroom, costs ~$4/hr (vs ~$23 for the 2\u00d7H200 bench layout), and 1\u00d7",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "affine/website/code/evalsrv/engine.py",
+    "hits": [
+     {
+      "line": "# 'cuda_fp16.h: No such file or directory' king-launch failures on B300 pods.",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "# Small-VRAM miner slots (RTX PRO 6000, 96 GB): the fp32 logits",
+      "kind": "vram"
+     },
+     {
+      "line": "# pip nvidia-cu13 wheel headers often trip B300/Blackwell builds).",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "affine/website/llms.txt",
+    "hits": [
+     {
+      "line": "- **Hardware**: an 8-GPU B300/B200/H200/RTXPRO6000 pod; the miner slot is 2 GPUs, tensor-parallel 2. Your model (\u2264 90 GB safetensors) must load and serve under exactly that.",
+      "kind": "model+req"
+     }
+    ]
+   },
+   {
+    "file": "ops/benchsuite/agentic_queue.sh",
+    "hits": [
+     {
+      "line": "log \"$2: swebench-pro waits for spare H200 stock (listed: ${N:-0}, need 2); check again in 15 min\"; sleep 900",
+      "kind": "model+req"
+     }
+    ]
+   },
+   {
+    "file": "ops/benchsuite/harbor_cell.py",
+    "hits": [
+     {
+      "line": "so a SWE-bench Verified pass is 48 tasks in flight for 6+ h on one H200 and",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "ops/benchsuite/suite.toml",
+    "hits": [
+     {
+      "line": "lium_plan = \"h200-1x\"       # [pods.plans.*]: 1x H200 = one TP1 replica, ~$3/h; the whole pass runs on that pod",
+      "kind": "model+req"
+     },
+     {
+      "line": "# cheap plentiful one ($1.2-1.5/h, 5-7 listed); B200 1x $5.5.",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "match = \"RTX PRO 6000\"",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "match = \"H100\"",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "ops/teacher-swarm/swarm.toml",
+    "hits": [
+     {
+      "line": "match = \"B300\"",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "match = \"B200\"",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "match = \"H100\"",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "match = \"RTX 6000 Ada\"",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "research/hints/pods.py",
+    "hits": [
+     {
+      "line": "\"a6000-1x\": TypePlan(\"a6000-1x\", \"RTX A6000\", 1, 1, 0.0, 1.0),",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"ada6000-2x\": TypePlan(\"ada6000-2x\", \"RTX 6000 Ada\", 2, 1, 0.0, 1.5),",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"3090-4x\": TypePlan(\"3090-4x\", \"RTX 3090\", 4, 1, 0.0, 0.8),",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"4090-1x\": TypePlan(\"4090-1x\", \"RTX 4090\", 1, 1, 0.0, 0.4),",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "research/mock/pod/phaseM_eval.sh",
+    "hits": [
+     {
+      "line": "# qwen3_5/qwen3_6 archs; :latest needs these flags to be stable on H200).",
+      "kind": "model+req"
+     },
+     {
+      "line": "# (H200+:latest mitigation); prefix caching on (same turn prefixes recur,",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "research/results/frontier_arbiter/harvest_n8/report.txt",
+    "hits": [
+     {
+      "line": "0/1 [T4            ] {   \"analysis\": \"The GitHub releases URL for mobile_sam.pt returns 404. I need to find the correct d",
+      "kind": "model+req"
+     },
+     {
+      "line": "0/1 [T4            ] {   \"analysis\": \"I have all required packages: mteb 1.36.8, sentence-transformers 5.1.1, torch 2.9.0",
+      "kind": "model+req"
+     }
+    ]
+   },
+   {
+    "file": "research/results/frontier_arbiter/iprm/report.json",
+    "hits": [
+     {
+      "line": "\"per_duel_projection\": \"ranking one candidate action needs 2 echoes (C, C+); a 1300-turn duel with 1 candidate per side = 5,200 echoes = ~22 min B200 = ~$2/duel on top of today's echoes (fewer with the swarm's echo prefix cache)\",",
+      "kind": "model+req"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "netuid": 121,
+  "name": "sundae_bar",
+  "repo": "https://github.com/sundae-bar/bittensor-subnet",
+  "error": null,
+  "files": []
+ },
+ {
+  "netuid": 125,
+  "name": "Refinery",
+  "repo": "https://github.com/Barbariandev/refinery",
+  "error": null,
+  "files": [
+   {
+    "file": "sn125/cloud.py",
+    "hits": [
+     {
+      "line": "\"rtx4090-small\": 0.45, \"rtx4090-medium\": 0.9, \"rtx4090-large\": 1.8,",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "f\"ERROR: installed torch wheel lacks {need}; B200 requires cu128/sm_100 support\")",
+      "kind": "model+req"
+     }
+    ]
+   },
+   {
+    "file": "sn125/cloud_aws.py",
+    "hits": [
+     {
+      "line": "\"h200-xlarge\": \"p5en.48xlarge\",",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "sn125/cloud_lambda.py",
+    "hits": [
+     {
+      "line": "\"h100-xlarge\": \"gpu_8x_h100_sxm5\",",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "sn125/cloud_runpod.py",
+    "hits": [
+     {
+      "line": "via ``SKU_GPU_MAP`` (``b200-small`` \u2192 1\u00d7 ``NVIDIA B200``); a raw RunPod GPU",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"h100-xlarge\": (\"NVIDIA H100 80GB HBM3\", 8),",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"h200-small\": (\"NVIDIA H200\", 1),",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   },
+   {
+    "file": "sn125/dashboard/data.py",
+    "hits": [
+     {
+      "line": "\"hardware\": \"B200-only across a trusted provider failover chain; every score publishes its provider and pre/post throughput probes inside the pinned band, so hardware luck cannot move the frontier\",",
+      "kind": "model+req"
+     }
+    ]
+   },
+   {
+    "file": "sn125/training.py",
+    "hits": [
+     {
+      "line": "# The old `GPU_VRAM + 32GB` ceiling was far too tight: on a 177 GB B200 (= 209 GB AS)",
+      "kind": "vram"
+     },
+     {
+      "line": "# limit. Size AS as 2*VRAM (device reservation + pool) + 64 GB (shards + host). Physical",
+      "kind": "vram"
+     },
+     {
+      "line": "_as_limit = max(96 * 1024**3, _gpu_bytes * 2 + 64 * 1024**3)  # 2*VRAM (CUDA VA + pool) + 64GB (shard mmap + host)",
+      "kind": "vram"
+     },
+     {
+      "line": "# PyTorch pool) + 64GB (mmap'd shards + host workspaces). GPU_VRAM+32GB AS-OOM'd a",
+      "kind": "vram"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "netuid": 126,
+  "name": "Attelier",
+  "repo": "https://github.com/attelierai/attelierai_subnet",
+  "error": "download-failed",
+  "files": []
+ },
+ {
+  "netuid": 127,
+  "name": "Astrid",
+  "repo": "https://github.com/astridintelligence/sn-127",
+  "error": null,
+  "files": []
+ },
+ {
+  "netuid": 128,
+  "name": "ByteLeap",
+  "repo": "https://github.com/byteleapai/byteleap-Miner",
+  "error": null,
+  "files": [
+   {
+    "file": "neurons/shared/utils/system_monitor.py",
+    "hits": [
+     {
+      "line": "\"2b85\": \"NVIDIA GeForce RTX 5090 (32GB)\",",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"2b83\": \"NVIDIA GeForce RTX 5090 (32GB)\",",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"2684\": \"NVIDIA GeForce RTX 4090 (24GB)\",",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"2204\": \"NVIDIA GeForce RTX 3090 (24GB)\",",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"2207\": \"NVIDIA GeForce RTX 3090 (24GB)\",",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"20b2\": \"NVIDIA A100 80GB SXM4\",",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"20b5\": \"NVIDIA A100 80GB PCIe\",",
+      "kind": "model+gpu-ctx"
+     },
+     {
+      "line": "\"20f3\": \"NVIDIA A100 80GB\",",
+      "kind": "model+gpu-ctx"
+     }
+    ]
+   }
+  ]
+ }
+]

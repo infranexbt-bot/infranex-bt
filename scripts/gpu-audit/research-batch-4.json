@@ -1,0 +1,62 @@
+[
+ {
+  "netuid": 6,
+  "name": "Numinous",
+  "repo": "https://github.com/numinouslabs/numinous"
+ },
+ {
+  "netuid": 15,
+  "name": "ORO",
+  "repo": "https://github.com/ORO-AI/oro"
+ },
+ {
+  "netuid": 23,
+  "name": "Trishool",
+  "repo": "https://github.com/TrishoolAI/trishool-phase2"
+ },
+ {
+  "netuid": 36,
+  "name": "Epago",
+  "repo": "https://github.com/EpagoFoundation/epago"
+ },
+ {
+  "netuid": 46,
+  "name": "Instant",
+  "repo": "https://github.com/Subnet46/sn46-validator"
+ },
+ {
+  "netuid": 62,
+  "name": "Ridges",
+  "repo": "https://github.com/ridgesai/ridges"
+ },
+ {
+  "netuid": 71,
+  "name": "Leadpoet",
+  "repo": "https://github.com/leadpoet/leadpoet"
+ },
+ {
+  "netuid": 78,
+  "name": "Umi",
+  "repo": "https://github.com/Umi-BitSign/umi"
+ },
+ {
+  "netuid": 95,
+  "name": "Actual",
+  "repo": "https://github.com/actual-computer/actual-subnet-95"
+ },
+ {
+  "netuid": 105,
+  "name": "Beam",
+  "repo": "https://github.com/orgs/Beam-Network"
+ },
+ {
+  "netuid": 117,
+  "name": "everyframe.studio",
+  "repo": "https://github.com/everyframe-studios/everyframe-miner"
+ },
+ {
+  "netuid": 126,
+  "name": "Attelier",
+  "repo": "https://github.com/attelierai/attelierai_subnet"
+ }
+]

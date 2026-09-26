@@ -1,0 +1,67 @@
+[
+ {
+  "netuid": 1,
+  "name": "Apex",
+  "repo": "https://github.com/macrocosm-os/apex"
+ },
+ {
+  "netuid": 8,
+  "name": "Vanta",
+  "repo": "https://github.com/taoshidev/vanta-network"
+ },
+ {
+  "netuid": 19,
+  "name": "blockmachine",
+  "repo": "https://github.com/taostat/blockmachine"
+ },
+ {
+  "netuid": 24,
+  "name": "Quasar",
+  "repo": "https://github.com/SILX-LABS/QUASAR-SUBNET"
+ },
+ {
+  "netuid": 39,
+  "name": "deprecated",
+  "repo": "https://github.com/deprecated/deprecated"
+ },
+ {
+  "netuid": 52,
+  "name": "Dojo",
+  "repo": "https://github.com/tensorplex-labs/dojo"
+ },
+ {
+  "netuid": 65,
+  "name": "True Performance Network",
+  "repo": "https://github.com/taofu-labs/true-performance-network"
+ },
+ {
+  "netuid": 75,
+  "name": "Hippius",
+  "repo": "https://github.com/thenervelab/thebrain"
+ },
+ {
+  "netuid": 82,
+  "name": "Compelle",
+  "repo": "https://github.com/compelle/compelle-validator"
+ },
+ {
+  "netuid": 97,
+  "name": "Albedo",
+  "repo": "https://github.com/unarbos/albedo"
+ },
+ {
+  "netuid": 108,
+  "name": "ChipForge",
+  "repo": "https://github.com/TatsuProject/ChipForge_SN108"
+ },
+ {
+  "netuid": 118,
+  "name": "Ditto",
+  "repo": "https://github.com/orgs/ditto-assistant"
+ },
+ {
+  "netuid": 127,
+  "name": "Astrid",
+  "repo": "https://github.com/astridintelligence/sn-127"
+ }
+]

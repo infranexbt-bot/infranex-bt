@@ -16,11 +16,11 @@
     "netuid": 2,
     "name": "DSperse",
     "repo": "https://github.com/inference-labs-inc/subnet-2",
-    "verdict": "ESTIMATE",
-    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "verdict": "OK",
+    "reason": "CPU-only per hand-verified repo docs (README.md)",
     "display": {
-      "gpu": null,
-      "vram": null
+      "gpu": "None (CPU-only)",
+      "vram": 0
     },
     "gt": null,
     "readmeEvidence": []
@@ -29,11 +29,11 @@
     "netuid": 3,
     "name": "Teutonic",
     "repo": "https://github.com/unarbos/teutonic",
-    "verdict": "ESTIMATE",
-    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "verdict": "OK",
+    "reason": "matches hand-verified repo docs (website/llms.txt): \"For training you need a multi-GPU node (8x H200/B200-class or better) or multi-n\"",
     "display": {
-      "gpu": null,
-      "vram": null
+      "gpu": "8× H200/B200-class node (or multi-node setup)",
+      "vram": 141
     },
     "gt": null,
     "readmeEvidence": []
@@ -42,11 +42,11 @@
     "netuid": 4,
     "name": "Targon",
     "repo": "https://github.com/manifold-inc/targon",
-    "verdict": "ESTIMATE",
-    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "verdict": "OK",
+    "reason": "matches hand-verified repo docs (docs/miner/miner.md): \"TargonOS only installs on machines that match one of the hardware profiles below\"",
     "display": {
-      "gpu": null,
-      "vram": null
+      "gpu": "8× H100 SXM / H200 / B200 / B300 / RTX PRO 6000 Blackwell (TEE hardware profiles)",
+      "vram": 80
     },
     "gt": null,
     "readmeEvidence": []
@@ -55,11 +55,11 @@
     "netuid": 5,
     "name": "Hone",
     "repo": "https://github.com/hone-subnet-org/hone-subnet",
-    "verdict": "ESTIMATE",
-    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "verdict": "OK",
+    "reason": "CPU-only per hand-verified repo docs (README.md)",
     "display": {
-      "gpu": null,
-      "vram": null
+      "gpu": "None (CPU-only)",
+      "vram": 0
     },
     "gt": null,
     "readmeEvidence": []
@@ -68,11 +68,11 @@
     "netuid": 6,
     "name": "Numinous",
     "repo": "https://github.com/numinouslabs/numinous",
-    "verdict": "ESTIMATE",
-    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "verdict": "OK",
+    "reason": "CPU-only per hand-verified repo docs (docs/validator-setup.md)",
     "display": {
-      "gpu": null,
-      "vram": null
+      "gpu": "None (CPU-only)",
+      "vram": 0
     },
     "gt": null,
     "readmeEvidence": []
@@ -100,11 +100,11 @@
     "netuid": 8,
     "name": "Vanta",
     "repo": "https://github.com/taoshidev/vanta-network",
-    "verdict": "ESTIMATE",
-    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "verdict": "OK",
+    "reason": "CPU-only per hand-verified repo docs (docs/miner.md)",
     "display": {
-      "gpu": null,
-      "vram": null
+      "gpu": "None (CPU-only)",
+      "vram": 0
     },
     "gt": null,
     "readmeEvidence": []
@@ -113,10 +113,10 @@
     "netuid": 9,
     "name": "iota",
     "repo": "https://github.com/macrocosm-os/iota",
-    "verdict": "ESTIMATE",
-    "reason": "no machine-readable GT in repo — display is a labeled estimate (RTX 4090, vram 16)",
+    "verdict": "OK",
+    "reason": "matches hand-verified repo docs (README.md): \"Cuda GPU with >= 16GB VRAM (RTX 4090, for example).\"",
     "display": {
-      "gpu": "RTX 4090",
+      "gpu": "RTX 4090 (example)",
       "vram": 16
     },
     "gt": null,
@@ -139,11 +139,11 @@
     "netuid": 11,
     "name": "TrajectoryRL",
     "repo": "https://github.com/trajectoryRL/trajectoryRL",
-    "verdict": "ESTIMATE",
-    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "verdict": "OK",
+    "reason": "CPU-only per hand-verified repo docs (README.md)",
     "display": {
-      "gpu": null,
-      "vram": null
+      "gpu": "None (CPU-only)",
+      "vram": 0
     },
     "gt": null,
     "readmeEvidence": []
@@ -168,11 +168,11 @@
     "netuid": 13,
     "name": "Data Universe",
     "repo": "https://github.com/macrocosm-os/data-universe",
-    "verdict": "ESTIMATE",
-    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "verdict": "OK",
+    "reason": "CPU-only per hand-verified repo docs (docs/miner.md)",
     "display": {
-      "gpu": null,
-      "vram": null
+      "gpu": "None (CPU-only)",
+      "vram": 0
     },
     "gt": null,
     "readmeEvidence": []
@@ -181,11 +181,11 @@
     "netuid": 14,
     "name": "Cacheon",
     "repo": "https://github.com/latent-to/cacheon",
-    "verdict": "ESTIMATE",
-    "reason": "no machine-readable GT in repo — display is a labeled estimate (B300, vram null)",
+    "verdict": "OK",
+    "reason": "matches hand-verified repo docs (docs/miner-guide/your-first-kernel.md): \"`[competition]` lines for arena `qwen36-35b-h100-bf16-tp1`\"",
     "display": {
-      "gpu": "B300",
-      "vram": null
+      "gpu": "H100 (arena target: qwen36-35b-h100-bf16-tp1)",
+      "vram": 80
     },
     "gt": null,
     "readmeEvidence": []
@@ -194,11 +194,11 @@
     "netuid": 15,
     "name": "ORO",
     "repo": "https://github.com/ORO-AI/oro",
-    "verdict": "ESTIMATE",
-    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "verdict": "OK",
+    "reason": "CPU-only per hand-verified repo docs (https://docs.oroagents.com/validators/overview)",
     "display": {
-      "gpu": null,
-      "vram": null
+      "gpu": "None (CPU-only)",
+      "vram": 0
     },
     "gt": null,
     "readmeEvidence": []
@@ -299,11 +299,11 @@
     "netuid": 22,
     "name": "Desearch",
     "repo": "https://github.com/datura-ai/desearch",
-    "verdict": "ESTIMATE",
-    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "verdict": "OK",
+    "reason": "CPU-only per hand-verified repo docs (min_compute.yml)",
     "display": {
-      "gpu": null,
-      "vram": null
+      "gpu": "None (CPU-only)",
+      "vram": 0
     },
     "gt": {
       "cdGpu": null,
@@ -357,11 +357,11 @@
     "netuid": 26,
     "name": "Perturb",
     "repo": "https://github.com/0xsigurd/Perturb",
-    "verdict": "ESTIMATE",
-    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "verdict": "OK",
+    "reason": "matches hand-verified repo docs (README.md): \"Minimum: 8 vCPU, 32 GB RAM, NVIDIA GPU with 12+ GB VRAM, 100 GB SSD\"",
     "display": {
-      "gpu": null,
-      "vram": null
+      "gpu": "NVIDIA GPU 12+ GB VRAM (recommended: 24+ GB)",
+      "vram": 12
     },
     "gt": null,
     "readmeEvidence": []
@@ -507,10 +507,10 @@
     "netuid": 36,
     "name": "Epago",
     "repo": "https://github.com/EpagoFoundation/epago",
-    "verdict": "ESTIMATE",
-    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "verdict": "OK",
+    "reason": "matches hand-verified repo docs (docs/MINING.md): \"which is why a single consumer GPU is enough to fine-tune and duel it\"",
     "display": {
-      "gpu": null,
+      "gpu": "1× consumer GPU",
       "vram": null
     },
     "gt": null,
@@ -559,11 +559,11 @@
     "netuid": 40,
     "name": "Ralph",
     "repo": "https://github.com/RalphLabsAI/ralph",
-    "verdict": "ESTIMATE",
-    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "verdict": "OK",
+    "reason": "matches hand-verified repo docs (eval/orchestrator.py): \"require_gpu: str = \"NVIDIA H100 PCIe\"\"",
     "display": {
-      "gpu": null,
-      "vram": null
+      "gpu": "NVIDIA H100 PCIe (subnet-rented eval GPU)",
+      "vram": 80
     },
     "gt": null,
     "readmeEvidence": []
@@ -572,11 +572,11 @@
     "netuid": 41,
     "name": "Almanac",
     "repo": "https://github.com/corvxai/almanac",
-    "verdict": "ESTIMATE",
-    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "verdict": "OK",
+    "reason": "CPU-only per hand-verified repo docs (README.md)",
     "display": {
-      "gpu": null,
-      "vram": null
+      "gpu": "None (CPU-only)",
+      "vram": 0
     },
     "gt": null,
     "readmeEvidence": []
@@ -617,11 +617,11 @@
     "netuid": 44,
     "name": "Score",
     "repo": "https://github.com/score-technologies/turbovision",
-    "verdict": "ESTIMATE",
-    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "verdict": "OK",
+    "reason": "matches hand-verified repo docs (example_miner/chute_config.yml): \"gpu_count: 1, min_vram_gb_per_gpu: 16\"",
     "display": {
-      "gpu": null,
-      "vram": null
+      "gpu": "1× GPU ≥16 GB VRAM (RTX 5090/B200/H200/H20/MI300X excluded)",
+      "vram": 16
     },
     "gt": null,
     "readmeEvidence": []
@@ -649,11 +649,11 @@
     "netuid": 46,
     "name": "Instant",
     "repo": "https://github.com/Subnet46/sn46-validator",
-    "verdict": "ESTIMATE",
-    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "verdict": "OK",
+    "reason": "CPU-only per hand-verified repo docs (README.md)",
     "display": {
-      "gpu": null,
-      "vram": null
+      "gpu": "None (CPU-only)",
+      "vram": 0
     },
     "gt": null,
     "readmeEvidence": []
@@ -662,11 +662,11 @@
     "netuid": 47,
     "name": "GPUForge",
     "repo": "https://github.com/forgenet47/gpuforge",
-    "verdict": "ESTIMATE",
-    "reason": "README states GPU evidence but display is empty/estimate: \"GPUForge is a proposed Bittensor subnet for verifiable GPU training work. A job publisher supplies a\"",
+    "verdict": "OK",
+    "reason": "matches hand-verified repo docs (src/gpuforge/capability.py): \"GPU memory is below the configured H100 minimum\"",
     "display": {
-      "gpu": null,
-      "vram": null
+      "gpu": "NVIDIA H100 (approved variants)",
+      "vram": 80
     },
     "gt": null,
     "readmeEvidence": [
@@ -733,11 +733,11 @@
     "netuid": 51,
     "name": "lium.io",
     "repo": "https://github.com/Datura-ai/lium-io",
-    "verdict": "ESTIMATE",
-    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "verdict": "OK",
+    "reason": "matches hand-verified repo docs (neurons/validators/src/services/const.py): \"\"NVIDIA GeForce RTX 4090\": 0.05 ... \"NVIDIA H200\": .56\"",
     "display": {
-      "gpu": null,
-      "vram": null
+      "gpu": "NVIDIA GPU host — earn program: RTX 4090 24 GB up to flagship 8× H200/B200/B300",
+      "vram": 24
     },
     "gt": null,
     "readmeEvidence": []
@@ -759,11 +759,11 @@
     "netuid": 53,
     "name": "engy",
     "repo": "https://github.com/hanlinai/engy",
-    "verdict": "ESTIMATE",
-    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "verdict": "OK",
+    "reason": "matches hand-verified repo docs (docs/ANNOUNCEMENT.md): \"~35 GB of weights plus KV cache: 2× RTX 4090 or 2× RTX 5090, a single L40S or RT\"",
     "display": {
-      "gpu": null,
-      "vram": null
+      "gpu": "2× RTX 4090/5090, or 1× L40S / RTX 6000 Ada (48 GB), or H100/H200/B200",
+      "vram": 24
     },
     "gt": null,
     "readmeEvidence": []
@@ -791,10 +791,10 @@
     "netuid": 55,
     "name": "NIOME",
     "repo": "https://github.com/genomesio/subnet-niome",
-    "verdict": "ESTIMATE",
-    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "verdict": "OK",
+    "reason": "matches hand-verified repo docs (docs/miner_guide.md): \"GPU : necessary, up to your generation / Memory : 16GB minimum\"",
     "display": {
-      "gpu": null,
+      "gpu": "GPU required (model/VRAM unspecified)",
       "vram": null
     },
     "gt": null,
@@ -804,11 +804,11 @@
     "netuid": 56,
     "name": "Gradients",
     "repo": "https://github.com/gradients-ai/G.O.D",
-    "verdict": "ESTIMATE",
-    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "verdict": "OK",
+    "reason": "matches hand-verified repo docs (docs/miner.md): \"Production runs on Basilica A100\"",
     "display": {
-      "gpu": null,
-      "vram": null
+      "gpu": "NVIDIA A100 (Basilica)",
+      "vram": 80
     },
     "gt": null,
     "readmeEvidence": []
@@ -875,11 +875,11 @@
     "netuid": 61,
     "name": "RedTeam",
     "repo": "https://github.com/RedTeamSubnet/RedTeam",
-    "verdict": "ESTIMATE",
-    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "verdict": "OK",
+    "reason": "CPU-only per hand-verified repo docs (docs/getting-started/miner.md)",
     "display": {
-      "gpu": null,
-      "vram": null
+      "gpu": "None (CPU-only)",
+      "vram": 0
     },
     "gt": null,
     "readmeEvidence": []
@@ -976,11 +976,11 @@
     "netuid": 68,
     "name": "NOVA",
     "repo": "https://github.com/metanova-labs/nova",
-    "verdict": "ESTIMATE",
-    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "verdict": "OK",
+    "reason": "matches hand-verified repo docs (README.md): \"2 GPU devices with > 48 GB VRAM for parallel inference.\"",
     "display": {
-      "gpu": null,
-      "vram": null
+      "gpu": "2× GPUs with >48 GB VRAM each (Boltz-2 inference)",
+      "vram": 48
     },
     "gt": null,
     "readmeEvidence": []
@@ -989,11 +989,11 @@
     "netuid": 69,
     "name": "Herald",
     "repo": "https://github.com/HeraldMedia/herald",
-    "verdict": "ESTIMATE",
-    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "verdict": "OK",
+    "reason": "CPU-only per hand-verified repo docs (min_compute.yml)",
     "display": {
-      "gpu": null,
-      "vram": null
+      "gpu": "None (CPU-only)",
+      "vram": 0
     },
     "gt": {
       "cdGpu": null,
@@ -1066,11 +1066,11 @@
     "netuid": 74,
     "name": "Gittensor",
     "repo": "https://github.com/entrius/gittensor",
-    "verdict": "ESTIMATE",
-    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "verdict": "OK",
+    "reason": "matches hand-verified repo docs (docker/sparkinfer.Dockerfile): \"sm_120 = RTX 5090. Add more (e.g. \"89;120\") only if the fleet blesses other hard\"",
     "display": {
-      "gpu": null,
-      "vram": null
+      "gpu": "NVIDIA GeForce RTX 5090 (32 GB)",
+      "vram": 32
     },
     "gt": {
       "cdGpu": null,
@@ -1124,11 +1124,11 @@
     "netuid": 78,
     "name": "Umi",
     "repo": "https://github.com/Umi-BitSign/umi",
-    "verdict": "ESTIMATE",
-    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "verdict": "OK",
+    "reason": "CPU-only per hand-verified repo docs (https://bittensor.ai/subnets/78)",
     "display": {
-      "gpu": null,
-      "vram": null
+      "gpu": "None (CPU-only)",
+      "vram": 0
     },
     "gt": null,
     "readmeEvidence": []
@@ -1156,11 +1156,11 @@
     "netuid": 80,
     "name": "OpenRoboto",
     "repo": "https://github.com/openroboto-ai/openroboto-subnet",
-    "verdict": "ESTIMATE",
-    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "verdict": "OK",
+    "reason": "matches hand-verified repo docs (docs/MINER_DEPLOY.md): \"| GPU | 1× NVIDIA GPU, 24 GB VRAM | 1× A100 80GB |\"",
     "display": {
-      "gpu": null,
-      "vram": null
+      "gpu": "1× NVIDIA GPU 24 GB (recommended: A100 80 GB)",
+      "vram": 24
     },
     "gt": null,
     "readmeEvidence": []
@@ -1169,11 +1169,11 @@
     "netuid": 81,
     "name": "Reliquary",
     "repo": "https://github.com/reliquadotai/reliquary",
-    "verdict": "ESTIMATE",
-    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "verdict": "OK",
+    "reason": "matches hand-verified repo docs (docs/mining.md): \"| GPU | 1x or 2x NVIDIA GPU, at least 24 GB VRAM each.\"",
     "display": {
-      "gpu": null,
-      "vram": null
+      "gpu": "1–2× NVIDIA GPU ≥24 GB each (H100/H200 reference)",
+      "vram": 24
     },
     "gt": null,
     "readmeEvidence": []
@@ -1182,11 +1182,11 @@
     "netuid": 82,
     "name": "Compelle",
     "repo": "https://github.com/compelle/compelle-validator",
-    "verdict": "ESTIMATE",
-    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "verdict": "OK",
+    "reason": "CPU-only per hand-verified repo docs (README.md)",
     "display": {
-      "gpu": null,
-      "vram": null
+      "gpu": "None (CPU-only)",
+      "vram": 0
     },
     "gt": null,
     "readmeEvidence": []
@@ -1227,11 +1227,11 @@
     "netuid": 85,
     "name": "Vidaio",
     "repo": "https://github.com/vidaio-subnet/vidaio-subnet",
-    "verdict": "ESTIMATE",
-    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "verdict": "OK",
+    "reason": "matches hand-verified repo docs (docs/miner_setup.md): \"- **VRAM**: At least 16 GB per GPU ... Select only supported GPUs: `L4`, `L40S`,\"",
     "display": {
-      "gpu": null,
-      "vram": null
+      "gpu": "L4 / L40S / RTX PRO 6000 (≥16 GB per GPU)",
+      "vram": 16
     },
     "gt": null,
     "readmeEvidence": []
@@ -1316,11 +1316,11 @@
     "netuid": 91,
     "name": "cascade",
     "repo": "https://github.com/TensorLink-AI/cascade",
-    "verdict": "ESTIMATE",
-    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "verdict": "OK",
+    "reason": "matches hand-verified repo docs (docs/MINER_FUNDED_QUICKSTART.md): \"RTX4090 / RTX3090 / L40S / L40 / A6000, same for everyone in the round.\"",
     "display": {
-      "gpu": null,
-      "vram": null
+      "gpu": "RTX 4090 / RTX 3090 / L40S / L40 / A6000 (pinned per round)",
+      "vram": 24
     },
     "gt": null,
     "readmeEvidence": []
@@ -1355,11 +1355,11 @@
     "netuid": 94,
     "name": "pending...",
     "repo": "https://github.com/AlveusLabs/SN94-BitSota",
-    "verdict": "ESTIMATE",
-    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "verdict": "OK",
+    "reason": "matches hand-verified repo docs (docs/public-validator-quickstart.md): \"One NVIDIA CUDA-capable GPU with at least 24 GB VRAM.\"",
     "display": {
-      "gpu": null,
-      "vram": null
+      "gpu": "1× CUDA GPU ≥24 GB VRAM (tested A10G g5.2xlarge; validator quickstart)",
+      "vram": 24
     },
     "gt": null,
     "readmeEvidence": []
@@ -1439,11 +1439,11 @@
     "netuid": 100,
     "name": "Cortex",
     "repo": "https://github.com/CortexLM/cortex",
-    "verdict": "ESTIMATE",
-    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "verdict": "OK",
+    "reason": "matches hand-verified repo docs (docs/PRISM.md): \"`PRISM_POD_GPU_NAME` ... (default `NVIDIA B200`/`B200`; fallbacks `RTX 5090` or \"",
     "display": {
-      "gpu": null,
-      "vram": null
+      "gpu": "NVIDIA B200 (fallback RTX 5090 / RTX PRO 6000)",
+      "vram": 32
     },
     "gt": null,
     "readmeEvidence": []
@@ -1471,11 +1471,11 @@
     "netuid": 102,
     "name": "ConnitoAI",
     "repo": "https://github.com/Connito-AI/Connito",
-    "verdict": "ESTIMATE",
-    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "verdict": "OK",
+    "reason": "matches hand-verified repo docs (docs/miner-faq/miner-config.md): \"40 GB GPU (A100/H100 class) with ~24 GB allocated during eval.\"",
     "display": {
-      "gpu": null,
-      "vram": null
+      "gpu": "A100/H100 class 40 GB+ (A6000 48 GB works)",
+      "vram": 40
     },
     "gt": null,
     "readmeEvidence": []
@@ -1483,14 +1483,20 @@
   {
     "netuid": 103,
     "name": "Capcomp",
-    "repo": "https://github.com/orgs/Capcomp-AI",
-    "verdict": "ESTIMATE",
-    "reason": "no machine-readable GT in repo — display is a labeled estimate (None (CPU-only), vram 0)",
+    "repo": "https://github.com/Capcomp-AI/capability-composition-subnet",
+    "verdict": "OK",
+    "reason": "CPU-only per official min_compute.yml (gpu.required: False)",
     "display": {
-      "gpu": "None (CPU-only)",
+      "gpu": "None (CPU-only; GPU optional ≥32 GB VRAM for local evaluation)",
       "vram": 0
     },
-    "gt": null,
+    "gt": {
+      "cdGpu": null,
+      "cdVram": 0,
+      "cdCpuOnly": true,
+      "cdQpu": false,
+      "cdBoilerplate": false
+    },
     "readmeEvidence": []
   },
   {
@@ -1529,11 +1535,11 @@
     "netuid": 106,
     "name": "Nodexo",
     "repo": "https://github.com/nodexo-ai/nodexo",
-    "verdict": "ESTIMATE",
-    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "verdict": "OK",
+    "reason": "matches hand-verified repo docs (docs/SUPPORTED_GPUS.md): \"| NVIDIA GeForce RTX 4090 | 24 GB | 1 | ... | NVIDIA H100 80GB HBM3 | 80 GB | 1-\"",
     "display": {
-      "gpu": null,
-      "vram": null
+      "gpu": "H100 80GB (1–2) / A100 80GB (1–4) / RTX A6000 48GB / RTX 4090 24GB",
+      "vram": 24
     },
     "gt": null,
     "readmeEvidence": []
@@ -1600,11 +1606,11 @@
     "netuid": 111,
     "name": "Claims",
     "repo": "https://github.com/DeSciClaims/Claims",
-    "verdict": "ESTIMATE",
-    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "verdict": "OK",
+    "reason": "CPU-only per hand-verified repo docs (README.md)",
     "display": {
-      "gpu": null,
-      "vram": null
+      "gpu": "None (CPU-only)",
+      "vram": 0
     },
     "gt": null,
     "readmeEvidence": []
@@ -1678,11 +1684,11 @@
     "netuid": 117,
     "name": "everyframe.studio",
     "repo": "https://github.com/everyframe-studios/everyframe-miner",
-    "verdict": "ESTIMATE",
-    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "verdict": "OK",
+    "reason": "CPU-only per hand-verified repo docs (https://bittensor.ai/subnets/117)",
     "display": {
-      "gpu": null,
-      "vram": null
+      "gpu": "None (CPU-only)",
+      "vram": 0
     },
     "gt": null,
     "readmeEvidence": []
@@ -1717,11 +1723,11 @@
     "netuid": 120,
     "name": "Affine",
     "repo": "https://github.com/AffineFoundation/affine",
-    "verdict": "ESTIMATE",
-    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "verdict": "OK",
+    "reason": "matches hand-verified repo docs (affine/affine.toml): \"Small-VRAM miner GPUs (RTX PRO 6000, 96 GB; 2026-09-17): miner slots on GPUs und\"",
     "display": {
-      "gpu": null,
-      "vram": null
+      "gpu": "2× H100 80 GB or 2× RTX PRO 6000 96 GB (miner slots)",
+      "vram": 80
     },
     "gt": null,
     "readmeEvidence": []
@@ -1794,11 +1800,11 @@
     "netuid": 125,
     "name": "Refinery",
     "repo": "https://github.com/Barbariandev/refinery",
-    "verdict": "ESTIMATE",
-    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "verdict": "OK",
+    "reason": "matches hand-verified repo docs (sn125/cloud.py): \"True iff `sku` is a Blackwell B200 resource (the only class allowed to score).\"",
     "display": {
-      "gpu": null,
-      "vram": null
+      "gpu": "NVIDIA B200 (only SKU class allowed to score)",
+      "vram": 180
     },
     "gt": null,
     "readmeEvidence": []
@@ -1807,11 +1813,11 @@
     "netuid": 126,
     "name": "Attelier",
     "repo": "https://github.com/attelierai/attelierai_subnet",
-    "verdict": "ESTIMATE",
-    "reason": "no GPU info available anywhere — display honestly empty/estimate",
+    "verdict": "OK",
+    "reason": "CPU-only per hand-verified repo docs (https://bittensor.ai/subnets/126)",
     "display": {
-      "gpu": null,
-      "vram": null
+      "gpu": "None (CPU-only)",
+      "vram": 0
     },
     "gt": null,
     "readmeEvidence": []

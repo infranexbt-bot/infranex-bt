@@ -1,0 +1,145 @@
+[
+ {
+  "netuid": 1,
+  "name": "Apex",
+  "status": "not-documented",
+  "minVramGb": null,
+  "recommendedGpu": null,
+  "gpuCount": null,
+  "sourceUrl": null,
+  "quote": null,
+  "notes": "Repo README/SOLVERS/VALIDATORS and docs.macrocosmos.ai miner guide list wallet + submission fees only; no GPU or hardware requirements found."
+ },
+ {
+  "netuid": 8,
+  "name": "Vanta",
+  "status": "verified",
+  "minVramGb": 0,
+  "recommendedGpu": "None (CPU-only)",
+  "gpuCount": null,
+  "sourceUrl": "https://github.com/taoshidev/vanta-network/blob/HEAD/docs/miner.md",
+  "quote": "- 2 vCPU + 8 GB memory\n- Run the miner using CPU",
+  "notes": "docs/miner.md System Requirements section tells miners to run on CPU (2 vCPU + 8 GB RAM); no GPU needed."
+ },
+ {
+  "netuid": 19,
+  "name": "blockmachine",
+  "status": "not-documented",
+  "minVramGb": null,
+  "recommendedGpu": null,
+  "gpuCount": null,
+  "sourceUrl": null,
+  "quote": null,
+  "notes": "Main repo points to taostat/blockmachine-miner, whose Node Eligibility Requirements cover RPC service correctness per chain; no CPU/GPU/VRAM hardware spec published."
+ },
+ {
+  "netuid": 24,
+  "name": "Quasar",
+  "status": "not-documented",
+  "minVramGb": null,
+  "recommendedGpu": null,
+  "gpuCount": null,
+  "sourceUrl": null,
+  "quote": null,
+  "notes": "docs/mining.md supports multi-GPU miners (QUASAR_MINER_DEVICES) but states miner GPU details are telemetry only; no minimum GPU/VRAM published."
+ },
+ {
+  "netuid": 39,
+  "name": "deprecated",
+  "status": "deprecated",
+  "minVramGb": null,
+  "recommendedGpu": null,
+  "gpuCount": null,
+  "sourceUrl": null,
+  "quote": null,
+  "notes": "Repo is github.com/deprecated/deprecated; subnet retired, research skipped per batch instructions."
+ },
+ {
+  "netuid": 52,
+  "name": "Dojo",
+  "status": "verified",
+  "minVramGb": 0,
+  "recommendedGpu": "None (CPU-only)",
+  "gpuCount": null,
+  "sourceUrl": "https://github.com/tensorplex-labs/dojo/blob/HEAD/README.md",
+  "quote": "Miners do not need to spin up any server or code level things to mine!",
+  "notes": "Mining is register + load hotkey into a browser wallet (dojo.network); README documents no server, code, or GPU for miners."
+ },
+ {
+  "netuid": 65,
+  "name": "True Performance Network",
+  "status": "not-documented",
+  "minVramGb": null,
+  "recommendedGpu": null,
+  "gpuCount": null,
+  "sourceUrl": null,
+  "quote": null,
+  "notes": "docs/Miner.md requires only 0.3 TAO collateral; sole hardware note is validator follower mode 'No GPU is required' (leader validators benchmark models)."
+ },
+ {
+  "netuid": 75,
+  "name": "Hippius",
+  "status": "not-documented",
+  "minVramGb": null,
+  "recommendedGpu": null,
+  "gpuCount": null,
+  "sourceUrl": null,
+  "quote": null,
+  "notes": "Node-setup.md minimum hardware is CPU/RAM/SSD only (4 cores, 16GB RAM, 500GB SSD, 100Mbps) with no GPU; chain defines ComputeMiner/GpuMiner node types but no specs are published."
+ },
+ {
+  "netuid": 82,
+  "name": "Compelle",
+  "status": "verified",
+  "minVramGb": 0,
+  "recommendedGpu": "None (CPU-only)",
+  "gpuCount": null,
+  "sourceUrl": "https://github.com/compelle/compelle-validator/blob/HEAD/README.md",
+  "quote": "Modest CPU. No GPU. Inference is offloaded to Chutes.",
+  "notes": "Requirements section of the reference validator README explicitly states no GPU; LLM inference runs via the Chutes API."
+ },
+ {
+  "netuid": 97,
+  "name": "Albedo",
+  "status": "not-documented",
+  "minVramGb": null,
+  "recommendedGpu": null,
+  "gpuCount": null,
+  "sourceUrl": null,
+  "quote": null,
+  "notes": "docs/MINING.md requirements are hotkey/wallet/upload-credentials/Python >=3.11 only; miners fine-tune Qwen3.6-35B-A3B but no GPU/VRAM spec is documented."
+ },
+ {
+  "netuid": 108,
+  "name": "ChipForge",
+  "status": "not-documented",
+  "minVramGb": null,
+  "recommendedGpu": null,
+  "gpuCount": null,
+  "sourceUrl": null,
+  "quote": null,
+  "notes": "docs/Technical_Guide.md has a CPU-only System Requirements table (8 cores/24GB RAM) but it references the old Tatsu Document Understanding subnet (stale copy); no ChipForge GPU spec."
+ },
+ {
+  "netuid": 118,
+  "name": "Ditto",
+  "status": "not-documented",
+  "minVramGb": null,
+  "recommendedGpu": null,
+  "gpuCount": null,
+  "sourceUrl": null,
+  "quote": null,
+  "notes": "Actual repo is ditto-assistant/ditto-subnet (found via org page); miners submit Docker agent harnesses and docs/MINER.md plus heyditto.ai state no GPU/hardware requirements."
+ },
+ {
+  "netuid": 127,
+  "name": "Astrid",
+  "status": "not-documented",
+  "minVramGb": null,
+  "recommendedGpu": null,
+  "gpuCount": null,
+  "sourceUrl": null,
+  "quote": null,
+  "notes": "Repo is the validator daemon (prerequisites: Node.js 20+ and wallet only); docs/miner-guide.md has no hardware/GPU requirements either."
+ }
+]

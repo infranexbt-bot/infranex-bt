@@ -1,0 +1,134 @@
+[
+ {
+  "netuid": 5,
+  "name": "Hone",
+  "status": "verified",
+  "minVramGb": 0,
+  "recommendedGpu": "None (CPU-only)",
+  "gpuCount": null,
+  "sourceUrl": "https://github.com/hone-subnet-org/hone-subnet/blob/main/README.md",
+  "quote": "The launch configuration can run up to 16 one-CPU, 256 MiB grading containers at once. A 16-vCPU, 16-GiB host is recommended",
+  "notes": "CPU-only by design: README sizes the validator grading host in CPU/RAM terms and the reference demo miner just calls an external LLM API; no GPU mentioned anywhere in repo."
+ },
+ {
+  "netuid": 13,
+  "name": "Data Universe",
+  "status": "verified",
+  "minVramGb": 0,
+  "recommendedGpu": "None (CPU-only)",
+  "gpuCount": null,
+  "sourceUrl": "https://github.com/macrocosm-os/data-universe/blob/main/docs/miner.md",
+  "quote": "Miners do not require a GPU and should be able to run on a low-tier machine, as long as it has sufficient network bandwidth and disk space.",
+  "notes": "Explicit CPU-only miner statement; validator doc adds 'at least 32 GB of RAM but do not require a GPU'."
+ },
+ {
+  "netuid": 22,
+  "name": "Desearch",
+  "status": "verified",
+  "minVramGb": 0,
+  "recommendedGpu": "None (CPU-only)",
+  "gpuCount": null,
+  "sourceUrl": "https://github.com/datura-ai/desearch/blob/main/min_compute.yml",
+  "quote": "min_cores: 2 # Minimum number of CPU cores ... min_ram: 8 # Minimum RAM (GB)",
+  "notes": "Official min_compute.yml v1.0.4 miner compute_spec (2 cores/8GB RAM/SSD/Ubuntu 24.04) contains no gpu key at all; search-API relay subnet."
+ },
+ {
+  "netuid": 27,
+  "name": "Orion",
+  "status": "not-documented",
+  "minVramGb": null,
+  "recommendedGpu": null,
+  "gpuCount": null,
+  "sourceUrl": null,
+  "quote": null,
+  "notes": "README confirms a local miner GPU ('Quasar-Preview ... runs locally on the miner GPU', --devices 0) but no GPU model or VRAM figure is documented in repo or the linked HF model card."
+ },
+ {
+  "netuid": 44,
+  "name": "Score",
+  "status": "verified",
+  "minVramGb": 16,
+  "recommendedGpu": null,
+  "gpuCount": 1,
+  "sourceUrl": "https://github.com/score-technologies/turbovision/blob/main/scorevision/miner/open_source/example_miner/chute_config.yml",
+  "quote": "gpu_count: 1, min_vram_gb_per_gpu: 16",
+  "notes": "From the open-source example miner's Chutes NodeSelector config (excludes 5090/b200/h200/h20/mi300x); MINER.md itself only says 'Have GPU/cloud capacity for inference'."
+ },
+ {
+  "netuid": 61,
+  "name": "RedTeam",
+  "status": "verified",
+  "minVramGb": 0,
+  "recommendedGpu": "None (CPU-only)",
+  "gpuCount": null,
+  "sourceUrl": "https://github.com/RedTeamSubnet/RedTeam/blob/main/docs/getting-started/miner.md",
+  "quote": "System Requirements: CPU: 2+ cores, RAM: 8GB+, Storage: 50GB+, OS: Linux-based (Ubuntu 22.04 LTS+ recommended)",
+  "notes": "Miner prerequisites list CPU/RAM/storage/OS only; no GPU appears anywhere in repo docs (validators: 8+ cores, 32GB+, 512GB+ storage)."
+ },
+ {
+  "netuid": 69,
+  "name": "Herald",
+  "status": "verified",
+  "minVramGb": 0,
+  "recommendedGpu": "None (CPU-only)",
+  "gpuCount": null,
+  "sourceUrl": "https://github.com/HeraldMedia/herald/blob/main/docs/validator.md",
+  "quote": "**No GPU / no ML** — it is network-I/O bound",
+  "notes": "Validator guide hardware table lists GPU: none; root min_compute.yml miner spec is 2 CPU / 4 GB RAM with no GPU; miners are article contributors via the Herald website."
+ },
+ {
+  "netuid": 77,
+  "name": "Liquidity",
+  "status": "not-documented",
+  "minVramGb": null,
+  "recommendedGpu": null,
+  "gpuCount": null,
+  "sourceUrl": null,
+  "quote": null,
+  "notes": "TypeScript tooling around a hosted weights server (77.creativebuilds.io); validators only fetch/push weights and the repo documents no hardware requirements."
+ },
+ {
+  "netuid": 93,
+  "name": "Bitcast",
+  "status": "not-documented",
+  "minVramGb": null,
+  "recommendedGpu": null,
+  "gpuCount": null,
+  "sourceUrl": null,
+  "quote": null,
+  "notes": "Miners are YouTube creators serving OAuth tokens via an axon; repo (README, AGENTS.md) documents no miner/validator hardware or GPU specs."
+ },
+ {
+  "netuid": 103,
+  "name": "Capcomp",
+  "status": "verified",
+  "minVramGb": 32,
+  "recommendedGpu": null,
+  "gpuCount": 1,
+  "sourceUrl": "https://github.com/Capcomp-AI/capability-composition-subnet/blob/main/min_compute.yml",
+  "quote": "A miner can do useful work with nothing but a CPU ... needs a GPU that fits Qwen3-8B in bf16",
+  "notes": "Official repo (found via org page). min_compute.yml v2.0.0: miner GPU optional (min_vram 32 / rec 48, compute cap 8.0) for local evaluation; validator requires 4x 32GB (rec 8x 48GB)."
+ },
+ {
+  "netuid": 115,
+  "name": "MoirAI",
+  "status": "not-documented",
+  "minVramGb": null,
+  "recommendedGpu": null,
+  "gpuCount": null,
+  "sourceUrl": null,
+  "quote": null,
+  "notes": "Repo contains only a product-overview README plus images (no miner setup, no min_compute.yml); web search surfaced no official hardware docs."
+ },
+ {
+  "netuid": 121,
+  "name": "sundae_bar",
+  "status": "not-documented",
+  "minVramGb": null,
+  "recommendedGpu": null,
+  "gpuCount": null,
+  "sourceUrl": null,
+  "quote": null,
+  "notes": "Miners submit SKILL.md files via the sundae_bar Lab and evaluation runs on the subnet's hosted harness; repo README and sundaebar.ai page document no miner hardware."
+ }
+]

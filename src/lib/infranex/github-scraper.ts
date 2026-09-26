@@ -43,6 +43,8 @@ export interface ScrapedMetadata {
   gpuRequired: boolean | null;
   /** URL of the min_compute.yml the spec came from (null when absent). */
   minComputeUrl: string | null;
+  /** GPU-TAXONOMY 2: provenance note when CURATED_GPU_SPECS supplied the GPU value. */
+  curatedGpuNote: string | null;
   /** Hosting constraints detected in the README(s). Null flags = unknown. */
   hosting: HostingRequirements | null;
   /**
@@ -73,6 +75,338 @@ export interface ScrapedMetadata {
 // chutesai/chutes-miner ("ALL servers must be bare metal/VM ... Runpod, Vast").
 export const CURATED_MINER_REPOS: Record<number, string> = {
   64: "https://github.com/chutesai/chutes-miner",
+};
+
+/**
+ * GPU-TAXONOMY 2: hand-verified GPU specs for subnets whose hardware
+ * requirements are documented OUTSIDE the patterns the automated parsers
+ * can see (deep docs/*.md files, code-level requirement constants, official
+ * directory pages). Every entry was confirmed against the subnet's OWN
+ * documentation and carries the source file plus a verbatim quote.
+ *
+ * Applied ONLY when the automated layers found nothing (no machine-readable
+ * min_compute.yml spec, no parsed prose GPU requirement) — never overrides
+ * stronger evidence. Regenerate/audit via scripts/gpu-audit/.
+ */
+export interface CuratedGpuSpec {
+  /** Minimum VRAM in GB (0 = officially no GPU needed; null = GPU required but VRAM unspecified). */
+  minVramGb: number | null;
+  recommendedGpu: string;
+  gpuCount: number | null;
+  /** Repo-relative file (or absolute URL) the spec was verified in. */
+  sourceFile: string;
+  /** Verbatim quote backing the spec. */
+  quote: string;
+}
+
+export const CURATED_GPU_SPECS: Record<number, CuratedGpuSpec> = {
+  // --- deep repo docs (verified in full repo tarball sweep) ---
+  3: {
+    minVramGb: 141,
+    recommendedGpu: "8× H200/B200-class node (or multi-node setup)",
+    gpuCount: 8,
+    sourceFile: "website/llms.txt",
+    quote: "For training you need a multi-GPU node (8x H200/B200-class or better) or multi-node setup",
+  },
+  4: {
+    minVramGb: 80,
+    recommendedGpu: "8× H100 SXM / H200 / B200 / B300 / RTX PRO 6000 Blackwell (TEE hardware profiles)",
+    gpuCount: 8,
+    sourceFile: "docs/miner/miner.md",
+    quote:
+      "TargonOS only installs on machines that match one of the hardware profiles below ... Each profile requires exactly 8 GPUs of the listed SKU.",
+  },
+  9: {
+    minVramGb: 16,
+    recommendedGpu: "RTX 4090 (example)",
+    gpuCount: null,
+    sourceFile: "README.md",
+    quote: "Cuda GPU with >= 16GB VRAM (RTX 4090, for example).",
+  },
+  14: {
+    minVramGb: 80,
+    recommendedGpu: "H100 (arena target: qwen36-35b-h100-bf16-tp1)",
+    gpuCount: null,
+    sourceFile: "docs/miner-guide/your-first-kernel.md",
+    quote: '`[competition]` lines for arena `qwen36-35b-h100-bf16-tp1`',
+  },
+  26: {
+    minVramGb: 12,
+    recommendedGpu: "NVIDIA GPU 12+ GB VRAM (recommended: 24+ GB)",
+    gpuCount: null,
+    sourceFile: "README.md",
+    quote: "Minimum: 8 vCPU, 32 GB RAM, NVIDIA GPU with 12+ GB VRAM, 100 GB SSD",
+  },
+  40: {
+    minVramGb: 80,
+    recommendedGpu: "NVIDIA H100 PCIe (subnet-rented eval GPU)",
+    gpuCount: null,
+    sourceFile: "eval/orchestrator.py",
+    quote: 'require_gpu: str = "NVIDIA H100 PCIe"',
+  },
+  47: {
+    minVramGb: 80,
+    recommendedGpu: "NVIDIA H100 (approved variants)",
+    gpuCount: null,
+    sourceFile: "src/gpuforge/capability.py",
+    quote: "GPU memory is below the configured H100 minimum",
+  },
+  51: {
+    minVramGb: 24,
+    recommendedGpu: "NVIDIA GPU host — earn program: RTX 4090 24 GB up to flagship 8× H200/B200/B300",
+    gpuCount: null,
+    sourceFile: "neurons/validators/src/services/const.py",
+    quote: '"NVIDIA GeForce RTX 4090": 0.05 ... "NVIDIA H200": .56',
+  },
+  53: {
+    minVramGb: 24,
+    recommendedGpu: "2× RTX 4090/5090, or 1× L40S / RTX 6000 Ada (48 GB), or H100/H200/B200",
+    gpuCount: null,
+    sourceFile: "docs/ANNOUNCEMENT.md",
+    quote:
+      "~35 GB of weights plus KV cache: 2× RTX 4090 or 2× RTX 5090, a single L40S or RTX 6000 Ada (48 GB), or a datacenter card (H100, H200, or B200)",
+  },
+  56: {
+    minVramGb: 80,
+    recommendedGpu: "NVIDIA A100 (Basilica)",
+    gpuCount: null,
+    sourceFile: "docs/miner.md",
+    quote: "Production runs on Basilica A100",
+  },
+  68: {
+    minVramGb: 48,
+    recommendedGpu: "2× GPUs with >48 GB VRAM each (Boltz-2 inference)",
+    gpuCount: 2,
+    sourceFile: "README.md",
+    quote: "2 GPU devices with > 48 GB VRAM for parallel inference.",
+  },
+  74: {
+    minVramGb: 32,
+    recommendedGpu: "NVIDIA GeForce RTX 5090 (32 GB)",
+    gpuCount: null,
+    sourceFile: "docker/sparkinfer.Dockerfile",
+    quote: 'sm_120 = RTX 5090. Add more (e.g. "89;120") only if the fleet blesses other hardware.',
+  },
+  80: {
+    minVramGb: 24,
+    recommendedGpu: "1× NVIDIA GPU 24 GB (recommended: A100 80 GB)",
+    gpuCount: null,
+    sourceFile: "docs/MINER_DEPLOY.md",
+    quote: "| GPU | 1× NVIDIA GPU, 24 GB VRAM | 1× A100 80GB |",
+  },
+  81: {
+    minVramGb: 24,
+    recommendedGpu: "1–2× NVIDIA GPU ≥24 GB each (H100/H200 reference)",
+    gpuCount: null,
+    sourceFile: "docs/mining.md",
+    quote: "| GPU | 1x or 2x NVIDIA GPU, at least 24 GB VRAM each.",
+  },
+  85: {
+    minVramGb: 16,
+    recommendedGpu: "L4 / L40S / RTX PRO 6000 (≥16 GB per GPU)",
+    gpuCount: null,
+    sourceFile: "docs/miner_setup.md",
+    quote: "- **VRAM**: At least 16 GB per GPU ... Select only supported GPUs: `L4`, `L40S`, and/or `RTX-PRO-6000`.",
+  },
+  91: {
+    minVramGb: 24,
+    recommendedGpu: "RTX 4090 / RTX 3090 / L40S / L40 / A6000 (pinned per round)",
+    gpuCount: null,
+    sourceFile: "docs/MINER_FUNDED_QUICKSTART.md",
+    quote: "RTX4090 / RTX3090 / L40S / L40 / A6000, same for everyone in the round.",
+  },
+  94: {
+    minVramGb: 24,
+    recommendedGpu: "1× CUDA GPU ≥24 GB VRAM (tested A10G g5.2xlarge; validator quickstart)",
+    gpuCount: null,
+    sourceFile: "docs/public-validator-quickstart.md",
+    quote: "One NVIDIA CUDA-capable GPU with at least 24 GB VRAM.",
+  },
+  100: {
+    minVramGb: 32,
+    recommendedGpu: "NVIDIA B200 (fallback RTX 5090 / RTX PRO 6000)",
+    gpuCount: null,
+    sourceFile: "docs/PRISM.md",
+    quote: "`PRISM_POD_GPU_NAME` ... (default `NVIDIA B200`/`B200`; fallbacks `RTX 5090` or `RTX PRO 6000`)",
+  },
+  102: {
+    minVramGb: 40,
+    recommendedGpu: "A100/H100 class 40 GB+ (A6000 48 GB works)",
+    gpuCount: null,
+    sourceFile: "docs/miner-faq/miner-config.md",
+    quote: "40 GB GPU (A100/H100 class) with ~24 GB allocated during eval.",
+  },
+  106: {
+    minVramGb: 24,
+    recommendedGpu: "H100 80GB (1–2) / A100 80GB (1–4) / RTX A6000 48GB / RTX 4090 24GB",
+    gpuCount: null,
+    sourceFile: "docs/SUPPORTED_GPUS.md",
+    quote: "| NVIDIA GeForce RTX 4090 | 24 GB | 1 | ... | NVIDIA H100 80GB HBM3 | 80 GB | 1-2 |",
+  },
+  120: {
+    minVramGb: 80,
+    recommendedGpu: "2× H100 80 GB or 2× RTX PRO 6000 96 GB (miner slots)",
+    gpuCount: 2,
+    sourceFile: "affine/affine.toml",
+    quote:
+      "Small-VRAM miner GPUs (RTX PRO 6000, 96 GB; 2026-09-17): miner slots on GPUs under the price cap wins.",
+  },
+  125: {
+    minVramGb: 180,
+    recommendedGpu: "NVIDIA B200 (only SKU class allowed to score)",
+    gpuCount: null,
+    sourceFile: "sn125/cloud.py",
+    quote: "True iff `sku` is a Blackwell B200 resource (the only class allowed to score).",
+  },
+  // --- web/doc research (verified with verbatim quotes; see worklog gpu-2-a..d) ---
+  2: {
+    minVramGb: 0,
+    recommendedGpu: "None (CPU-only)",
+    gpuCount: null,
+    sourceFile: "README.md",
+    quote: "open the opportunity for non-GPU miners to participate",
+  },
+  5: {
+    minVramGb: 0,
+    recommendedGpu: "None (CPU-only)",
+    gpuCount: null,
+    sourceFile: "README.md",
+    quote: "The launch configuration can run up to 16 one-CPU, 256 MiB grading containers at once.",
+  },
+  6: {
+    minVramGb: 0,
+    recommendedGpu: "None (CPU-only)",
+    gpuCount: null,
+    sourceFile: "docs/validator-setup.md",
+    quote: "RAM: 16 GB minimum (32 GB recommended for concurrent sandbox execution); CPU: 4 cores minimum (8+ recommended)",
+  },
+  8: {
+    minVramGb: 0,
+    recommendedGpu: "None (CPU-only)",
+    gpuCount: null,
+    sourceFile: "docs/miner.md",
+    quote: "- 2 vCPU + 8 GB memory / - Run the miner using CPU",
+  },
+  11: {
+    minVramGb: 0,
+    recommendedGpu: "None (CPU-only)",
+    gpuCount: null,
+    sourceFile: "README.md",
+    quote: "No GPU, no server, no uptime: the platform stores your pack; validators run everything.",
+  },
+  13: {
+    minVramGb: 0,
+    recommendedGpu: "None (CPU-only)",
+    gpuCount: null,
+    sourceFile: "docs/miner.md",
+    quote: "Miners do not require a GPU and should be able to run on a low-tier machine",
+  },
+  15: {
+    minVramGb: 0,
+    recommendedGpu: "None (CPU-only)",
+    gpuCount: null,
+    sourceFile: "https://docs.oroagents.com/validators/overview",
+    quote: "GPU Not required",
+  },
+  22: {
+    minVramGb: 0,
+    recommendedGpu: "None (CPU-only)",
+    gpuCount: null,
+    sourceFile: "min_compute.yml",
+    quote: "compute_spec: miner: cpu: min_cores: 2 ... min_ram: 8 (no gpu key, v1.0.4)",
+  },
+  36: {
+    minVramGb: null,
+    recommendedGpu: "1× consumer GPU",
+    gpuCount: 1,
+    sourceFile: "docs/MINING.md",
+    quote: "which is why a single consumer GPU is enough to fine-tune and duel it",
+  },
+  41: {
+    minVramGb: 0,
+    recommendedGpu: "None (CPU-only)",
+    gpuCount: null,
+    sourceFile: "README.md",
+    quote: "No GPU is required — LLM inference is remote via the central gateway.",
+  },
+  44: {
+    minVramGb: 16,
+    recommendedGpu: "1× GPU ≥16 GB VRAM (RTX 5090/B200/H200/H20/MI300X excluded)",
+    gpuCount: 1,
+    sourceFile: "example_miner/chute_config.yml",
+    quote: "gpu_count: 1, min_vram_gb_per_gpu: 16",
+  },
+  46: {
+    minVramGb: 0,
+    recommendedGpu: "None (CPU-only)",
+    gpuCount: null,
+    sourceFile: "README.md",
+    quote: "1 vCPU; 2 GB RAM; 50 GB SSD; Ubuntu 22.04+ (x86_64); ... No GPU required",
+  },
+  55: {
+    minVramGb: null,
+    recommendedGpu: "GPU required (model/VRAM unspecified)",
+    gpuCount: null,
+    sourceFile: "docs/miner_guide.md",
+    quote: "GPU : necessary, up to your generation / Memory : 16GB minimum",
+  },
+  61: {
+    minVramGb: 0,
+    recommendedGpu: "None (CPU-only)",
+    gpuCount: null,
+    sourceFile: "docs/getting-started/miner.md",
+    quote: "System Requirements — 2+ cores, 8 GB+ RAM, 50 GB+ storage (no GPU)",
+  },
+  69: {
+    minVramGb: 0,
+    recommendedGpu: "None (CPU-only)",
+    gpuCount: null,
+    sourceFile: "min_compute.yml",
+    quote: "miner: cpu: 2 ram: 4 — No GPU / no ML, it is network-I/O bound",
+  },
+  78: {
+    minVramGb: 0,
+    recommendedGpu: "None (CPU-only)",
+    gpuCount: null,
+    sourceFile: "https://bittensor.ai/subnets/78",
+    quote: "GPU Not required ; OS Linux/Unix recommended; Docker deployment supported",
+  },
+  82: {
+    minVramGb: 0,
+    recommendedGpu: "None (CPU-only)",
+    gpuCount: null,
+    sourceFile: "README.md",
+    quote: "Modest CPU. No GPU. Inference is offloaded to Chutes.",
+  },
+  103: {
+    minVramGb: 0,
+    recommendedGpu: "None (CPU-only; GPU optional ≥32 GB VRAM for local evaluation)",
+    gpuCount: null,
+    sourceFile: "min_compute.yml",
+    quote:
+      "gpu: required: false # required only for local evaluation, min_vram: 32, recommended_vram: 48 — A miner can do useful work with nothing but a CPU",
+  },
+  111: {
+    minVramGb: 0,
+    recommendedGpu: "None (CPU-only)",
+    gpuCount: null,
+    sourceFile: "README.md",
+    quote: "GPU | Not required with hosted inference providers",
+  },
+  117: {
+    minVramGb: 0,
+    recommendedGpu: "None (CPU-only)",
+    gpuCount: null,
+    sourceFile: "https://bittensor.ai/subnets/117",
+    quote: "Hardware Requirements Miner GPU Not required RAM 8 GB Storage 10 GB",
+  },
+  126: {
+    minVramGb: 0,
+    recommendedGpu: "None (CPU-only)",
+    gpuCount: null,
+    sourceFile: "https://bittensor.ai/subnets/126",
+    quote: "GPU optional depending on model implementation. Reference model runs on CPU.",
+  },
 };
 
 // Additional requirement repos per subnet — hardware/hosting rules that live
@@ -900,7 +1234,7 @@ export async function scrapeGithubMetadata(
   githubUrl: string,
   opts?: { netuid?: number; subnetName?: string | null }
 ): Promise<ScrapedMetadata> {
-  const NO_MECHANICS: ScrapedMetadata = { description: null, minVramGb: null, recommendedGpu: null, gpuCount: null, gpuModelRaw: null, gpuRequired: null, minComputeUrl: null, hosting: null, mechanics: null, infra: null, requirementsSource: null, readmeUrl: null, requirementsUrl: null, rawReadmeSnippet: null, source: "error" };
+  const NO_MECHANICS: ScrapedMetadata = { description: null, minVramGb: null, recommendedGpu: null, gpuCount: null, gpuModelRaw: null, gpuRequired: null, minComputeUrl: null, curatedGpuNote: null, hosting: null, mechanics: null, infra: null, requirementsSource: null, readmeUrl: null, requirementsUrl: null, rawReadmeSnippet: null, source: "error" };
   try {
     let info = parseGithubUrl(githubUrl);
     if (!info) {
@@ -1051,6 +1385,28 @@ export async function scrapeGithubMetadata(
       }
     }
 
+    // GPU-TAXONOMY 2: hand-verified repo-doc specs (CURATED_GPU_SPECS). Every
+    // entry was confirmed against the subnet's own documentation with a
+    // verbatim quote. Applied ONLY when the automated layers found nothing —
+    // never overrides min_compute.yml ground truth or a parsed prose spec.
+    const curated = opts?.netuid != null ? CURATED_GPU_SPECS[opts.netuid] : undefined;
+    let curatedGpuNote: string | null = null;
+    if (
+      curated &&
+      !minCompute?.cpuOnly &&
+      !minCompute?.qpuRequired &&
+      minCompute?.minVramGb == null &&
+      minCompute?.recommendedGpu == null &&
+      recommendedGpu == null &&
+      (vram == null || vram === 0)
+    ) {
+      recommendedGpu = curated.recommendedGpu;
+      gpuCount = curated.gpuCount ?? null;
+      gpuModelRaw = curated.recommendedGpu;
+      vram = curated.minVramGb;
+      curatedGpuNote = `GPU spec hand-verified from the subnet's own docs (${curated.sourceFile}): "${curated.quote}"`;
+    }
+
     // MECHANICS-ALL: derive mechanics from the same combined README text the
     // hosting/GPU parsers read. Sparse by design — null when nothing hit.
     const extractedMechanics = hostingCombined
@@ -1083,6 +1439,7 @@ export async function scrapeGithubMetadata(
       gpuModelRaw,
       gpuRequired: minCompute ? !minCompute.cpuOnly && !minCompute.qpuRequired : null,
       minComputeUrl: minCompute?.url ?? null,
+      curatedGpuNote,
       hosting,
       mechanics,
       infra,

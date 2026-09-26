@@ -583,6 +583,9 @@ async function buildProfile(netuid: number): Promise<SubnetRequirementsProfile> 
       "GPU requirement comes from the repo's official min_compute.yml compute spec (machine-readable ground truth)."
     );
   }
+  if (scraped?.curatedGpuNote) {
+    notes.push(scraped.curatedGpuNote);
+  }
 
   // Confidence: repo found + deps parsed = high; repo but thin parse = medium; none = low
   const hasRepo = sources.includes("github");
