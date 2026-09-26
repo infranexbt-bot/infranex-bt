@@ -158,49 +158,63 @@ export function SubnetRequirementsDialog({
     toast({ title: "Copied", description: "Miner command copied to clipboard" });
   };
 
+  // FULL-VIEW DIALOG — operators asked for the complete requirements picture
+  // at a glance instead of a cramped 768px single column. The panel now opens
+  // near-fullscreen: sticky header (identity + provenance), scrollable body,
+  // and the profile sections laid out in a two-column grid on wide screens.
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto custom-scroll">
-        <DialogHeader>
-          <div className="flex items-center gap-2">
+      <DialogContent className="flex h-[94vh] max-h-[94vh] w-[min(96vw,1500px)] max-w-[96vw] flex-col gap-0 overflow-hidden p-0 sm:max-w-[min(96vw,1500px)]">
+        {/* Sticky header — identity + provenance, never scrolls away */}
+        <DialogHeader className="shrink-0 space-y-1.5 border-b border-border/60 bg-background/95 p-5 pr-14 text-left backdrop-blur">
+          <div className="flex flex-wrap items-center gap-2">
             <Badge variant="outline" className="mono text-[10px]">{subnet.symbol}</Badge>
-            <DialogTitle className="text-display text-2xl">
+            <DialogTitle className="text-display text-xl sm:text-2xl">
               {subnet.name} — Mining Requirements
             </DialogTitle>
           </div>
-          <DialogDescription>
+          <DialogDescription className="text-xs">
             NetUID {subnet.netuid} · {subnet.category} · Pulled from the subnet&apos;s chain identity + GitHub repo
           </DialogDescription>
+          {state.phase === "loaded" && (
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <ProvenanceStrip profile={state.profile} cached={state.cached} />
+            </div>
+          )}
         </DialogHeader>
 
-        <SeatAvailabilitySection subnet={subnet} />
+        {/* Scrollable full-view body */}
+        <div className="custom-scroll min-h-0 flex-1 overflow-y-auto p-5">
+          <div className="space-y-4">
+            <SeatAvailabilitySection subnet={subnet} />
 
-        {compat && <CompatSection compat={compat} subnetName={subnet.name} />}
-        <WhatMinersDoCard netuid={subnet.netuid} />
+            {compat && <CompatSection compat={compat} subnetName={subnet.name} />}
+            <WhatMinersDoCard netuid={subnet.netuid} />
 
-        {state.phase === "loading" && <LoadingState netuid={subnet.netuid} />}
+            {state.phase === "loading" && <LoadingState netuid={subnet.netuid} />}
 
-        {state.phase === "loaded" && (
-          <LiveProfileView
-            profile={state.profile}
-            cached={state.cached}
-            subnet={subnet}
-            refreshing={refreshing}
-            onRefresh={refresh}
-            onStartMining={onStartMining}
-            onOpenChange={onOpenChange}
-            onCopy={copyCommand}
-          />
-        )}
+            {state.phase === "loaded" && (
+              <ProfileGridLayout
+                profile={state.profile}
+                subnet={subnet}
+                refreshing={refreshing}
+                onRefresh={refresh}
+                onStartMining={onStartMining}
+                onOpenChange={onOpenChange}
+                onCopy={copyCommand}
+              />
+            )}
 
-        {state.phase === "error" && (
-          <ErrorState
-            message={state.message}
-            subnet={subnet}
-            onRefresh={refresh}
-            refreshing={refreshing}
-          />
-        )}
+            {state.phase === "error" && (
+              <ErrorState
+                message={state.message}
+                subnet={subnet}
+                onRefresh={refresh}
+                refreshing={refreshing}
+              />
+            )}
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );
@@ -284,11 +298,17 @@ function LoadingState({ netuid }: { netuid: number }) {
           </p>
         </div>
       </div>
-      <div className="space-y-3">
-        <Skeleton className="h-24 w-full" />
-        <Skeleton className="h-24 w-full" />
-        <Skeleton className="h-16 w-full" />
-        <Skeleton className="h-28 w-full" />
+      <div className="grid items-start gap-4 xl:grid-cols-2">
+        <div className="space-y-4">
+          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-16 w-full" />
+          <Skeleton className="h-28 w-full" />
+        </div>
+        <div className="space-y-4">
+          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-28 w-full" />
+          <Skeleton className="h-16 w-full" />
+        </div>
       </div>
     </div>
   );
@@ -370,9 +390,39 @@ function Chip({ children, mono }: { children: React.ReactNode; mono?: boolean })
   );
 }
 
-function LiveProfileView({
+function ProvenanceStrip({
   profile,
   cached,
+}: {
+  profile: SubnetRequirementsProfile;
+  cached: boolean;
+}) {
+  const p = profile;
+  return (
+    <>
+      {p.sources.map((s) => (
+        <Chip key={s}>{s === "github" ? "GitHub repo" : s === "chain" ? "On-chain identity" : s === "curated" ? "Curated dataset" : "Classifier"}</Chip>
+      ))}
+      <ConfidenceBadge confidence={p.confidence} />
+      <Chip>{cached ? "cached (6h TTL)" : "fresh pull"}</Chip>
+      {p.fetchedAt && (
+        <span className="text-[10px] text-muted-foreground">
+          {new Date(p.fetchedAt).toLocaleString()}
+        </span>
+      )}
+    </>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Full-view profile layout — two-column grid so the complete requirements
+// picture is readable at a glance on wide screens (single column below xl):
+//   LEFT  = hardware + network truth (GPU, service infra, chain ports)
+//   RIGHT = runtime reality (dependencies, repo, miner command)
+// ---------------------------------------------------------------------------
+
+function ProfileGridLayout({
+  profile,
   subnet,
   refreshing,
   onRefresh,
@@ -381,7 +431,6 @@ function LiveProfileView({
   onCopy,
 }: {
   profile: SubnetRequirementsProfile;
-  cached: boolean;
   subnet: Subnet;
   refreshing: boolean;
   onRefresh: () => void;
@@ -394,21 +443,7 @@ function LiveProfileView({
   const p = profile;
   return (
     <div className="space-y-4">
-      {/* Provenance strip */}
-      <div className="flex flex-wrap items-center gap-2">
-        {p.sources.map((s) => (
-          <Chip key={s}>{s === "github" ? "GitHub repo" : s === "chain" ? "On-chain identity" : s === "curated" ? "Curated dataset" : "Classifier"}</Chip>
-        ))}
-        <ConfidenceBadge confidence={p.confidence} />
-        <Chip>{cached ? "cached (6h TTL)" : "fresh pull"}</Chip>
-        {p.fetchedAt && (
-          <span className="text-[10px] text-muted-foreground">
-            {new Date(p.fetchedAt).toLocaleString()}
-          </span>
-        )}
-      </div>
-
-      {/* Notes / warnings */}
+      {/* Notes / warnings — full width above the grid */}
       {p.notes.length > 0 && (
         <div className="rounded-lg border border-amber-500/40 bg-amber-500/[0.06] p-3 space-y-1.5">
           {p.notes.map((n, i) => (
@@ -420,6 +455,10 @@ function LiveProfileView({
         </div>
       )}
 
+      {/* Two-column detail grid — left: hardware + network; right: runtime,
+          repo, command. Stacks to one column below xl. */}
+      <div className="grid items-start gap-4 xl:grid-cols-2">
+        <div className="space-y-4">
       {/* GPU Requirements */}
       <Section icon={<Cpu className="h-4 w-4 text-primary" />} title="GPU Requirements">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -483,6 +522,17 @@ function LiveProfileView({
         </Section>
       )}
 
+      {/* Network Configuration */}
+      <Section icon={<Network className="h-4 w-4 text-primary" />} title="Network Configuration">
+        <div className="grid grid-cols-3 gap-3">
+          <Spec label="Network" value={p.chainNetwork} mono />
+          <Spec label="Axon Port" value={String(p.ports.axon)} mono />
+          <Spec label="Prometheus Port" value={String(p.ports.prometheus)} mono />
+        </div>
+      </Section>
+        </div>
+
+        <div className="space-y-4">
       {/* Runtime & Dependencies */}
       <Section icon={<Package className="h-4 w-4 text-primary" />} title="Runtime & Dependencies">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -558,15 +608,6 @@ function LiveProfileView({
         </div>
       </Section>
 
-      {/* Network Configuration */}
-      <Section icon={<Network className="h-4 w-4 text-primary" />} title="Network Configuration">
-        <div className="grid grid-cols-3 gap-3">
-          <Spec label="Network" value={p.chainNetwork} mono />
-          <Spec label="Axon Port" value={String(p.ports.axon)} mono />
-          <Spec label="Prometheus Port" value={String(p.ports.prometheus)} mono />
-        </div>
-      </Section>
-
       {/* Miner Command */}
       <Section icon={<Terminal className="h-4 w-4 text-primary" />} title="Miner Command">
         <div className="relative">
@@ -600,6 +641,8 @@ function LiveProfileView({
           </div>
         </div>
       </Section>
+        </div>
+      </div>
 
       {/* Actions */}
       <div className="flex items-center gap-2">
