@@ -121,3 +121,28 @@ Stage Summary:
   SN125 B200, SN120 2x H100/PRO6000, ...), 2 display GPU-required-unspecified
 - Remaining 35 estimates are genuinely undocumented everywhere official
   (verified per-subnet) — display stays honestly labeled, never assumed
+
+---
+Task ID: req-dialog-fullview
+Agent: main (Super Z)
+Task: Subnets page Requirements dialog displayed too small/short — make it open as a complete full view
+
+Work Log:
+- Reproduced in browser (agent-browser, admin session): dialog was max-w-3xl
+  (768px) single column with heavy vertical scroll — "very short" complaint
+- Rewrote src/components/subnets/subnet-requirements-dialog.tsx:
+  * DialogContent -> w-[min(96vw,1500px)] h-[94vh] flex-col panel, p-0,
+    overflow-hidden; sticky header (title + provenance strip via new
+    ProvenanceStrip component) + internally scrolling body
+  * LiveProfileView split -> ProfileGridLayout: 2-col grid on xl+
+    (LEFT: GPU requirements, service infra, network config; RIGHT: runtime
+    deps, repo & entrypoint, miner command + env vars); single col below xl
+  * Seat availability / hosting compat / what-miners-do remain full-width
+  * Loading skeleton mirrors 2-col grid; sections unchanged content-wise
+- Verified in browser on SN1 Apex + SN4 Targon: whole detail picture now
+  fits ~1 screen at 1440x900 (was 3-4 screens of scrolling)
+- tsc clean, eslint clean; committed b5c4c27, pushed origin/main
+- Note: dev server restarted after crash (was down on reconnect); running on :3000
+
+Stage Summary:
+- Requirements dialog opens near-fullscreen with all details visible at a glance
