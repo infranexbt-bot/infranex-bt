@@ -2851,3 +2851,28 @@ Stage Summary:
 - Scraper now honors min_compute.yml for ALL subnets following the official
   template (machine-readable ground truth beats keyword classification)
 - Committed and pushed to origin/main
+
+---
+Task ID: load-app-1
+Agent: main (Super Z)
+Task: Load the web app (continue from all-subnet GPU audit)
+
+Work Log:
+- Read worklog: previous session completed the all-subnet GPU audit pipeline
+  (scripts/gpu-audit/: dump -> audit-all -> rescrape-parallel -> audit-verify)
+- Confirmed audit outcome from verify-results.json: 128 subnets, verdicts
+  29 OK (matches repo ground truth: min_compute.yml / README evidence),
+  78 ESTIMATE (no GPU spec exists in repo - display honestly labeled, not
+  assumed), 21 NO-REPO (parked/for-sale slots) - 0 MISMATCH, 0 ERROR
+- Spot-checked ground-truth rows: SN96 RTX 4090/24 OK, SN64 8x H200 OK,
+  SN21 CPU-only OK; timeline mtimes confirm verify ran Sep 25 11:45 UTC
+- Verified startup state: dev server restarted 11:32 today from current tree;
+  startup sync rewrote 8 SubnetOverride rows (1,3,7,9,11,19,23,25 - values
+  consistent with audit); SubnetRequirements cache empty -> live profiles
+  built on demand via pullSubnetRequirements with the FIXED scraper
+  (fetchMinComputeRequirement confirmed present at github-scraper.ts:392)
+- Smoke: /login 200 (Infranex HTML), / 307, /api/network 401 (auth-gated)
+
+Stage Summary:
+- Web app loaded and serving on :3000; GPU display state matches the
+  verified audit (ground truth where it exists, labeled estimates elsewhere)
