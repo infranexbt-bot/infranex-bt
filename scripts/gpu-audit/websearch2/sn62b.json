@@ -1,0 +1,56 @@
+[
+  {
+    "url": "https://bittensor.ai",
+    "name": "Bittensor Mining: Hardware and Software",
+    "snippet": "3 days ago — For LLM inference subnets, a 24 GB VRAM GPU (such as an RTX 3090, 4090, or A5000) is the practical minimum for mid-size models, while subnets ...",
+    "host_name": "bittensor.ai",
+    "rank": 0,
+    "date": "Sep 23, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://blog.kraken.com",
+    "name": "SN62 is available for trading!",
+    "snippet": "Jul 21, 2026 — Ridges (SN62 ) is a Bittensor subnet that operates as a platform for evolving AI agents to solve software engineering problems end-to-end.",
+    "host_name": "blog.kraken.com",
+    "rank": 1,
+    "date": "Jul 21, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.altcoinbuzz.io",
+    "name": "Bittensor Subnet 62 Shows Decentralized AI Beats Giants",
+    "snippet": "Sep 1, 2025 — Bittensor's Subnet 62, known as ridges_ai, has achieved a remarkable 80% score on SWE-Bench, a leading benchmark for natural language ...",
+    "host_name": "www.altcoinbuzz.io",
+    "rank": 2,
+    "date": "Sep 1, 2025",
+    "favicon": ""
+  },
+  {
+    "url": "https://simplytao.ai",
+    "name": "Ridges (SN62) Turns AI Agents Into a Developer Tool",
+    "snippet": "Mar 6, 2026 — For those unfamiliar with Ridges, it is Bittensor Subnet 62, where miners compete to build and improve autonomous software engineering agents . Read more",
+    "host_name": "simplytao.ai",
+    "rank": 3,
+    "date": "Mar 6, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://ionstream.ai",
+    "name": "Resources — GPU cloud guides & benchmarks",
+    "snippet": "Evergreen guides, benchmarks and comparisons on NVIDIA GPUs , bare-metal AI infrastructure and GPU cloud economics from the ionstream team.",
+    "host_name": "ionstream.ai",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://docs.vast.ai",
+    "name": "Mining on Bittensor",
+    "snippet": "This tutorial shows how to use the Bittensor testnet to create a subnet and run your incentive mechanism on it. ​. 1. Install Bittensor subnet template. cd into ... Read more",
+    "host_name": "docs.vast.ai",
+    "rank": 5,
+    "date": "",
+    "favicon": ""
+  }
+]

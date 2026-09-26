@@ -77,3 +77,47 @@ Stage Summary:
 - SN36 Epago verified GPU: "a single consumer GPU is enough to fine-tune and duel it" (gpuCount 1, model/VRAM unspecified; validator GPU box deliberately spec-free)
 - Not-documented: SN23 Trishool (Docker/Node/API-keys only), SN62 Ridges, SN71 Leadpoet (hardware-silent repos), SN105 Beam (repo requires Go/Python/network only)
 - SN95 Actual: repo 404 and no documented GPU requirement anywhere official -> repo-unreachable
+
+---
+Task ID: gpu-2
+Agent: main (Super Z) + 4 research subagents (gpu-2-a/b/c/d)
+Task: Research the 78 estimate subnets' GPU requirements and upgrade verified values
+
+Work Log:
+- Extracted 78 ESTIMATE targets from verify-results.json; 77 had zero README
+  GPU evidence
+- Phase 1 — deep repo sweep: scripts/gpu-audit/deep-scrape.py downloaded all
+  78 repo tarballs via codeload (rate-limit-free; GitHub API was 0/60) and
+  grep'd every text file for GPU-model/VRAM/requirement patterns -> 29 repos
+  with evidence (deep-scrape-results.json)
+- Phase 2 — 4 parallel research agents (research-batch-1..4.json -> research-
+  findings-1..4.json): raw-file probing + z-ai web_search with strict
+  no-guess policy, verbatim quote + sourceUrl required; agents flagged that
+  SN22/SN69 min_compute.yml audit misses were transient fetch failures
+  (files exist at repo root, fetch OK now)
+- Judgment calls: excluded SN20 (validator-CPU-only, miners serve models),
+  SN37/SN128 (code comments/recognition maps, not requirements), SN10 (ops
+  round hardware, not miner req); SN20 deliberately kept estimate
+- Phase 3 — CURATED_GPU_SPECS (43 entries: 17 CPU-only, 24 GPU specs, 2
+  GPU-required-unspecified-VRAM) added to github-scraper.ts with sourceFile +
+  verbatim quote each; applied in scrapeGithubMetadata ONLY when min_compute
+  and prose parsers find nothing (CDL always wins — SN103's gpu.required:
+  false honored, display "None (CPU-only; GPU optional >=32 GB for local
+  evaluation)"); ScrapedMetadata.curatedGpuNote -> profile notes
+- Phase 4 — apply-curated.ts wrote 43 SubnetOverride rows (ledger display)
+  + invalidated SubnetRequirements cache; SN103 override githubUrl patched
+  org page -> Capcomp-AI/capability-composition-subnet
+- audit-verify.ts extended: curated specs count as GT layer
+- E2E: scraper-layer test (e2e-curated.ts) verified SN2 CPU-only + note,
+  SN4 8x profiles, SN26 12GB, SN103 CDL-wins; full pullSubnetRequirements
+  path hangs on live chain fetch in this env (pre-existing, noted in sn96)
+- tsc clean in src/ (only .next/dev generated-type noise); eslint 0 errors
+- Committed 473ad34, pushed origin/main
+
+Stage Summary:
+- Verdicts: 78 ESTIMATE -> 35 ESTIMATE; OK 29 -> 72; 0 MISMATCH
+- 17 subnets now officially display CPU-only, 24 display concrete GPU specs
+  (SN3 8x H200/B200, SN4 8x TEE profiles, SN26 12GB, SN44 16GB, SN100 B200,
+  SN125 B200, SN120 2x H100/PRO6000, ...), 2 display GPU-required-unspecified
+- Remaining 35 estimates are genuinely undocumented everywhere official
+  (verified per-subnet) — display stays honestly labeled, never assumed

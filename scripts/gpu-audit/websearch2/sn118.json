@@ -1,0 +1,38 @@
+[
+  {
+    "url": "https://github.com",
+    "name": "DittoBench off-chain practice API for Bittensor subnet 118",
+    "snippet": "Aug 11, 2026 — A full miner container is capped at 3 GiB RAM, 2 CPUs, 512 PIDs, and a 512 MiB writable /tmp ; the root filesystem remains read-only. Keeping ... Read more",
+    "host_name": "github.com",
+    "rank": 0,
+    "date": "Aug 11, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://subnetalpha.ai",
+    "name": "Ditto",
+    "snippet": "On Bittensor , each subnet defines how miners create its output and validators score it. Ditto operates as a Bittensor subnet (netuid 118 ) under this model. Read more",
+    "host_name": "subnetalpha.ai",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://heyditto.ai",
+    "name": "Mining on Ditto (Subnet 118)",
+    "snippet": "Jul 13, 2026 — Ditto is Bittensor Subnet 118 . Miners submit an agent-memory harness; validators score it on tool-calling accuracy and memory recall against ...",
+    "host_name": "heyditto.ai",
+    "rank": 2,
+    "date": "Jul 13, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://docs.vast.ai",
+    "name": "Mining on Bittensor",
+    "snippet": "This tutorial shows how to use the Bittensor testnet to create a subnet and run your incentive mechanism on it. for subnet miner .",
+    "host_name": "docs.vast.ai",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  }
+]

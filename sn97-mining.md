@@ -1,0 +1,384 @@
+# Mining on Albedo (SN97)
+
+How to mine on the Albedo subnet using the `albedo` miner CLI in [miner/](../miner/).
+
+## What mining is
+
+Albedo is a **king-of-the-hill** subnet for **Qwen3.6-35B-A3B** language models. As a miner you:
+
+1. Fine-tune a Qwen3.6-35B-A3B model (your secret sauce).
+2. Upload the model directory to **HuggingFace** (the default) or **Hippius**
+   (set `ALBEDO_MODEL_BACKEND=hippius`).
+3. Commit an on-chain *reveal* pointing at that exact upload (`repo` + an immutable pin —
+   the Hippius `sha256:` content digest, or the HF git commit SHA).
+
+Validators detect the backend from the pin's format, download the model from the hub you
+used, run
+the **same validation checks you can run locally** — every one of them except the
+near-duplicate dedup, which needs the validator's fingerprint bank — and finally **evaluate**
+the model. A model that beats the current king earns weight/emissions. So your job is:
+produce a model that (a) passes validation and
+(b) scores higher than the incumbent by at least the **2.5% win margin**, in **two separate evals**.
+
+Evaluation is a multiturn duel: 100 sampled coding-trajectory prefixes drawn from four real-agent
+corpora (`mini-coder`, `mini-coder-rs`, `open-swe-traces`, `swe-hero`), on which your model and the
+king each generate **12 or 16 assistant turns** per sample (the horizon is stratified per sample).
+Between turns your command is run against a real checkout of the repository at that commit, so
+`git`/`grep`/`find`/`sed` return real output; only what cannot be executed is filled in by an LLM
+simulator, always in whatever observation format that trajectory natively uses. Judges then score
+both sides on the same per-sample checklist, each check rated on a twenty-level A–T scale and read
+as a probability-weighted score, anchored on a SOTA reference trajectory for that exact task.
+
+Two documents cover this in detail:
+
+- **[SCORING.md](SCORING.md)** — the checklist, the loop short-circuit, the
+  2.5-point win margin, and the anti-gaming rules.
+- **[DATASETS.md](DATASETS.md)** — the four corpora, how samples are drawn (seeded by your
+  submission's block hash), and the observation formats the simulator must speak.
+
+The whole publish flow is one pipeline:
+
+```
+validate (local) → upload (HF or Hippius) → check uploaded repo → hotkey registered? → commit on-chain
+```
+
+`albedo publish` runs all five steps; the other subcommands run them individually.
+
+---
+
+## Requirements
+
+- **A registered hotkey on netuid 97** (`finney` mainnet). Registration costs recycled TAO —
+  see [Register a hotkey](#register-a-hotkey).
+- **A Bittensor wallet** (coldkey + hotkey) in `~/.bittensor/wallets/` (or set `ALBEDO_WALLET_PATH`).
+- **Upload credentials** — an `HF_TOKEN` for the default HuggingFace upload (or Hippius
+  credentials — `HIPPIUS_HUB_TOKEN` or a username + password — with
+  `ALBEDO_MODEL_BACKEND=hippius`), plus a **namespace** to upload under. Note the on-chain
+  repo id is lowercased, so use a lowercase HF namespace.
+- Python ≥ 3.11.
+
+### The model must be a valid Qwen3.6-35B-A3B checkpoint
+
+Validation is strict and defined in [chain.toml](../chain.toml). Your uploaded repo must:
+
+**Repo naming** — `<namespace>/albedo-qwen3.6-35b-<suffix>` (pattern `^[^/]+/albedo-qwen3\.6-35b-.+$`).
+The CLI builds this for you from `--namespace` + `--name`.
+
+**File manifest** — the repo's file set is checked against a strict allowlist. The live authority is
+`ModelValidationSettings` in `src/albedo_config/config.py`, applied by
+`src/model_validation/validate/repo.py`; the `[files]` block in [chain.toml](../chain.toml) now matches it
+(the live list additionally tolerates `LICENSE`):
+
+- **Required (all seven):** `config.json`, `generation_config.json`, `tokenizer_config.json`,
+  `tokenizer.json`, `chat_template.jinja`, `preprocessor_config.json`,
+  `video_preprocessor_config.json`
+- **At least one** `*.safetensors` (single-shard `model.safetensors` or sharded `model-*-of-*.safetensors`)
+- **Allowed (optional):** `model.safetensors.index.json`, `.gitattributes`, `LICENSE`, `README.md`
+- **Forbidden:** any `*.py` file (no custom modeling code)
+- Any other file is flagged as an **unexpected extra** and fails validation (`file_manifest`).
+  This includes files HF tooling likes to add: `merges.txt`, `vocab.json`,
+  `configuration.json`, `special_tokens_map.json`, `added_tokens.json` — delete them from the
+  repo before committing (`tokenizer.json` already carries the tokenizer).
+
+**Architecture lock** — enforced by the byte-for-byte `config.json` hash below, not by a
+separate check: since your `config.json` must be the genesis file exactly, every architecture
+key is locked with it. In practice that means you cannot change:
+
+- `architectures`, `model_type`, `vocab_size`
+- capacity keys: `max_position_embeddings`, `tie_word_embeddings`, `rope_theta`, `hidden_size`,
+  `num_hidden_layers`, `num_attention_heads`, `num_key_value_heads`, `intermediate_size`, `head_dim`
+- MoE keys: `moe_intermediate_size`, `shared_expert_intermediate_size`, `num_experts`,
+  `num_experts_per_tok`
+
+and you cannot add `auto_map` (no remote code) or `quantization_config` (no quantized models).
+A rejection here reports `metadata_hash`.
+
+**Metadata hash pinning** — every metadata file you ship must be **byte-for-byte identical** to
+the genesis repo (`dendriteholdings/albedo-qwen3.6-35b-king-genesis`). Validators compare sha256
+hashes pinned to the genesis revision for: `config.json`, `generation_config.json`,
+`preprocessor_config.json`, `tokenizer_config.json`, `tokenizer.json`,
+`video_preprocessor_config.json` (fault: `metadata_hash`), and `chat_template.jinja` has its own
+dedicated hash check — including the chat-template copy embedded inside `tokenizer_config.json`
+(fault: `chat_template_hash`). In practice: **copy these seven files from the genesis repo and
+never edit them** — no generation-config tweaks, no tokenizer changes, no template edits. A single
+changed byte (even whitespace or a re-serialized JSON) is a rejection. The only file allowed to
+differ is `model.safetensors.index.json` (re-sharding is legitimate; it's validated structurally
+instead).
+
+> `check-model --path` runs these hash checks locally, against hashes pinned in the CLI — no
+> genesis download needed. Keep your checkout current: if genesis ever rotates, a stale clone
+> checks against stale hashes.
+
+**Weight format** — every safetensors shard must be 16-bit (F16/BF16); quantized / F32 / F64
+weights are rejected (`weight_dtype`, checked header-only before the full download). A sharded
+checkpoint's `model.safetensors.index.json` weight_map must match the shards and tensors actually
+on disk (`safetensors_index`).
+
+**Tensor shapes** — your repo's tensor inventory must match the genesis seed exactly: same tensor
+names, same shapes (fault: `tensor_shape`, checked header-only before the full download). Every
+shape in this architecture follows from the locked `config.json` keys above, so there is no
+fine-tune that legitimately changes one — training updates weights in place. Note what this rules
+out: re-exporting the MoE experts in the per-expert split layout instead of the fused
+`mlp.experts.gate_up_proj` / `mlp.experts.down_proj` tensors, fusing or splitting q/k/v, resizing
+embeddings for added tokens, and shipping unmerged LoRA adapter tensors alongside the base
+weights. Merge your adapter and save with stock `transformers` and you will match.
+
+In short: fine-tune the weights, keep the Qwen3.6-35B-A3B architecture and tokenizer intact, don't add
+custom code or quantize.
+
+**Dedup** — validators fingerprint your weights and compare them against every model already
+accepted on the subnet. Seven verdicts can fault a submission:
+
+| verdict | what it means | fault code |
+|---|---|---|
+| `COPY` | weights (or their fingerprint) identical to another miner's accepted model | `duplicate` — **permanently blocks the hotkey** |
+| `OWN-COPY` | identical to a model you already had accepted | `duplicate_own` |
+| `NOISE-COPY` | the change from the nearest accepted model is spectral noise, not training | `duplicate` — **permanently blocks the hotkey** |
+| `NOISED-COPY` | dense noise, not training | `duplicate` — **permanently blocks the hotkey** |
+| `LINEAR-COMBO` | your weights are explained as a blend of models already accepted — a merge | `duplicate` — **permanently blocks the hotkey** |
+| `SPARSE-EDIT` | few weights moved, and those few moved a lot | `duplicate` — **permanently blocks the hotkey** |
+| `TRIVIAL-EDIT` | the change from the nearest accepted model is too small to be training | `duplicate` — **permanently blocks the hotkey** |
+
+Copying a model and perturbing the weights does not work: both noise verdicts exist to catch
+exactly that, and both cost the hotkey permanently rather than a single strike. Merging accepted
+models does not work either — that is `LINEAR-COMBO`.
+
+---
+
+## Install
+
+From the albedo repo root:
+
+```bash
+cd ~/albedo
+python3 -m venv .venv && source .venv/bin/activate   # or: sv
+pip install -e .
+```
+
+(The repo uses `uv` elsewhere; `uv pip install -e .` works too.) This installs the `albedo`
+console script (entry point `miner.cli:main`).
+
+Verify:
+
+```bash
+albedo            # prints help
+albedo --help
+```
+
+For the optional training extras (SFT/RL): `pip install -e '.[train]'` (pulls `trl`, `accelerate`, `deepspeed`).
+
+---
+
+## Configure
+
+Copy the miner env template and fill it in:
+
+```bash
+cp .env.example_miners .env
+```
+
+`.env` keys (all optional — each just sets a default so you can omit the matching CLI flag;
+real env vars and CLI flags always override):
+
+| Key | Purpose |
+|-----|---------|
+| `ALBEDO_COLDKEY` / `ALBEDO_HOTKEY` | wallet identity, so you can skip `--coldkey/--hotkey` |
+| `ALBEDO_WALLET_PATH` | only if wallets aren't in `~/.bittensor/wallets` |
+| `CHAIN_NETUID` | defaults to `97` |
+| `CHAIN_NETWORK` | defaults to `finney` (use `test` for testnet) |
+| `ALBEDO_MODEL_BACKEND` | upload backend: `hf` (default) or `hippius` |
+| `HF_TOKEN` | HuggingFace token for the default HF upload |
+| `HIPPIUS_HUB_TOKEN` | Hippius auth token (wins over username/password) |
+| `HIPPIUS_HUB_USERNAME` / `HIPPIUS_HUB_PASSWORD` | alternative Hippius login |
+| `ALBEDO_NAMESPACE` | your HF or Hippius namespace; lets you omit `--namespace` |
+| `ALBEDO_REPO_PREFIX` | leave as `albedo-qwen3.6-35b` unless the subnet changes it |
+| `ALBEDO_MODEL_CACHE_DIR` | where remote `check-model` caches `config.json` |
+
+`.env` is loaded from the repo root and the current working directory before any defaults are read.
+
+---
+
+## Quick start (end-to-end)
+
+With `.env` filled in (namespace + wallet + `HF_TOKEN`, or Hippius creds if you set
+`ALBEDO_MODEL_BACKEND=hippius`):
+
+```bash
+# 1. one-time: register your hotkey on the subnet (costs recycled TAO)
+albedo register
+
+# 2. publish a model: validate → upload → check → commit
+albedo publish --path /path/to/your/qwen3.6-35b-model --name v1
+```
+
+`publish` will validate locally, upload to `<namespace>/albedo-qwen3.6-35b-v1`, re-check the
+uploaded repo, confirm your hotkey is registered, print a commit preview, and ask `Proceed? [y/N]`
+before writing on-chain. Add `--yes` to skip the prompt, or `--skip-commit` to stop after upload.
+
+---
+
+## Commands
+
+All commands default `--netuid 97` and `--network finney`, and read wallet/namespace from `.env`.
+
+### Validate locally (before uploading)
+
+```bash
+albedo check-model --path /path/to/model
+```
+
+Runs all six checks on a local directory, using the same code validators run, in the same
+order, keyed by the same fault codes: `file_manifest`, `weight_dtype`, `chat_template_hash`,
+`metadata_hash`, `tensor_shape`, `safetensors_index`. Prints `[PASS]/[FAIL]` per check and `VALID`/`INVALID`.
+Needs no network and no credentials. Only dedup is **not** checked here — it needs the
+validator's fingerprint bank.
+
+### Validate an already-uploaded repo
+
+```bash
+albedo check-model --repo <ns>/albedo-qwen3.6-35b-v1 --digest sha256:...
+```
+
+Lists the repo's files on whichever hub the pin points at (HF, Hippius or the private store),
+reads the safetensors headers over byte ranges and downloads only the config files, then re-runs
+every check the validator runs before the full download: `file_manifest`, `weight_dtype`,
+`chat_template_hash`, `metadata_hash`, `tensor_shape`. `safetensors_index` needs the shards on
+disk and dedup needs the fingerprint bank, so neither runs here.
+
+### Upload a model
+
+```bash
+albedo upload --path /path/to/model --name v1            # uses ALBEDO_NAMESPACE
+albedo upload --path /path/to/model --namespace you --name v1
+albedo upload --path /path/to/model --repo you/albedo-qwen3.6-35b-v1   # full repo override
+```
+
+`--name` is just the suffix; the prefix `albedo-qwen3.6-35b-` is added automatically (and a
+doubled prefix is stripped, so `--name albedo-qwen3.6-35b-v1` also works). Prints the immutable
+reference `repo@<pin>` and the on-chain `reveal` string — on HF the pin is the upload's git
+commit SHA, on Hippius the `sha256:` content digest. It points at exactly what you uploaded —
+keep it for the commit step.
+
+### Register a hotkey
+
+```bash
+albedo register                       # uses .env wallet
+albedo register --coldkey mine --hotkey hk1
+```
+
+Mirrors `btcli subnet register` in-process: shows the recycle cost and your coldkey balance,
+confirms with `[y/N]` (skip with `--yes`), submits a `burned_register`, and reports the assigned
+UID. If the hotkey is already registered it just prints the existing UID. Aborts early if your
+balance is below the recycle cost.
+
+### Commit a reveal on-chain
+
+```bash
+albedo commit --repo <ns>/albedo-qwen3.6-35b-v1 --digest sha256:... \
+  --coldkey mine --hotkey hk1
+```
+
+Writes the v7 reveal `v7|<repo>|<digest>` on-chain via `set_reveal_commitment`. Before submitting
+it **checks your hotkey is registered** on the netuid, prints a preview, and prompts `Proceed? [y/N]`
+(skip with `--yes`). Use this when you uploaded earlier and just need to commit a specific digest.
+
+### Read on-chain commitments
+
+```bash
+albedo check-commit                      # all v7 commits on the subnet
+albedo check-commit --hotkey 5F...        # filter to one hotkey ss58
+```
+
+Scans the chain for v7 commitments (oldest block first) and prints `block / hotkey / model_uri`.
+Useful to confirm your own commit landed, or to see what others have submitted.
+
+### Publish (full pipeline)
+
+```bash
+albedo publish --path /path/to/model --name v1 --coldkey mine --hotkey hk1
+albedo publish --path ... --name v1 --yes            # no prompt
+albedo publish --path ... --name v1 --skip-commit    # stop after upload + checks
+albedo publish --path ... --name v1 --skip-check     # upload without validating first
+```
+
+Runs all five steps and stops at the first failure. The pipeline is the recommended path for a
+normal submission.
+
+### Interactive TUI
+
+```bash
+albedo on
+```
+
+Launches a full-screen console: a pinned `albedo>` input bar, a scrollable log, and a live
+checklist of the publish steps (⬜ pending / ⏳ running / ✓ ok / ✗ fail). The same subcommands
+run inside it. Keys: `↑/↓` history, `PgUp/PgDn` or `Ctrl+↑/↓` scroll, `Home/End` jump, `Ctrl+Y`
+paste (use this in VS Code; `Ctrl+V` works in most terminals), `y/n` to answer a commit prompt,
+`off` / `Ctrl+C` / `Ctrl+Q` to quit.
+
+---
+
+## Typical workflow
+
+```bash
+# (one time) register
+albedo register
+
+# iterate on your model, then before spending an upload:
+albedo check-model --path ./out/qwen3.6-35b-mymodel        # must say VALID
+
+# publish it
+albedo publish --path ./out/qwen3.6-35b-mymodel --name v2
+
+# confirm it's on-chain
+albedo check-commit --hotkey <your hotkey ss58>
+```
+
+To target **testnet** while experimenting, prefix with the env var or set it in `.env`:
+
+```bash
+CHAIN_NETWORK=test albedo check-commit
+```
+
+---
+
+## Notes & gotchas
+
+- **The check runs automatically.** `upload`, `publish`, `submit-private` and `upload-private` all
+  validate the local model first and abort before uploading anything if it fails. Pass
+  `--skip-check` to publish anyway. Skipping only skips *your* copy of the checks — the validator
+  re-runs all of them, and a failure there costs one of three validation strikes (counted per hotkey
+  over all your submissions, separately from private upload attempts) before the hotkey is banned.
+  Two pre-eval verdicts skip the strike budget and block the hotkey outright, like a dedup
+  rejection: acting on an instruction that arrived inside command output (`injection`), and
+  degenerate low-vocabulary output.
+- **The pin is immutable.** Each upload returns a pin — a `sha256:` content digest on Hippius, a
+  git commit SHA on HF — and the commit binds to it, so re-uploading changed weights produces a
+  new pin you must re-commit.
+- **Copies are rejected regardless of hub.** Validators fingerprint the weights and hash the weight
+  files themselves; re-uploading someone else's model to the other backend still counts as a duplicate.
+- **Dedup isn't local.** Passing `check-model` doesn't guarantee acceptance — a model that copies an
+  existing submission (byte-identical, identical up to float noise, or merely noised) is rejected by
+  the validator. Make your model genuinely trained.
+- **No custom code, no quantization.** `*.py` files are forbidden and `config.json` must not contain
+  `auto_map` or `quantization_config`.
+- **Registration is required to commit.** Both `commit` and `publish` verify your hotkey is in the
+  netuid metagraph and abort if not.
+- **Beating the king by a hair is a loss.** The challenger needs `score_challenger - score_king >=
+  0.025`; see [SCORING.md](SCORING.md) for how those scores are built.
+- **You have to win twice.** The first eval win does not crown you — the submission is re-queued and
+  must win a **second, independent** eval before it is promoted. A marginal model that wins once on
+  luck loses the rematch.
+- **You cannot pre-compute the checklist.** Questions are generated per sample from a reference
+  trajectory produced at eval time, and your sample set is seeded by your submission's block hash —
+  see [DATASETS.md](DATASETS.md).
+
+---
+
+## Further reading
+
+| document | covers |
+|---|---|
+| [PRIVATE_UPLOADS.md](PRIVATE_UPLOADS.md) | private submission flow: `submit-private`, the `r2activate`/`r2ready` commitments, credentials mailbox, local state, upload window |
+| [SCORING.md](SCORING.md) | checklist construction, loop short-circuit, win margin, anti-gaming |
+| [DATASETS.md](DATASETS.md) | the four corpora, trajectory rendering, observation formats, grounded execution + the simulator ladder, sampling and the manifest pin |

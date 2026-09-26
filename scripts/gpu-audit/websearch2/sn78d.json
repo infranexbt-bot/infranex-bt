@@ -1,0 +1,20 @@
+[
+  {
+    "url": "https://bittensor.ai",
+    "name": "Voice AI Model Evaluation — SN78 - Umi",
+    "snippet": "GPUNot required ; OSLinux/Unix recommended; Docker deployment supported ; NetworkMust have outbound access to Chutes API, Bittensor network, Hippius storage ... Read more",
+    "host_name": "bittensor.ai",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.sotwe.com",
+    "name": "Subnetradar @subnetradarcom - Twitter Profile",
+    "snippet": "Building free tools for the Bittensor ecosystem. Umi ( SN78 ) lead dev velocity with near-perfect scores of 100/100 and 99/100.",
+    "host_name": "www.sotwe.com",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  }
+]

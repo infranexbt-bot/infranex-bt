@@ -1,0 +1,47 @@
+[
+  {
+    "url": "https://bittensor.ai",
+    "name": "Bittensor Mining: Hardware and Software",
+    "snippet": "3 days ago — Plan a Bittensor miner : compare GPU memory, CPU, RAM, SDK ... subnets running 70B+ parameter models require 80 GB or multi- GPU setups. Read more",
+    "host_name": "bittensor.ai",
+    "rank": 0,
+    "date": "Sep 23, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.bittensor.com",
+    "name": "Mining — Bittensor Docs",
+    "snippet": "A miner is a hotkey registered on a subnet , doing whatever work that subnet's incentive mechanism rewards. The chain side of mining is small: register, ... Read more",
+    "host_name": "www.bittensor.com",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://docs.vast.ai",
+    "name": "Mining on Bittensor",
+    "snippet": "Vast internal guide to test subnets inside the Opentensor image. This tutorial shows how to use the Bittensor testnet to create a subnet and run your ... Read more",
+    "host_name": "docs.vast.ai",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://cryptonews.net",
+    "name": "Decentralized AI, Subnet Tokens, and the Role of TAO",
+    "snippet": "Apr 7, 2026 — As of April 2026, Bittensor has 128 active subnets , and that figure is a hard cap for now. New subnet launches can replace the lowest performers ... Read more",
+    "host_name": "cryptonews.net",
+    "rank": 3,
+    "date": "Apr 7, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.misar.blog",
+    "name": "Bittensor Subnet Mining 2026: Hardware, Costs, ROI",
+    "snippet": "Apr 24, 2026 — Hardware ranges from a $40/month VPS for CPU subnets to $2-4/hour rented H100s for frontier text-gen subnets . Realistic all-in startup cost is ... Read more",
+    "host_name": "www.misar.blog",
+    "rank": 4,
+    "date": "Apr 24, 2026",
+    "favicon": ""
+  }
+]

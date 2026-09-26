@@ -1,0 +1,47 @@
+[
+  {
+    "url": "https://www.bittensor.com/docs",
+    "name": "Bittensor Documentation",
+    "snippet": "These docs cover the bittensor Python SDK and CLI: Install Requires Python 3.10–3.14. This installs both the btcli command and the bittensor Python package.",
+    "host_name": "www.bittensor.com",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.bittensor.com/docs/guides/subnets",
+    "name": "Running a subnet",
+    "snippet": "Create a subnet, activate it, tune hyperparameters, and manage its identity and economics. A subnet owner defines an incentive mechanism: what miners must ...",
+    "host_name": "www.bittensor.com",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.bittensor.com/docs/guides/mining",
+    "name": "Mining — Bittensor Docs",
+    "snippet": "Each subnet's repo conventionally documents hardware needs .yml or the README), and most subnets run on a testnet netuid — test there or on a local chain ...",
+    "host_name": "www.bittensor.com",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://docs.taostats.io/docs/mining",
+    "name": "Hardware requirements - Getting Started with Bittensor",
+    "snippet": "Mining hardware requirements vary by subnet although most require some for of GPU to perform the require compute functions.",
+    "host_name": "docs.taostats.io",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://bittensor.ai/learn/mining/requirements",
+    "name": "Bittensor Mining: Hardware and Software",
+    "snippet": "For most subnets, a modern 8-core CPU is sufficient — the GPU is the bottleneck, not the CPU. However, data processing subnets that run CPU- ...",
+    "host_name": "bittensor.ai",
+    "rank": 4,
+    "date": "Sep 23, 2026",
+    "favicon": ""
+  }
+]

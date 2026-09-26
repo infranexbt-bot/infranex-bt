@@ -1,0 +1,47 @@
+[
+  {
+    "url": "https://github.com",
+    "name": "sundae-bar/bittensor-subnet",
+    "snippet": "SN121 validators evaluate submissions against structured tests and scoring criteria, #1 miner is 40%.",
+    "host_name": "github.com",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.sundaebar.ai",
+    "name": "How Rewards are Earned on SN121 Skill Challenges",
+    "snippet": "Jul 22, 2026 — Register a native miner hotkey on SN121 , then link that hotkey in sundae_bar and submit a skill to the active challenge. Your skill runs through ... Read more",
+    "host_name": "www.sundaebar.ai",
+    "rank": 1,
+    "date": "Jul 22, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://bittensor.ai",
+    "name": "Bittensor Mining: Hardware and Software",
+    "snippet": "Bittensor mining requirements depend on the subnet's model, scoring rules, and response-time budget. Check its current repository requirements ... Read more",
+    "host_name": "bittensor.ai",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://subnetalpha.ai",
+    "name": "sundae_bar",
+    "snippet": "Jun 3, 2025 — Bittensor Subnet 121, nicknamed sundae_bar , is a newly launched subnet on the Bittensor decentralized AI network that underpins an AI agent ... Read more",
+    "host_name": "subnetalpha.ai",
+    "rank": 3,
+    "date": "Jun 3, 2025",
+    "favicon": ""
+  },
+  {
+    "url": "https://onfinality.io",
+    "name": "How to Mine Bittensor: TAO, Subnets, and RPC Setup",
+    "snippet": "Aug 1, 2026 — How do I mine Bittensor and keep my miner connected?",
+    "host_name": "onfinality.io",
+    "rank": 4,
+    "date": "Aug 1, 2026",
+    "favicon": ""
+  }
+]

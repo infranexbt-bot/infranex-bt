@@ -1,0 +1,47 @@
+[
+  {
+    "url": "https://bittensor.ai",
+    "name": "Bittensor Mining: Hardware and Software",
+    "snippet": "3 days ago — a 24 GB VRAM GPU (such as an RTX 3090, 4090, or A5000) is the practical minimum for mid-size models, while subnets running 70B+ parameter ...",
+    "host_name": "bittensor.ai",
+    "rank": 0,
+    "date": "Sep 23, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://onfinality.io",
+    "name": "How to Mine Bittensor: TAO, Subnets, and RPC Setup",
+    "snippet": "Aug 1, 2026 — How do I mine Bittensor and keep my miner connected?",
+    "host_name": "onfinality.io",
+    "rank": 1,
+    "date": "Aug 1, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.structurestudios.com",
+    "name": "💻 Hardware Requirements",
+    "snippet": "A dedicated DirectX 12 video card with a minimum benchmark score of 4500 is required to run the software correctly. Note: Integrated cards, such as Intel cards ... Read more",
+    "host_name": "www.structurestudios.com",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://ionstream.ai",
+    "name": "Resources — GPU cloud guides & benchmarks",
+    "snippet": "Evergreen guides, benchmarks and comparisons on NVIDIA GPUs , no upfront hardware and pay-as-you-go scaling.",
+    "host_name": "ionstream.ai",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://docs.taostats.io",
+    "name": "Introduction - Getting Started with Bittensor - Taostats",
+    "snippet": "Your hardware - You may already have HW. Check each SN's hardware requirements . You will need to optimize your miner to fit the requirements of the subnet. ...",
+    "host_name": "docs.taostats.io",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  }
+]

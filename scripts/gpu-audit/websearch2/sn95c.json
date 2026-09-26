@@ -1,0 +1,56 @@
+[
+  {
+    "url": "https://bittensor.ai",
+    "name": "Bittensor Mining: Hardware and Software",
+    "snippet": "3 days ago — a 24 GB VRAM GPU (such as an RTX 3090, 4090, or A5000) is the practical minimum for mid-size models, while subnets running 70B+ parameter ...",
+    "host_name": "bittensor.ai",
+    "rank": 0,
+    "date": "Sep 23, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://onfinality.io",
+    "name": "How to Mine Bittensor: TAO, Subnets, and RPC Setup",
+    "snippet": "Aug 1, 2026 — How do I mine Bittensor and keep my miner connected?",
+    "host_name": "onfinality.io",
+    "rank": 1,
+    "date": "Aug 1, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://docs.taostats.io",
+    "name": "Hardware requirements - Getting Started with Bittensor",
+    "snippet": "Mining hardware requirements vary by subnet although most require some for of GPU to perform the require compute functions.",
+    "host_name": "docs.taostats.io",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://docs.vast.ai",
+    "name": "Mining on Bittensor",
+    "snippet": "This tutorial shows how to use the Bittensor testnet to create a subnet and run your incentive mechanism on it. for subnet miner .",
+    "host_name": "docs.vast.ai",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://chutes.ai",
+    "name": "Mining on Chutes - Docs",
+    "snippet": "It is very important to have as much RAM (or very close to it) per GPU as VRAM. 192 GB of RAM ! You'll need one non-GPU server (8 cores, 64gb ram minimum) ...",
+    "host_name": "chutes.ai",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.misar.blog",
+    "name": "Bittensor Subnet Mining 2026: Hardware, Costs, ROI",
+    "snippet": "Apr 24, 2026 — Hardware Requirements by Subnet Type ; Image/video generation, SDXL/FLUX-class serving, RTX 4090 ; Data scraping / indexing, Web scraping, social ... Read more",
+    "host_name": "www.misar.blog",
+    "rank": 5,
+    "date": "Apr 24, 2026",
+    "favicon": ""
+  }
+]

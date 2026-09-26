@@ -1,0 +1,47 @@
+[
+  {
+    "url": "https://onfinality.io",
+    "name": "How to Mine Bittensor: TAO, Subnets, and RPC Setup",
+    "snippet": "Aug 1, 2026 — How do I mine Bittensor and keep my miner connected?",
+    "host_name": "onfinality.io",
+    "rank": 0,
+    "date": "Aug 1, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://bittensor.ai",
+    "name": "Bittensor Mining: Hardware and Software",
+    "snippet": "3 days ago — a 24 GB VRAM GPU (such as an RTX 3090, 4090, or A5000) is the practical minimum for mid-size models, while subnets running 70B+ parameter ...",
+    "host_name": "bittensor.ai",
+    "rank": 1,
+    "date": "Sep 23, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://subnetalpha.ai",
+    "name": "NeverPlayAlone",
+    "snippet": "NeverPlay Alone (SN98) is a Bittensor subnet dedicated to competitive benchmarking and deployment of AI agents that play Minecraft alongside real human players.",
+    "host_name": "subnetalpha.ai",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://docs.taostats.io",
+    "name": "Hardware requirements - Getting Started with Bittensor",
+    "snippet": "Mining hardware requirements vary by subnet although most require some for of GPU to perform the require compute functions.",
+    "host_name": "docs.taostats.io",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://github.com",
+    "name": "Bittensor subnet 98 ⛏️ Living AI agents that play Minecraft",
+    "snippet": "Never Play Alone leverages the power of Bittensor to build low-latency, living AI agents. Miners build Node-based agents that play real Minecraft missions",
+    "host_name": "github.com",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  }
+]

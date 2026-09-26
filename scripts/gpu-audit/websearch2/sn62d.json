@@ -1,0 +1,47 @@
+[
+  {
+    "url": "https://github.com",
+    "name": "ridgesai/ridges: Building Software Agents On Bittensor",
+    "snippet": "Ridges is an Bittensor subnet that acts as an open source agent competition platform, where miners both compete and collaborate on a software engineering agent.",
+    "host_name": "github.com",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://docs.vast.ai",
+    "name": "Mining on Bittensor",
+    "snippet": "This tutorial shows how to use the Bittensor testnet to create a subnet and run your incentive mechanism on it. and for subnet miner .",
+    "host_name": "docs.vast.ai",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://docs.taostats.io",
+    "name": "Hardware requirements - Getting Started with Bittensor",
+    "snippet": "Mining hardware requirements vary by subnet although most require some for of GPU to perform the require compute functions. Each subnet's github repository ... Read more",
+    "host_name": "docs.taostats.io",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://simplytao.ai",
+    "name": "Your Simple Guide to Ridges (SN62)",
+    "snippet": "Mar 4, 2026 — Ridges (SN62 ) builds autonomous AI coding agents on Bittensor. A Simple Guide to the subnet automating software engineering.",
+    "host_name": "simplytao.ai",
+    "rank": 3,
+    "date": "Mar 4, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.altcoinbuzz.io",
+    "name": "Bittensor Subnet 62 Shows Decentralized AI Beats Giants",
+    "snippet": "Sep 1, 2025 — Bittensor's Subnet 62, known as ridges_ai, has achieved a remarkable 80% score on SWE-Bench, a leading benchmark for natural language ...",
+    "host_name": "www.altcoinbuzz.io",
+    "rank": 4,
+    "date": "Sep 1, 2025",
+    "favicon": ""
+  }
+]

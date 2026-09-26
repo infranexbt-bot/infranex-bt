@@ -1,0 +1,47 @@
+[
+  {
+    "url": "https://www.facebook.com",
+    "name": "ditgold token reaches 0.01004, its highest price since launch",
+    "snippet": "Bittensor miners train and improve AI models. They earn TAO for contributing intelligence instead of hash power.",
+    "host_name": "www.facebook.com",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://simplytao.ai",
+    "name": "Your Simple Guide to BitMind (SN34)",
+    "snippet": "Apr 3, 2026 — BitMind (SN34) is a Bittensor subnet that produces state-of-the-art AI-generated content detection across images, video, and audio.",
+    "host_name": "simplytao.ai",
+    "rank": 1,
+    "date": "Apr 3, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://yellow.com",
+    "name": "Bittensor, Fetch.ai, Render Token Explained: Deep Dive",
+    "snippet": "Nov 12, 2025 — Training advanced language models and generating ...",
+    "host_name": "yellow.com",
+    "rank": 2,
+    "date": "Nov 12, 2025",
+    "favicon": ""
+  },
+  {
+    "url": "https://blockchair.com",
+    "name": "Bittensor's $TAO dives to $265 after Covenant AI quits key",
+    "snippet": "Apr 12, 2026 — The sudden withdrawal of Covenant AI from three critical subnets on the Bittensor network has caused $TAO prices to plunge to around $265, ... Read more",
+    "host_name": "blockchair.com",
+    "rank": 3,
+    "date": "Apr 12, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://papers.ssrn.com",
+    "name": "AI-Based Crypto Tokens: The Illusion of Decentralized AI?",
+    "snippet": "Projects like Bittensor attempt to address this by dis- tributing tasks across specialized subnets , but the total compute capacity and efficiency remain far ... Read more",
+    "host_name": "papers.ssrn.com",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  }
+]

@@ -1,0 +1,29 @@
+[
+  {
+    "url": "https://bittensor.ai",
+    "name": "Bittensor Mining: Hardware and Software",
+    "snippet": "3 days ago — For LLM inference subnets, a 24 GB VRAM GPU (such as an RTX 3090, 4090, or A5000) is the practical minimum for mid-size models, while subnets ...",
+    "host_name": "bittensor.ai",
+    "rank": 0,
+    "date": "Sep 23, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://onfinality.io",
+    "name": "How to Mine Bittensor: TAO, Subnets, and RPC Setup",
+    "snippet": "Aug 1, 2026 — How do I mine Bittensor and keep my miner connected?",
+    "host_name": "onfinality.io",
+    "rank": 1,
+    "date": "Aug 1, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://github.com",
+    "name": "KubeTEE AI Factory — Decentralized Clusters (Kube) for",
+    "snippet": "AI is the AI Factory of the Bittensor network: 56 GPUs — H100 + H200) — real hardware , Must pass minimum requirements ( hardware , HA topology, 8- GPU workers, ...",
+    "host_name": "github.com",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  }
+]

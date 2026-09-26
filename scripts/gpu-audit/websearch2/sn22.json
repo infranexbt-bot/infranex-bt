@@ -1,0 +1,47 @@
+[
+  {
+    "url": "https://skillhub.cloud.tencent.com",
+    "name": "Claude Skill - SkillHub - Tencent",
+    "snippet": "You are a skill discovery and recommendation engine for OpenClaw. Detect local hardware (RAM, CPU, GPU /VRAM) Get calibrated probabilities from Numinous ( ...",
+    "host_name": "skillhub.cloud.tencent.com",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://huggingface.co",
+    "name": "Daily Papers",
+    "snippet": "We further develop a communication-efficient distributed StreamBP to effectively support multi- GPU training and broaden its applicability.",
+    "host_name": "huggingface.co",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.freelancer.jp",
+    "name": "Point cloud data modeling Jobs, Employment",
+    "snippet": "Bittensor subnet / miner / VPS /cloud deployment. The project will run locally on your computer and will not require : Cloud infrastructure * GPU * Special ...",
+    "host_name": "www.freelancer.jp",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://serve.podhome.fm",
+    "name": "Mere Morpheus",
+    "snippet": "Morpheus that surfaces providers models staking stats and subnet data with plans for capital contract coverage and time‐series insights.",
+    "host_name": "serve.podhome.fm",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://mcpnav.net",
+    "name": "Developer Tools MCP Servers (2259) | MCPNav",
+    "snippet": "3 days ago — Browse 2259 Developer Tools MCP servers. MCP server for running and debugging Linux containers. Bittensor subnet operational. Bittensor subnets ...",
+    "host_name": "mcpnav.net",
+    "rank": 4,
+    "date": "Sep 23, 2026",
+    "favicon": ""
+  }
+]

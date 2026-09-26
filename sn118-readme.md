@@ -1,0 +1,100 @@
+# Ditto Subnet (Bittensor SN118)
+
+A Bittensor subnet that incentivizes agent memory harnesses. Miners submit a Docker build context
+that serves the public harness HTTP contract; the implementation may use Rust, Python, TypeScript,
+Go, or any other language. Validators run each screened image in an isolated sandbox and score it
+on DittoBench (tool-calling and memory recall).
+When eligible miners exist, 100% of miner emission follows the king-of-the-hill ranking; with no
+eligible miners, 100% is burned.
+
+This is the public home for miners, validators, scoring, screening, and subnet
+operations. The generic Rust
+[`ditto-harness`](https://github.com/ditto-assistant/ditto-harness) library
+remains an independently reusable dependency; the deterministic generator and
+grader now live in [`research/dittobench-datagen`](research/dittobench-datagen).
+
+## Layout
+- `miners/dittobench-starter-kit/`: the miner reference harness, playground,
+  offline practice loop, and submission packager. Coding agents: `/mine`.
+- `miners/dittobench-coding-starter-kit/`: shadow-only SWE coding-agent harness
+  for the public coding practice protocol; it has no production score or weight.
+- `ditto/miner_cli/`: the `ditto` CLI: submit an agent, poll status, pre-flight a tarball.
+- `ditto/validator/`: the validator worker (`python -m ditto.validator`): pull agents from the
+  platform, score them via dittobench, set weights on chain via Pylon (the
+  identity-based weight-setting service).
+- `ditto/api_models/`: Pydantic wire shapes shared with the platform (the HTTP contract).
+- `ditto/chain/`: Pylon-backed `ChainClient` (used by the validator to set weights).
+- `services/dittobench-api/`: the Go scorer used by validators and hosted practice.
+- `research/dittobench-datagen/`: deterministic datasets, grader, and research tools.
+- `research/dittobench-coding-datagen/`: shadow-only coding-repair capsule compiler,
+  curation auditor, and disjoint public practice pack.
+- `services/screener-orchestrator/`: Targon-first screener capacity and build control.
+- `apps/platform/`: the subnet API, durable queue, dashboard, and control plane.
+- `apps/backroom/`: the public-source SN118 operations console.
+- `workers/screener/`: the provider-neutral screening worker runtime.
+- `packages/ditto-screening-protocol/`: shared screening wire and signing contract.
+
+Submission screening is platform-operated and is not installed or deployed by
+this package. Miner and validator clients import the lifecycle contract from
+the public `ditto-screening-protocol` package in `ditto-screener`.
+
+## Operator guides
+
+- [Mine on SN118](docs/MINER.md): prepare, verify, submit, and track an agent.
+- [Link rotated miner wallets](docs/OWNER-LINKS.md): prove that two hotkeys
+  belong to the same operator after a wallet rotation.
+- [Validate SN118](docs/VALIDATOR.md): deploy, verify, and operate the complete validator stack.
+- [Maintenance treasury](docs/maintenance-treasury.md): the proposed funding,
+  custody, and accounting contract for SN118 maintenance bounties.
+- [Bounty claims](docs/bounty-claims.md): the proposed hotkey-signed claim,
+  reservation, handoff, and appeal contract for treasury bounties.
+
+## Development quickstart
+```sh
+uv sync
+make test          # unit tests
+```
+
+These commands only set up the repository and run local tests. They do not
+submit an agent, contact chain APIs, or require wallet secrets.
+
+## Miner CLI summary
+Installed as the `ditto` console script (`pyproject` `[project.scripts]`):
+```sh
+ditto --network <finney|test|local> [--chain-endpoint ws://…] upload \
+  --path <agent.tar.gz> --name <name> --coldkey <coldkey> --hotkey <hotkey> [-y]
+ditto status <agent_id>
+ditto verify --path <agent.tar.gz>      # pre-flight checks only; no chain/API calls
+```
+`--network` couples the API URL + subtensor network from a locked table (can't desync);
+`--chain-endpoint` overrides only the chain target (e.g. a hosted local subtensor) while keeping the
+`--network` API URL. See [MINER.md](docs/MINER.md) for the full workflow.
+
+## Validator quickstart
+
+```sh
+cp .env.example .env
+# Fill in the wallet names, validator hotkey, Pylon token, and shared W&B key.
+# Set WANDB_MODE=disabled instead if you opt out of aggregate telemetry.
+./scripts/validator-compose.sh config --quiet
+./scripts/validator-compose.sh up -d --build
+./scripts/validator-compose.sh ps
+```
+
+The root Compose stack runs the worker, Pylon, scorer, and isolated Docker
+sandbox from one `.env`. Ticket-scoped chat and embedding inference is served
+by the platform; validators carry no provider credential. SN118 and the production scoring and weight mechanism
+are locked in code rather than configured by operators. The idle (no eligible miners) burn
+vector uses Subtensor's owner-associated burn path; it is not paid to the subnet owner. See
+[VALIDATOR.md](docs/VALIDATOR.md) for first deployment, health checks, and upgrades.
+
+The validator reports coarse public system health through its signed heartbeat.
+The screener owns its separate reporter. Neither needs a new operator setting
+or secret; hostname, IP, paths, container names/images, and env values are not
+collected.
+
+## Make targets
+- `make lint`: `ruff format --check` + `ruff check`
+- `make format`: `ruff format` + `ruff check --fix`
+- `make typecheck`: `mypy ditto/`
+- `make test`: the default `pytest` suite

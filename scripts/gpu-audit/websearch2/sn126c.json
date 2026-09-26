@@ -1,0 +1,38 @@
+[
+  {
+    "url": "https://bittensor.ai",
+    "name": "iota (SN9) — Decentralized LLM Pretraining - Subnets",
+    "snippet": "5 days ago — IOTA currently requires a CUDA GPU with ≥16GB VRAM (e.g., RTX 4090) and Ubuntu 22.04. hardware requirements will increase accordingly.  ...",
+    "host_name": "bittensor.ai",
+    "rank": 0,
+    "date": "Sep 21, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://docs.vast.ai",
+    "name": "Mining on Bittensor",
+    "snippet": "This tutorial shows how to use the Bittensor testnet to create a subnet and run your incentive mechanism on it. subnet validator and for subnet miner .  ...",
+    "host_name": "docs.vast.ai",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://onfinality.io",
+    "name": "How to Mine Bittensor: TAO, Subnets, and RPC Setup",
+    "snippet": "Aug 1, 2026 — How do I mine Bittensor and keep my miner connected?",
+    "host_name": "onfinality.io",
+    "rank": 2,
+    "date": "Aug 1, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://github.com",
+    "name": "KubeTEE AI Factory — Decentralized Clusters (Kube) for",
+    "snippet": "KubeTEE AI is the AI Factory of the Bittensor network: it turns decentralized GPU clusters into a confidential factory for SOTA AI services and enhanced ... Read more",
+    "host_name": "github.com",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  }
+]

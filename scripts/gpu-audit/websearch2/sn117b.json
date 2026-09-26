@@ -1,0 +1,56 @@
+[
+  {
+    "url": "https://www.youtube.com/watch?v=YQWoPg1OoXM",
+    "name": "Mining $TAO on Bittensor with Your Gaming PC! A Beginner's",
+    "snippet": "How to set up your Bittensor wallet and miner Minimum hardware requirements (do you need a GPU?) How to choose the right subnet How much TAO ...",
+    "host_name": "www.youtube.com",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://bittensor.ai/learn/mining/requirements",
+    "name": "Bittensor Mining: Hardware and Software",
+    "snippet": "For LLM inference subnets, a 24 GB VRAM GPU (such as an RTX 3090, 4090, or A5000) is the practical minimum for mid-size models, while subnets",
+    "host_name": "bittensor.ai",
+    "rank": 1,
+    "date": "Sep 23, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.reddit.com/r/bittensor_/comments/1jg86fb/how_does_one_actually_earn_1_as_a_miner",
+    "name": "How does one actually earn $1 as a miner ? : r/bittensor_",
+    "snippet": "I spent some time setting up a few networks and running miner on a GPU node, but basically either I setup something wrong or there seems to be no compute ...",
+    "host_name": "www.reddit.com",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://docs.vast.ai/mining-on-bittensor",
+    "name": "Mining on Bittensor",
+    "snippet": "This tutorial shows how to use the Bittensor testnet to create a subnet and run your incentive mechanism on it. 1. Install Bittensor subnet template cd into ...",
+    "host_name": "docs.vast.ai",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://onfinality.io/en/rpc-assistant/how-to-mine-bittensor",
+    "name": "How to Mine Bittensor: TAO, Subnets, and RPC Setup",
+    "snippet": "How do I mine Bittensor and keep my miner connected?",
+    "host_name": "onfinality.io",
+    "rank": 4,
+    "date": "Aug 1, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://subnetalpha.ai",
+    "name": "Subnet Alpha - Subnet Alpha",
+    "snippet": "Decentralized, trusted GPU compute network for Bittensor – empowers validators with on-demand, scalable AI validation.",
+    "host_name": "subnetalpha.ai",
+    "rank": 5,
+    "date": "",
+    "favicon": ""
+  }
+]

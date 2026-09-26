@@ -1,0 +1,38 @@
+[
+  {
+    "url": "https://subnetalpha.ai",
+    "name": "Bitcast",
+    "snippet": "Bitcast is implemented as Bittensor Subnet 93 , meaning it runs its own mini-network (of miners and validators) The subnet has its own registration requirements",
+    "host_name": "subnetalpha.ai",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://bittensor.ai",
+    "name": "Bittensor Mining: Hardware and Software",
+    "snippet": "3 days ago — Plan a Bittensor miner : compare GPU memory, CPU, RAM, SDK ... subnets running 70B+ parameter models require 80 GB or multi- GPU setups. Read more",
+    "host_name": "bittensor.ai",
+    "rank": 1,
+    "date": "Sep 23, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://github.com",
+    "name": "deploys validators for each bitcast subnet mechanism",
+    "snippet": "run validators for both Bitcast subnets . Requirements Operating System : Linux CPU: 1+ cores RAM: 2+ GB",
+    "host_name": "github.com",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.altcoinbuzz.io",
+    "name": "Top 10 Bittensor Subnets by Mindshare",
+    "snippet": "Sep 5, 2025 — Bitcast ( SN93 ) – 2.26% ... By rewarding miners through Bittensor's incentive system , it enables a peer-to-peer market for GPU resources. Read more",
+    "host_name": "www.altcoinbuzz.io",
+    "rank": 3,
+    "date": "Sep 5, 2025",
+    "favicon": ""
+  }
+]

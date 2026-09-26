@@ -1,0 +1,47 @@
+[
+  {
+    "url": "https://bittensor.ai/learn/mining/requirements",
+    "name": "Bittensor Mining: Hardware and Software",
+    "snippet": "a 24 GB VRAM GPU … subnets running 70B+ parameter models require 80 GB or multi-GPU setups. support varies by subnet",
+    "host_name": "bittensor.ai",
+    "rank": 0,
+    "date": "Sep 23, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.youtube.com/watch?v=YQWoPg1OoXM",
+    "name": "Mining $TAO on Bittensor with Your Gaming PC! A Beginner's",
+    "snippet": "Minimum hardware requirements (do you need a GPU?) How to choose the right subnet – Hardware & OS requirements",
+    "host_name": "www.youtube.com",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://docs.taostats.io/docs/mining",
+    "name": "Hardware requirements - Getting Started with Bittensor",
+    "snippet": "Mining hardware requirements vary by subnet although most require some for of GPU to perform the require compute functions.",
+    "host_name": "docs.taostats.io",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://onfinality.io/en/rpc-assistant/how-to-mine-bittensor",
+    "name": "How to Mine Bittensor: TAO, Subnets, and RPC Setup",
+    "snippet": "How do I mine Bittensor and keep my miner connected?",
+    "host_name": "onfinality.io",
+    "rank": 3,
+    "date": "Aug 1, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://docs.vast.ai/mining-on-bittensor",
+    "name": "Mining on Bittensor",
+    "snippet": "This tutorial shows how to use the Bittensor testnet to create a subnet and run your incentive mechanism on it. for subnet miner.",
+    "host_name": "docs.vast.ai",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  }
+]

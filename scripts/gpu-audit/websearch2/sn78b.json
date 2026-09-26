@@ -1,0 +1,56 @@
+[
+  {
+    "url": "https://bittensor.ai/learn/mining/requirements",
+    "name": "Bittensor Mining: Hardware and Software",
+    "snippet": "For LLM inference subnets, a 24 GB VRAM GPU (such as an RTX 3090, 4090, or A5000) is the practical minimum for mid-size models, 70B+ parameter ...",
+    "host_name": "bittensor.ai",
+    "rank": 0,
+    "date": "Sep 23, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.youtube.com/watch?v=YQWoPg1OoXM",
+    "name": "Mining $TAO on Bittensor with Your Gaming PC! A Beginner's",
+    "snippet": "How to set up your Bittensor wallet and miner Minimum hardware requirements (do you need a GPU?) How to choose the right subnet How much TAO ...",
+    "host_name": "www.youtube.com",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://bittensor.ai/subnets/51?tab=participate",
+    "name": "lium.io (SN51) — GPU Rental Marketplace",
+    "snippet": "Decentralized GPU rental marketplace powered by incentivized validation. Miners rent hardware, validators verify specs, renters access compute on Bittensor.",
+    "host_name": "bittensor.ai",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://onfinality.io/en/rpc-assistant/how-to-mine-bittensor",
+    "name": "How to Mine Bittensor: TAO, Subnets, and RPC Setup",
+    "snippet": "How do I mine Bittensor and keep my miner connected?",
+    "host_name": "onfinality.io",
+    "rank": 3,
+    "date": "Aug 1, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.linkedin.com/pulse/how-set-up-your-first-bittensor-miner-complete-guide-guttenberger-qo8le",
+    "name": "How to Set Up Your First Bittensor Miner (A Complete",
+    "snippet": "Requires strong GPUs (RTX 4090, A100, H100). and similar). Requires GPUs with 24GB+ VRAM. Best with 3090+ GPUs. RAM. The NVIDIA RTX 3090 and ...",
+    "host_name": "www.linkedin.com",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://bittensor.ai/subnets/9",
+    "name": "iota (SN9) — Decentralized LLM Pretraining - Subnets",
+    "snippet": "What hardware do I need to run a miner? IOTA currently requires a CUDA GPU with ≥16GB VRAM (e.g., RTX 4090) and Ubuntu 22.04. The 1.5B ...",
+    "host_name": "bittensor.ai",
+    "rank": 5,
+    "date": "Sep 21, 2026",
+    "favicon": ""
+  }
+]
