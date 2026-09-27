@@ -202,7 +202,7 @@ export function SubnetCard({ subnet: s, score, rank, compat, onSelect, onEdit, o
             <div>
               <p className="text-[10px] text-muted-foreground">Min VRAM</p>
               <FieldBadge field="minVramGb" liveFields={liveFields} overriddenFields={overriddenFields}>
-                <p className="mono tabular font-medium">{s.minVramGb} GB</p>
+                <p className="mono tabular font-medium">{s.minVramGb ? `${s.minVramGb} GB` : "None"}</p>
               </FieldBadge>
             </div>
           </div>

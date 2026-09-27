@@ -238,3 +238,37 @@ Work Log:
 Stage Summary:
 - Repo fully synced: local main == origin/main == d36b84b, working tree clean
 - REMINDER: PAT ghp_iXdtv... exposed in chat again — user should rotate it
+
+---
+Task ID: sn56-gpu-fix
+Agent: main (Super Z)
+Task: Fix SN56 Gradients "Recommended GPU: NVIDIA A100 (Basilica)" — validator-side
+hardware mislabeled as miner requirement
+
+Work Log:
+- Researched SN56 via official gradients-ai/G.O.D repo (README + docs/miner.md +
+  docs/developer.md): miners are CPU-only endpoints on port 7999 returning
+  {github_repo, commit_hash}; validators train on their own GPUs (image: 1xH100,
+  env eval: Basilica A100 80GB 900s). Participation fees 0.4-0.7 TAO/tournament.
+- Root cause: CURATED_GPU_SPECS[56] in github-scraper.ts held minVramGb:80 +
+  "NVIDIA A100 (Basilica)" sourced from a validator-side quote in docs/miner.md
+- Fix 1: CURATED_GPU_SPECS[56] -> minVramGb:0, "None (CPU-only)" with verbatim
+  miner-guide quote ("You do not need to provide tournament compute...")
+- Fix 2: surgical DB update SubnetOverride[56] (scripts/fix-sn56-gpu.ts)
+- Fix 3: subnet-card.tsx + subnet-requirements-dialog.tsx render minVramGb=0 as
+  "None" / "None - CPU-only" instead of "0 GB"
+- OPS-FLAG: sandbox reaps background servers between tool calls; dev-mode page
+  compiles OOM at ~2.5GB RSS in 4GB sandbox (dmesg). Browser screenshot skipped;
+  verified via authenticated API instead
+- FLAG (unverified, not changed): CURATED_GPU_SPECS[94] sources a *validator*
+  quickstart doc ("validator quickstart" A10G 24GB) — needs miner-doc check
+
+Verification:
+- tsc clean, eslint clean
+- API /api/subnets/56/metadata (admin session): override.minVramGb=0,
+  override.recommendedGpu="None (CPU-only)", curated matches
+
+Stage Summary:
+- SN56 now correctly shown as CPU-only miner (no GPU rental needed)
+- Correct tournament intel documented: fees 0.4/0.6/0.7 TAO (image/env/text),
+  Mon 09/11/13 UTC starts, Friday 14:00 UTC completion, Fiber registration >=1h

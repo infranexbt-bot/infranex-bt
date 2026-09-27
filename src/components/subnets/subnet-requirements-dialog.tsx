@@ -511,7 +511,7 @@ function ProfileGridLayout({
       {/* GPU Requirements */}
       <Section icon={<Cpu className="h-4 w-4 text-primary" />} title="GPU Requirements">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          <Spec label="Min VRAM" value={`${p.minVramGb} GB`} highlight={p.minVramGb >= 80} />
+          <Spec label="Min VRAM" value={p.minVramGb > 0 ? `${p.minVramGb} GB` : "None — CPU-only"} highlight={p.minVramGb >= 80} />
           <Spec label="Recommended GPU" value={p.recommendedGpu} />
           <Spec label="GPU Spec Source" value={GPU_SOURCE_LABEL[p.gpuSource]} />
         </div>

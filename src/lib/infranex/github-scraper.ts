@@ -167,11 +167,12 @@ export const CURATED_GPU_SPECS: Record<number, CuratedGpuSpec> = {
       "~35 GB of weights plus KV cache: 2× RTX 4090 or 2× RTX 5090, a single L40S or RTX 6000 Ada (48 GB), or a datacenter card (H100, H200, or B200)",
   },
   56: {
-    minVramGb: 80,
-    recommendedGpu: "NVIDIA A100 (Basilica)",
+    minVramGb: 0,
+    recommendedGpu: "None (CPU-only)",
     gpuCount: null,
     sourceFile: "docs/miner.md",
-    quote: "Production runs on Basilica A100",
+    quote:
+      "You do not need to provide tournament compute. You do need a running miner endpoint so validators can ask which repository and commit you want to enter for each tournament type.",
   },
   68: {
     minVramGb: 48,
