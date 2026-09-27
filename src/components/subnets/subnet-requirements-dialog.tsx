@@ -48,6 +48,7 @@ import { useSubnetOverrides } from "@/hooks/use-subnet-overrides";
 import { resolveCompat } from "@/lib/infranex/compat";
 import { CompatSection } from "@/components/subnets/compat-section";
 import { WhatMinersDoCard } from "@/components/subnets/what-miners-do-card";
+import { MinersPanel } from "@/components/subnets/subnet-miners-panel";
 import type { Subnet } from "@/lib/infranex/types";
 import type { SubnetRequirementsProfile } from "@/lib/devops/subnet-requirements";
 
@@ -64,6 +65,8 @@ type FetchState =
   | { phase: "loaded"; profile: SubnetRequirementsProfile; cached: boolean }
   | { phase: "error"; message: string };
 
+type DialogTab = "requirements" | "miners";
+
 export function SubnetRequirementsDialog({
   subnet,
   open,
@@ -73,6 +76,9 @@ export function SubnetRequirementsDialog({
   const { toast } = useToast();
   const [state, setState] = useState<FetchState>({ phase: "idle" });
   const [refreshing, setRefreshing] = useState(false);
+  // MINERS-TAB — the dialog carries two views: the requirements profile and
+  // the live per-UID miner list. Requirements stays the default landing tab.
+  const [tab, setTab] = useState<DialogTab>("requirements");
   // COMPAT-LAYER — GPU hosting compatibility (bare metal / TEE / cloud-OK).
   const { data: overrides } = useSubnetOverrides();
   const compat = useMemo(() => {
@@ -82,6 +88,10 @@ export function SubnetRequirementsDialog({
   }, [subnet, overrides]);
 
   const netuid = subnet?.netuid;
+
+  useEffect(() => {
+    setTab("requirements"); // reopening on a new subnet lands on Requirements
+  }, [open, netuid]);
 
   useEffect(() => {
     if (!open || netuid == null || netuid < 0) {
@@ -181,10 +191,48 @@ export function SubnetRequirementsDialog({
               <ProvenanceStrip profile={state.profile} cached={state.cached} />
             </div>
           )}
+          {/* MINERS-TAB — view switcher for Requirements vs live miner list */}
+          <div className="flex flex-wrap items-center gap-2 pt-2">
+            <div className="inline-flex rounded-lg border border-border/60 bg-muted/40 p-0.5">
+              {(
+                [
+                  ["requirements", "Requirements"],
+                  ["miners", "Active Miners"],
+                ] as const
+              ).map(([key, label]) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setTab(key)}
+                  className={cn(
+                    "rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
+                    tab === key
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  {label}
+                  {key === "miners" && typeof subnet.minersCount === "number" && (
+                    <span className="mono ml-1.5 text-[10px] text-muted-foreground">
+                      {subnet.minersCount.toLocaleString()}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
         </DialogHeader>
 
         {/* Scrollable full-view body */}
         <div className="custom-scroll min-h-0 flex-1 overflow-y-auto p-5">
+          {tab === "miners" && (
+            <MinersPanel
+              netuid={subnet.netuid}
+              symbol={subnet.symbol}
+              chainMinersCount={subnet.minersCount}
+            />
+          )}
+          {tab === "requirements" && (
           <div className="space-y-4">
             <SeatAvailabilitySection subnet={subnet} />
 
@@ -214,6 +262,7 @@ export function SubnetRequirementsDialog({
               />
             )}
           </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>

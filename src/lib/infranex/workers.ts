@@ -81,6 +81,15 @@ const workerTimers: NodeJS.Timeout[] = [];
 /** Start all background workers (idempotent — only starts once). */
 export function startWorkers() {
   if (workersStarted) return;
+  // OPS-FLAG — INFRANEX_WORKERS=off boots the server with all background
+  // workers disabled. Low-memory environments (4GB sandboxes OOM-killed the
+  // boot-time chain sweep + GitHub scrape storm) and CI/verification runs
+  // set this; the UI stays fully live because /api/network still serves the
+  // stale-while-revalidate snapshot on demand.
+  if (process.env.INFRANEX_WORKERS === "off") {
+    workersStarted = true; // mark as "decided" so later calls don't start either
+    return;
+  }
   workersStarted = true;
 
   // Run immediately, then on intervals

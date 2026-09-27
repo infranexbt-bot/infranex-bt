@@ -180,3 +180,42 @@ Stage Summary:
 - Validator Lab data pipeline verified correct for all 129 subnets
 - Audit artifacts: scripts/judge-audit/{fetch-tarballs.py, judge-audit.ts,
   judge-audit-results.json, tarball-inputs.json, tarballs/}
+
+---
+Task ID: miners-tab-1
+Agent: main (Super Z)
+Task: Implement Active Miners tab in subnet Requirements dialog (live per-UID metagraph)
+
+Work Log:
+- New API route src/app/api/subnets/[netuid]/neurons/route.ts: getUidState()
+  vectors (60s cache) + batch Keys scan (one .multi() for all uids) via
+  encodeAddress; rows {uid, hotkey, active, tier(earning/active/stale/idle),
+  incentive, consensus, validatorTrust, emissionRel, blocksSinceUpdate};
+  summary {activeCount, earningCount, medianRewardedIncentive}; DB session gate
+- New component src/components/subnets/subnet-miners-panel.tsx: summary chips,
+  search filter, sort (incentive/uid/freshest), shadcn table with incentive/
+  emission mini-bars, staleness humanized (12s/block), honest error/empty
+  states, tier color coding (primary/success/warning/muted)
+- Dialog integration: Requirements | Active Miners segmented toggle in header
+  (miner count badge), panel lazy-fetches per netuid, tab resets on reopen
+- OPS-FLAG: INFRANEX_WORKERS=off in startWorkers() — 4GB sandbox OOM-killed
+  the server 3x at boot (chain sweep + GitHub scrape storm; dmesg confirmed
+  next-server killed at 2.5GB RSS). start-dev.sh sets it; /api/network stays
+  live via stale-while-revalidate. NODE_OPTIONS heap cap 2048 added too.
+- Debugged chain: server died before miners fetch 3x (pre-existing), Turbopack
+  disk cache corrupted by OOM (rm -rf .next fixed), zombie npm wrapper held
+  port 3000 (pkill before relaunch)
+
+Verification:
+- tsc clean, eslint clean
+- API live: SN1 (256/256 reg, 8 active, 4 earning), SN18 (257 reg, 12 active,
+  18 earning), SN4 — all with real hotkeys resolved
+- Browser (agent-browser): login -> Subnets -> Targon a4 dialog -> Active
+  Miners tab renders 256 rows w/ correct tiers/bars/staleness; filter "156"
+  -> 1 row; sort UID -> 0,1,2; Refresh re-fetches; tab switch back OK;
+  zero console errors
+
+Stage Summary:
+- Active Miners tab shipped: per-subnet live miner list from chain metagraph
+- Ops flag INFRANEX_WORKERS=off stabilizes low-memory boots (documented in
+  start-dev.sh + workers.ts)
