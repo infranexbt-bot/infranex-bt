@@ -219,3 +219,22 @@ Stage Summary:
 - Active Miners tab shipped: per-subnet live miner list from chain metagraph
 - Ops flag INFRANEX_WORKERS=off stabilizes low-memory boots (documented in
   start-dev.sh + workers.ts)
+
+---
+Task ID: git-push-2
+Agent: main (Super Z)
+Task: Save and push infranex-bt to GitHub (user-provided PAT)
+
+Work Log:
+- Verified previous session state: Miners tab commit (b882019) + judge-audit
+  gitignore (19b0ffb) were already committed AND already on origin/main
+- Diagnosed git diff hang (single-line 113KB JSON piped to head); worked
+  around by redirecting diff to file
+- Committed remaining dirty file .alpha-price-history.json (runtime alpha
+  price snapshot refresh) as d36b84b
+- Set remote origin URL with user-provided PAT (same token, idempotent)
+- Pushed 19b0ffb..d36b84b main -> main, exit 0
+
+Stage Summary:
+- Repo fully synced: local main == origin/main == d36b84b, working tree clean
+- REMINDER: PAT ghp_iXdtv... exposed in chat again — user should rotate it
