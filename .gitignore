@@ -77,3 +77,7 @@ dev.pid
 
 # stale full-app snapshot kept on disk only (old subdir-era copy with its own .git/.env)
 /infranex-bt-subdir-backup/
+
+# judge-audit bulk artifacts — too big for git, contain third-party secrets
+scripts/judge-audit/tarballs/
+scripts/judge-audit/tarball-inputs.json
