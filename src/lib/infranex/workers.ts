@@ -1,3 +1,4 @@
+import os from "node:os";
 import { db } from "@/lib/db";
 import { fetchLiveSnapshot } from "./chain";
 import type { LiveNetworkSnapshot } from "./chain";
@@ -86,9 +87,29 @@ export function startWorkers() {
   // boot-time chain sweep + GitHub scrape storm) and CI/verification runs
   // set this; the UI stays fully live because /api/network still serves the
   // stale-while-revalidate snapshot on demand.
-  if (process.env.INFRANEX_WORKERS === "off") {
+  //
+  // MEMORY-GUARD-2 (2026-09-29) — the opt-out was not enough: any boot that
+  // forgot the env var (bare `bun server.js`, a manual restart, a new host)
+  // re-armed the storm — startWorkers() fires ALL 8 workers concurrently at
+  // boot (chain sweep of 128 subnets + ~100 repo scrapes + devops +
+  // benchmarks), which the kernel OOM-killed at 2.9 GB RSS. So on hosts with
+  // < 6 GB RAM workers now DEFAULT to off unless explicitly opted in with
+  // INFRANEX_WORKERS=on. Big hosts keep the old behavior (on by default).
+  const env = process.env.INFRANEX_WORKERS;
+  if (env === "off") {
     workersStarted = true; // mark as "decided" so later calls don't start either
     return;
+  }
+  if (env !== "on") {
+    const totalGb = (os.totalmem() / 1024 ** 3);
+    if (totalGb < 6) {
+      workersStarted = true; // decided: stay off on this small host
+      console.log(
+        `[workers] total RAM ${totalGb.toFixed(1)}GB < 6GB — background workers DISABLED ` +
+        `(boot-time sweep OOM-guard). Set INFRANEX_WORKERS=on to force-enable.`
+      );
+      return;
+    }
   }
   workersStarted = true;
 

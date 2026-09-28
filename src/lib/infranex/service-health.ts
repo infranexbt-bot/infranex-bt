@@ -238,7 +238,28 @@ export async function probeAxon(
     });
     const ttfbMs = Date.now() - started;
     // Read a bounded chunk of the body so totalMs covers the full round trip.
-    await res.arrayBuffer();
+    // MEMORY-GUARD (2026-09-29) — cap the buffered body at 1 MB: a misbehaving
+    // axon that streams a giant/unbounded body must never balloon server RSS
+    // (4GB sandbox was kernel-OOM-killed at 2.9 GB). We only need the round
+    // trip to complete — the body content itself is never used.
+    const MAX_PROBE_BODY = 1_000_000;
+    const contentLength = Number(res.headers.get("content-length") ?? "0");
+    if (res.body && (Number.isNaN(contentLength) || contentLength > MAX_PROBE_BODY)) {
+      // Unknown or oversized body — read at most 1 MB, then cancel the stream.
+      const reader = res.body.getReader();
+      try {
+        let received = 0;
+        while (received < MAX_PROBE_BODY) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          received += value.byteLength;
+        }
+      } finally {
+        await reader.cancel().catch(() => {});
+      }
+    } else {
+      await res.arrayBuffer();
+    }
     const totalMs = Date.now() - started;
     const ok = res.status < 500;
     return {

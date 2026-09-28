@@ -470,7 +470,8 @@ async function resolveOrgRepos(owner: string): Promise<RepoInfo[]> {
       cache: "no-store",
     });
     if (!res.ok) return [];
-    const html = await res.text();
+    const html = await boundedText(res);
+    if (!html) return [];
     const re = new RegExp(`href="/${owner}/([A-Za-z0-9_.-]+)"`, "gi");
     const found: string[] = [];
     let m: RegExpExecArray | null;
@@ -490,6 +491,23 @@ async function resolveOrgRepos(owner: string): Promise<RepoInfo[]> {
   }
 }
 
+/**
+ * MEMORY-GUARD (2026-09-29) — bounded body reader for scraper fetches.
+ * The 4GB sandbox was kernel-OOM-killed at 2.9 GB RSS; an unbounded
+ * res.text() on a huge/redirected response is one way to re-arm that.
+ * raw.githubusercontent files and GitHub org pages are small — anything
+ * over 5 MB is not a doc we can use, so refuse it.
+ */
+const MAX_SCRAPE_BODY = 5_000_000;
+async function boundedText(res: Response): Promise<string | null> {
+  const len = Number(res.headers.get("content-length") ?? "0");
+  if (!Number.isNaN(len) && len > MAX_SCRAPE_BODY) return null;
+  const text = await res.text();
+  // Chunked responses hide their size until read — backstop on the string.
+  if (text.length > MAX_SCRAPE_BODY) return null;
+  return text;
+}
+
 async function fetchRaw(
   owner: string,
   repo: string,
@@ -503,7 +521,7 @@ async function fetchRaw(
       cache: "no-store",
     });
     if (!res.ok) return null;
-    return await res.text();
+    return await boundedText(res);
   } catch {
     return null;
   }
