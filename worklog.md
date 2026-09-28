@@ -70,3 +70,21 @@ Stage Summary:
 - RAM answer: yes — server now idles at ~131MB; the 2.9GB storm path is guarded (4 layers from oom-fix-2.9gb).
 - Disk answer: yes — ~3.4G of unused caches (playwright/puppeteer/bun/npm/pip/node-gyp) deleted; 7.1G disk free.
 - Note: overlayfs means image-layer deletions don't fully return blocks to df; a platform cold start would reclaim everything.
+
+---
+Task ID: unwanted-files-cleanup
+Agent: main (Super Z)
+Task: User asked "so unwanted GB removed? also check if unwanted files and remove it"
+
+Work Log:
+- Confirmed prior cache cleanup held (playwright/puppeteer/bun/npm gone, prisma kept).
+- Full junk sweep: /tmp — tectonic binary (57MB, stale task leftover), tmp cert.pem + tmp dir (300K), ic.txt..ic5.txt debug chunks, chunks.txt, sn32-mining.md/sn32-readme.md/sn-verify (regenerable research evidence), tarball-extracted LICENSE/README.md, node-gyp temp dirs. Project — dev.log (0B), bt-miner/venv-faucet (200MB, faucet task completed).
+- git gc --prune=now: .git 124M → 76M (48M reclaimed).
+- Kept: faucet.log (SN89 record), bt-miner/venv + venv312 (active miner work, 431MB combined — venv312 purpose uncertain, flagged to user), upload/ pasted images (user chat content), server.log (active), .chain-metadata.json + .alpha-price-history.json (app data).
+- Git mystery: empty status explained — platform auto-committer commits working tree (14 commits ahead of origin, push deferred with PAT rotation).
+- Server killed between tool calls again; revival ritual executed, final login 200.
+
+Stage Summary:
+- Freed this turn: ~305MB (venv-faucet 200M + tectonic 57M + git gc 48M) + small tmp files
+- Session total cleared: ~3.4G caches + ~305MB files + RAM guard stack (2.9GB spike impossible)
+- Candidate for future cleanup: bt-miner/venv312 (206MB, purpose unclear — ask user before removing)
