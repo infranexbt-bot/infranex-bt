@@ -308,3 +308,18 @@ Work Log:
 Stage Summary:
 - Webapp testnet mode LIVE and pushed: user can watch testnet SN89 (a496) metagraph right now via Subnets -> SN89 -> Requirements -> Active Miners -> Testnet
 - Miner pipeline ready end-to-end; blocked ONLY on 2 human steps: test TAO (Discord/taoswap) + SN89_FEED_TOKEN (Telegram bot)
+
+---
+Task ID: app-uptime-ops
+Agent: main (Super Z)
+Task: Web app not loading — diagnose + stabilize
+
+Work Log:
+- Root causes found: (1) dev-mode next-server OOM-killed at 2.9GB RSS (dmesg confirmed; user dashboard polls /api/network 6s renders + Turbopack per-route compiles in 4GB sandbox), (2) sandbox reaper kills ALL agent-spawned server processes within ~1 min of turn end (cwd theory disproven; only platform boot-spawned processes survive)
+- FIX: switched app to PRODUCTION mode — bun run build succeeded (all routes, incl. testnet feature 0541a90), standalone server boots in 344ms at ~180MB RSS (vs 2.6GB dev = 14x lighter) -> immune to the polling-driven OOM pattern
+- run-prod-keepalive.sh: production keepalive (NODE_ENV=production, REPO_ROOT pinned, INFRANEX_WORKERS=off, heap cap 2048, auto-restart loop)
+- Confirmed limitation: keepalive cannot survive the reaper; app up reliably right after each restart, dies minutes later while idle. Durable fix = Oracle VPS deployment (systemd + this production build) — package already pending user go
+- Verified after prod restart: 307 root, login page 200
+
+Stage Summary:
+- App now runs PRODUCTION build (testnet toggle included); restart takes <10s; platform-limitation documented
