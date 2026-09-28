@@ -378,3 +378,16 @@ Stage Summary:
 - Sandbox SN89 stack fully repaired and verified except wallet funding (0 balance; faucet attempts interrupted, not server-rejected).
 - Manual path ready: QUICKSTART.md (web faucet / Discord / btcli 8.4.4 PoW) + setup-testnet.ps1/.sh.
 - Webapp observability for the manual miner: subnet 89 page -> miners panel -> Testnet toggle (auto-maps to a496) -> live hotkey once registered.
+
+---
+Task ID: remove-sn89-testnet-toggle
+Agent: main (Super Z)
+Task: User asked to remove the testnet toggle from the miners panel for subnet 89.
+
+Work Log:
+- Edited src/components/subnets/subnet-miners-panel.tsx: added TESTNET_TOGGLE_HIDDEN set ([89]); toggle div gets "hidden" class and the testnet netuid input is guarded by showTestnetToggle for SN89. Other subnets (e.g. SN104) keep the toggle.
+- Rebuilt production standalone (bun run build, static+public copied) — success.
+- Restarted run-prod-keepalive.sh; verified login 200 / root 307.
+
+Stage Summary:
+- SN89 miners panel no longer shows the Mainnet/Testnet toggle; testnet observability path remains available for other subnets and in the API (?network=test still works).

@@ -75,6 +75,11 @@ const KNOWN_TESTNET_NETUIDS: Record<number, number> = {
   104: 501,
 };
 
+// TESTNET-TOGGLE-HIDDEN — subnets whose miners-panel testnet toggle is
+// disabled by operator request (SN89 removed 2026-09-28). The toggle stays
+// available for every other subnet.
+const TESTNET_TOGGLE_HIDDEN: ReadonlySet<number> = new Set<number>([89]);
+
 function blocksToHuman(blocks: number | null): string {
   if (blocks === null || blocks <= 0) return "—";
   const s = blocks * BLOCK_SECONDS;
@@ -126,6 +131,7 @@ export function MinersPanel({ netuid, symbol, chainMinersCount }: MinersPanelPro
   const [query, setQuery] = useState("");
 
   const effectiveNetuid = network === "test" ? parseInt(testNetuid, 10) : netuid;
+  const showTestnetToggle = !TESTNET_TOGGLE_HIDDEN.has(netuid);
 
   const load = useCallback(
     async (isRefresh: boolean) => {
@@ -228,8 +234,14 @@ export function MinersPanel({ netuid, symbol, chainMinersCount }: MinersPanelPro
       {/* Controls */}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
         {/* Network toggle — testnet reads finney-test so a free test hotkey
-            can be watched live without burning mainnet registration TAO. */}
-        <div className="flex items-center gap-1 rounded-lg border border-border/60 p-0.5">
+            can be watched live without burning mainnet registration TAO.
+            Hidden on netuids in TESTNET_TOGGLE_HIDDEN. */}
+        <div
+          className={cn(
+            "flex items-center gap-1 rounded-lg border border-border/60 p-0.5",
+            !showTestnetToggle && "hidden"
+          )}
+        >
           <button
             type="button"
             onClick={() => setNetwork("finney")}
@@ -259,7 +271,7 @@ export function MinersPanel({ netuid, symbol, chainMinersCount }: MinersPanelPro
             Testnet
           </button>
         </div>
-        {network === "test" && (
+        {showTestnetToggle && network === "test" && (
           <Input
             value={testNetuid}
             onChange={(e) => setTestNetuid(e.target.value.replace(/[^0-9]/g, ""))}
