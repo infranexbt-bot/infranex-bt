@@ -26,7 +26,8 @@ export interface CompatSeedEntry {
 export const COMPAT_SEED: Record<number, CompatSeedEntry> = {
   1: { tier: "gpu-flexible", source: "inferred", note: "Apex physics/RL competition sims; README silent on hosting -> no stated ban (manual)",
   },
-  2: { tier: "gpu-flexible", source: "readme", note: "GPU specs stated, no hosting restriction in README",
+  2: { tier: "cpu-only", source: "readme", note: "ZK proof work is CPU-bound; miner/validator hardware tables list CPU/RAM/network/storage only — no GPU row",
+    quote: "Zero-knowledge proofs are generally more CPU computationally intensive and open the opportunity for non-GPU miners to participate", evidenceSource: "inference-labs-inc/subnet-2 README"
   },
   3: { tier: "gpu-flexible", source: "inferred", note: "Teutonic RL training subnet; README silent -> no stated ban (manual)",
   },
@@ -37,9 +38,11 @@ export const COMPAT_SEED: Record<number, CompatSeedEntry> = {
   },
   6: { tier: "cpu-only", source: "inferred", note: "no GPU mention in README -> CPU/API/data task likely",
   },
-  7: { tier: "tee-required", source: "readme", note: "TEE/confidential compute mentioned (hardware constraints likely)",
+  7: { tier: "cpu-only", source: "readme", note: "Reference miner is an agent/market-maker; stated requirements are Python 3.10+ and a wallet. Old TEE flag was a 'guaran-tee' keyword false positive",
+    quote: "Requirements: Python 3.10+, Bittensor wallet", evidenceSource: "entrius/allways README"
   },
-  8: { tier: "gpu-flexible", source: "inferred", note: "Vanta audio ML; README silent -> no stated ban (manual)",
+  8: { tier: "cpu-only", source: "readme", note: "System requirements tell miners to run on CPU (2 vCPU + 8 GB RAM)",
+    quote: "Run the miner using CPU (2 vCPU + 8 GB memory)", evidenceSource: "taoshidev/vanta-network docs/miner.md"
   },
   9: { tier: "gpu-flexible", source: "readme", note: "GPU specs stated, no hosting restriction in README",
   },
@@ -50,11 +53,13 @@ export const COMPAT_SEED: Record<number, CompatSeedEntry> = {
   12: { tier: "gpu-flexible", source: "readme", note: "GPU specs stated, no hosting restriction in README",
     quote: "Compute Horde operates as a compute rental layer - miners run worker nodes that the network rents out.", evidenceSource: "backend-developers-ltd/ComputeHorde README"
   },
-  13: { tier: "gpu-flexible", source: "readme", note: "GPU specs stated, no hosting restriction in README",
+  13: { tier: "cpu-only", source: "readme", note: "Explicit CPU-only miner statement; validator doc adds 32 GB RAM but still no GPU",
+    quote: "Miners do not require a GPU and should be able to run on a low-tier machine, as long as it has sufficient network bandwidth and disk space.", evidenceSource: "macrocosm-os/data-universe docs/miner.md"
   },
   14: { tier: "unclear", source: "audit", note: "README silent on GPU/hosting (light requirements or non-GPU task)",
   },
-  15: { tier: "gpu-flexible", source: "readme", note: "GPU specs stated, no hosting restriction in README",
+  15: { tier: "cpu-only", source: "readme", note: "Official docs hardware table: GPU 'Not required' for both min and recommended specs",
+    quote: "GPU | Not required | Not required", evidenceSource: "docs.oroagents.com validators overview (linked from repo README)"
   },
   16: { tier: "no-repo", source: "audit", note: "no public GitHub registered on-chain",
   },
@@ -66,7 +71,8 @@ export const COMPAT_SEED: Record<number, CompatSeedEntry> = {
   },
   20: { tier: "unclear", source: "audit", note: "README silent on GPU/hosting (light requirements or non-GPU task)",
   },
-  21: { tier: "tee-required", source: "readme", note: "TEE/confidential compute mentioned (hardware constraints likely)",
+  21: { tier: "cpu-only", source: "readme", note: "Miner hardware table: 2-4 CPU cores, 4-8 GB RAM; GPU optional for larger models. Old TEE flag was a keyword false positive",
+    quote: "GPU | Not required | Optional (larger models)", evidenceSource: "ippcteam/SN21-adtao README (Hardware requirements — Miner)"
   },
   22: { tier: "cpu-only", source: "inferred", note: "no GPU mention in README -> CPU/API/data task likely",
   },
@@ -89,7 +95,8 @@ export const COMPAT_SEED: Record<number, CompatSeedEntry> = {
   },
   31: { tier: "no-repo", source: "audit", note: "no public GitHub registered on-chain",
   },
-  32: { tier: "cpu-only", source: "inferred", note: "no GPU mention in README -> CPU/API/data task likely",
+  32: { tier: "gpu-flexible", source: "audit", note: "GPU REQUIRED — min_compute.yml miner spec demands 24 GB VRAM (RTX 4090 recommended); mining.md prose says 'at least RTX A4000, 16 GB' — rent >=24 GB to satisfy both; miner runs with --neuron.device cuda:0",
+    quote: "required: True ... min_vram: 24 ... recommended_gpu: \"NVIDIA RTX 4090\"", evidenceSource: "It-s-AI/llm-detection min_compute.yml (miner spec)"
   },
   33: { tier: "gpu-flexible", source: "readme", note: "GPU specs stated, no hosting restriction in README",
     quote: "Get Running Quickly with the Docker Image! ... Get a miner Running on Runpod - the README ships an official RunPod setup section.", evidenceSource: "afterpartyai/bittensor-conversation-genome-project README"
@@ -135,11 +142,14 @@ export const COMPAT_SEED: Record<number, CompatSeedEntry> = {
   },
   53: { tier: "gpu-flexible", source: "readme", note: "GPU specs stated, no hosting restriction in README",
   },
-  54: { tier: "gpu-flexible", source: "readme", note: "GPU specs stated, no hosting restriction in README",
+  54: { tier: "gpu-flexible", source: "readme", note: "GPU required to earn — image generation is the only scored task (min_compute.yml gpu.required: False is template drift; the README earning statement wins)",
+    quote: "Image generation is the only scored task — a GPU and the full image stack are required to earn rewards; GPU with 8GB+ VRAM (NVIDIA CUDA or Apple Silicon MPS)", evidenceSource: "yanez-compliance/MIID-subnet README"
   },
-  55: { tier: "cpu-only", source: "inferred", note: "no GPU mention in README -> CPU/API/data task likely",
+  55: { tier: "gpu-flexible", source: "readme", note: "Miner guide requires a GPU but names no model/VRAM (the 16 GB 'Memory' line is likely system RAM); validator guide says GPU unnecessary",
+    quote: "GPU : necessary, up to your generation / Memory : 16GB minimum", evidenceSource: "genomesio/subnet-niome docs/miner_guide.md"
   },
-  56: { tier: "gpu-flexible", source: "readme", note: "Gradients LLM training via Docker; no hosting restriction found",
+  56: { tier: "cpu-only", source: "readme", note: "Miner provides training repos; the GPU training itself runs on validator-controlled trainers",
+    quote: "Miners expose training repositories for tournament tasks; trainers run those repositories on validator-controlled GPU infrastructure.", evidenceSource: "gradients-ai/G.O.D README"
   },
   57: { tier: "no-repo", source: "audit", note: "no public GitHub registered on-chain",
   },
@@ -149,7 +159,8 @@ export const COMPAT_SEED: Record<number, CompatSeedEntry> = {
   },
   60: { tier: "cpu-only", source: "inferred", note: "no GPU mention in README -> CPU/API/data task likely",
   },
-  61: { tier: "gpu-flexible", source: "inferred", note: "RedTeam runs LLM attacks; README silent -> no stated ban (manual)",
+  61: { tier: "cpu-only", source: "readme", note: "Miner prerequisites list CPU/RAM/storage/OS only; no GPU anywhere in repo docs",
+    quote: "System Requirements: CPU: 2+ cores, RAM: 8GB+, Storage: 50GB+, OS: Linux-based", evidenceSource: "RedTeamSubnet/RedTeam docs/getting-started/miner.md"
   },
   62: { tier: "cpu-only", source: "inferred", note: "no GPU mention in README -> CPU/API/data task likely",
   },
@@ -189,7 +200,8 @@ export const COMPAT_SEED: Record<number, CompatSeedEntry> = {
   },
   78: { tier: "cpu-only", source: "inferred", note: "no GPU mention in README -> CPU/API/data task likely",
   },
-  79: { tier: "gpu-flexible", source: "readme", note: "GPU specs stated, no hosting restriction in README",
+  79: { tier: "cpu-only", source: "readme", note: "No set miner requirements (~1 GB RAM per miner instance); GPU only for the optional GenTRX training pool",
+    quote: "There are no set requirements for miners except that the basic Bittensor package and subnet miner tools occupy ~1GB of RAM per miner instance", evidenceSource: "taos-im/sn-79 README (Miner requirements)"
   },
   80: { tier: "gpu-flexible", source: "inferred", note: "OpenRoboto VLA robotics models; README silent -> no stated ban (manual)",
   },
@@ -237,7 +249,8 @@ export const COMPAT_SEED: Record<number, CompatSeedEntry> = {
   },
   101: { tier: "cpu-only", source: "inferred", note: "no GPU mention in README -> CPU/API/data task likely",
   },
-  102: { tier: "cpu-only", source: "inferred", note: "no GPU mention in README -> CPU/API/data task likely",
+  102: { tier: "gpu-flexible", source: "readme", note: "Distributed MoE training — miners need A100/H100-class 40 GB+ (A6000 48 GB works)",
+    quote: "40 GB GPU (A100/H100 class) with ~24 GB allocated during eval.", evidenceSource: "Connito-AI/Connito docs/miner-faq/miner-config.md"
   },
   103: { tier: "no-repo", source: "audit", note: "no public GitHub registered on-chain",
   },
@@ -247,7 +260,8 @@ export const COMPAT_SEED: Record<number, CompatSeedEntry> = {
   },
   106: { tier: "gpu-flexible", source: "inferred", note: "no stated restriction; 4 GPU refs in README -> GPU subnet, providers allowed",
   },
-  107: { tier: "gpu-flexible", source: "readme", note: "GPU specs stated, no hosting restriction in README",
+  107: { tier: "cpu-only", source: "readme", note: "Miner requirements table lists CPU/RAM/disk/Docker/Python only — variant calling (BCFtools/DeepVariant) is CPU work; no GPU row",
+    quote: "CPU/RAM (Miner) | >=4 cores / 8-16 GB RAM", evidenceSource: "minos-protocol/minos_subnet README (Requirements)"
   },
   108: { tier: "no-repo", source: "audit", note: "no public GitHub registered on-chain",
   },
@@ -255,7 +269,8 @@ export const COMPAT_SEED: Record<number, CompatSeedEntry> = {
   },
   110: { tier: "no-repo", source: "audit", note: "no public GitHub registered on-chain",
   },
-  111: { tier: "gpu-flexible", source: "readme", note: "GPU specs stated, no hosting restriction in README",
+  111: { tier: "cpu-only", source: "readme", note: "GPU only for optional local models — hosted inference providers avoid it entirely",
+    quote: "GPU | Not required with hosted inference providers", evidenceSource: "DeSciClaims/Claims README (System Prerequisites)"
   },
   112: { tier: "parked", source: "audit", note: "subnet parked/for-sale/inactive",
   },

@@ -391,3 +391,23 @@ Work Log:
 
 Stage Summary:
 - SN89 miners panel no longer shows the Mainnet/Testnet toggle; testnet observability path remains available for other subnets and in the API (?network=test still works).
+
+---
+Task ID: sn32-itsai-gpu-fix
+Agent: main (Super Z)
+Task: Research "subnet 21 ItsAI" GPU-vs-CPU contradiction in the Mining Requirements dialog; find why the app shows "No GPU required" and fix it.
+
+Work Log:
+- Pasted screenshot not saved by gateway; traced the dialog code instead (subnet-requirements-dialog.tsx -> CompatSection -> resolveCompat -> compat-seed.ts).
+- Name mixup identified: ItsAI is SN32 (chain identity: github.com/It-s-AI/llm-detection); SN21 is AdTAO (ippcteam/SN21-adtao, advertising impact prediction). User's "subnet 21 its AI" was the ItsAI dialog.
+- Root cause for SN32: compat-seed entry was cpu-only/"inferred — no GPU mention in README". The main README is silent, but docs/mining.md says "recommended to be a GPU (at least NVIDIA RTX A4000) with minimum 16 GB of VRAM" and the miner runs --neuron.device cuda:0; the repo's min_compute.yml (machine spec) says gpu.required: True, min_vram: 24, recommended_gpu "NVIDIA RTX 4090". DB override already had 24/RTX 4090 (correct); only the seed tier was wrong.
+- Built scripts/compat-crosscheck.py: cross-checked all 128 seed tiers vs scraper SubnetOverride rows -> 3 dangerous "cpu-only but GPU needed" (SN32/55/102) + 12 "GPU/TEE flagged but CPU is enough" (SN2/7/8/13/15/21/54/56/61/79/107/111).
+- Verified every contradiction against primary sources: research-findings-1..4.json verbatim quotes (SN2/8/13/15/55/61/111), fresh README/docs fetches (SN7/21/54/56/79/107 + SN32 mining docs), curated scraper spec (SN102). SN7+SN21 old "tee-required" flags were "guaran-tee" substring false positives; SN21 README miner table says "GPU | Not required | Optional". SN54 mirror bug: min_compute.yml gpu.required: False is template drift, README says "a GPU ... required to earn rewards" (8GB+ VRAM).
+- Applied 15 compat-seed.ts fixes with verbatim quotes + evidenceSource: GPU-required flips -> SN32, SN55, SN102 (gpu-flexible); CPU-only corrections -> SN2, SN7, SN8, SN13, SN15, SN21, SN56, SN61, SN79, SN107, SN111; SN54 kept gpu-flexible with corrected README evidence.
+- DB: SN54 SubnetOverride updated (minVramGb 8, "GPU >=8 GB VRAM ... required to earn"); SN32 row already correct (24 GB / RTX 4090 per min_compute.yml).
+- Rebuilt bun run build (standalone), restarted via run-prod-keepalive.sh, verified login 200 / root 307 and new seed text present in client chunk 8de995cfe1255b63.js.
+
+Stage Summary:
+- Mining Requirements dialog now matches reality: ItsAI (SN32) shows "GPU required — 24 GB VRAM / RTX 4090 (min_compute.yml)"; SN21 AdTAO shows CPU-only "GPU Not required / Optional"; 13 other subnets corrected in the same sweep.
+- scripts/compat-crosscheck.py kept for future seed-vs-scraper audits (rerun after each sync-all).
+- Known nuance documented in seed note: SN32 mining.md prose (A4000/16GB) vs min_compute.yml (24GB) — advice rendered is "rent >=24 GB to satisfy both".
