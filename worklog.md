@@ -359,3 +359,22 @@ Work Log:
 Stage Summary:
 - ~847MB freed; app unaffected (production standalone is self-contained, no dependency on deleted dev cache).
 - SN89 launch chain fully preserved: sn89-launch.sh + venv (Python 3.10 miner deps) + venv312 (btcli) + InfiniteQuant-Subnet repo.
+
+---
+Task ID: sn89-preflight-handoff
+Agent: main (Super Z)
+Task: Pre-flight the SN89 live miner launch chain; user then chose to stop and run the miner manually.
+
+Work Log:
+- Confirmed app has full testnet observability: chain.ts finney-test endpoint, /api/subnets/[netuid]/neurons?network=test, miners-panel Mainnet/Testnet toggle with KNOWN_TESTNET_NETUIDS {89:496, 104:501}.
+- Diagnosed bt-miner venvs: venv (3.10) and venv312 (3.12) were empty shells (no pip, no bittensor) — explains historical venv9 attempts. venv9 was already deleted in cleanup.
+- Repaired: ensured pip in both venvs; venv312 got bittensor-cli 9.23.2 (fixed stale btcli entry-point shim with force-reinstall); venv got the SN89 pinned stack from requirements.txt (bittensor 10.3.0, bittensor-wallet 4.0.1, async-substrate-interface 2.0.2, cyscale 0.3.3, vendored timelock 0.0.2.dev0 + wasm_wrapper 0.3.0). tools/check_timelock.py: consensus format OK.
+- LabTest wallet + testhot hotkey exist (~/.bittensor/wallets/LabTest) but balance is 0.000 on testnet.
+- btcli 9.x has NO faucet: built bt-miner/venv-faucet (virtualenv, uv python3.12) with bittensor-cli==8.4.4 (last faucet-capable release; 8.5.0 never existed). Two faucet PoW attempts were canceled by the IM gateway mid-run ("context canceled") — never completed; balance still 0.
+- USER DECISION: stop sandbox-side miner/faucet work; run miner manually (laptop). Handed off via download/laptop-cpu-miner/QUICKSTART.md — added the verified btcli 8.4.4 PoW faucet as option 3.
+- sn89-launch.sh still uses btcli 9-incompatible flags (--wallet X) — needs --wallet_name/--hotkey if ever run from the sandbox.
+
+Stage Summary:
+- Sandbox SN89 stack fully repaired and verified except wallet funding (0 balance; faucet attempts interrupted, not server-rejected).
+- Manual path ready: QUICKSTART.md (web faucet / Discord / btcli 8.4.4 PoW) + setup-testnet.ps1/.sh.
+- Webapp observability for the manual miner: subnet 89 page -> miners panel -> Testnet toggle (auto-maps to a496) -> live hotkey once registered.
