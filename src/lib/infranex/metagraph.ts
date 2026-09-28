@@ -1,5 +1,5 @@
 import { decodeAddress } from "@polkadot/util-crypto";
-import { getChainApi } from "./chain";
+import { getChainApi, type ChainNetwork } from "./chain";
 
 /**
  * Metagraph access — per-UID state for a subnet, plus the miner's own UID.
@@ -202,7 +202,7 @@ interface CacheEntry {
   fetchedAt: number;
 }
 
-const vectorCache = new Map<number, CacheEntry>();
+const vectorCache = new Map<string, CacheEntry>();
 const CACHE_TTL_MS = 60_000;
 
 /** Normalize raw vectors into a UidVectors struct. */
@@ -240,9 +240,10 @@ function normalizeVectors(raw: {
  */
 export async function getUidState(
   netuid: number,
-  hotkey?: string | null
+  hotkey?: string | null,
+  network: ChainNetwork = "finney"
 ): Promise<UidState> {
-  const api = await getChainApi();
+  const api = await getChainApi(network);
 
   const [subnetworkN, blockNumber] = await Promise.all([
     tryReadScalar(api, netuid, ["subnetworkN", "SubnetworkN"]),
@@ -252,7 +253,8 @@ export async function getUidState(
 
   // Vector cache (60s) — the expensive part is the key scan, but vectors
   // change per tempo anyway.
-  let entry = vectorCache.get(netuid);
+  const cacheKey = `${network}:${netuid}`;
+  let entry = vectorCache.get(cacheKey);
   if (!entry || Date.now() - entry.fetchedAt > CACHE_TTL_MS) {
     const [active, incentive, consensus, emission, validatorTrust, lastUpdate] =
       await Promise.all([
@@ -282,7 +284,7 @@ export async function getUidState(
       hyperparams,
       fetchedAt: Date.now(),
     };
-    vectorCache.set(netuid, entry);
+    vectorCache.set(cacheKey, entry);
   }
 
   const vectors = entry.vectors;

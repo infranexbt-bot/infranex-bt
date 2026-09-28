@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireActiveUser } from "@/lib/auth-admin";
 import { getUidState } from "@/lib/infranex/metagraph";
-import { getChainApi } from "@/lib/infranex/chain";
+import { getChainApi, type ChainNetwork } from "@/lib/infranex/chain";
 import { encodeAddress } from "@polkadot/util-crypto";
 
 export const dynamic = "force-dynamic";
@@ -42,10 +42,16 @@ export async function GET(
     return NextResponse.json({ error: "Invalid netuid" }, { status: 400 });
   }
 
+  // ?network=test → read the finney-test metagraph instead of mainnet so a
+  // test hotkey registered on testnet (free faucet registration) can be
+  // watched live from this panel without burning any real TAO.
+  const network: ChainNetwork =
+    req.nextUrl.searchParams.get("network") === "test" ? "test" : "finney";
+
   let state: Awaited<ReturnType<typeof getUidState>>;
   try {
     // No hotkey → skips the expensive per-hotkey key scan; vectors are cached.
-    state = await getUidState(n);
+    state = await getUidState(n, null, network);
   } catch (e) {
     return NextResponse.json(
       { error: `Chain query failed: ${e instanceof Error ? e.message : "unknown"}` },
@@ -68,7 +74,7 @@ export async function GET(
   const hotkeys: (string | null)[] = new Array(count).fill(null);
   if (count > 0) {
     try {
-      const api = await getChainApi();
+      const api = await getChainApi(network);
       const args: [number, number][] = [];
       for (let uid = 0; uid < count; uid++) args.push([n, uid]);
       const results = await (api.query.subtensorModule as unknown as Record<string, any>)
@@ -133,6 +139,7 @@ export async function GET(
   return NextResponse.json(
     {
       netuid: n,
+      network,
       blockNumber: v.blockNumber,
       registeredUids: v.registeredUids,
       maxAllowedUids: state.hyperparams.maxAllowedUids,

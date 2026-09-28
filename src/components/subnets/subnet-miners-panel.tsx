@@ -43,6 +43,7 @@ interface NeuronRow {
 
 interface NeuronsResponse {
   netuid: number;
+  network: "finney" | "test";
   blockNumber: number;
   registeredUids: number;
   maxAllowedUids: number | null;
@@ -63,6 +64,16 @@ const TIER_STYLE: Record<NeuronRow["tier"], { label: string; className: string }
 };
 
 const BLOCK_SECONDS = 12;
+
+// Mainnet → testnet netuid mapping, sourced from each subnet's own docs
+// (testnet subnets are registered independently, so there is no on-chain
+// mapping). SN89 InfiniteQuant: netuid 496 (official README). SN104
+// Taostatus: netuid 501 (official README). Anything else falls back to the
+// mainnet netuid, editable in the UI.
+const KNOWN_TESTNET_NETUIDS: Record<number, number> = {
+  89: 496,
+  104: 501,
+};
 
 function blocksToHuman(blocks: number | null): string {
   if (blocks === null || blocks <= 0) return "—";
@@ -103,6 +114,8 @@ interface MinersPanelProps {
 }
 
 export function MinersPanel({ netuid, symbol, chainMinersCount }: MinersPanelProps) {
+  const [network, setNetwork] = useState<"finney" | "test">("finney");
+  const [testNetuid, setTestNetuid] = useState(String(KNOWN_TESTNET_NETUIDS[netuid] ?? netuid));
   const [state, setState] = useState<
     | { phase: "loading" }
     | { phase: "loaded"; data: NeuronsResponse }
@@ -112,12 +125,15 @@ export function MinersPanel({ netuid, symbol, chainMinersCount }: MinersPanelPro
   const [sort, setSort] = useState<SortKey>("incentive");
   const [query, setQuery] = useState("");
 
+  const effectiveNetuid = network === "test" ? parseInt(testNetuid, 10) : netuid;
+
   const load = useCallback(
     async (isRefresh: boolean) => {
+      if (!Number.isInteger(effectiveNetuid) || effectiveNetuid < 0) return;
       if (isRefresh) setRefreshing(true);
       else setState({ phase: "loading" });
       try {
-        const res = await fetch(`/api/subnets/${netuid}/neurons`);
+        const res = await fetch(`/api/subnets/${effectiveNetuid}/neurons?network=${network}`);
         const j = (await res.json()) as NeuronsResponse | { error: string };
         if (!res.ok || "error" in j) {
           setState({ phase: "error", message: "error" in j ? j.error : `API ${res.status}` });
@@ -133,7 +149,7 @@ export function MinersPanel({ netuid, symbol, chainMinersCount }: MinersPanelPro
         setRefreshing(false);
       }
     },
-    [netuid]
+    [effectiveNetuid, network]
   );
 
   useEffect(() => {
@@ -171,6 +187,12 @@ export function MinersPanel({ netuid, symbol, chainMinersCount }: MinersPanelPro
     <div className="space-y-4">
       {/* Summary strip — what this subnet's miner field looks like right now */}
       <div className="flex flex-wrap items-center gap-2 text-xs">
+        {network === "test" && (
+          <span className="badge-status bg-warning/15 text-warning" title="Reading the finney-test chain — test TAO only, registration here is free via faucet">
+            TESTNET α{Number.isInteger(effectiveNetuid) ? effectiveNetuid : "?"}
+            {Number.isInteger(effectiveNetuid) && effectiveNetuid !== netuid ? ` (mainnet SN${netuid})` : ""}
+          </span>
+        )}
         <span className="badge-status bg-primary/10 text-primary">
           <Users className="h-3 w-3" />
           {state.phase === "loaded"
@@ -205,6 +227,47 @@ export function MinersPanel({ netuid, symbol, chainMinersCount }: MinersPanelPro
 
       {/* Controls */}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+        {/* Network toggle — testnet reads finney-test so a free test hotkey
+            can be watched live without burning mainnet registration TAO. */}
+        <div className="flex items-center gap-1 rounded-lg border border-border/60 p-0.5">
+          <button
+            type="button"
+            onClick={() => setNetwork("finney")}
+            className={cn(
+              "rounded-md px-2 py-1 text-[11px] font-medium transition-colors",
+              network === "finney"
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            Mainnet
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              if (network === "test") return;
+              setTestNetuid(String(KNOWN_TESTNET_NETUIDS[netuid] ?? netuid));
+              setNetwork("test");
+            }}
+            className={cn(
+              "rounded-md px-2 py-1 text-[11px] font-medium transition-colors",
+              network === "test"
+                ? "bg-warning/15 text-warning"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            Testnet
+          </button>
+        </div>
+        {network === "test" && (
+          <Input
+            value={testNetuid}
+            onChange={(e) => setTestNetuid(e.target.value.replace(/[^0-9]/g, ""))}
+            className="h-8 w-24 text-xs"
+            placeholder="testnet α"
+            title="Testnet netuid — testnet subnets register independently (SN89 = α496); edit if you registered a different one"
+          />
+        )}
         <div className="relative flex-1">
           <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -347,11 +410,22 @@ export function MinersPanel({ netuid, symbol, chainMinersCount }: MinersPanelPro
       )}
 
       <p className="text-[11px] leading-relaxed text-muted-foreground">
-        Live subtensor metagraph for α{netuid} ({symbol}). “Active” is the chain&apos;s own
-        activity flag — the UID has recently served validator queries. “Earning” UIDs held
-        incentive in the last epoch and are being paid; “stale” UIDs have not updated in
-        over a day. Rows come straight from the same chain storage validators score against,
-        cached ~60s.
+        {network === "test" ? (
+          <>
+            Live finney-test metagraph for α{Number.isInteger(effectiveNetuid) ? effectiveNetuid : "?"}.
+            Testnet subnets register independently of mainnet (SN{netuid} = α{KNOWN_TESTNET_NETUIDS[netuid] ?? "?"} on test) —
+            register a free faucet hotkey with <span className="mono">btcli subnets register --netuid … --network test</span> and it appears here.
+            Incentive values are in test TAO and carry no monetary value.
+          </>
+        ) : (
+          <>
+            Live subtensor metagraph for α{netuid} ({symbol}). “Active” is the chain&apos;s own
+            activity flag — the UID has recently served validator queries. “Earning” UIDs held
+            incentive in the last epoch and are being paid; “stale” UIDs have not updated in
+            over a day. Rows come straight from the same chain storage validators score against,
+            cached ~60s.
+          </>
+        )}
       </p>
     </div>
   );

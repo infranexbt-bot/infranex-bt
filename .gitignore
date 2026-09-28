@@ -81,3 +81,7 @@ dev.pid
 # judge-audit bulk artifacts — too big for git, contain third-party secrets
 scripts/judge-audit/tarballs/
 scripts/judge-audit/tarball-inputs.json
+
+# Live SN89 testnet miner sandbox (venv + repo clone + keys)
+bt-miner/
+.chain-metadata-test.json

@@ -13,8 +13,21 @@ import path from "node:path";
  * subsequent boots — cutting cold start from ~10-60s down to ~1-2s.
  */
 
-const WS_URL = "wss://entrypoint-finney.opentensor.ai:443";
-const RPC_URL = "https://entrypoint-finney.opentensor.ai/rpc";
+export type ChainNetwork = "finney" | "test";
+
+const NETWORK_ENDPOINTS: Record<ChainNetwork, { ws: string; rpc: string }> = {
+  finney: {
+    ws: "wss://entrypoint-finney.opentensor.ai:443",
+    rpc: "https://entrypoint-finney.opentensor.ai/rpc",
+  },
+  test: {
+    // Bittensor testnet (finney-test) — free faucet TAO, netuids 400-599.
+    // Used by the miners-panel testnet toggle so operators can watch a
+    // test hotkey live without burning mainnet registration TAO.
+    ws: "wss://test.finney.opentensor.ai:443",
+    rpc: "https://test.finney.opentensor.ai/rpc",
+  },
+};
 // Standalone server chdirs into .next/standalone — anchor caches on the
 // repo root (INFRANEX_REPO_ROOT pinned in the start script) so rebuilds
 // don't reset the chain metadata + alpha price trend windows.
@@ -97,8 +110,8 @@ function alphaChange24h(netuid: number, current: number): number | null {
   return Math.round(((current - old) / old) * 1000) / 10;
 }
 
-let _api: ApiPromise | null = null;
-let _connecting: Promise<ApiPromise> | null = null;
+const _apis = new Map<ChainNetwork, ApiPromise>();
+const _connecting = new Map<ChainNetwork, Promise<ApiPromise>>();
 
 function loadCachedMetadata(): Record<string, string> | null {
   try {
@@ -123,13 +136,14 @@ function saveMetadata(api: ApiPromise): void {
   }
 }
 
-async function createApi(): Promise<ApiPromise> {
+async function createApi(network: ChainNetwork): Promise<ApiPromise> {
   const metadata = loadCachedMetadata() as unknown as Record<string, `0x${string}`> | null;
   const createOpts = { noInitWarn: true, throwOnConnect: true, metadata: metadata ?? undefined };
+  const { ws, rpc } = NETWORK_ENDPOINTS[network];
 
   // WebSocket first — persistent connection, better for repeated reads.
   try {
-    const provider = new WsProvider(WS_URL, 4000, undefined, 60_000);
+    const provider = new WsProvider(ws, 4000, undefined, 60_000);
     const api = await ApiPromise.create({ provider, ...createOpts });
     saveMetadata(api);
     return api;
@@ -138,28 +152,35 @@ async function createApi(): Promise<ApiPromise> {
   }
 
   // HTTP JSON-RPC fallback.
-  const provider = new HttpProvider(RPC_URL);
+  const provider = new HttpProvider(rpc);
   const api = await ApiPromise.create({ provider, ...createOpts });
   saveMetadata(api);
   return api;
 }
 
-export async function getChainApi(): Promise<ApiPromise> {
-  if (_api && _api.isConnected) return _api;
-  if (_connecting) return _connecting;
-  _connecting = (async () => {
+export async function getChainApi(
+  network: ChainNetwork = "finney"
+): Promise<ApiPromise> {
+  const connected = _apis.get(network);
+  if (connected && connected.isConnected) return connected;
+  const pending = _connecting.get(network);
+  if (pending) return pending;
+  const connecting = (async () => {
     // Disconnect any stale connection before creating a fresh one.
-    if (_api) {
-      try { await _api.disconnect(); } catch { /* ignore */ }
-      _api = null;
+    const stale = _apis.get(network);
+    if (stale) {
+      try { await stale.disconnect(); } catch { /* ignore */ }
+      _apis.delete(network);
     }
-    _api = await createApi();
-    return _api;
+    const api = await createApi(network);
+    _apis.set(network, api);
+    return api;
   })();
+  _connecting.set(network, connecting);
   try {
-    return await _connecting;
+    return await connecting;
   } finally {
-    _connecting = null;
+    _connecting.delete(network);
   }
 }
 
