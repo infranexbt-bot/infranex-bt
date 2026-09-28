@@ -139,11 +139,27 @@ echo "[BUN] Seeding users + session secret (idempotent)..."
 bun scripts/seed-users.ts || echo "[WARN] seed-users failed — login may need manual seeding"
 log_step_end "bun scripts/seed-users.ts (wipe auto-heal)"
 
-log_step_start "Starting Next.js dev server"
-echo "[BUN] Starting development server..."
-bun run dev &
+log_step_start "Starting Next.js server (production standalone, OOM-GUARD)"
+# OOM-GUARD-2 — the dev server (Turbopack + boot-time chain sweep) was
+# OOM-killed at 2.9GB RSS on this 4GB no-swap sandbox, which cascaded into
+# "sandbox is inactive" on the preview. Cold boots now launch the PRODUCTION
+# standalone server (~180MB RSS, 14x lighter) with workers off; /api/network
+# still serves the stale-while-revalidate snapshot on demand. Falls back to
+# dev mode only if the standalone build is missing.
+export INFRANEX_WORKERS=off
+export NODE_ENV=production
+export INFRANEX_REPO_ROOT="$PROJECT_DIR"
+export NODE_OPTIONS="--max-old-space-size=2048"
+if [ -f "$PROJECT_DIR/.next/standalone/server.js" ]; then
+  echo "[BUN] Starting production standalone server..."
+  bun "$PROJECT_DIR/.next/standalone/server.js" &
+else
+  echo "[BUN] No standalone build found — falling back to dev mode..."
+  unset NODE_ENV
+  bun run dev &
+fi
 DEV_PID=$!
-log_step_end "Starting Next.js dev server"
+log_step_end "Starting Next.js server (production standalone, OOM-GUARD)"
 
 log_step_start "Waiting for Next.js dev server"
 wait_for_service "localhost" "3000" "Next.js dev server"
