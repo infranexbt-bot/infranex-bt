@@ -53,3 +53,20 @@ Work Log:
 Stage Summary:
 - No regressions from MEMORY-GUARD-1..4: scraper fetch+parse correct, sync-all route/auth/DB correct, memory flat under both direct and API load
 - scripts/mint-session-token.ts is reusable for future authenticated API testing
+
+---
+Task ID: clear-unwanted-gb
+Agent: main (Super Z)
+Task: User asked "did you clear unwanted GB" — measure and clean RAM + disk
+
+Work Log:
+- RAM: server dead 3467MB avail vs alive 3336MB = ~131MB warm footprint (vs 2.9GB at OOM). Guards verified holding.
+- Disk audit: .next/cache 404K (tiny), server.log 4KB, dev.log ~0 — app itself clean. Found waste: ~/.bun/install/cache 1.1G, ~/.cache/ms-playwright 1.3G, ~/.cache/puppeteer 653M, ~/.npm 298M, pip 68M, node-gyp 67M — none referenced by package.json or src/.
+- Cleared all listed caches + tmp test files; kept ~/.cache/prisma (36M, used by project) and ~/.cache/virtualenv.
+- df moved 2.5G→2.3G used (overlayfs: image-layer blocks whiteout instead of free) but all cache files confirmed deleted; 7.1G avail now.
+- Sandbox killed server between tool calls repeatedly (established pattern); revival ritual each time, final login 200.
+
+Stage Summary:
+- RAM answer: yes — server now idles at ~131MB; the 2.9GB storm path is guarded (4 layers from oom-fix-2.9gb).
+- Disk answer: yes — ~3.4G of unused caches (playwright/puppeteer/bun/npm/pip/node-gyp) deleted; 7.1G disk free.
+- Note: overlayfs means image-layer deletions don't fully return blocks to df; a platform cold start would reclaim everything.
