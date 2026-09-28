@@ -342,3 +342,20 @@ Stage Summary:
 - Root cause: dev-mode OOM (2.9GB) -> kernel kill -> sandbox suspension -> preview "sandbox is inactive".
 - App restored in production mode (14x lighter). Cold boots now OOM-proof via hardened dev.sh.
 - Still pending: SN89 live CPU miner for webapp testing (testnet-vs-mainnet visibility decision); Oracle VPS remains the only fully durable host while sandbox reaper exists.
+
+---
+Task ID: cleanup-unwanted-files
+Agent: main (Super Z)
+Task: User asked to check the web app and remove unwanted files.
+
+Work Log:
+- App verified healthy (login 200, root 307) and relaunched via run-prod-keepalive.sh.
+- Surveyed sizes: node_modules 1.1G, .next 942M (718M was .next/dev Turbopack cache), bt-miner 519M (3 Python venvs).
+- Checked references before deletion: rg found bt-miner/venv + venv312 used by scripts/sn89-launch.sh (SN89 miner launcher); venv9 unreferenced anywhere.
+- Deleted: .next/dev (718M, dev-only Turbopack cache), bt-miner/venv9 (129M), tsconfig.tsbuildinfo (344K build artifact); truncated dev.log/server.log; removed test files (/tmp/ticks.log, .alive-test).
+- Kept: venv + venv312 (SN89 launcher deps), InfiniteQuant-Subnet clone, all deliverables in download/, db/custom.db, skills/, upload/.
+- Result: project 2.7G -> 1.9G (~847MB freed). Post-cleanup health re-verified: port UP, login 200, standalone build intact (.next now 225M).
+
+Stage Summary:
+- ~847MB freed; app unaffected (production standalone is self-contained, no dependency on deleted dev cache).
+- SN89 launch chain fully preserved: sn89-launch.sh + venv (Python 3.10 miner deps) + venv312 (btcli) + InfiniteQuant-Subnet repo.
