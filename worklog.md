@@ -289,3 +289,22 @@ Work Log:
 Stage Summary:
 - Delivered 7-step laptop testnet runbook: prep -> test hotkey -> faucet -> free register (netuid 496) -> SN89 CPU miner -> verify -> optional mainnet graduation (~0.1 TAO buffer)
 - Key fact for user: zero-TAO is only possible on testnet; mainnet always burns floating recycle (~0.05 TAO)
+
+---
+Task ID: sn89-live-miner-webapp
+Agent: main (Super Z)
+Task: Run live SN89 InfiniteQuant CPU miner (testnet) to test the webapp
+
+Work Log:
+- Installed bittensor SDK + btcli 11.1.0 (uv, fast); discovered SN89 requires Python 3.10 exactly (vendored timelock cp310 wheels) -> rebuilt miner venv on uv-managed 3.10, all SN89 deps installed
+- Created throwaway wallet LabTest/testhot; btcli 11 keyfiles unreadable by SN89's older bittensor_wallet -> regenerated same keys from miner venv (coldkey 5D7Mvhmjdd..., hotkey 5Hbd4D1qu...)
+- btcli faucet command REMOVED in btcli 11; taoswap.org/testnet-faucet temporarily down; official path = opentensor Discord testnet-TAO request; testnet registration cost verified 0.0005 test TAO + MEV carrier fee
+- Verified SN89 miner runs: gates only on (a) feed token from @Iqsignals2026_bot Telegram (relay upload + follow) and (b) testnet registration on a496 (FULL 128/128 seats — churn or fallback to a2/a4 idle demo)
+- APP FEATURE: testnet mode for Active Miners — chain.ts network-keyed singleton (finney + finney-test), metagraph per-network 60s cache, neurons API ?network=test, miners panel Mainnet/Testnet toggle + editable testnet netuid (curated 89->496, 104->501) + TESTNET badge; tsc+eslint clean; committed 0541a90, pushed
+- E2E verified: a496?network=test -> 128/128 UIDs, 3 earning, real hotkeys; mainnet a89 regression clean (256 uids, 62 earning)
+- OPS: next-server OOM-killed at 2.9GB RSS (user dashboard polling /api/network 6s renders in dev mode); sandbox reaper kills spawned background procs across tool calls; relaunched via run-dev-keepalive.sh with INFRANEX_WORKERS=off + heap cap 1536
+- Deliverables updated: download/laptop-cpu-miner/QUICKSTART.md (btcli 11 syntax, faucet reality, py3.10 + keyfile warnings, seat caveat); scripts/sn89-launch.sh (post-token launch: balance -> register -> submit sanity -> follow mode)
+
+Stage Summary:
+- Webapp testnet mode LIVE and pushed: user can watch testnet SN89 (a496) metagraph right now via Subnets -> SN89 -> Requirements -> Active Miners -> Testnet
+- Miner pipeline ready end-to-end; blocked ONLY on 2 human steps: test TAO (Discord/taoswap) + SN89_FEED_TOKEN (Telegram bot)
