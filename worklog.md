@@ -272,3 +272,20 @@ Stage Summary:
 - SN56 now correctly shown as CPU-only miner (no GPU rental needed)
 - Correct tournament intel documented: fees 0.4/0.6/0.7 TAO (image/env/text),
   Mon 09/11/13 UTC starts, Friday 14:00 UTC completion, Fiber registration >=1h
+
+---
+Task ID: laptop-cpu-testnet
+Agent: main (Super Z)
+Task: Step-by-step procedure for testing with a test hotkey + CPU miner on laptop (zero TAO burn)
+
+Work Log:
+- Completed pending CPU-subnet research: 32 CPU-only SubnetOverride rows in db/custom.db (SN2,5,6,7,8,11,13,15,18,21,22,41,43,46,48-QPU,50,54,56,61,63,69,78,79,83,88,101,103,104,107,111,122,124)
+- Web-verified burn mechanics: mainnet registration = floating recycle fee on EVERY subnet (~0.05 TAO per SN89 repo README); no mainnet subnet is zero-cost; SN56 has extra tournament staking/fees
+- Verified testnet path: btcli wallet faucet --network test (free TAO) + free registration; SN89 InfiniteQuant repo documents testnet netuid 496 + "Same code, free TAO"
+- Picked SN89 as primary laptop-test subnet: CPU-only, submission-based (no public IP/axon/ports), no data subscription, official testnet docs, ~0.05 TAO mainnet graduation
+- Alternatives verified: SN8 Vanta (2vCPU/8GB), SN61 RedTeam (2+ cores/8GB/Docker), SN22 Desearch (2c/8GB/API key), SN82 Compelle, SN13 Data Universe
+- Wrote deliverables: download/laptop-cpu-miner/{QUICKSTART.md, setup-testnet.ps1 (Windows), setup-testnet.sh (macOS/Linux)}
+
+Stage Summary:
+- Delivered 7-step laptop testnet runbook: prep -> test hotkey -> faucet -> free register (netuid 496) -> SN89 CPU miner -> verify -> optional mainnet graduation (~0.1 TAO buffer)
+- Key fact for user: zero-TAO is only possible on testnet; mainnet always burns floating recycle (~0.05 TAO)
