@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  @page { size: 794px 1123px; margin: 0; }
+  html, body { margin: 0; padding: 0; background: #0B1220; }
+  @media screen {
+    html { height: auto; display: flex; justify-content: center; }
+    body { transform-origin: top center; scale: min(1, calc(100vh / 1123)); margin: 0 auto; }
+  }
+  .poster {
+    width: 794px; height: 1123px;
+    background: #0B1220;
+    color: #F8FAFC;
+    font-family: 'Carlito', 'Liberation Sans', sans-serif;
+    display: flex; flex-direction: column;
+    box-sizing: border-box;
+  }
+  .inner { flex: 1; display: flex; flex-direction: column; padding: 56px 64px 48px; box-sizing: border-box; }
+  .brandrow { display: flex; align-items: baseline; justify-content: space-between; }
+  .wordmark { font-size: 20px; font-weight: 700; letter-spacing: 3px; color: #22D3EE; }
+  .tag { font-size: 11px; letter-spacing: 2.5px; color: #64748B; text-transform: uppercase; }
+  .rule { height: 2px; background: linear-gradient(90deg, #22D3EE 0%, rgba(34,211,238,0) 70%); margin-top: 14px; }
+  h1 { font-size: 40px; margin: 64px 0 8px; font-weight: 700; }
+  .sub { font-size: 15px; color: #64748B; margin-bottom: 40px; }
+  .partlabel { font-size: 12px; letter-spacing: 3px; color: #22D3EE; text-transform: uppercase; margin: 26px 0 10px; }
+  .row { display: flex; align-items: baseline; gap: 12px; padding: 9px 0; }
+  .num { font-size: 15px; font-weight: 700; color: #22D3EE; width: 30px; flex-shrink: 0; }
+  .name { font-size: 17px; color: #E2E8F0; flex-shrink: 0; }
+  .leader { flex: 1; border-bottom: 1px dotted rgba(100,116,139,0.55); margin: 0 6px 4px; }
+  .range { font-size: 13px; color: #64748B; flex-shrink: 0; }
+  .pages { font-size: 15px; font-weight: 700; color: #E2E8F0; width: 58px; text-align: right; flex-shrink: 0; }
+  .desc { font-size: 12.5px; color: #64748B; margin: -2px 0 8px 42px; line-height: 1.45; }
+  .footer { display: flex; justify-content: space-between; border-top: 1px solid rgba(148,163,184,0.25); padding-top: 16px; }
+  .footer span { font-size: 11px; color: #475569; letter-spacing: 2px; text-transform: uppercase; }
+</style>
+</head>
+<body>
+<div class="poster">
+  <div class="inner">
+    <div>
+      <div class="brandrow">
+        <span class="wordmark">INFRANEX BT</span>
+        <span class="tag">Complete Operator Guide</span>
+      </div>
+      <div class="rule"></div>
+    </div>
+
+    <div>
+      <h1>Contents</h1>
+      <div class="sub">Three parts · seven documents · bookmarked in the PDF sidebar</div>
+
+      <div class="partlabel">Part I — Platform &amp; Architecture</div>
+      <div class="row"><span class="num">01</span><span class="name">Platform Architecture — MVP Overview</span><span class="leader"></span><span class="range">pp. 3–52</span><span class="pages">50 pp</span></div>
+      <div class="desc">The full platform brief: intelligence dashboards, mining operations, and the MVP system design.</div>
+      <div class="row"><span class="num">02</span><span class="name">Architecture Documentation v2</span><span class="leader"></span><span class="range">pp. 53–67</span><span class="pages">15 pp</span></div>
+      <div class="desc">Formal reference for the current system: modules, data flows and integrations.</div>
+
+      <div class="partlabel">Part II — Miner Setup</div>
+      <div class="row"><span class="num">03</span><span class="name">CPU Miner Setup Guide</span><span class="leader"></span><span class="range">pp. 68–90</span><span class="pages">23 pp</span></div>
+      <div class="desc">Operator handbook — from an empty dashboard to a running CPU miner.</div>
+      <div class="row"><span class="num">04</span><span class="name">GPU Miner Setup Guide</span><span class="leader"></span><span class="range">pp. 91–117</span><span class="pages">27 pp</span></div>
+      <div class="desc">Operator handbook for GPU-backed subnets — hardware, hosting and registration.</div>
+      <div class="row"><span class="num">05</span><span class="name">SN6 Laptop CPU Operator Guide</span><span class="leader"></span><span class="range">pp. 118–130</span><span class="pages">13 pp</span></div>
+      <div class="desc">Compact laptop-focused walkthrough for the SN6 CPU operator track.</div>
+
+      <div class="partlabel">Part III — Operations</div>
+      <div class="row"><span class="num">06</span><span class="name">Deployment &amp; Hosting Guide</span><span class="leader"></span><span class="range">pp. 131–142</span><span class="pages">12 pp</span></div>
+      <div class="desc">Verified DigitalOcean hosting recipes and deployment paths.</div>
+      <div class="row"><span class="num">07</span><span class="name">DevOps Engine — Miner Operations Field Guide</span><span class="leader"></span><span class="range">pp. 143–155</span><span class="pages">13 pp</span></div>
+      <div class="desc">GPU miner operations under the DevOps engine: monitoring, triggers and defense.</div>
+    </div>
+
+    <div class="footer">
+      <span>InfraneX BT</span>
+      <span>Complete Operator Guide</span>
+    </div>
+  </div>
+</div>
+</body>
+</html>

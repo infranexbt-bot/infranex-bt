@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  @page { size: 794px 1123px; margin: 0; }
+  html, body { margin: 0; padding: 0; background: #0B1220; }
+  @media screen {
+    html { height: auto; display: flex; justify-content: center; }
+    body { transform-origin: top center; scale: min(1, calc(100vh / 1123)); margin: 0 auto; }
+  }
+  .poster {
+    width: 794px; height: 1123px;
+    background: #0B1220;
+    color: #F8FAFC;
+    font-family: 'Carlito', 'Liberation Sans', sans-serif;
+    display: flex; flex-direction: column;
+    box-sizing: border-box;
+  }
+  .inner {
+    flex: 1; display: flex; flex-direction: column;
+    padding: 56px 64px 48px;
+    box-sizing: border-box;
+  }
+  .brandrow { display: flex; align-items: baseline; justify-content: space-between; }
+  .wordmark { font-size: 26px; font-weight: 700; letter-spacing: 4px; color: #22D3EE; }
+  .tag { font-size: 12px; letter-spacing: 2.5px; color: #64748B; text-transform: uppercase; }
+  .rule { height: 2px; background: linear-gradient(90deg, #22D3EE 0%, rgba(34,211,238,0) 70%); margin: 18px 0 0; }
+  .titleblock { margin-top: 132px; }
+  .kicker { font-size: 15px; letter-spacing: 5px; color: #22D3EE; text-transform: uppercase; margin-bottom: 18px; }
+  h1 { font-size: 64px; line-height: 1.06; margin: 0; font-weight: 700; color: #F8FAFC; }
+  .subtitle { margin-top: 22px; font-size: 19px; line-height: 1.5; color: #94A3B8; max-width: 560px; }
+  .stats { display: flex; gap: 40px; margin-top: 44px; }
+  .stat .n { font-size: 34px; font-weight: 700; color: #22D3EE; }
+  .stat .l { font-size: 12px; letter-spacing: 2px; color: #64748B; text-transform: uppercase; margin-top: 4px; }
+  .parts { margin-top: 56px; border-top: 1px solid rgba(148,163,184,0.25); padding-top: 26px; }
+  .parts .p { display: flex; align-items: baseline; gap: 14px; padding: 5px 0; }
+  .parts .pn { font-size: 13px; color: #22D3EE; font-weight: 700; width: 26px; flex-shrink: 0; }
+  .parts .pt { font-size: 15px; color: #CBD5E1; }
+  .footer {
+    display: flex; justify-content: space-between; align-items: baseline;
+    border-top: 1px solid rgba(148,163,184,0.25); padding-top: 18px;
+  }
+  .footer .f1 { font-size: 13px; color: #94A3B8; letter-spacing: 1px; }
+  .footer .f2 { font-size: 12px; color: #475569; letter-spacing: 2px; text-transform: uppercase; }
+</style>
+</head>
+<body>
+<div class="poster">
+  <div class="inner">
+    <div>
+      <div class="brandrow">
+        <span class="wordmark">INFRANEX BT</span>
+        <span class="tag">Bittensor Mining Operations</span>
+      </div>
+      <div class="rule"></div>
+    </div>
+
+    <div class="titleblock">
+      <div class="kicker">Operator Documentation</div>
+      <h1>Complete<br>Operator Guide</h1>
+      <div class="subtitle">Every architecture brief, setup handbook and field guide for the InfraneX BT mining platform — merged into one navigable document.</div>
+      <div class="stats">
+        <div class="stat"><div class="n">7</div><div class="l">Documents</div></div>
+        <div class="stat"><div class="n">153</div><div class="l">Pages of content</div></div>
+        <div class="stat"><div class="n">3</div><div class="l">Parts</div></div>
+      </div>
+    </div>
+
+    <div class="parts">
+      <div class="p"><span class="pn">01</span><span class="pt">Platform Architecture — MVP Overview</span></div>
+      <div class="p"><span class="pn">02</span><span class="pt">Architecture Documentation v2</span></div>
+      <div class="p"><span class="pn">03</span><span class="pt">CPU Miner Setup Guide</span></div>
+      <div class="p"><span class="pn">04</span><span class="pt">GPU Miner Setup Guide</span></div>
+      <div class="p"><span class="pn">05</span><span class="pt">SN6 Laptop CPU Operator Guide</span></div>
+      <div class="p"><span class="pn">06</span><span class="pt">Deployment &amp; Hosting Guide</span></div>
+      <div class="p"><span class="pn">07</span><span class="pt">DevOps Engine — Miner Operations Field Guide</span></div>
+    </div>
+
+    <div class="footer">
+      <span class="f1">InfraneX BT · Bittensor Intelligence &amp; Mining Operations Platform</span>
+      <span class="f2">Operator Edition</span>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -88,3 +88,23 @@ Stage Summary:
 - Freed this turn: ~305MB (venv-faucet 200M + tectonic 57M + git gc 48M) + small tmp files
 - Session total cleared: ~3.4G caches + ~305MB files + RAM guard stack (2.9GB spike impossible)
 - Candidate for future cleanup: bt-miner/venv312 (206MB, purpose unclear — ask user before removing)
+
+---
+Task ID: merge-complete-guide
+Agent: main (Super Z)
+Task: Merge all InfraneX BT PDFs into one complete operator guide (pdf skill, process brief)
+
+Work Log:
+- Loaded pdf skill + briefs/process.md; inventoried 16 PDFs, excluded 7 build intermediates (scripts/gpu-research etc.)
+- Deduped: devops guide identical x3 (md5 6ef1770aab) -> kept docs/ copy; two CPU guides are DISTINCT docs (23p handbook vs 13p SN6 laptop v2)
+- Corpus: 7 docs / 153 content pages; reading order: MVP Arch (50p) -> ArchDoc v2 (15p) -> CPU (23p) -> GPU (27p) -> SN6 v2 (13p) -> Hosting (12p) -> DevOps (13p)
+- Built cover + TOC as HTML (scripts/guide-cover.html, guide-toc.html), poster_validate PASS, rendered via html2poster.js (vector)
+- Merged with pypdf: bookmarks per part (outline_item), metadata set; QA found page-size inconsistency (sources mix 595.3pt A4 and 595.9pt px-rendered) -> normalized ALL pages to exact A4 (0.1% scale, imperceptible)
+- Made TOC clickable: pymupdf text-anchored link annotations, 7/7 rows -> part start pages
+- Final QA: WARN only (29 warnings all inherited from source docs: margins, dashes, table centering, 4 sources lack page numbers)
+- qpdf linearized; delivered: download/InfraneX-BT-Complete-Guide.pdf (155pp), download/guide-src/*.html, public/guides/ copy (served 200)
+
+Stage Summary:
+- ENVIRONMENT EVENT: platform restored sandbox from a snapshot during sleep — lost bt-miner/ (venvs+clone) and download/ contents; dev.log resurrected; core assets (.env, db, .next, worklog, scripts, all source PDFs) survived. Flag to user.
+- Deliverable: /home/z/my-project/download/InfraneX-BT-Complete-Guide.pdf + https://.../guides/InfraneX-BT-Complete-Guide.pdf in-app
+- Reusable scripts: merge-guides.py (asserts part start pages), make-toc-clickable.py, inspect-guide-pdfs*.py
