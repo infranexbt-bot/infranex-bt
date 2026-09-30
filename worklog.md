@@ -108,3 +108,20 @@ Stage Summary:
 - ENVIRONMENT EVENT: platform restored sandbox from a snapshot during sleep — lost bt-miner/ (venvs+clone) and download/ contents; dev.log resurrected; core assets (.env, db, .next, worklog, scripts, all source PDFs) survived. Flag to user.
 - Deliverable: /home/z/my-project/download/InfraneX-BT-Complete-Guide.pdf + https://.../guides/InfraneX-BT-Complete-Guide.pdf in-app
 - Reusable scripts: merge-guides.py (asserts part start pages), make-toc-clickable.py, inspect-guide-pdfs*.py
+
+---
+Task ID: merge-guide-restore
+Agent: main (Super Z)
+Task: User said "load the web app" — revive app; restore + verify the merged guide after snapshot wipe
+
+Work Log:
+- Revival ritual: login 200 on first try.
+- Found download/ was wiped by the platform snapshot restore (as recorded in merge-complete-guide), but public/guides/InfraneX-BT-Complete-Guide.pdf (7,089,906 B) survived.
+- Restored download/InfraneX-BT-Complete-Guide.pdf + download/guide-src/{guide-cover,guide-toc}.html from surviving copies (scripts/*.html).
+- Wrote scripts/verify-merged-guide.py (reusable integrity checker). pypdf text-extract hit KeyError:'bbox' font quirk -> switched text check to pymupdf.
+- Verification PASS: 155 pages, 7 bookmarks (Part1 p.3 / Part2 p.53 / Part3 p.68 / Part4 p.91 / Part5 p.118 / Part6 p.131 / Part7 p.143), 7 clickable TOC links, uniform exact-A4 pages, metadata intact, no empty pages.
+- App serves guide at /guides/InfraneX-BT-Complete-Guide.pdf -> 200.
+
+Stage Summary:
+- Deliverable fully restored: download/InfraneX-BT-Complete-Guide.pdf (155pp) + HTML sources.
+- Verify script persisted at scripts/verify-merged-guide.py for future restores.
