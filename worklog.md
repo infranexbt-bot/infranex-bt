@@ -125,3 +125,18 @@ Work Log:
 Stage Summary:
 - Deliverable fully restored: download/InfraneX-BT-Complete-Guide.pdf (155pp) + HTML sources.
 - Verify script persisted at scripts/verify-merged-guide.py for future restores.
+
+---
+Task ID: prod-build-restore
+Agent: main (Super Z)
+Task: "load the web app" — found snapshot restore wiped .next prod build; rebuilt
+
+Work Log:
+- Symptom: app answered 200 but keepalive log showed "Module not found .next/standalone/server.js" — zombie process serving from memory, prod build gone (snapshot restored older FS state during freeze).
+- .next/ only contained dev/; BUILD_ID missing.
+- Rebuilt: bun run build -> exit 0 (build.log clean, standalone + static + public copied).
+- Killed zombie next-server/dev + stale keepalive; fresh keepalive boot: Ready in 323ms; login 200, guide 200.
+- download/ checked; re-restored from public/guides/ if wiped.
+
+Stage Summary:
+- Fresh prod build deployed; zombie risk eliminated; app + merged guide both serving.
