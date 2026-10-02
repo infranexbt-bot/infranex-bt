@@ -140,3 +140,19 @@ Work Log:
 
 Stage Summary:
 - Fresh prod build deployed; zombie risk eliminated; app + merged guide both serving.
+
+---
+Task ID: cpu-earnings-research
+Agent: main (Super Z)
+Task: User asked to research/analyze if CPU mining can earn good TAO (49 CPU subnets claim)
+
+Work Log:
+- Found DB subnet tables empty post snapshot-restore (chain sweep data was in-memory) -> pulled LIVE chain snapshot via /api/network with minted session cookie (block 9193840, TAO=$310.30, 129 subnets).
+- Built scripts/cpu-earnings-analysis.py: parses SUBNET_JOBS_SEED (129 curated entries) -> hardware classification (69 GPU / 27 non-GPU-service / 17 CPU+cpu-maybe / 16 n-a) -> joins live metrics (minerEmissionTaoPerDay, rewardedMiners, burn, alpha price).
+- Fixed two math misreads: incentiveMedianShare is median/mean RATIO (capped 1.2) not a share; top10IncentiveShare is top-10% of UIDs. Rows saved to scripts/cpu-earnings-rows.json.
+- Flagged data caveats: rewarded=1 whale-concentration rows (median=whale take), alpha->TAO pool-price overstating realized value, alphaPriceChange24h showing impossible -290%/+800% (field quirk).
+- Web search cross-checks: TAO ~$301-310 confirmed; post Dec-2025 halving 3,600 TAO/d base; mid-pack GPU miner nets -$50..+$500/mo (misar.blog); competition winners ~5 TAO/d (reddit).
+
+Stage Summary:
+- Verdict delivered: CPU viable as zero-capex learning/earning path, realistic $0.1-5/d new-miner, top-skill niches higher; GPU pools 10-50x larger.
+- Reusable: scripts/cpu-earnings-analysis.py + cpu-earnings-rows.json (rerun after any fresh /api/network pull).
