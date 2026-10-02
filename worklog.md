@@ -156,3 +156,26 @@ Work Log:
 Stage Summary:
 - Verdict delivered: CPU viable as zero-capex learning/earning path, realistic $0.1-5/d new-miner, top-skill niches higher; GPU pools 10-50x larger.
 - Reusable: scripts/cpu-earnings-analysis.py + cpu-earnings-rows.json (rerun after any fresh /api/network pull).
+
+---
+Task ID: cpu-earnings-research
+Agent: main
+Task: Research + analyse TAO earning potential of CPU mining across the 49 CPU-only subnets
+
+Work Log:
+- Revived prod server (login 200)
+- Confirmed exactly 49 cpu-only subnets in src/lib/infranex/compat-seed.ts
+- Web search: TAO ~$305; halving Dec 2025 -> ~3,600 TAO/day network emission; TaoFlow (Nov 2025) zeroes negative-inflow subnets
+- Scraped taostats.io/subnets embedded react-query payload -> live alpha prices + emission_enabled for all 128 subnets (timestamp 2026-10-02T08:23Z)
+- Built scripts/cpu-scan.ts (bun + app's @polkadot/api): live chain scan of 49 subnets at block ~9,193,950 — registered UIDs, incentive vectors, subnetTaoInEmission
+- Cross-validated SN107 subnetTaoInEmission (0.01253 TAO/blk) == taostats emission (exact match)
+- Read recycleOrBurn/burn for entry costs (scripts/cpu-recycle.json)
+- Merged analysis scripts/cpu-earnings-analysis.py -> scripts/cpu-earnings-merged.json + download/cpu-subnets-earnings-snapshot.csv
+- Fixed units bug (rao vs TAO) in per-miner percentile math; re-ran scan
+
+Stage Summary:
+- All 49 CPU subnets currently emission-enabled; combined pool 265 TAO/day (~$81k) = 7% of network
+- Best CPU pick: SN107 Minos (#3 subnet on entire network, open slots 100/256, median earner ~$112/day)
+- Flat/fair subnets: SN5 Hone, SN83 CliqueAI, SN61 RedTeam, SN41 Almanac ($5-12/day median)
+- Traps: 1-5 earner subnets and ~10 near-zero pool subnets; SN13 Data Universe pool collapsed to ~$12/day
+- Verdict delivered in simple English: CPU mining = low-cost learning + modest side income, not GPU-level money; SN107 first target

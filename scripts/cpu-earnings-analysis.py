@@ -1,129 +1,69 @@
-"""CPU-mining earning analysis: join curated seed (hardware classification)
-with live chain snapshot (emissions, miners, prices) and rank CPU subnets.
+#!/usr/bin/env python3
+"""Merge chain scan + taostats prices + recycle costs -> CPU miner earnings verdict."""
+import json
 
-Outputs: per-subnet table + scenario math + verdict inputs.
-"""
-import json, re
+TAO_USD = 305.0
+BLOCKS_PER_DAY = 7200
+MINER_SHARE = 0.41  # 18% owner / 41% miners / 41% validators+stakers
 
-SNAP = "/tmp/network-snap.json"
-SEED = "/home/z/my-project/src/lib/infranex/subnet-jobs-seed.ts"
+CPU_NAMES = {  # from compat-seed + known subnet names
+    2: "DSperse", 5: "Hone", 6: "Numinous", 7: "Allways", 8: "Vanta", 11: "TrajectoryRL",
+    13: "Data Universe", 15: "ORO", 18: "Zeus", 19: "blockmachine", 21: "AdTAO", 22: "Desearch",
+    23: "Trishool", 25: "UR", 37: "Aurelius", 41: "Almanac", 43: "Graphite", 46: "Instant",
+    48: "Quantum Compute", 50: "Synth", 52: "Dojo", 56: "Gradients", 60: "Bitsec.ai",
+    61: "RedTeam", 62: "Ridges", 63: "Enigma", 65: "True Perf.", 66: "conjectures",
+    67: "Harnyx", 69: "Herald", 71: "Leadpoet", 77: "Liquidity", 78: "Umi", 79: "MVTRX",
+    83: "CliqueAI", 88: "Investing", 89: "InfiniteQuant", 93: "Bitcast", 98: "NeverPlayAlone",
+    101: "Tag101", 104: "TAOstatus", 107: "Minos", 111: "Claims", 115: "MoirAI",
+    119: "CapabilityForge", 121: "sundae_bar", 124: "Swarm", 127: "Astrid", 128: "ByteLeap",
+}
 
-snap = json.load(open(SNAP))
-TAO = snap["taoPriceUsd"]
+scan = json.load(open('/home/z/my-project/scripts/cpu-scan-result.json'))
+stats = json.load(open('/tmp/subnet_stats.json'))
+recycle = json.load(open('/home/z/my-project/scripts/cpu-recycle.json'))
 
-# ---- parse seed entries -------------------------------------------------
-src = open(SEED).read()
-body = src[src.find("SUBNET_JOBS_SEED"):]
-# split entries on  N: {  ... next N: {
-starts = [m.start() for m in re.finditer(r"(?m)^\s{2}(\d+):\s*\{", body)]
-entries = {}
-for idx, s in enumerate(starts):
-    end = starts[idx + 1] if idx + 1 < len(starts) else len(body)
-    chunk = body[s:end]
-    uid = int(re.search(r"^\s{2}(\d+):", chunk).group(1))
-
-    def field(name):
-        m = re.search(name + r':\s*"((?:[^"\\]|\\.)*)"', chunk)
-        return m.group(1).replace('\\"', '"') if m else ""
-
-    entries[uid] = {
-        "name": field("name"),
-        "category": field("category"),
-        "work": field("minerWorkType"),
-        "does": field("whatMinerDoes"),
-        "reward": field("rewardBasis"),
-        "confidence": field("confidence"),
-    }
-print(f"seed entries: {len(entries)}")
-
-# ---- classify CPU-viable ------------------------------------------------
-def cpu_class(e):
-    txt = (e["work"] + " " + e["does"]).lower()
-    if "n/a" in e["work"] or "root" in e["work"] or "nothing" in e["does"]:
-        return "no"
-    gpu_required = ("gpu required" in txt or "8+ gb-vram gpu" in txt
-                    or "gpu with" in txt or "requires a gpu" in txt
-                    or "24gb" in txt.replace(" ", "") or "gpu-heavy" in txt)
-    cpu_lead = txt.startswith("cpu") or "cpu-only" in txt or "cpu compute" in txt \
-        or "cpu scraping" in txt or "(cpu)" in txt or "no gpu required" in txt \
-        or "cpu-only" in txt or "runs on cpu" in txt or "cpu-friendly" in txt
-    if "cpu" in txt and not gpu_required:
-        return "cpu" if cpu_lead else "cpu-maybe"
-    if not gpu_required and ("api" in txt or "storage" in txt or "llm" in txt):
-        return "non-gpu-service"
-    return "gpu"
-
-classes = {}
-for uid, e in entries.items():
-    classes[uid] = cpu_class(e)
-
-from collections import Counter
-print("classification:", Counter(classes.values()))
-
-# ---- join with live metrics --------------------------------------------
+prices = {s['netuid']: float(s.get('price') or 0) for s in stats}
 rows = []
-for s in snap["subnets"]:
-    uid = s["netuid"]
-    if uid not in entries or classes.get(uid) not in ("cpu", "cpu-maybe"):
-        continue
-    c = classes[uid]
-    miners = s["minersCount"] or 0
-    rewarded = s["rewardedMiners"] or 0
-    miner_emis = s["minerEmissionTaoPerDay"] or 0.0
-    med_ratio = s["incentiveMedianShare"] or 0.0  # median/mean of earning UIDs (capped 1.2)
-    mean_rewarded = miner_emis / rewarded if rewarded else (miner_emis / miners if miners else 0)
-    median_day = mean_rewarded * med_ratio if med_ratio else mean_rewarded
-    top10pct_n = max(1, int(miners * 0.1)) if miners else 1
-    top10_avg = (miner_emis * (s["top10IncentiveShare"] or 0) / top10pct_n) if s["top10IncentiveShare"] else 0
-    saturated = miner_emis / miners if miners else 0  # if all 256 slots earned evenly
+for r in scan['results']:
+    n = r['netuid']
+    tao_in = r.get('taoInRao')
+    pool_tao_day = (tao_in / 1e9) * BLOCKS_PER_DAY if tao_in is not None else 0.0
+    miner_pool_day = pool_tao_day * MINER_SHARE
+    price = prices.get(n, 0.0)
+    entry = recycle.get(str(n)) or {}
+    cost = (entry.get('recycleOrBurn') or entry.get('burn') or 0) / 1e9
     rows.append({
-        "netuid": uid,
-        "name": entries[uid]["name"] or f"SN{uid}",
-        "cls": c,
-        "work": entries[uid]["work"][:60],
-        "miners": miners,
-        "rewarded": rewarded,
-        "minerEmissionTaoDay": round(miner_emis, 3),
-        "alphaPrice": round(s["movingPrice"] or 0, 4),
-        "alphaChg24h": round((s["alphaPriceChange24h"] or 0) * 100, 1),
-        "satTaoDay": round(saturated, 4),
-        "medianTaoDay": round(median_day, 4),
-        "topTaoDay": round(top10_avg, 4),
-        "burnTao": round(s["burnCostTao"] or 0, 2),
-        "medianUsdDay": round(median_day * TAO, 2),
-        "topUsdDay": round(top10_avg * TAO, 2),
-        "satUsdDay": round(saturated * TAO, 2),
-        "alphaPriceUsd": round((s["movingPrice"] or 0) * TAO, 3),
+        'netuid': n, 'name': CPU_NAMES.get(n, f'SN{n}'),
+        'alpha_usd': price * TAO_USD,
+        'pool_tao_day': pool_tao_day,
+        'pool_usd_day': pool_tao_day * TAO_USD,
+        'miner_pool_usd_day': miner_pool_day * TAO_USD,
+        'registered': r['registered'], 'earning': r['earningUids'],
+        'entry_cost_tao': cost,
+        'median_usd_day': r.get('earnP50', 0) * TAO_USD,
+        'p90_usd_day': r.get('earnP90', 0) * TAO_USD,
+        'top_usd_day': r.get('earnTop', 0) * TAO_USD,
+        'open_slots': max(0, 256 - r['registered']) if r['registered'] > 0 else 0,
     })
 
-rows.sort(key=lambda r: -r["medianTaoDay"])
-print(f"\nCPU-viable subnets with live data: {len(rows)} (TAO=${TAO})")
-hdr = f"{'SN':>4} {'name':<22} {'cls':<10} {'miners':>6} {'rew':>4} {'poolT/d':>8} {'a$':>7} {'med$/d':>7} {'sat$/d':>6} {'top10%$/d':>9} {'burnTao':>7} {'a24h%':>6}"
+rows.sort(key=lambda x: -x['pool_usd_day'])
+total_pool = sum(r['pool_tao_day'] for r in rows)
+total_usd = sum(r['pool_usd_day'] for r in rows)
+
+print(f"=== ALL 49 CPU SUBNETS, LIVE CHAIN (block {scan['block']}) ===")
+print(f"Total TAO/day flowing into CPU subnets: {total_pool:.1f} TAO (${total_usd:,.0f}/day)")
+print(f"That is {total_pool/3600*100:.0f}% of the whole network's ~3,600 TAO/day\n")
+hdr = f"{'SN':>4} {'name':16} {'a$':>7} {'pool$/day':>10} {'earn':>5} {'reg':>4} {'entryTAO':>8} {'med$/d':>8} {'p90$/d':>7} {'top$/d':>8}"
 print(hdr)
 for r in rows:
-    print(f"{r['netuid']:>4} {r['name'][:22]:<22} {r['cls']:<10} {r['miners']:>6} {r['rewarded']:>4} {r['minerEmissionTaoDay']:>8} {r['alphaPriceUsd']:>7} {r['medianUsdDay']:>7} {r['satUsdDay']:>6} {r['topUsdDay']:>9} {r['burnTao']:>7} {r['alphaChg24h']:>6}")
+    print(f"{r['netuid']:>4} {r['name'][:16]:16} {r['alpha_usd']:7.2f} {r['pool_usd_day']:10.0f} {r['earning']:>5} {r['registered']:>4} {r['entry_cost_tao']:8.3f} {r['median_usd_day']:8.3f} {r['p90_usd_day']:7.3f} {r['top_usd_day']:8.2f}")
 
-# ---- GPU comparison (top GPU subnets by median) -------------------------
-gpu_rows = []
-for s in snap["subnets"]:
-    uid = s["netuid"]
-    if uid not in entries or classes.get(uid) != "gpu":
-        continue
-    miners = s["minersCount"] or 0
-    me = s["minerEmissionTaoPerDay"] or 0
-    rew = s["rewardedMiners"] or 0
-    mr = s["incentiveMedianShare"] or 0
-    mean_r = me / rew if rew else (me / miners if miners else 0)
-    med = mean_r * mr if mr else mean_r
-    gpu_rows.append((uid, entries[uid]["name"][:20], miners, rew, round(med * TAO, 2)))
-gpu_rows.sort(key=lambda x: -x[4])
-print("\nTop-10 GPU subnets (median miner $/day) for comparison:")
-for g in gpu_rows[:10]:
-    print(f"  SN{g[0]:>3} {g[1]:<20} miners={g[2]:>4} rewarded={g[3]:>4} med=${g[4]}/d")
-
-# sanity: total network TAO-equivalent emission/day
-tot = sum((s.get('emissionTaoPerDay') or 0) for s in snap['subnets'])
-print(f"\nsanity: sum emissionTaoPerDay across {len(snap['subnets'])} subnets = {tot:,.0f} TAO/d = ${tot*TAO:,.0f}/d")
-
-json.dump(rows, open("/home/z/my-project/scripts/cpu-earnings-rows.json", "w"), indent=1)
-print("\nsaved -> scripts/cpu-earnings-rows.json")
+# grouping
+worth = [r for r in rows if r['median_usd_day'] >= 0.5]
+pennies = [r for r in rows if 0.01 <= r['median_usd_day'] < 0.5]
+traps = [r for r in rows if r['median_usd_day'] < 0.01]
+print(f"\nGroup A (median earner makes >= $0.50/day): {len(worth)} subnets")
+print(f"Group B (median earner makes $0.01-0.50/day): {len(pennies)} subnets")
+print(f"Group C (median earner makes < $0.01/day or 1-5 earning slots): {len(traps)} subnets")
+json.dump(rows, open('/home/z/my-project/scripts/cpu-earnings-merged.json', 'w'), indent=1)
+print("\nsaved -> scripts/cpu-earnings-merged.json")
