@@ -179,3 +179,17 @@ Stage Summary:
 - Flat/fair subnets: SN5 Hone, SN83 CliqueAI, SN61 RedTeam, SN41 Almanac ($5-12/day median)
 - Traps: 1-5 earner subnets and ~10 near-zero pool subnets; SN13 Data Universe pool collapsed to ~$12/day
 - Verdict delivered in simple English: CPU mining = low-cost learning + modest side income, not GPU-level money; SN107 first target
+
+---
+Task ID: revival-1004b
+Agent: main
+Task: Load the web app (routine revival)
+
+Work Log:
+- Ran keepalive ritual: login 200, guide 200, home 307 (redirect to login, normal)
+- Snapshot had wiped download/ again (ls failed)
+- Restored: InfraneX-BT-Complete-Guide.pdf from public/guides/, cover/toc HTML from scripts/, rebuilt cpu-subnets-earnings-snapshot.csv from scripts/cpu-earnings-merged.json
+
+Stage Summary:
+- App healthy: login 200, guide 200
+- download/ fully restored (PDF 7,089,906 B + CSV + guide-src HTML)
