@@ -241,3 +241,21 @@ Stage Summary:
 - Answer: the 4090 was NEVER Beam's requirement — one keyword ("bandwidth") in a work-type classifier bucketed Beam with GPU compute-sharing subnets; the old "Typical GPU" tooltip already flagged it as a guess, now the guess is removed
 - Beam tile now reads: Typical hardware — CPU VPS (matches Beam docs: Go orchestrator+worker, bandwidth work, no GPU)
 - Scripts kept: sn105-classifier-test.ts, sn105-bandwidth-diff.mjs, sn105-verify-api.ts, sn105-chain-debug.mjs, sn105-db-check.py
+
+---
+Task ID: beam-discussion
+Agent: main
+Task: Deep-dive discussion on SN105 Beam (user asked "discuss more about Beam")
+
+Work Log:
+- Fresh chain read block 9,215,919-921 (scripts/sn105-live-now.mjs): 256/256 seats FULL, 247 UIDs earning (96%), burn 0.0005 TAO, taoIn 1.349M rao/blk = 9.71 TAO/day TAO-side, active-flag vector mostly false (10 true — flag semantics unclear, do not trust)
+- App /api/network (block 9215921): movingPrice 0.0268 TAO/alpha ($8.17), rewardedMiners 239, minerEmissionTaoPerDay 79.23 TAO-equiv, subnetTao pool 5,040 TAO
+- UNIT WARNING (unresolved): raw emission(N) sum 295k rao vs app 79 TAO/day inconsistent under all unit assumptions tried (rao/blk, rao/epoch); /api/network likely serves ChainSnapshot-cached value. App emission math (chain.ts 626-694: epoch totals /tempo ×price) does NOT reproduce 79.23 from live vec. Paper-USD for Beam swings 100x+ by read path -> treat all $ estimates as unreliable until a dedicated units audit; SOLID facts = seats, earn-spread, burn, pool size
+- Web research: found starfrich/beam GitHub (fuller README) + starfrich.me Beam Worker guide (3rd-party = real operators), subnetradar listing, gridinsoft b1m.ai trust 72/100 ("legitimate, few caution points"). NAME CONFUSION: Beam BEAMX L1 + Beam payments (Modern Treasury) are UNRELATED
+- Architecture confirmed from README: Client->BeamCore (team-run coordinator, beamcore.b1m.ai) -> stake-weighted assignment to Orchestrators (miners) -> Workers move chunked data (S3/GCS/Azure/R2/IPFS/HTTP) -> Proof-of-Bandwidth -> validators read proofs, set weights. MCP integration for AI agents. Testnet = SN304 beamcore-dev.b1m.ai
+
+Stage Summary:
+- Beam = marketplace for BANDWIDTH (compute and storage have markets, bandwidth doesn't — their thesis); miners = orchestrator+worker Go binaries; income driven by stake-weight + transfer performance, NOT GPU
+- Demand side still team-run (BeamCore) with no public paying customers; rewards funded by emissions
+- Practical path: test free on testnet 304 first; mainnet entry burn only 0.0005 TAO but seats full
+- OPEN TODO: emission-units audit for SN105 (app cache vs live vec vs taoIn)
