@@ -63,7 +63,10 @@ const HARDWARE_MAX_VRAM: Record<HardwareOwned, number> = {
 /** Skill-bound work = challenge/agent style. Capacity style = run-and-forget. */
 function workClass(workType: string | undefined, name: string): "skill" | "capacity" | "mixed" {
   const t = `${workType ?? ""} ${name}`.toLowerCase();
-  if (/challenge|agent|engineering|security|verif|coding|research|science|frontier/.test(t)) return "skill";
+  // REDTEAM-FIT-FIX: "RedTeam" slipped through the old regex — bounty,
+  // pentest and red-team work is explicitly skill-bound (SN61 teaches: the
+  // bottom half of miners earn $0). Match it as skill, never capacity.
+  if (/challenge|agent|engineering|security|verif|coding|research|science|frontier|redteam|red team|red-team|bounty|pentest|hack|exploit|detection/.test(t)) return "skill";
   if (/compute sharing|hosting|render|capacity|mining pool|storage/.test(t)) return "capacity";
   return "mixed";
 }
@@ -143,7 +146,7 @@ export function computeMinerFit(
     if (cls === "skill" && profile.techLevel !== "coder") {
       blockers.push(
         profile.techLevel === "none"
-          ? "Skill-bound subnet — someone on your side must be able to code"
+          ? "Needs a coder — you'd have to hire one (cuts the profit roughly in half)"
           : "Challenging work — needs real coding effort, not just copy-paste"
       );
     } else if (cls === "capacity") {
@@ -178,7 +181,7 @@ export function computeMinerFit(
 
     // Crowded door — must be judged BEFORE the verdict, not after.
     const entryEarly = (o.earnChance?.pct ?? null) as number | null;
-    if (entryEarly != null && entryEarly < 3) {
+    if (entryEarly != null && entryEarly <= 3) {
       blockers.push(`Crowded — only ${entryEarly}% entry chance, subnet full of pros`);
     }
 

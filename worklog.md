@@ -455,3 +455,24 @@ Stage Summary:
 - InfraneX now has a personal advisor: Market scan (Opportunities) + Personal fit (Miner Fit)
 - Screenshots: scripts/fit-q1.png, fit-nontech-result.png, fit-coder-result.png, fit-whatittakes.png, fit-mobile.png, fit-final.png
 - Engine honest by design: non-technical profile yields zero mining fits and points to staking baseline
+
+---
+Task ID: miner-fit-wizard
+Agent: main (Super Z)
+Task: Answer user's question ("app has devops engine so I can run all subnets right?") + finish & verify the Miner Fit wizard
+
+Work Log:
+- Clarified: web app = dashboard/map, NOT a miner; devops engine keeps the site alive only; nobody runs all 128 subnets
+- Verified Miner Fit wizard already wired: sidebar "Miner Fit 01b" + FitView on page.tsx + miner-fit.ts engine (4 questions: tech / hardware / budget / hours)
+- Browser-tested full flow end-to-end (login → wizard → results) for 2 scenarios
+- Scenario A (true profile: not technical / no hardware / <$100 / passive): 0 fits, 126 excluded, staking baseline shown — honest empty state works
+- Scenario B (4090 dream: not technical / 4090 / $500 / 2-4h): found 2 honesty bugs and fixed them
+- FIX 1 (REDTEAM-FIT-FIX): SN61 "RedTeam" escaped the skill-class regex (no "security"/"challenge" match) → appeared as a "fit" for non-coders with $997/mo promise. Added redteam|red team|red-team|bounty|pentest|hack|exploit|detection to workClass skill regex; improved blocker text to mention hire-a-coder cost (~halves profit)
+- FIX 2: crowded-door threshold was entry<3, letting SN64's exactly-3% pass as a fit. Tightened to <=3; SN64 now correctly in "Close — one fixable blocker" (stretch) with "Crowded — only 3% entry chance, subnet full of pros"
+- Rebuilt (bun run build), restarted via run-prod-keepalive.sh (pkill first), login: 200
+- Screenshot: download/miner-fit-4090-scenario.png
+
+Stage Summary:
+- Miner Fit wizard live at Miner Fit 01b in sidebar, honest for non-technical users
+- Final state for 4090 scenario: NO top fits (honest), stretch = SN64 ($6,195/mo, 3% entry) + SN4 Targon ($2,041, 1%) + SN102 ($629, 1%), SN61 excluded with "Needs a coder" reason, 123/126 excluded
+- Key message delivered: app ≠ miner; even with a 4090 a non-technical user has no clean fits today — crowded or skill-bound; staking baseline $500 ≈ $5/mo is the bar
