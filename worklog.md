@@ -274,3 +274,21 @@ Work Log:
 Stage Summary:
 - User has NOT started a miner yet despite UI familiarity — answer = feature map + concrete next-steps checklist (enroll machine -> stepper -> approve wallet+launch in DevOps -> watch logs/UID/earnings)
 - Best CPU pick baked into UI: SN67 Harnyx (117 rewarded miners, ~$11.62 burn, py3.11)
+
+---
+Task ID: beam-practical-earnings
+Agent: main
+Task: Practical (realizable) earnings for SN105 Beam, vs paper dashboard numbers
+
+Work Log:
+- Definitive live read block 9,216,045 (scripts/sn105-practical-earnings.mjs): tempo 360, taoIn 0.001467 TAO/blk = 10.56 TAO/day subnet injection; burn 0.0005; pool TAO side 5,040.8, alpha side 829,175; 248/256 earning
+- REAL alpha price from pool ratio = 5040.8/829175 = 0.006079 TAO ($1.85) — direct subnetMovingPrice storage returned 0; app's earlier $8.17 movingPrice is stale/pumped EMA cache (units-audit TODO stands: app minerEmissionTaoPerDay 79.23 vs taoIn-anchored 4.33 TAO/day miner cohort)
+- Distribution: incentiveMedianShare 0.285 (median earner = 28.5% of mean), emissionTop10Share 0.677 (top 10% of UIDs take 68% of emission — whale-lean, matches BeamCore stake-weighted assignment)
+- PRACTICAL math (method cross-validated on SN107 in CPU scan): miner cohort 41% x 10.56 = 4.33 TAO/day = $1,317/day across 248 earners -> mean $5.31/day, median $1.51/day, new entrant (stake-weighted, 0.3-0.7x median) $0.45-1.06/day
+- Paper check: alpha emission per-epoch semantics = 5,904 alpha/day (0.71% of pool/day, plausible) -> 35.9 TAO/day paper at current price, still 3.4x daily buy inflow -> per-epoch semantics likely correct for vec; per-block (2.1M alpha/day) impossible
+- Net after VPS $0.17-0.50/day: ~$0-1/day practical for a low-stake new seat
+
+Stage Summary:
+- Beam practical earnings: ~$0.5-1.5/day gross median-new seat, ~break-even net. Dashboard ~$100/day mean is paper (stale price + unrealizable into 5,040 TAO pool)
+- Root cause of gap: whale-lean distribution + small pie (10.56 TAO/day whole subnet) + stake-weighted queue
+- Comparison anchors: SN107 Minos ~$112/day median (CPU), SN67 Harnyx app pick; Beam = testnet learning, not income
