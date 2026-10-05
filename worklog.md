@@ -415,3 +415,23 @@ Stage Summary:
 - AB Sniffer = name the automation framework among 8 targets across 27 sessions
 - User got concrete build pipeline: eslint -> uvicorn 10002 -> docker build/push -> active_commit.yaml
 - No code changes to app; worklog only
+
+---
+Task ID: gpu-options-scan
+Agent: main (Super Z)
+Task: Non-technical user asked which subnets suit him and whether buying RTX 4090 / A100 for GPU mining works.
+
+Work Log:
+- Revival ritual login: 200
+- scripts/gpu-options.ts: scanned all 128 subnets via /api/network (block 9,218,120, TAO $297.5)
+- 107 need GPU; only 16 fit 24GB; 91 need >24GB (mostly 80GB or 141GB multi-GPU)
+- Top 24GB fits: SN64 Chutes net $6,056/mo (3% earn chance), SN4 Targon $2,022 (1%), SN17 404-GEN $523 (0%), SN25 UR $514 (0%), SN51 lium.io $131 (11%)
+- 80GB-class (A100): SN95 Actual $1,609 (0%), SN53 engy $1,203 (2%), SN110 Green Compute $72 (0%)
+- 141GB-class dominates top nets (Carbon $10.4k, KubeTEE $5.5k) but earn chances 1-2%
+- Server check: sandbox 2 vCPU / 3GB RAM - cannot host SN61 miner locally
+- Delivered: 4090-yes/A100-no verdict, rent-first plan (Vast.ai), India electricity note, entry-odds honesty
+
+Stage Summary:
+- GPU does not remove skill barrier; earn-chance 0-3% on top GPU subnets = full of pro operators
+- Recommendation: rent 4090 first, test Chutes/Targon 2-4 weeks, buy only after validated earnings
+- A100 rejected for beginner: expensive, fits fewer subnets with 0-2% earn chance, no resale market
