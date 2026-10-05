@@ -311,3 +311,28 @@ Stage Summary:
 - SN105 dashboard now shows: $1.88/alpha, $185/mo gross, $55/mo net (CPU VPS path), 10.67 TAO/day subnet TAO inflow (dilution context)
 - New live fields available: emaMovingPrice, taoInflowTaoPerDay
 - Open follow-up (out of scope): src/lib/devops/subnet-requirements.ts ~line 546 multiplies a TAO/day figure by 730 (hours-month) for a USD fallback - units wart, affects devops tier hints only
+
+---
+Task ID: honest-dollars-all-subnets
+Agent: main (Super Z)
+Task: "i want you to check this for all subnets and fix the issue" — extend the Beam honest-dollars fix (stale price/units) to every subnet
+
+Work Log:
+- Wrote scripts/all-subnets-units-audit.mjs: independent chain recompute for ALL 129 subnets (swap prices, DynamicInfo, emission/incentive/dividends vecs, tempo, EMA) diffed against /api/network
+- Audit findings: (1) swap-engine price covers 129/129 subnets — zero stale-EMA (4.3x) fallbacks left; (2) app pipeline matched recompute exactly; (3) NEW issue found: α rewards valued at infinitesimal spot price overstate what thin-pool subnets can realize — 59/129 subnets >3x dilution (paper miner value vs real TAO inflow), worst SN101 139,000x, SN2 13,000x; deep pools (SN64 3.1x, ~0.2%/day drain) unaffected
+- Read cloned subtensor swap balancer source: sell formula Δy = y·(x/(x+Δx))^r, weights never far from 0.5 → avg realizable price = y/(x+q)
+- Fixed chain.ts: new live fields realizablePriceTao / rewardRealizability (poolTao/(poolAlpha+5904 α/day) ÷ spot, only on honest swap price) + dilutionRatio (emissionTaoPerDay ÷ taoInflowTaoPerDay); DynamicInfo alphaIn map added
+- Fixed miner-score.ts: ledger revenue (perRegistered, perEarning, expected, grossMonthlyUsd) now valued at realizable price; diag + realizableAlphaPriceUsd; dailyAlpha kept physical α for slippage
+- Fixed live-merge.ts + types.ts passthroughs (realizableAlphaPriceUsd, rewardRealizability, dilutionRatio)
+- Fixed subnet-requirements.ts ×730 wart → ×30 days × live TAO/USD
+- Fixed monitoring.ts fake $256 price fallback → null USD when no price (honest "—")
+- Fixed miner-mindset.ts arbitrage yield + cpu-guide-view.tsx Miner emission Stat to realizable basis
+- UI: opportunity-detail.tsx shows "realizable $X · N% of spot" (<90%) + "TAO inflow backs N% of paper value" (amber >50x, muted 2-50x); opportunity-table.tsx tooltip append
+- Rebuilt ×2 (first restart was a no-op — keepalive loop held port; pkill + fresh restart), verified: tsc clean, audit "no material diffs", honest-dollars-all-verify.ts green
+
+Stage Summary:
+- All 129 subnets now show realizable dollars: SN105 $1.88→$1.87/α (99.3%), SN64 $21.87→$21.82 (99.8%), biggest haircut SN116 91.6%
+- Deep-pool control: all >50k TAO liquidity ≥99.65% realizability (haircut provably harmless to healthy subnets)
+- 4/128 rows null realizability (dust pools) → treated as 1
+- New scripts: all-subnets-units-audit.mjs, honest-dollars-all-verify.ts
+- Beam practical earnings unchanged: newcomer ~0.020 TAO/d ≈ $185/mo gross, $55/mo net (CPU VPS path)

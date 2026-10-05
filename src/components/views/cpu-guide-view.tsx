@@ -814,7 +814,13 @@ export function CpuGuideView({ onNavigate }: { onNavigate: (v: ViewKey) => void 
   const burnTao = sn?.burnCostTao ?? null;
   const burnUsd = burnTao != null && tao ? burnTao * tao : null;
   const alpha = sn?.movingPrice ?? null;
-  const minerEm = sn?.minerEmissionTaoPerDay ?? null;
+  const minerEmRaw = sn?.minerEmissionTaoPerDay ?? null;
+  // REALIZABILITY-AUDIT: show what the pool actually pays for the daily
+  // flow, not the spot-paper value (matches the Opportunities Ledger).
+  const minerEm =
+    minerEmRaw != null && sn?.rewardRealizability != null
+      ? minerEmRaw * sn.rewardRealizability
+      : minerEmRaw;
   const seatsUsed = sn?.minersCount ?? null;
   const seatsMax = sn?.maxUids ?? null;
   const rewarded = sn?.rewardedMiners ?? null;
@@ -996,7 +1002,11 @@ export function CpuGuideView({ onNavigate }: { onNavigate: (v: ViewKey) => void 
           <Stat
             label="Miner emission"
             value={minerEm != null ? `${minerEm.toFixed(2)} τ/day` : "—"}
-            sub="to miners, whole subnet"
+            sub={
+              minerEm != null && sn?.rewardRealizability != null && sn.rewardRealizability < 0.9
+                ? `to miners, whole subnet · realizable (${(sn.rewardRealizability * 100).toFixed(0)}% of spot)`
+                : "to miners, whole subnet"
+            }
           />
           <Stat label="TAO price" value={tao != null ? `$${tao.toFixed(2)}` : "—"} sub="USD — sizes the budget" />
         </CardContent>

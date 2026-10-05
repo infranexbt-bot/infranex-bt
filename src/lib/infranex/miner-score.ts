@@ -448,6 +448,13 @@ export interface MinerLedgerDiagnostics {
   // Alpha conversion
   alphaPriceTao: number;
   alphaPriceUsd: number;
+  /** REALIZABILITY-AUDIT: α priced at what the pool actually pays for the
+   *  daily reward flow (spot × rewardRealizability). */
+  realizableAlphaPriceUsd: number;
+  /** Avg-price ÷ spot for the subnet's daily α sell-back (0-1]; null unknown. */
+  rewardRealizability: number | null;
+  /** Paper emission value ÷ sustainable TAO inflow; null when unknown. */
+  dilutionRatio: number | null;
   alphaChange24h: number | null;
   liquidityTao: number;
   slippagePct: number | null;
@@ -533,6 +540,13 @@ export function scoreMinersLedger(inputs: {
   // Miners get 41% of the subnet's emission (docs constant); the chain-
   // measured minerEmissionTaoPerDay already reflects the realized split.
   //
+  // REALIZABILITY-AUDIT (all subnets): α rewards are only worth what the
+  // subnet's own pool pays out when they are sold back. The chain now
+  // supplies rewardRealizability (avg balancer price of the daily flow ÷
+  // spot). Deep pools (SN64 Chutes) sit at ~1; thin pools get the haircut
+  // they economically deserve — spot-priced revenue on a thin pool repeats
+  // the exact mistake that once showed Beam 4.3× inflated dollars.
+  //
   // The decision a miner makes is "if I register TODAY, what does a
   // mid-pack seat pay?" — so the ledger starts from the per-REGISTERED
   // slot (zero-earning seats included: on many subnets 250+ UIDs are
@@ -542,13 +556,18 @@ export function scoreMinersLedger(inputs: {
   // reference — what current earners make.
   const rewarded = Math.max(live.rewardedMiners ?? 0, 0);
   const registered = Math.max(live.minersCount, 1);
+  const realizability =
+    live.rewardRealizability != null && live.rewardRealizability > 0
+      ? Math.min(live.rewardRealizability, 1)
+      : 1;
   const minerEmissionTaoPerDay = live.minerEmissionTaoPerDay ?? 0;
+  const minerEmissionRealTaoPerDay = minerEmissionTaoPerDay * realizability;
   const perRegisteredDailyTao =
-    minerEmissionTaoPerDay > 0 ? minerEmissionTaoPerDay / registered : 0;
+    minerEmissionRealTaoPerDay > 0 ? minerEmissionRealTaoPerDay / registered : 0;
   const perEarningDailyTao =
-    rewarded > 0 && minerEmissionTaoPerDay > 0
-      ? minerEmissionTaoPerDay / rewarded
-      : minerEmissionTaoPerDay > 0
+    rewarded > 0 && minerEmissionRealTaoPerDay > 0
+      ? minerEmissionRealTaoPerDay / rewarded
+      : minerEmissionRealTaoPerDay > 0
         ? perRegisteredDailyTao * 0.6 // AUDIT-AI-1: vec unavailable — match the
         : 0; // conservative 0.6 factor the "est." tooltip promises (was 1.0)
   const rewardMedianShare = live.incentiveMedianShare ?? 1;
@@ -556,13 +575,18 @@ export function scoreMinersLedger(inputs: {
   //  - reward vec available  → perRegistered × medianShare
   //  - reward vec unavailable→ perRegistered × 0.6 (conservative)
   const expectedDailyTao =
-    rewarded > 0 && minerEmissionTaoPerDay > 0
+    rewarded > 0 && minerEmissionRealTaoPerDay > 0
       ? perRegisteredDailyTao * rewardMedianShare
-      : minerEmissionTaoPerDay > 0
+      : minerEmissionRealTaoPerDay > 0
         ? perRegisteredDailyTao * 0.6
         : 0;
   const grossMonthlyUsd = Math.round(expectedDailyTao * 30 * usd);
-  const dailyAlpha = live.movingPrice > 0 ? expectedDailyTao / live.movingPrice : 0;
+  // Physical α the newcomer actually receives (real TAO ÷ realizable price)
+  // — feeds the sell-pressure slippage signal, which must stay in α units.
+  const dailyAlpha =
+    live.movingPrice > 0 && realizability > 0
+      ? expectedDailyTao / realizability / live.movingPrice
+      : 0;
 
   // --- Hardware profile (work type → GPU cost) ---------------------------
   const fallbackMonthly = grossMonthlyUsd > 0 ? grossMonthlyUsd : undefined;
@@ -606,9 +630,10 @@ export function scoreMinersLedger(inputs: {
     ? Math.round(grossMonthlyUsd - totalCosts)
     : -Math.round(totalCosts);
 
-  // --- Alpha economics ----------------------------------------------------
+  // Alpha economics ----------------------------------------------------
   const alphaPriceTao = live.movingPrice;
   const alphaPriceUsd = alphaPriceTao * usd;
+  const realizableAlphaPriceUsd = alphaPriceUsd * realizability;
   const liquidityTao = live.subnetTao; // TAO side of the pool = exit liquidity
   const slippagePct =
     live.alphaOut > 0 && dailyAlpha > 0
@@ -732,6 +757,9 @@ export function scoreMinersLedger(inputs: {
     grossMonthlyUsd,
     alphaPriceTao,
     alphaPriceUsd: Math.round(alphaPriceUsd * 1000) / 1000,
+    realizableAlphaPriceUsd: Math.round(realizableAlphaPriceUsd * 1000) / 1000,
+    rewardRealizability: live.rewardRealizability,
+    dilutionRatio: live.dilutionRatio,
     alphaChange24h: change ?? null,
     liquidityTao: Math.round(liquidityTao),
     slippagePct,

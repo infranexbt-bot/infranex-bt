@@ -261,9 +261,11 @@ class MonitoringCache {
 
       // Get TAO price (cheap, cached) — don't block on chain for this.
       // AUDIT-MATH-4 — prefer the app-wide last-known price (chain.ts
-      // snapshot pipeline) so monitoring can't disagree with the ledger;
-      // 256 stays as the cold-start fallback.
-      let taoPriceUsd = getLastKnownTaoPrice() || 256;
+      // snapshot pipeline) so monitoring can't disagree with the ledger.
+      // REALIZABILITY-AUDIT: no fabricated fallback price — when no price is
+      // known yet, USD figures stay null (UI renders "—") instead of
+      // silently valuing TAO at a stale $256.
+      let taoPriceUsd = getLastKnownTaoPrice();
       try {
         const res = await fetch(
           "https://api.coingecko.com/api/v3/simple/price?ids=bittensor&vs_currencies=usd",
@@ -298,7 +300,8 @@ class MonitoringCache {
         // /1e18 bug rendered as ~$0). No chain emission source here yet →
         // honest null; the UI already renders "—" for null.
         const emissionPerDayTao: number | null = chain.emission;
-        const emissionPerDayUsd = emissionPerDayTao != null ? emissionPerDayTao * taoPriceUsd : null;
+        const emissionPerDayUsd =
+          emissionPerDayTao != null && taoPriceUsd > 0 ? emissionPerDayTao * taoPriceUsd : null;
         const emissionPerMonthUsd = emissionPerDayUsd != null ? emissionPerDayUsd * 30 : null;
         const costPerMonthUsd = pod?.costPerHr ? pod.costPerHr * 730 : dep.monthlyCost;
         const netProfitPerMonthUsd = emissionPerMonthUsd != null ? emissionPerMonthUsd - costPerMonthUsd : null;

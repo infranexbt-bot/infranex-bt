@@ -30,6 +30,14 @@ interface OpportunityDetailDialogProps {
   onProvision?: () => void;
 }
 
+/** REALIZABILITY-AUDIT — adaptive % for tiny dilution-backed shares. */
+function dilutionPct(dilutionRatio: number): string {
+  const pct = 100 / dilutionRatio;
+  if (pct >= 1) return pct.toFixed(0);
+  if (pct >= 0.01) return pct.toFixed(2);
+  return "<0.01";
+}
+
 export function OpportunityDetailDialog({
   opportunity,
   open,
@@ -469,6 +477,28 @@ export function OpportunityDetailDialog({
                   </span>
                 )}
               </p>
+              {o.rewardRealizability != null && o.rewardRealizability < 0.9 && (
+                <p
+                  className="mt-0.5 text-[10px] leading-tight text-muted-foreground"
+                  title="Selling the subnet's whole daily reward flow into its own pool realizes less than the spot quote (balancer curve). Dollar figures here use the realizable price."
+                >
+                  realizable ${o.realizableAlphaPriceUsd != null && o.realizableAlphaPriceUsd > 0 ? (o.realizableAlphaPriceUsd < 1 ? o.realizableAlphaPriceUsd.toFixed(4) : o.realizableAlphaPriceUsd.toFixed(2)) : "—"}
+                  {" "}· {(o.rewardRealizability * 100).toFixed(0)}% of spot
+                </p>
+              )}
+              {o.dilutionRatio != null && o.dilutionRatio > 2 && (
+                <p
+                  className={cn(
+                    "mt-0.5 text-[10px] leading-tight",
+                    o.dilutionRatio > 50
+                      ? "text-amber-600 dark:text-amber-400"
+                      : "text-muted-foreground"
+                  )}
+                  title="New TAO entering the subnet pool per day backs only a fraction of the α rewards valued at spot — the excess is dilution-subsidized and depends on fresh staking demand."
+                >
+                  TAO inflow backs {dilutionPct(o.dilutionRatio)}% of paper value
+                </p>
+              )}
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Pool liquidity</p>

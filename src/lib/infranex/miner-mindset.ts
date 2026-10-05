@@ -213,12 +213,19 @@ export function pickRuntimeRecipes(signals: {
 // Arbitrage math (pure, exported for tests)
 // ---------------------------------------------------------------------------
 
-/** Per-miner yield on a subnet: miner emission share split across miners. */
+/** Per-miner yield on a subnet: miner emission share split across miners.
+ *  REALIZABILITY-AUDIT — valued at what the subnet's pool pays for the
+ *  daily flow (spot × rewardRealizability), so arbitrage comparisons
+ *  between deep and thin pools stay honest. */
 export function perMinerYieldTaoPerDay(s: LiveSubnetMetrics): number | null {
   const miners = typeof s.minersCount === "number" ? s.minersCount : 0;
   const total = typeof s.minerEmissionTaoPerDay === "number" ? s.minerEmissionTaoPerDay : 0;
   if (miners <= 0 || total <= 0) return null;
-  return total / miners;
+  const realizability =
+    typeof s.rewardRealizability === "number" && s.rewardRealizability > 0
+      ? Math.min(s.rewardRealizability, 1)
+      : 1;
+  return (total * realizability) / miners;
 }
 
 export interface ArbitrageAlternative {

@@ -375,6 +375,7 @@ async function buildProfile(netuid: number): Promise<SubnetRequirementsProfile> 
   let description: string | null = null;
   let identityGithub: string | null = null;
   let minerEmissionTaoPerDay: number | null = null;
+  let taoUsdForRevenue = 0;
   let registeredMiners = 0;
   try {
     const snap = await fetchLiveSnapshot();
@@ -385,6 +386,7 @@ async function buildProfile(netuid: number): Promise<SubnetRequirementsProfile> 
       description = live.identityDescription ?? null;
       identityGithub = live.identityGithub ?? null;
       minerEmissionTaoPerDay = live.minerEmissionTaoPerDay;
+      taoUsdForRevenue = snap.taoPriceUsd || 0;
       registeredMiners = live.minersCount;
     } else {
       notes.push("Subnet not found in the live chain snapshot.");
@@ -540,12 +542,16 @@ async function buildProfile(netuid: number): Promise<SubnetRequirementsProfile> 
   }
 
   // --- Hardware layer (repo README > classifier > curated) ---
+  // REALIZABILITY-AUDIT: the fallback tier budget is USD/month — convert the
+  // TAO/day reward stream with 30 days × live TAO/USD (the old ×730 treated
+  // TAO as if it were already USD and a month had 730 days).
   const hw = classifySubnetHardware(name, description, {
     fallbackVramGb: scraped?.minVramGb ?? undefined,
     fallbackGpu: scraped?.recommendedGpu ?? undefined,
-    fallbackMonthlyUsd: minerEmissionTaoPerDay
-      ? minerEmissionTaoPerDay * 730 * 1 /* price overlay not needed for tier */
-      : undefined,
+    fallbackMonthlyUsd:
+      minerEmissionTaoPerDay && taoUsdForRevenue > 0
+        ? minerEmissionTaoPerDay * 30 * taoUsdForRevenue
+        : undefined,
   });
 
   let minVramGb = hw.minVramGb;

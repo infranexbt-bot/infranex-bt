@@ -449,7 +449,7 @@ export function OpportunityTable({
                             prof
                               ? `Revenue ${formatCurrency(prof.expectedRevenueUsd)} − GPU ${formatCurrency(prof.gpuRentalUsd)} − storage ${formatCurrency(prof.storageUsd)} − infra ${formatCurrency(prof.infrastructureUsd)} − other ${formatCurrency(prof.otherOperatingTotalUsd)} = net ${formatCurrency(prof.netMonthlyUsd)}/mo`
                               : o.gpuCostMonthlyUsd != null
-                                ? `Gross $${(o.grossMonthlyUsd ?? 0).toLocaleString()} − GPU $${Math.round(o.gpuCostMonthlyUsd).toLocaleString()} − infra $${Math.round(o.infraCostMonthlyUsd ?? 0).toLocaleString()} — what a median-performing miner keeps per month`
+                                ? `Gross $${(o.grossMonthlyUsd ?? 0).toLocaleString()} − GPU $${Math.round(o.gpuCostMonthlyUsd).toLocaleString()} − infra $${Math.round(o.infraCostMonthlyUsd ?? 0).toLocaleString()} — what a median-performing miner keeps per month${o.rewardRealizability != null && o.rewardRealizability < 0.9 ? ` · rewards realizable at ${(o.rewardRealizability * 100).toFixed(0)}% of spot (thin pool)` : ""}`
                                 : "Per-earning-miner monthly revenue"
                           }
                           className={cn(

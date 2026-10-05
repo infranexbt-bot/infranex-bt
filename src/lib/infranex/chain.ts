@@ -221,6 +221,22 @@ export interface LiveSubnetMetrics {
   emissionTaoPerDay: number | null;
   /** Emission flowing to miners (incentive uids) in TAO per day. */
   minerEmissionTaoPerDay: number | null;
+  /** REALIZABILITY-AUDIT — average TAO per α actually received when the
+   *  subnet's whole daily neuron α flow (α/block × 7200) is sold back into
+   *  its own pool. Balancer sell (pallets/swap balancer.rs, near-50/50
+   *  weights): Δy = y·(x/(x+Δx)) → avg price = y/(x+Δx). Always ≤ spot.
+   *  Null when reserves or the honest spot price are unavailable. */
+  realizablePriceTao: number | null;
+  /** realizablePriceTao ÷ spot price (0-1]. 1 ≈ deep pool — paper dollars
+   *  and realizable dollars agree. Low values mean the daily reward flow is
+   *  large relative to pool depth and spot-priced revenue overstates what
+   *  miners can actually realize. Null = unknown (treated as 1). */
+  rewardRealizability: number | null;
+  /** Paper emission value ÷ sustainable TAO inflow (emissionTaoPerDay ÷
+   *  taoInflowTaoPerDay). ≫1 means the α rewards priced at spot are
+   *  dilution-subsidized rather than backed by new TAO entering the pool.
+   *  Null when the TAO inflow is unknown or zero. */
+  dilutionRatio: number | null;
   /** UIDs that earned incentive last epoch (actively rewarded miners). */
   rewardedMiners: number | null;
   /** Share of last-epoch incentive captured by the top 10% of UIDs (0-1).
@@ -607,6 +623,7 @@ class SnapshotCache {
 
       const taoInByNetuid = new Map<number, number>();
       const taoInflowByNetuid = new Map<number, number>(); // TAO/block injected
+      const alphaInByNetuid = new Map<number, number>(); // α reserve (pool α side)
       try {
         const dyn = (await api.call.subnetInfoRuntimeApi.getAllDynamicInfo()) as unknown as Array<unknown>;
         dyn?.forEach?.((entry, idx) => {
@@ -619,8 +636,10 @@ class SnapshotCache {
             if (!Number.isFinite(netuid)) return;
             const taoIn = numFromHuman(h.taoIn) / 1e9;
             const taoInflow = numFromHuman(h.taoInEmission) / 1e9;
+            const alphaIn = numFromHuman(h.alphaIn) / 1e9;
             if (taoIn > 0) taoInByNetuid.set(netuid, taoIn);
             if (taoInflow > 0) taoInflowByNetuid.set(netuid, taoInflow);
+            if (alphaIn > 0) alphaInByNetuid.set(netuid, alphaIn);
           } catch {
             // skip malformed entry
           }
@@ -784,6 +803,31 @@ class SnapshotCache {
             // TAO-value emission for the whole subnet.
             const emissionPerBlockTao = alphaPerBlock * priceTao;
             const emissionPerDayTao = emissionPerBlockTao * 7200; // 86400s / 12s blocks (AUDIT-MATH-1: was 720 — understated 10×)
+
+            // REALIZABILITY-AUDIT — the honest-dollar haircut. Valuing 5,904
+            // α/day at the infinitesimal spot price is only true for deep
+            // pools. When the daily flow is large vs the pool, selling it
+            // walks the balancer curve and realizes less. Sell the whole
+            // neuron-side daily flow (miners + validators, both eventually
+            // sell) into the pool: Δy = y·(x/(x+q)), avg price = y/(x+q).
+            // Only computed on the honest swap-engine spot price — never on
+            // the stale EMA (which would fake a haircut or hide one).
+            const poolTao = taoInByNetuid.get(n) ?? (subnetTao > 0 ? subnetTao : 0);
+            const poolAlpha = alphaInByNetuid.get(n) ?? alphaInTao;
+            const neuronAlphaPerDay = alphaPerBlock * 7200;
+            let realizablePriceTao: number | null = null;
+            let rewardRealizability: number | null = null;
+            if (swapPriceTao > 0 && poolTao > 0 && poolAlpha > 0 && neuronAlphaPerDay > 0) {
+              realizablePriceTao = poolTao / (poolAlpha + neuronAlphaPerDay);
+              if (realizablePriceTao > 0) {
+                rewardRealizability = Math.min(1, realizablePriceTao / priceTao);
+              }
+            }
+            const inflowPerDay = (taoInflowByNetuid.get(n) ?? 0) * 7200;
+            const dilutionRatio =
+              emissionPerDayTao > 0 && inflowPerDay > 0
+                ? emissionPerDayTao / inflowPerDay
+                : null;
             // Miner share of emission (miners vs validators split); 50/50 fallback.
             const validatorAlphaRao = Math.max(epochAlphaRao - minerAlphaRao, 0);
             const minerShare =
@@ -881,6 +925,9 @@ class SnapshotCache {
               emissionTaoPerDay: emissionPerDayTao > 0 ? emissionPerDayTao : null,
               minerEmissionTaoPerDay:
                 emissionPerDayTao > 0 ? emissionPerDayTao * minerShare : null,
+              realizablePriceTao,
+              rewardRealizability,
+              dilutionRatio,
               rewardedMiners,
               top10IncentiveShare,
               incentiveMedianShare,

@@ -118,6 +118,13 @@ export interface Opportunity {
   netDailyTao?: number;
   /** Alpha token price in USD (pool ratio × TAO spot). */
   alphaPriceUsd?: number;
+  /** REALIZABILITY-AUDIT: α priced at what the subnet's pool actually pays
+   *  when the daily reward flow is sold back (spot × rewardRealizability). */
+  realizableAlphaPriceUsd?: number | null;
+  /** Avg-price ÷ spot for the subnet's daily α sell-back (0-1]. Deep pool ≈ 1. */
+  rewardRealizability?: number | null;
+  /** Paper emission value ÷ sustainable TAO inflow (≫1 = dilution-subsidized). */
+  dilutionRatio?: number | null;
   /** Alpha/TAO price change vs ~24h ago (server-side ring buffer). */
   alphaChange24h?: number | null;
   /** TAO-side pool depth — exit liquidity for mined alpha. */
