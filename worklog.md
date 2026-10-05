@@ -193,3 +193,15 @@ Work Log:
 Stage Summary:
 - App healthy: login 200, guide 200
 - download/ fully restored (PDF 7,089,906 B + CSV + guide-src HTML)
+
+---
+Task ID: revival-1005a
+Agent: main
+Task: Run the web app (routine revival)
+
+Work Log:
+- Keepalive ritual: login 200, guide 200
+- download/ wiped by snapshot again; restored PDF from public/guides/, HTML from scripts/, CSV rebuilt from scripts/cpu-earnings-merged.json
+
+Stage Summary:
+- App healthy (login 200, guide 200); download/ restored (PDF + CSV + guide-src)
