@@ -1,0 +1,47 @@
+[
+  {
+    "url": "https://tokenomist.ai",
+    "name": "RedTeam (SN61) | Tokenomics & Vesting Schedule",
+    "snippet": "The RedTeam allocation includes Liquidity Pool at 50.00%, Validator + Miner Rewards at 41.00% and Subnet Owner at 9.00%.",
+    "host_name": "tokenomist.ai",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.weex.com",
+    "name": "Bittensor Ecosystem Token SN Surges 5x in March, What's",
+    "snippet": "Mar 26, 2026 — Bittensor's subnet 61 ( SN61 ) RedTeam has raised its bot detection accuracy from 74.3% to 99.5%. The platform operated by cybersecurity ... Read more",
+    "host_name": "www.weex.com",
+    "rank": 1,
+    "date": "Mar 26, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://docs.theredteam.io",
+    "name": "Deployment Options - RedTeam Subnet - Docs",
+    "snippet": "The RedTeam subnet by Innerworks is a decentralized platform designed to drive innovation in cybersecurity through competitive programming challenges.",
+    "host_name": "docs.theredteam.io",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://github.com",
+    "name": "validator/README.md at main - RedTeam subnet",
+    "snippet": "This repository is for validator of RedTeam subnet . it is focused on running validator node in an independent, easy to configure, dockerized way with docker ... Read more",
+    "host_name": "github.com",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://simplytao.ai",
+    "name": "SimplyTao Enters Open Beta | Weekly Bittensor Update",
+    "snippet": "Mar 9, 2026 — Judging criteria focus on market demand, miner task design , validator scoring, incentive mechanics, economic viability and technical feasibility ... Read more",
+    "host_name": "simplytao.ai",
+    "rank": 4,
+    "date": "Mar 9, 2026",
+    "favicon": ""
+  }
+]

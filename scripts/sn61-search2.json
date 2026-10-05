@@ -1,0 +1,65 @@
+[
+  {
+    "url": "https://bittensor.ai/learn/mining/requirements",
+    "name": "Bittensor Mining: Hardware and Software | Bittensor.ai",
+    "snippet": "Bittensor mining requirements depend on the subnet’s model, scoring rules, and response-time budget. Check its current repository requirements before selecting GPU memory, CPU, RAM, and software, then compare operating costs with expected rewards.",
+    "host_name": "bittensor.ai",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://onfinality.io/en/rpc-assistant/bittensor-mining-rig",
+    "name": "Bittensor Mining Rig: Hardware That Actually Matters",
+    "snippet": "This article breaks the rig into its parts, explains how CPU, GPU, VRAM, storage, and network each affect your ability to compete, and shows where a managed RPC endpoint fits so your rig spends its resources on compute instead of chain sync.",
+    "host_name": "onfinality.io",
+    "rank": 1,
+    "date": "Sep 22, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://subnetradar.com/mining",
+    "name": "Mining — which Bittensor subnets can you actually mine",
+    "snippet": "This directory reads each subnet's real repo and flags what it takes to enter: laptop-minable vs GPU-required, whether it needs a paid API key, whether it wants an always-on node, and whether entry is gated (KYC, whitelist, stake). Sort by how hard it is to get in and triage before you risk any TAO. pending... SN94 Moderate — 0 0.0% Unknown.",
+    "host_name": "subnetradar.com",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.misar.blog/@synor/articles/bittensor-subnet-mining",
+    "name": "Bittensor Subnet Mining 2026: Hardware, Costs, ROI",
+    "snippet": "Quick Answer: Bittensor mining in 2026 means competing to serve AI workloads (inference, training, data, storage) on one of 100+ specialized subnets, earning subnet tokens convertible to TAO. Hardware ranges from a $40/month VPS for CPU subnets to $2-4/hour rented H100s for frontier text-gen subnets.",
+    "host_name": "www.misar.blog",
+    "rank": 3,
+    "date": "Apr 24, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://subnetradar.com/mining/61",
+    "name": "Can you mine RedTeam (SN61)? — miner fit, economics",
+    "snippet": "Everything a would-be miner needs on Bittensor subnet 61: laptop vs GPU, entry gates, the stack you'd run, on-chain earning miners + burn, and an illustrative daily-net band.",
+    "host_name": "subnetradar.com",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://github.com/douglasgalm781/sn61_RedTeam",
+    "name": "GitHub - douglasgalm781/sn61_RedTeam: Bittensor Subnet 61",
+    "snippet": "The RedTeam subnet by Innerworks is a decentralized platform designed to drive innovation in cybersecurity through competitive programming challenges. The subnet incentivizes miners to develop and submit code solutions to various technical challenges, with a focus on enhancing security.",
+    "host_name": "github.com",
+    "rank": 5,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://bittensor.ai/subnets/61",
+    "name": "RedTeam (SN61) — Security Challenge Mining | Bittensor.ai",
+    "snippet": "The RedTeam subnet by Innerworks is a decentralized platform designed to drive innovation in cybersecurity through competitive programming challenges. The subnet incentivizes miners to develop and submit code solutions to various technical challenges, with a focus on enhancing security.",
+    "host_name": "bittensor.ai",
+    "rank": 6,
+    "date": "",
+    "favicon": ""
+  }
+]

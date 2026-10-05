@@ -374,3 +374,24 @@ Stage Summary:
 - NO-GO ≠ unprofitable — profit math and reachability are separate engines; the $10.5k belongs to incumbent whales, a newcomer's EV is ~$232/mo
 - Flip conditions: top10 take <75%, rewardedRatio ≥~10%, pool depth/slippage green (liq >500 TAO, slip <5%)
 - Script kept: scripts/sn116-nogo-diagnose.ts (works for any netuid with a small edit)
+
+---
+Task ID: sn61-redteam-analysis
+Agent: main (Super Z)
+Task: User asked to analyse SN61 RedTeam: what it does, profitability, expected earnings, CPU miner feasibility.
+
+Work Log:
+- Revival ritual first: login: 200
+- scripts/sn61-analysis.ts: pulled SN61 full row from /api/network (block 9,217,977, TAO $298.54)
+- App data: rank #1 (score 70.3, risk low), gross $1,197/mo, net $1,058/mo, verdict PROFITABLE, break-even 61 d
+- Scenarios: bear $220/mo net (8-wk ramp + alpha -40%), base $1,058, bull $2,118 (mean of today's earners)
+- Subnet FULL 256/256, rewardedRatio 50.4%, earnChance medium 35%, demand 56.9 mixed (6.0x dilution), realizability 99.5%
+- Web cross-checks: bittensor.ai/61 (Innerworks bot-detection marketplace feature list), subnetradar.com/mining/61 (129/243 active, GEMINI_API_KEY needed, always-on, port 10001, 13 validators, 0% burn), weex news (bot detection accuracy 74.3% -> 99.5%)
+- Verified requiredStake meaning in live-merge.ts: subnetTao/minersCount = 54.4 TAO subnet-average stake (not an entry fee)
+- Cross-check passed: 129 earners x 0.252 TAO/day mean = 32.5 TAO/day = 1.10% emission x ~41% miner share
+
+Stage Summary:
+- SN61 = Innerworks decentralized bot-detection / security-challenge marketplace; real off-chain product + enterprise challenge sponsorship
+- CPU-mineable (minVramGb 0, CPU VPS, container class); entry needs: hotkey reg (~0.087 TAO burn), CPU VPS port 10001, GEMINI_API_KEY, 8-wk validator ramp
+- Key risk: subnet full -> must displace incumbent; 50% of slots earn; skill-bound (coding challenge quality), not hardware-bound
+- Answer delivered with scenario table + start checklist; no code changes
