@@ -633,11 +633,15 @@ function StrategyRow({
               estimate, not a spec. Never headline all three the same way. */}
           <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
             {kind === "mine"
-              ? s.requirementsSource
-                ? "GPU required"
-                : s.hardwareClassified
-                  ? "Typical GPU"
-                  : "GPU (est.)"
+              ? s.minVramGb === 0
+                ? s.requirementsSource
+                  ? "Hardware (repo)"
+                  : "Typical hardware"
+                : s.requirementsSource
+                  ? "GPU required"
+                  : s.hardwareClassified
+                    ? "Typical GPU"
+                    : "GPU (est.)"
               : "Confidence"}
           </p>
           {kind === "mine" ? (
@@ -645,17 +649,21 @@ function StrategyRow({
               <p
                 className="mono truncate text-sm font-semibold"
                 title={
-                  s.requirementsSource
-                    ? `Documented by the subnet's repo: ${s.requirementsSource}`
-                    : s.hardwareClassified
-                      ? "Typical GPU for this work type — derived from the subnet's description, not official docs"
-                      : "Not documented by the subnet — estimated from what per-miner revenue could fund. Check the subnet's docs before buying hardware."
+                  s.minVramGb === 0
+                    ? s.requirementsSource
+                      ? `Documented by the subnet's repo: ${s.requirementsSource}`
+                      : "Typical hardware for this work type — derived from the subnet's description, not official docs"
+                    : s.requirementsSource
+                      ? `Documented by the subnet's repo: ${s.requirementsSource}`
+                      : s.hardwareClassified
+                        ? "Typical GPU for this work type — derived from the subnet's description, not official docs"
+                        : "Not documented by the subnet — estimated from what per-miner revenue could fund. Check the subnet's docs before buying hardware."
                 }
               >
                 {s.requiredGpu ?? "—"}
               </p>
               <p className="text-[10px] text-muted-foreground">
-                {s.minVramGb != null ? `${s.minVramGb} GB VRAM · ` : ""}
+                {s.minVramGb ? `${s.minVramGb} GB VRAM · ` : ""}
                 {Math.round(s.confidence * 100)}% confidence
               </p>
             </>

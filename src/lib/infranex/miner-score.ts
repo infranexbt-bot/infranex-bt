@@ -297,6 +297,19 @@ const CATEGORY_RULES: CategoryRule[] = [
   // the revenue-based GPU guess instead of any work-type classification.
   { keywords: /\b(agents?|orchestrat|routing|logic|swarm|tool use|evm|smart contract|web3 infra)\b/i, category: "Agents & logic", tier: GPU_TIERS.cpu },
   { keywords: /\b(protein|fold|bio|genom|drug|science|research|simulat)\b/i, category: "Science & simulation", tier: GPU_TIERS.a6000 },
+  // BANDWIDTH-FIX (SN105 Beam): pure-bandwidth / DePIN networks run small node
+  // binaries that move bytes — no GPU. The generic Compute sharing rule below
+  // handed Beam a $260/mo "RTX 4090 24GB" tier just because its on-chain
+  // description says "Decentralized bandwidth…". The negative lookahead guards
+  // GPU-heavy subnets that merely mention bandwidth in passing (they still fall
+  // through to Compute sharing). Chain-audited 2026-10-05 (block ~9.2M): SN105
+  // was the only live subnet matching bandwidth/depin/network-sharing words
+  // without a GPU word.
+  {
+    keywords: /^(?!.*\b(gpu|inference|training|video|image|render|llm)\b).*\b(bandwidth|network shar|depin)\b/i,
+    category: "Bandwidth / DePIN node",
+    tier: GPU_TIERS.cpu,
+  },
   { keywords: /\b(compute|gpu|depin|edge|latency|bandwidth|network shar)\b/i, category: "Compute sharing", tier: GPU_TIERS.consumer24 },
   { keywords: /\b(moderat|detect|scan|verif|audit|secur|privacy|zero.?know)\b/i, category: "Verification & security", tier: GPU_TIERS.consumer24 },
   { keywords: /\b(maps?|geo|weather|energy|robot|drone|iot)\b/i, category: "Real-world data", tier: GPU_TIERS.consumer24 },

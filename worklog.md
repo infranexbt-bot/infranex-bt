@@ -221,3 +221,23 @@ Work Log:
 Stage Summary:
 - Beam = encrypted data-transfer/bandwidth network for AI agents (courier model), team-run BeamCore, demand side unproven publicly, emissions fund rewards
 - Verdict: do NOT rent a 4090 for Beam; run as cheap VPS side-experiment at most ($1.44/day median vs $20-30/mo VPS); GPU money better spent on GPU-work subnets (offer live GPU scan next)
+
+---
+Task ID: sn105-4090-label-fix
+Agent: main
+Task: Explain why Dashboard showed "SN105 Beam — Typical GPU RTX 4090 24GB" and fix the mislabel
+
+Work Log:
+- Traced display string: subnet-chooser.tsx renders `recommendedGpu · minVramGb+`; dashboard label "Typical GPU" = hardwareClassified && !requirementsSource (honest-guess label)
+- Root cause found: miner-score.ts CATEGORY_RULES keyword classifier — SN105 on-chain identity description "Decentralized bandwidth. A global network. Powering the open internet." matches /\bbandwidth\b/ in the generic "Compute sharing" rule -> GPU_TIERS.consumer24 = "RTX 4090 24GB", minVram 24, $260/mo rent
+- Proof: ran real classifySubnetHardware on the chain text (scripts/sn105-classifier-test.ts) -> RTX 4090; control text without "bandwidth" -> CPU VPS
+- Chain-audited blast radius (scripts/sn105-bandwidth-diff.mjs, all 129 identities): ONLY SN105 matches bandwidth/depin/network-sharing without a GPU word; 10 other compute-share subnets unaffected
+- Fix: inserted "Bandwidth / DePIN node" rule (-> GPU_TIERS.cpu, $50/mo) before Compute sharing, with negative lookahead guard for gpu/inference/training/video/image/render/llm texts
+- UI labels: dashboard-view.tsx + opportunity-detail.tsx — minVramGb===0 now renders "Typical hardware" / "Hardware (repo)" instead of "Typical GPU" / "GPU required"; VRAM sub-line hides on 0
+- Rebuilt (bun run build), killed zombies, restarted keepalive (login 200)
+- End-to-end verify (scripts/sn105-verify-api.ts: admin login from 0600 mirror -> /api/network -> mergeOpportunities): SN105 = "Bandwidth / DePIN node", "CPU VPS", minVram 0, gpu cost $50/mo; SN64 Chutes control unchanged (RTX 4090 24GB)
+
+Stage Summary:
+- Answer: the 4090 was NEVER Beam's requirement — one keyword ("bandwidth") in a work-type classifier bucketed Beam with GPU compute-sharing subnets; the old "Typical GPU" tooltip already flagged it as a guess, now the guess is removed
+- Beam tile now reads: Typical hardware — CPU VPS (matches Beam docs: Go orchestrator+worker, bandwidth work, no GPU)
+- Scripts kept: sn105-classifier-test.ts, sn105-bandwidth-diff.mjs, sn105-verify-api.ts, sn105-chain-debug.mjs, sn105-db-check.py

@@ -439,11 +439,15 @@ export function OpportunityDetailDialog({
               {/* RIDGES-FIX: honest GPU sourcing — repo-documented requirement,
                   work-type typical, or a revenue-based estimate (not a spec). */}
               {(() => {
-                const gpuSource = o.requirementsSource
-                  ? { label: "GPU required", title: `Documented by the subnet's repo: ${o.requirementsSource}` }
-                  : o.hardwareClassified
-                    ? { label: "Typical GPU", title: "Typical GPU for this work type — derived from the subnet's description, not official docs" }
-                    : { label: "GPU (revenue est.)", title: "Not documented by the subnet — estimated from what per-miner revenue could fund. Check the subnet's docs before buying hardware." };
+                const gpuSource = o.minVramGb === 0
+                  ? o.requirementsSource
+                    ? { label: "Hardware (repo)", title: `Documented by the subnet's repo: ${o.requirementsSource}` }
+                    : { label: "Typical hardware", title: "Typical hardware for this work type — derived from the subnet's description, not official docs" }
+                  : o.requirementsSource
+                    ? { label: "GPU required", title: `Documented by the subnet's repo: ${o.requirementsSource}` }
+                    : o.hardwareClassified
+                      ? { label: "Typical GPU", title: "Typical GPU for this work type — derived from the subnet's description, not official docs" }
+                      : { label: "GPU (revenue est.)", title: "Not documented by the subnet — estimated from what per-miner revenue could fund. Check the subnet's docs before buying hardware." };
                 return (
                   <>
                     <p className="text-xs text-muted-foreground" title={gpuSource.title}>{gpuSource.label}</p>
