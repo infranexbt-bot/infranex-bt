@@ -357,3 +357,20 @@ Stage Summary:
 - KEY CAVEAT (matches user's quoted finding): on-chain signals alone cannot see off-chain product customers — Beam scores green on-chain (tiny payout → perfect realizability + full seats) while Chutes (real product) scores amber (huge emission vs inflow + whale-lean seats). Column is a filter, detail parts are the evidence, product-site check is the follow-up
 - Beam practical earnings unchanged: newcomer ~0.021 TAO/d, $189/mo gross, $58/mo net (CPU VPS)
 - New scripts: demand-reality-verify.ts; screenshots verify-demand-*.png
+
+---
+Task ID: sn116-nogo-explain
+Agent: main (Super Z)
+Task: User asked why SN116 Carbon shows NO-GO despite $10,528/mo net profit PASSED
+
+Work Log:
+- Traced NO-GO to mine-pick.ts (Dashboard "Choose your subnet" picker): hard gates = !rent.rentable OR diligence DO-NOT-PROVISION OR meetsMinimum false, else conviction bands (PRIME≥65/READY≥50/MARGINAL≥35/NO-GO)
+- Wrote scripts/sn116-nogo-diagnose.ts — ran rent-earn + 14-stage diligence + mine-pick on live merged row
+- Root cause: 2 diligence hard fails. Stage 7 Competition: rewardedRatio 2.2%, top10 take 100% (knife fight — ~5 UIDs take all rewards). Stage 10 Liquidity: pool 1,529 TAO, exit slippage 7.0% > 5% threshold. Verdict DO NOT PROVISION → conviction capped 30 → NO-GO
+- Reconciled the two numbers: $10,546/mo is the MEAN over the 2.2% of UIDs that earned (whales); new-entrant EV = net × rewardedRatio × medianShare = $232/mo ceiling; month-1 earn chance 1%; ramp ~11.9wk. Rent-earn: knifeFight+whaleMean, band NO score 23
+- Also: GPU H200 141GB is a revenue-based estimate (requirementsSource null, workload unclassified); demand 62.7 mixed; alpha +11.4% 24h
+
+Stage Summary:
+- NO-GO ≠ unprofitable — profit math and reachability are separate engines; the $10.5k belongs to incumbent whales, a newcomer's EV is ~$232/mo
+- Flip conditions: top10 take <75%, rewardedRatio ≥~10%, pool depth/slippage green (liq >500 TAO, slip <5%)
+- Script kept: scripts/sn116-nogo-diagnose.ts (works for any netuid with a small edit)
