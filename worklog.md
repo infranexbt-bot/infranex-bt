@@ -292,3 +292,22 @@ Stage Summary:
 - Beam practical earnings: ~$0.5-1.5/day gross median-new seat, ~break-even net. Dashboard ~$100/day mean is paper (stale price + unrealizable into 5,040 TAO pool)
 - Root cause of gap: whale-lean distribution + small pie (10.56 TAO/day whole subnet) + stake-weighted queue
 - Comparison anchors: SN107 Minos ~$112/day median (CPU), SN67 Harnyx app pick; Beam = testnet learning, not income
+
+---
+Task ID: beam-honest-dollars
+Agent: main
+Task: Fix the dashboard's stale price/units so Beam (SN105) shows honest dollars
+
+Work Log:
+- Ran on-chain units audit (scripts/sn105-units-audit.mjs): Emission vec sum = 295.2e9 rao = 295.2 alpha/epoch (NOT 295k rao — earlier reading was a script bug); taoInEmission = 0.0014797 TAO/blk matches measured subnetTAO flow to 5 digits = 10.65 TAO/day sustainable inflow
+- Cloned subtensor source (sparse) and read coinbase/run_coinbase.rs + swap/pallet/impls.rs + staking/stake_utils.rs: pools are weighted balancers (balancer.calculate_price), DynamicInfo.emission is hardcoded 0 (dead field), SubnetMovingPrice EMA sits 4.28-4.36x ABOVE the swap engine's tradeable price for EVERY subnet (stale-EMA artifact, scripts/sn105-true-price.mjs + sn105-price-calibrate.mjs)
+- Root cause of inflated Beam dollars: app priced miner alpha rewards (2952 alpha/day) at the stale EMA (0.0268) instead of the swap-engine price (0.00617) -> 79.23 TAO/day minerEmissionTaoPerDay, ~$3,000/mo gross per earning miner shown (4.34x + median-share inflated)
+- Also found the app's getAllDynamicInfo parse silently failed (raw codec property access) -> taoIn pool overrides never applied; SN105 pool showed 5,040 instead of 5,078 TAO
+- Fixed src/lib/infranex/chain.ts: (1) new swapRuntimeApi.currentAlphaPriceAll() map = honest alpha price, used for emission math + display; EMA kept as emaMovingPrice reference field; (2) getAllDynamicInfo moved before batch loop, parsed via toHuman() with comma/bits handling; feeds taoIn pool override + new taoInflowTaoPerDay field (taoInEmission x 7200 = sustainable TAO inflow); (3) price-history file bumped to v2 wrapper - old EMA-scale samples discarded so 24h trend never mixes scales
+- Rebuilt, restarted, verified via scripts/honest-units-verify.ts (login -> /api/network -> mergeOpportunities): SN105 alpha price $1.88 (was $8.17), taoInflow 10.67 TAO/day, per-earning mean 0.0762 TAO/day, gross $185/mo, net $55/mo; SN64 sanity $21.76/alpha; SN1 pool 23,154 TAO (DynamicInfo parse now works)
+
+Stage Summary:
+- Honest pricing basis: alpha rewards valued at swap-engine tradeable price; SubnetMovingPrice EMA quarantined as reference-only (4.3x stale network-wide)
+- SN105 dashboard now shows: $1.88/alpha, $185/mo gross, $55/mo net (CPU VPS path), 10.67 TAO/day subnet TAO inflow (dilution context)
+- New live fields available: emaMovingPrice, taoInflowTaoPerDay
+- Open follow-up (out of scope): src/lib/devops/subnet-requirements.ts ~line 546 multiplies a TAO/day figure by 730 (hours-month) for a USD fallback - units wart, affects devops tier hints only

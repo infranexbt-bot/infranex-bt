@@ -58,8 +58,16 @@ function loadPriceHistory(): PriceSample[] {
   try {
     if (existsSync(PRICE_HISTORY_FILE)) {
       const parsed = JSON.parse(readFileSync(PRICE_HISTORY_FILE, "utf8")) as unknown;
-      if (Array.isArray(parsed)) {
-        priceHistoryCache = parsed.filter(
+      // HISTORY-V2: v1 samples recorded the chain's EMA moving price, which
+      // runs ~4.3x above the swap engine's tradeable price. Old arrays are
+      // discarded so the 24h trend never mixes the two price scales.
+      if (
+        parsed &&
+        typeof parsed === "object" &&
+        (parsed as { v?: unknown }).v === 2 &&
+        Array.isArray((parsed as { samples?: unknown }).samples)
+      ) {
+        priceHistoryCache = ((parsed as { samples: unknown }).samples as unknown[]).filter(
           (s): s is PriceSample =>
             !!s && typeof (s as PriceSample).t === "number" && !!(s as PriceSample).p
         );
@@ -85,7 +93,7 @@ function recordAlphaPrices(prices: Map<number, number>): void {
   const pruned = hist.filter((s) => s.t >= cutoff).slice(-400);
   priceHistoryCache = pruned;
   try {
-    writeFileSync(PRICE_HISTORY_FILE, JSON.stringify(pruned));
+    writeFileSync(PRICE_HISTORY_FILE, JSON.stringify({ v: 2, samples: pruned }));
   } catch {
     // best-effort persistence
   }
@@ -194,7 +202,19 @@ export interface LiveSubnetMetrics {
   alphaOut: number;
   tempo: number;
   emissionEnabled: boolean;
-  movingPrice: number; // alpha price in TAO raw units
+  /** Honest α price in TAO (UNITS-AUDIT): the swap engine's tradeable price
+   *  (balancer spot). Falls back to the chain's EMA moving price, then the
+   *  pool ratio, when the swap API is unavailable. Every consumer that reads
+   *  this treats it as "what 1 α is worth in TAO". */
+  movingPrice: number;
+  /** Chain's SubnetMovingPrice EMA — reference only. It currently sits ~4.3x
+   *  above the tradeable price for EVERY subnet (stale-EMA artifact), so it
+   *  must never price miner rewards. */
+  emaMovingPrice: number | null;
+  /** TAO actually injected into the pool per day (DynamicInfo.taoInEmission ×
+   *  7200) — the subnet's sustainable TAO-side inflow. α rewards valued above
+   *  this rate are dilution-subsidized rather than backed by new TAO. */
+  taoInflowTaoPerDay: number | null;
   /** Whole-subnet emission value in TAO per block (alpha issued × alpha price). */
   emission: number | null;
   /** Whole-subnet emission value in TAO per day (per-block × 7200 — see AUDIT-MATH-1). */
@@ -537,6 +557,78 @@ class SnapshotCache {
         (n: number) => Promise<{ toString(): string; isEmpty: boolean }>
       >;
 
+      // ---------------------------------------------------------------------
+      // UNITS-AUDIT (Beam α105): two authoritative per-subnet maps, fetched
+      // once per refresh BEFORE the batch loop.
+      //
+      // 1) Swap-engine price (currentAlphaPriceAll): Bittensor's pool is a
+      //    weighted balancer (pallets/swap → balancer.calculate_price), not a
+      //    plain taoIn/alphaIn ratio. The chain's SubnetMovingPrice EMA sits
+      //    ~4.3x ABOVE the real tradeable price for every subnet (stale-EMA
+      //    artifact — measured across 8 subnets, 4.28-4.36x). Pricing miner α
+      //    rewards at the EMA overstated Beam's revenue 4.3x (79 TAO/day shown
+      //    vs ~18 honest). This map is the "what is 1 α actually worth" price.
+      //
+      // 2) DynamicInfo (getAllDynamicInfo): the REAL taoIn pool plus
+      //    taoInEmission — TAO injected into the pool per block, i.e. the
+      //    subnet's sustainable TAO-side inflow. Parsed via toHuman(): raw
+      //    codec property access fails silently here (the previous in-loop
+      //    parse yielded an empty map for every subnet, so taoIn overrides
+      //    never applied).
+      // ---------------------------------------------------------------------
+      const numFromHuman = (v: unknown): number => {
+        if (v == null) return 0;
+        const raw =
+          typeof v === "object" && "bits" in (v as Record<string, unknown>)
+            ? String((v as Record<string, unknown>).bits)
+            : String(v);
+        const n = Number(raw.replace(/,/g, ""));
+        return Number.isFinite(n) ? n : 0;
+      };
+
+      const priceTaoByNetuid = new Map<number, number>();
+      try {
+        const priceList = (await api.call.swapRuntimeApi.currentAlphaPriceAll()) as unknown as Array<unknown>;
+        priceList?.forEach?.((entry, idx) => {
+          try {
+            const h =
+              (entry as { toHuman?: () => Record<string, unknown> }).toHuman?.() ??
+              (entry as Record<string, unknown>);
+            const netuid = numFromHuman(h.netuid ?? idx);
+            const p = numFromHuman(h.price) / 1e9;
+            if (Number.isFinite(netuid) && p > 0) priceTaoByNetuid.set(netuid, p);
+          } catch {
+            // skip malformed entry
+          }
+        });
+      } catch {
+        // Swap price API unavailable — EMA/pool-ratio fallbacks apply below.
+      }
+
+      const taoInByNetuid = new Map<number, number>();
+      const taoInflowByNetuid = new Map<number, number>(); // TAO/block injected
+      try {
+        const dyn = (await api.call.subnetInfoRuntimeApi.getAllDynamicInfo()) as unknown as Array<unknown>;
+        dyn?.forEach?.((entry, idx) => {
+          try {
+            const h =
+              (entry as { toHuman?: () => Record<string, unknown> }).toHuman?.() ??
+              (entry as Record<string, unknown>);
+            if (h == null) return;
+            const netuid = numFromHuman(h.netuid ?? idx);
+            if (!Number.isFinite(netuid)) return;
+            const taoIn = numFromHuman(h.taoIn) / 1e9;
+            const taoInflow = numFromHuman(h.taoInEmission) / 1e9;
+            if (taoIn > 0) taoInByNetuid.set(netuid, taoIn);
+            if (taoInflow > 0) taoInflowByNetuid.set(netuid, taoInflow);
+          } catch {
+            // skip malformed entry
+          }
+        });
+      } catch {
+        // DynamicInfo unavailable — keep storage values
+      }
+
       // Scan ALL subnets on chain (not just the 16 tracked ones).
       const allNetuids = Array.from({ length: Math.min(totalSubnets, 200) }, (_, i) => i);
       const subnets: LiveSubnetMetrics[] = [];
@@ -676,15 +768,19 @@ class SnapshotCache {
             }
             // Per-uid values are last-epoch alpha totals → per-block = /tempo.
             const alphaPerBlock = epochAlphaRao / tempoSafe / 1e9; // α/block
-            const movingPrice = toTao((priceArr[j] as { toString(): string } | null)?.toString());
+            const emaPrice = toTao((priceArr[j] as { toString(): string } | null)?.toString());
             const alphaInTao = toTao((alphaInArr[j] as { toString(): string } | null)?.toString());
-            // Alpha price: moving price when present, else pool ratio fallback.
+            // Alpha price: swap-engine tradeable price first (UNITS-AUDIT —
+            // see the map construction above); EMA and pool ratio are fallbacks.
+            const swapPriceTao = priceTaoByNetuid.get(n) ?? 0;
             const priceTao =
-              movingPrice > 0
-                ? movingPrice
-                : alphaInTao > 0 && subnetTao > 0
-                  ? subnetTao / alphaInTao
-                  : 0;
+              swapPriceTao > 0
+                ? swapPriceTao
+                : emaPrice > 0
+                  ? emaPrice
+                  : alphaInTao > 0 && subnetTao > 0
+                    ? subnetTao / alphaInTao
+                    : 0;
             // TAO-value emission for the whole subnet.
             const emissionPerBlockTao = alphaPerBlock * priceTao;
             const emissionPerDayTao = emissionPerBlockTao * 7200; // 86400s / 12s blocks (AUDIT-MATH-1: was 720 — understated 10×)
@@ -775,7 +871,12 @@ class SnapshotCache {
                 emEnabled != null && !emEnabled.isEmpty
                   ? !emEnabled.isFalse // storage answered — respect its value
                   : epochAlphaRao > 0, // storage None/failed — did it pay last epoch?
-              movingPrice,
+              movingPrice: priceTao,
+              emaMovingPrice: emaPrice > 0 ? emaPrice : null,
+              taoInflowTaoPerDay:
+                (taoInflowByNetuid.get(n) ?? 0) * 7200 > 0
+                  ? (taoInflowByNetuid.get(n) ?? 0) * 7200
+                  : null,
               emission: emissionPerBlockTao > 0 ? emissionPerBlockTao : null,
               emissionTaoPerDay: emissionPerDayTao > 0 ? emissionPerDayTao : null,
               minerEmissionTaoPerDay:
@@ -813,31 +914,14 @@ class SnapshotCache {
         }
       }
 
-      // One runtime-API call for all 129 DynamicInfo records — gives the
-      // REAL TAO pool per subnet (taoIn). The SubnetTAO storage value is
-      // not the full staked pool, and requiredStake/APY math needs the
+      // UNITS-AUDIT: DynamicInfo was fetched BEFORE the batch loop (it also
+      // feeds the swap-price and TAO-inflow maps). Apply the REAL TAO pool
+      // per subnet (taoIn) on top of the storage value — the storage figure
+      // is not the full staked pool, and requiredStake/APY math needs the
       // true figure.
-      try {
-        const dyn = (await api.call.subnetInfoRuntimeApi.getAllDynamicInfo()) as unknown as Array<{
-          netuid: { toString(): string };
-          taoIn: { toString(): string };
-        }>;
-        const taoInByNetuid = new Map<number, number>();
-        for (const d of dyn) {
-          try {
-            const netuid = Number(d.netuid.toString());
-            const taoIn = toTao(d.taoIn.toString());
-            if (Number.isFinite(netuid) && taoIn > 0) taoInByNetuid.set(netuid, taoIn);
-          } catch {
-            // skip malformed entry
-          }
-        }
-        for (const sub of subnets) {
-          const taoIn = taoInByNetuid.get(sub.netuid);
-          if (taoIn && taoIn > sub.subnetTao) sub.subnetTao = taoIn;
-        }
-      } catch {
-        // DynamicInfo unavailable — keep storage values
+      for (const sub of subnets) {
+        const taoIn = taoInByNetuid.get(sub.netuid);
+        if (taoIn && taoIn > sub.subnetTao) sub.subnetTao = taoIn;
       }
 
       // Persist this refresh's alpha prices into the 48h ring buffer (no-op
