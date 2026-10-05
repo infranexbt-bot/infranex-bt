@@ -395,3 +395,23 @@ Stage Summary:
 - CPU-mineable (minVramGb 0, CPU VPS, container class); entry needs: hotkey reg (~0.087 TAO burn), CPU VPS port 10001, GEMINI_API_KEY, 8-wk validator ramp
 - Key risk: subnet full -> must displace incumbent; 50% of slots earn; skill-bound (coding challenge quality), not hardware-bound
 - Answer delivered with scenario table + start checklist; no code changes
+
+---
+Task ID: sn61-challenge-examples
+Agent: main (Super Z)
+Task: User asked for concrete examples of SN61 RedTeam challenges and how a miner builds a solution.
+
+Work Log:
+- Fetched all 3 docs challenge pages (AB Sniffer v5, Humanize Behaviour v5, ADA detection)
+- Found live ground truth: src/redteam_core/challenge_pool/active_challenges.yaml on main (v4.10.9, updated today) = bex_tracer_v1 (weight 0.4) + ada_detection_v3 (weight 0.6); miner container limit 4 CPU / 12 GB
+- Docs paths in repo 404 (repo restructured); challenges now in submodule repos (ada-detection-challenge, bex-tracer-challenge)
+- Pulled real example code from RedTeamSubnet/ada-detection-challenge examples/miner_commit: app.py (FastAPI /health + /solve), data_types.py (MinerInput/MinerOutput, 500-line cap), commit/headless.js (real detection logic), README build pipeline
+- Saved: scripts/ada-app.py, ada-datatypes.py, ada-headless.js, ada-readme.md
+- Delivered plain-English explanation with live code walkthrough
+
+Stage Summary:
+- ADA = commit JS detectors per anti-detect browser (ads_power/gologin/multilogin/dolphin_anty/octo/headless), boolean answers, human collisions -> 0
+- Humanize = opposite: write a bot that fills a form human-like (9 behavioral criteria, bezier detection)
+- AB Sniffer = name the automation framework among 8 targets across 27 sessions
+- User got concrete build pipeline: eslint -> uvicorn 10002 -> docker build/push -> active_commit.yaml
+- No code changes to app; worklog only
