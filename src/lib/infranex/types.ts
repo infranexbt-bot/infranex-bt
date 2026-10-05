@@ -260,6 +260,7 @@ export interface EmissionShare {
 
 export type ViewKey =
   | "dashboard"
+  | "fit"
   | "opportunities"
   | "subnets"
   | "judge"

@@ -435,3 +435,23 @@ Stage Summary:
 - GPU does not remove skill barrier; earn-chance 0-3% on top GPU subnets = full of pro operators
 - Recommendation: rent 4090 first, test Chutes/Targon 2-4 weeks, buy only after validated earnings
 - A100 rejected for beginner: expensive, fits fewer subnets with 0-2% earn chance, no resale market
+
+---
+Task ID: miner-fit-wizard
+Agent: main (Super Z)
+Task: User approved "build it" - build the Miner Fit wizard (personal advisor) into InfraneX.
+
+Work Log:
+- Loaded fullstack-dev skill; studied app architecture (ViewKey single-page views, useNetwork hook, mergeOpportunities client-side)
+- Created src/lib/infranex/miner-fit.ts: fit engine (4-input profile: techLevel/hardware/budget/hoursPerWeek) with hard gates (VRAM, skill-class via workType keywords, monthly cost vs budget cap, passive+red-demand decay, profit verdict, entry<3% crowded) + fitScore re-rank (55% app score, entry odds, demand band, risk, net) + verdicts fit/stretch/excluded + "what it takes" card + staking baseline note
+- Created src/components/views/fit-view.tsx: 4-question wizard (progress dots, option cards), results view (top fits, stretch, honest exclusions, bar-to-beat card), localStorage profile restore with deferred setState
+- Wired: types.ts ViewKey + "fit"; sidebar Intelligence nav "Miner Fit 01b" (UserCheck icon); page.tsx VIEW_META + FitView render with onSelectOpportunity/onStartMining
+- Fixed during verification: (1) crowded blocker computed after verdict -> moved before; (2) capital line used alphaPriceUsd instead of TAO price -> added taoPriceUsd param (SN61 stake now honestly $16,270 not $180); (3) lint react-hooks/set-state-in-effect -> deferred restore pattern
+- Verified via scripts/miner-fit-verify.ts: NON-TECH profile = 0 fits (honest, staking note shown); BASIC+4090 = Almanac/Chutes fit, Targon stretch (1% entry); CODER+CPU = SN61 #1 (fit 71), matches manual analysis; 0 sanity violations
+- Browser-verified end-to-end (agent-browser): wizard flow, honest empty state, coder results with SN61 #1, profile restore, what-it-takes expansion, mobile 390px layout; 0 console/page errors; lint+build clean
+- Restarted prod: pkill next-server/server.js -> keepalive -> login: 200
+
+Stage Summary:
+- InfraneX now has a personal advisor: Market scan (Opportunities) + Personal fit (Miner Fit)
+- Screenshots: scripts/fit-q1.png, fit-nontech-result.png, fit-coder-result.png, fit-whatittakes.png, fit-mobile.png, fit-final.png
+- Engine honest by design: non-technical profile yields zero mining fits and points to staking baseline

@@ -25,6 +25,7 @@ import {
   BookOpen,
   ListChecks,
   Server,
+  UserCheck,
 } from "lucide-react";
 import type { ViewKey } from "@/lib/infranex/types";
 
@@ -42,6 +43,7 @@ const NAV_GROUPS: { label: string; items: { key: ViewKey; label: string; icon: t
     label: "Intelligence",
     items: [
       { key: "dashboard", label: "Dashboard", icon: LayoutDashboard, hint: "01" },
+      { key: "fit", label: "Miner Fit", icon: UserCheck, hint: "01b" },
       { key: "opportunities", label: "Opportunities", icon: TrendingUp, hint: "02" },
       { key: "subnets", label: "Subnets", icon: Network, hint: "03" },
       { key: "judge", label: "Validator Lab", icon: Gavel, hint: "04" },
