@@ -205,3 +205,19 @@ Work Log:
 
 Stage Summary:
 - App healthy (login 200, guide 200); download/ restored (PDF + CSV + guide-src)
+
+---
+Task ID: sn105-beam-research
+Agent: main
+Task: Explain SN105 Beam (dashboard tile), real-world users, GPU miner guidance
+
+Work Log:
+- Revived server (login 200)
+- Live chain read block 9,215,024: SN105 full 256/256, 239 earning UIDs, taoIn 0.001343 TAO/blk -> subnet pool 9.67 TAO/day, miner pool 3.96 TAO-equiv/day, median earner 0.0047 TAO (~$1.44/day), p90 ~$20/day, top ~$23/day, burn 0.00058 TAO
+- Fetched Beam-Network/beam README + docs/worker.md + docs/orchestrator.md (raw.githubusercontent): Go 1.24+ orchestrator+worker, BeamCore (beamcore.b1m.ai) registration, capabilities = transfer.multipart / room.transfer E2EE / storage probe — BANDWIDTH network, NO GPU requirement anywhere
+- App seed (subnet-jobs-seed.ts 105): "Bandwidth/node provisioning", no hardware reqs documented -> dashboard "RTX 4090 24GB" label is a miner-score GPU-class misclassification
+- "PRIME" = mine-pick conviction band >=65 (40% rent-earn + 35% diligence + 25% confidence) based on cached emission numbers (64.33 TAO/day extract) that today's live chain no longer shows (3.96 TAO/day miner pool) — TaoFlow swing flagged
+
+Stage Summary:
+- Beam = encrypted data-transfer/bandwidth network for AI agents (courier model), team-run BeamCore, demand side unproven publicly, emissions fund rewards
+- Verdict: do NOT rent a 4090 for Beam; run as cheap VPS side-experiment at most ($1.44/day median vs $20-30/mo VPS); GPU money better spent on GPU-work subnets (offer live GPU scan next)
