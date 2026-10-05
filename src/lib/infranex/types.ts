@@ -51,6 +51,25 @@ export interface OpportunityFactor {
   description: string;
 }
 
+/**
+ * DEMAND-REALITY — one on-chain demand signal behind the composite
+ * demand score. Every part is traceable to a chain-read number; a part
+ * whose input is missing is emitted with score null and its weight is
+ * renormalized away (honest unknown, never a fabricated 50).
+ */
+export interface DemandPart {
+  key: "inflow" | "trend" | "pool" | "seats";
+  label: string;
+  /** Weight in the composite score (0-1), as-promised when data present. */
+  weight: number;
+  /** Raw component score 0-100; null = input missing on-chain. */
+  score: number | null;
+  /** Human-readable raw value, e.g. "inflow backs 29% of paper value". */
+  detail: string;
+}
+
+export type DemandBand = "real-demand" | "mixed" | "emission-funded";
+
 export interface Opportunity {
   id: string;
   netuid: number;
@@ -137,6 +156,12 @@ export interface Opportunity {
   top10IncentiveShare?: number | null;
   /** Median earning UID's share vs the mean — ≪1 means a whale takes most rewards. */
   rewardMedianShare?: number | null;
+  /** DEMAND-REALITY: composite 0-100 on-chain demand score; null = no signals. */
+  demandScore?: number | null;
+  /** Green/amber/red band derived from demandScore. */
+  demandBand?: DemandBand | null;
+  /** Per-signal breakdown shown in the detail card. */
+  demandParts?: DemandPart[] | null;
   /** Mean daily TAO over rewarded UIDs (the median-earner figure is estimatedDailyReward). */
   perEarningMeanDailyTao?: number;
   /** Share of registered miners that earned reward last epoch (0-1). */

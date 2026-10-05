@@ -596,6 +596,114 @@ export function OpportunityDetailDialog({
         <Separator />
 
         <div>
+          <div className="mb-2 flex items-center justify-between">
+            <h3 className="text-display text-lg font-semibold">
+              Demand reality
+            </h3>
+            {o.demandBand && (
+              <Badge
+                variant="outline"
+                className={cn(
+                  "capitalize",
+                  o.demandBand === "real-demand"
+                    ? "border-success/40 bg-success/10 text-success"
+                    : o.demandBand === "mixed"
+                      ? "border-warning/40 bg-warning/10 text-warning"
+                      : "border-destructive/40 bg-destructive/10 text-destructive"
+                )}
+                title={
+                  o.demandBand === "real-demand"
+                    ? "On-chain signals point to real demand backing the rewards"
+                    : o.demandBand === "mixed"
+                      ? "Rewards are partly backed by staking inflow, partly by dilution"
+                      : "Emissions alone pay miners — staking inflow backs only a small share"
+                }
+              >
+                {o.demandBand === "real-demand"
+                  ? "real demand signals"
+                  : o.demandBand === "mixed"
+                    ? "mixed — emission-assisted"
+                    : "emission-funded"}
+              </Badge>
+            )}
+          </div>
+          <p className="mb-3 text-xs text-muted-foreground">
+            Does real demand back the rewards, or do emissions alone pay miners?
+            On-chain signals only — off-chain product usage (API customers,
+            client contracts) is invisible here and must be checked at the
+            subnet's own product.
+          </p>
+          {o.demandScore != null ? (
+            <>
+              <div className="mb-2 flex items-baseline gap-2">
+                <span
+                  className={cn(
+                    "mono tabular text-2xl font-semibold",
+                    o.demandBand === "real-demand"
+                      ? "text-success"
+                      : o.demandBand === "mixed"
+                        ? "text-warning"
+                        : "text-destructive"
+                  )}
+                >
+                  {o.demandScore.toFixed(0)}
+                </span>
+                <span className="text-xs text-muted-foreground">/ 100 demand score</span>
+              </div>
+              <div className="space-y-3">
+                {(o.demandParts ?? []).map((p) => (
+                  <div key={p.key}>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-sm font-medium">{p.label}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="mono text-[10px] text-muted-foreground">
+                          w {Math.round(p.weight * 100)}%
+                        </span>
+                        <span
+                          className={cn(
+                            "tabular text-sm font-semibold",
+                            p.score == null
+                              ? "text-muted-foreground"
+                              : p.score >= 60
+                                ? "text-success"
+                                : p.score <= 40
+                                  ? "text-destructive"
+                                  : "text-foreground"
+                          )}
+                        >
+                          {p.score == null ? "—" : p.score.toFixed(0)}
+                        </span>
+                      </div>
+                    </div>
+                    <Progress
+                      value={p.score ?? 0}
+                      className="mt-1.5 h-1.5"
+                      indicatorClassName={cn(
+                        p.score == null
+                          ? "bg-muted-foreground/30"
+                          : p.score >= 60
+                            ? "bg-success"
+                            : p.score <= 40
+                              ? "bg-destructive"
+                              : "bg-warning"
+                      )}
+                    />
+                    <p className="mt-1 text-xs text-muted-foreground">{p.detail}</p>
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              Not enough on-chain data yet for a demand score — no price
+              history, pool or reward signals recorded for this subnet.
+            </p>
+          )}
+        </div>
+
+        <Separator />
+
+        <div>
           <div className="mb-3 flex items-center justify-between">
             <h3 className="text-display text-lg font-semibold">
               Score breakdown

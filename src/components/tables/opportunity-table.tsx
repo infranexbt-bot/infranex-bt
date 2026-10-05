@@ -56,7 +56,8 @@ type SortKey =
   | "minVramGb"
   | "alphaChange24h"
   | "liquidityTao"
-  | "burnCostTao";
+  | "burnCostTao"
+  | "demandScore";
 
 function SortIcon({
   k,
@@ -244,6 +245,21 @@ export function OpportunityTable({
               </SortableTh>
               {!compact && (
                 <SortableTh
+                  k="demandScore"
+                  align="right"
+                  sortKey={sortKey}
+                  dir={dir}
+                  onSort={handleSort}
+                >
+                  <span
+                    title="DEMAND REALITY — does real demand back this subnet's rewards, or do emissions alone pay miners? 40% staking inflow vs payout · 25% α price trend (24h) · 20% pool depth vs reward flow · 15% seat productivity. Click a row for the full breakdown."
+                  >
+                    Demand
+                  </span>
+                </SortableTh>
+              )}
+              {!compact && (
+                <SortableTh
                   k="alphaChange24h"
                   align="right"
                   sortKey={sortKey}
@@ -298,7 +314,7 @@ export function OpportunityTable({
             {filtered.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={compact ? 5 : 13}
+                  colSpan={compact ? 5 : 14}
                   className="py-12 text-center text-muted-foreground"
                 >
                   No opportunities match your search.
@@ -482,6 +498,43 @@ export function OpportunityTable({
                         )}
                       </div>
                     </TableCell>
+                    {!compact && (
+                      <TableCell className="text-right">
+                        {o.demandScore != null && o.demandBand ? (
+                          <span
+                            title={
+                              o.demandBand === "real-demand"
+                                ? "Demand reality: on-chain signals point to real demand backing the rewards"
+                                : o.demandBand === "mixed"
+                                  ? "Demand reality: mixed — rewards partly backed by staking inflow, partly by dilution"
+                                  : "Demand reality: emission-funded — staking inflow backs only a small share of what miners are paid"
+                            }
+                            className={cn(
+                              "mono tabular inline-flex items-center justify-end gap-1.5",
+                              o.demandBand === "real-demand"
+                                ? "text-success"
+                                : o.demandBand === "mixed"
+                                  ? "text-warning"
+                                  : "text-destructive"
+                            )}
+                          >
+                            {o.demandScore.toFixed(0)}
+                            <span
+                              className={cn(
+                                "inline-block h-2 w-2 rounded-full",
+                                o.demandBand === "real-demand"
+                                  ? "bg-success"
+                                  : o.demandBand === "mixed"
+                                    ? "bg-warning"
+                                    : "bg-destructive"
+                              )}
+                            />
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground" title="Not enough on-chain data for a demand score">—</span>
+                        )}
+                      </TableCell>
+                    )}
                     {!compact && (
                       <TableCell className="text-right">
                         <div className="flex flex-col items-end gap-0.5">

@@ -336,3 +336,24 @@ Stage Summary:
 - 4/128 rows null realizability (dust pools) → treated as 1
 - New scripts: all-subnets-units-audit.mjs, honest-dollars-all-verify.ts
 - Beam practical earnings unchanged: newcomer ~0.020 TAO/d ≈ $185/mo gross, $55/mo net (CPU VPS path)
+
+---
+Task ID: demand-reality-column
+Agent: main (Super Z)
+Task: Build the "Demand Reality" score+column (user said "yes" to the plan after the all-subnets honest-dollars fix was confirmed live)
+
+Work Log:
+- Confirmed honest-dollars-all-subnets fix still live via honest-dollars-all-verify.ts (network 200 live block 9217747, 128 opps, SN105 $1.78→$1.77 99.3%, deep pools ≥99.6%, 4 null dust pools)
+- types.ts: DemandPart + DemandBand interfaces, Opportunity.demandScore/demandBand/demandParts
+- miner-score.ts: computeDemandReality() — 4 on-chain signals, published weights: 40% staking inflow vs payout (dilutionRatio, 100-75*log10 scale), 25% α 24h trend (50+2.5Δ), 20% pool depth vs reward flow (slippage, 95-250·s), 15% seat productivity (rewardedRatio + full-slot bonus). Missing input → weight renormalized, never fabricated 50. Bands: ≥65 real-demand / ≥40 mixed / <40 emission-funded. Wired into scoreMinersLedger diag
+- live-merge.ts: passthrough of the 3 demand fields
+- opportunity-table.tsx: sortable "Demand" column (score + colored dot, band tooltips) between Net Monthly and Alpha 24h; colSpan 13→14
+- opportunity-detail.tsx: "Demand reality" section before Score breakdown — band badge, score/100, 4 progress bars with weights + raw detail strings, honest disclaimer that off-chain product usage is invisible on-chain
+- Rebuilt, pkill+fresh restart (keepalive holds port otherwise), verified scripts/demand-reality-verify.ts: 0 sanity violations, 128/128 scored; distribution 4 green / 86 amber / 38 red
+- Visual verified via agent-browser: table column + Beam detail dialog (66, badge, bars) render correctly
+
+Stage Summary:
+- Live results: KubeTEE 68.8 / Beam 66.4 / CliqueAI 66.3 / LongShort 65.8 = only green subnets; SN35 29.1 / Enigma 33.1 worst reds; Chutes 51.8 amber (6.1x dilution + 27% slots earning)
+- KEY CAVEAT (matches user's quoted finding): on-chain signals alone cannot see off-chain product customers — Beam scores green on-chain (tiny payout → perfect realizability + full seats) while Chutes (real product) scores amber (huge emission vs inflow + whale-lean seats). Column is a filter, detail parts are the evidence, product-site check is the follow-up
+- Beam practical earnings unchanged: newcomer ~0.021 TAO/d, $189/mo gross, $58/mo net (CPU VPS)
+- New scripts: demand-reality-verify.ts; screenshots verify-demand-*.png

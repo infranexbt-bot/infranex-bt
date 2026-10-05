@@ -19,7 +19,7 @@
 // ---------------------------------------------------------------------------
 
 import type { LiveSubnetMetrics } from "./chain";
-import type { OpportunityFactor } from "./types";
+import type { OpportunityFactor, DemandPart, DemandBand } from "./types";
 import { electricityMonthlyUsd } from "./profitability";
 import type { HostingRequirements } from "./github-scraper";
 import type { SubnetMechanics } from "./mechanics";
@@ -499,12 +499,140 @@ export interface MinerLedgerDiagnostics {
   // Meta
   emissionEnabled: boolean;
   hardwareClassified: boolean;
+  // DEMAND-REALITY (composite; see computeDemandReality)
+  demandScore: number | null;
+  demandBand: DemandBand | null;
+  demandParts: DemandPart[];
 }
 
 export interface MinerLedger {
   components: ScoreComponents;
   factors: OpportunityFactor[];
   diag: MinerLedgerDiagnostics;
+}
+
+// ---------------------------------------------------------------------------
+// DEMAND-REALITY — "does this subnet have real demand outside paying miners?"
+// Composite of 4 on-chain signals (weights as published to the user):
+//   40% staking inflow vs miner payout (dilutionRatio),
+//   25% α price trend (24h — the longest honest window the chain read keeps),
+//   20% pool depth vs the daily reward flow (slippage),
+//   15% seat productivity (share of slots earning + fullness).
+// A missing input renormalizes its weight away — never a fabricated 50.
+// Band: ≥65 real-demand · ≥40 mixed · <40 emission-funded.
+// ---------------------------------------------------------------------------
+export function computeDemandReality(inputs: {
+  dilutionRatio: number | null;
+  alphaChange24h: number | null;
+  slippagePct: number | null;
+  rewardedRatio: number | null;
+  freeSlots: number | null;
+}): { score: number | null; band: DemandBand | null; parts: DemandPart[] } {
+  const parts: DemandPart[] = [];
+
+  // 1. Inflow vs payout — dilutionRatio = paper emission value ÷ sustainable
+  //    TAO inflow. 1× = fully backed (100); each 10× dilution costs 75 pts.
+  if (inputs.dilutionRatio != null && inputs.dilutionRatio > 0) {
+    const d = inputs.dilutionRatio;
+    const score = d <= 1.05 ? 100 : clampScore(100 - 75 * Math.log10(d), 3, 100);
+    const backedPct = 100 / d;
+    const pctLabel =
+      backedPct >= 1
+        ? `${Math.round(backedPct)}%`
+        : backedPct >= 0.01
+          ? `${backedPct.toFixed(2)}%`
+          : "<0.01%";
+    parts.push({
+      key: "inflow",
+      label: "Staking inflow vs payout",
+      weight: 0.4,
+      score: Math.round(score * 10) / 10,
+      detail: `staking inflow backs ${pctLabel} of paper value (${d < 10 ? d.toFixed(1) : Math.round(d).toLocaleString()}× dilution)`,
+    });
+  } else {
+    parts.push({
+      key: "inflow",
+      label: "Staking inflow vs payout",
+      weight: 0.4,
+      score: null,
+      detail: "inflow unknown",
+    });
+  }
+
+  // 2. α price trend — organic demand holds the price; emission-only drifts down.
+  if (inputs.alphaChange24h != null) {
+    const c = inputs.alphaChange24h;
+    parts.push({
+      key: "trend",
+      label: "Alpha price trend (24h)",
+      weight: 0.25,
+      score: Math.round(clampScore(50 + c * 2.5, 5, 95) * 10) / 10,
+      detail: `${c >= 0 ? "+" : ""}${c.toFixed(1)}% α / 24h`,
+    });
+  } else {
+    parts.push({
+      key: "trend",
+      label: "Alpha price trend (24h)",
+      weight: 0.25,
+      score: null,
+      detail: "no price history yet",
+    });
+  }
+
+  // 3. Pool depth vs reward flow — slippagePct = daily α earnings as % of the
+  //    alpha pool. Tiny % = rewards sell back at ~spot (deep, real liquidity).
+  if (inputs.slippagePct != null) {
+    const s = inputs.slippagePct;
+    const slipLabel = s < 0.01 ? "<0.01%" : `${s.toFixed(2)}%`;
+    parts.push({
+      key: "pool",
+      label: "Pool depth vs reward flow",
+      weight: 0.2,
+      score: Math.round(clampScore(95 - s * 250, 5, 95) * 10) / 10,
+      detail: `daily reward flow = ${slipLabel} of α pool`,
+    });
+  } else {
+    parts.push({
+      key: "pool",
+      label: "Pool depth vs reward flow",
+      weight: 0.2,
+      score: null,
+      detail: "pool depth unknown",
+    });
+  }
+
+  // 4. Seat productivity — miners voting with their seats (supply-side only,
+  //    which is why it carries the smallest weight).
+  if (inputs.rewardedRatio != null) {
+    const base = clampScore(15 + inputs.rewardedRatio * 70, 15, 85);
+    const full = inputs.freeSlots === 0;
+    parts.push({
+      key: "seats",
+      label: "Seat productivity",
+      weight: 0.15,
+      score: Math.round(clampScore(base + (full ? 8 : 0), 5, 95) * 10) / 10,
+      detail: `${Math.round(inputs.rewardedRatio * 100)}% of slots earned${full ? " · seats full" : ""}`,
+    });
+  } else {
+    parts.push({
+      key: "seats",
+      label: "Seat productivity",
+      weight: 0.15,
+      score: null,
+      detail: "reward vec unavailable",
+    });
+  }
+
+  const known = parts.filter((p) => p.score != null);
+  if (known.length === 0) return { score: null, band: null, parts };
+  const wSum = known.reduce((a, p) => a + p.weight, 0);
+  const score =
+    Math.round(
+      (known.reduce((a, p) => a + p.weight * (p.score as number), 0) / wSum) * 10
+    ) / 10;
+  const band: DemandBand =
+    score >= 65 ? "real-demand" : score >= 40 ? "mixed" : "emission-funded";
+  return { score, band, parts };
 }
 
 /**
@@ -749,6 +877,15 @@ export function scoreMinersLedger(inputs: {
     fit_feasibility: Math.round(fitFeasibility * 10) / 10,
   };
 
+  // DEMAND-REALITY: composite on-chain demand signals (see computeDemandReality).
+  const demand = computeDemandReality({
+    dilutionRatio: live.dilutionRatio ?? null,
+    alphaChange24h: change ?? null,
+    slippagePct,
+    rewardedRatio: rewardedRatio != null ? Math.round(rewardedRatio * 1000) / 1000 : null,
+    freeSlots,
+  });
+
   const diag: MinerLedgerDiagnostics = {
     perEarningDailyTao: Math.round(perEarningDailyTao * 10000) / 10000,
     expectedDailyTao: Math.round(expectedDailyTao * 10000) / 10000,
@@ -796,6 +933,9 @@ export function scoreMinersLedger(inputs: {
         : null,
     emissionEnabled: live.emissionEnabled,
     hardwareClassified: hardware.classified,
+    demandScore: demand.score,
+    demandBand: demand.band,
+    demandParts: demand.parts,
   };
 
   return { components, factors: deriveFactors(components), diag };
