@@ -259,3 +259,18 @@ Stage Summary:
 - Demand side still team-run (BeamCore) with no public paying customers; rewards funded by emissions
 - Practical path: test free on testnet 304 first; mainnet entry burn only 0.0005 TAO but seats full
 - OPEN TODO: emission-units audit for SN105 (app cache vs live vec vs taoIn)
+
+---
+Task ID: cpu-miner-explain
+Agent: main
+Task: Explain what InfraneX BT does for a CPU miner + what to do after starting one
+
+Work Log:
+- Checked DB state: DaemonState, WorkerStatus, LocalHost, MinerLog ALL 0 rows -> no machine enrolled, no miner actually running yet
+- Mapped CPU flow from code: CPU Catalog two branches — (1) rent Hetzner/DO box via /api/cpu-provision (live offer resolve, CPU floor check, GPU-subnet refusal, cloud-init docker/python/bittensor, GpuHost registration, staged install plan), (2) local machine $0 path (enroll token -> curl agent in WSL2/Ubuntu -> agent dials home -> "Start CPU miner" jumps to Deploy stepper with SN67 Harnyx + machine preselected)
+- Deploy stepper STEPS: 1 Subnet -> 2 Compute -> 3 Deploy -> 4 Go live; install plan approval-gated in DevOps Engine (wallet files + miner launch steps need explicit approve; nothing registers on-chain without it)
+- Post-launch machinery: DaemonState telemetry + MinerLog streaming, UidSnapshot chain tracking, Monitoring alerts/autopilot, Analytics EarningsDaily vs SpendLedger
+
+Stage Summary:
+- User has NOT started a miner yet despite UI familiarity — answer = feature map + concrete next-steps checklist (enroll machine -> stepper -> approve wallet+launch in DevOps -> watch logs/UID/earnings)
+- Best CPU pick baked into UI: SN67 Harnyx (117 rewarded miners, ~$11.62 burn, py3.11)
