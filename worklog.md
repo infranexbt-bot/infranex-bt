@@ -476,3 +476,23 @@ Stage Summary:
 - Miner Fit wizard live at Miner Fit 01b in sidebar, honest for non-technical users
 - Final state for 4090 scenario: NO top fits (honest), stretch = SN64 ($6,195/mo, 3% entry) + SN4 Targon ($2,041, 1%) + SN102 ($629, 1%), SN61 excluded with "Needs a coder" reason, 123/126 excluded
 - Key message delivered: app ≠ miner; even with a 4090 a non-technical user has no clean fits today — crowded or skill-bound; staking baseline $500 ≈ $5/mo is the bar
+
+---
+Task ID: devops-fault-drill
+Agent: main (Super Z)
+Task: Build a free, honest way for the non-technical owner to watch the DevOps Engine catch a problem (user: "yes do it")
+
+Work Log:
+- Discovered MOCK-PURGE-1: live deploy API blocks mock mode by design; all evaluators (spend accrual, GPU health, probes, benchmarks, service health, mindset) already skip mode "mock" — perfect sandbox lane
+- Built /api/devops/demo (GET/POST/DELETE, admin-gated): creates sandbox Deployment (minerName DEMO-fault-drill, mode "mock", provider "Sandbox", gpuModel "Demo RTX 4090 (virtual)", $0 costs, status started) + injects ONE scripted GPU_HEALTH thermal fault (91C, acknowledge path — safest branch, no SSH/restart ladder) via commitFinding, dedupeKey demo-drill:thermal
+- DELETE terminates sandbox + autoResolves the finding; POST re-arms (recycles terminated row)
+- UI (devops-view.tsx): "Run fault drill (free)" / "End fault drill" buttons in engine bar AND empty-state; note strip explains $0.00 spent
+- miner-ops-card.tsx: amber DEMO badge whenever mode === "mock" (never mistakable for real rental)
+- Type fix: LiveSubnetMetrics has no status — used emissionEnabled for sandbox subnet pick
+- Verified FULL loop in browser: arm → recommendation card (GPU HEALTH, runbook, evidence, DEMO ONLY) → Approve → Execute → change feed "acted"; end drill → "$0.00 was ever spent"; re-armed fresh drill for user
+- Screenshots: download/fault-drill-armed.png, download/fault-drill-recommendation.png
+
+Stage Summary:
+- Fault Drill shipped: DevOps Engine → "Run fault drill (free)". Zero spend, zero chain calls, clearly badged, one-click cleanup
+- Drill currently ARMED and waiting for the user to click Approve → Execute
+- Ops card shows honest dashes (TEMP/UTIL —) because sandbox synthesizes nothing; card carries "Mock deployment — no real GPU running" strip

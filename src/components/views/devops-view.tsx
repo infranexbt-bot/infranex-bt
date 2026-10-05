@@ -31,6 +31,8 @@ import {
   GitBranch,
   Gauge,
   TimerReset,
+  FlaskConical,
+  Eraser,
 } from "lucide-react";
 import { cn, formatRelativeTime } from "@/lib/utils";
 import { useDevopsMonitor } from "@/hooks/use-devops-monitor";
@@ -88,6 +90,43 @@ export function DevopsView({ onNavigate }: { onNavigate: (v: ViewKey) => void })
   const [doctorHostId, setDoctorHostId] = useState<string | null>(null);
 
   const miners = data?.miners ?? [];
+
+  // DEVOPS-DEMO-1 — the Fault Drill: a clearly-labeled sandbox miner plus one
+  // scripted thermal fault so the detect → recommend → approve → act loop can
+  // be rehearsed with zero spend. POST arms it, DELETE ends it.
+  const drillActive = miners.some(
+    (m) => m.mode === "mock" && m.minerName.startsWith("DEMO-")
+  );
+  const runDrill = async () => {
+    setBusyId("__drill");
+    setNote(null);
+    try {
+      const res = await fetch("/api/devops/demo", { method: "POST" });
+      const j = await res.json();
+      if (!res.ok) throw new Error(j?.error ?? `drill failed (${res.status})`);
+      setNote(j.note ?? "Fault drill armed.");
+      void refetch();
+    } catch (e) {
+      setNote(e instanceof Error ? e.message : "Drill failed");
+    } finally {
+      setBusyId(null);
+    }
+  };
+  const endDrill = async () => {
+    setBusyId("__drill");
+    setNote(null);
+    try {
+      const res = await fetch("/api/devops/demo", { method: "DELETE" });
+      const j = await res.json();
+      if (!res.ok) throw new Error(j?.error ?? `drill cleanup failed (${res.status})`);
+      setNote(j.note ?? "Fault drill ended.");
+      void refetch();
+    } catch (e) {
+      setNote(e instanceof Error ? e.message : "Drill cleanup failed");
+    } finally {
+      setBusyId(null);
+    }
+  };
   const open = data?.openEvents ?? [];
   const recent = data?.recentEvents ?? [];
   const summary = data?.summary;
@@ -268,16 +307,37 @@ export function DevopsView({ onNavigate }: { onNavigate: (v: ViewKey) => void })
             </span>
           )}
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-8 gap-1.5"
-          disabled={isFetching || busyId === "__run"}
-          onClick={() => handle(() => actions.runPass())}
-        >
-          <RefreshCw className={cn("h-3.5 w-3.5", (isFetching || busyId === "__run") && "animate-spin")} aria-hidden />
-          Run pass now
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 gap-1.5"
+            disabled={busyId === "__drill"}
+            onClick={drillActive ? endDrill : runDrill}
+          >
+            {drillActive ? (
+              <>
+                <Eraser className="h-3.5 w-3.5" aria-hidden />
+                End fault drill
+              </>
+            ) : (
+              <>
+                <FlaskConical className="h-3.5 w-3.5" aria-hidden />
+                Run fault drill (free)
+              </>
+            )}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 gap-1.5"
+            disabled={isFetching || busyId === "__run"}
+            onClick={() => handle(() => actions.runPass())}
+          >
+            <RefreshCw className={cn("h-3.5 w-3.5", (isFetching || busyId === "__run") && "animate-spin")} aria-hidden />
+            Run pass now
+          </Button>
+        </div>
       </div>
 
       {note && (
@@ -487,10 +547,20 @@ export function DevopsView({ onNavigate }: { onNavigate: (v: ViewKey) => void })
               Once a GPU miner deployment reaches the running state it appears here automatically — GPU
               vitals, subnet drift detection and approval-gated recommendations included.
             </p>
-            <Button className="mt-4 gap-1.5" onClick={() => onNavigate("deployments")}>
-              <Rocket className="h-4 w-4" aria-hidden />
-              Go to Deployments
-            </Button>
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+              <Button className="gap-1.5" onClick={() => onNavigate("deployments")}>
+                <Rocket className="h-4 w-4" aria-hidden />
+                Go to Deployments
+              </Button>
+              <Button variant="outline" className="gap-1.5" disabled={busyId === "__drill"} onClick={runDrill}>
+                <FlaskConical className="h-4 w-4" aria-hidden />
+                Run fault drill (free)
+              </Button>
+            </div>
+            <p className="mx-auto mt-2 max-w-md text-[11px] text-muted-foreground/70">
+              The fault drill spins up a clearly-labeled sandbox miner and one scripted GPU-heat warning —
+              $0.00 spent, nothing real touched.
+            </p>
           </div>
         ) : (
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">

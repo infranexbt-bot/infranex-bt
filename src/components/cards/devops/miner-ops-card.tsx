@@ -87,6 +87,13 @@ export function MinerOpsCard({
             <div className="flex flex-wrap items-center gap-2">
               <HealthDot health={health} />
               <p className="truncate text-display text-sm font-semibold">{miner.minerName}</p>
+              {/* DEVOPS-DEMO-1 — sandbox drill miners are always badged so a
+                  demo card can never be mistaken for a real rental. */}
+              {miner.mode === "mock" && (
+                <Badge variant="outline" className="h-4 border-amber-500/40 bg-amber-500/10 px-1.5 text-[10px] text-amber-500">
+                  DEMO
+                </Badge>
+              )}
               {miner.health && <HealthScoreChip health={miner.health} />}
             </div>
             <p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
