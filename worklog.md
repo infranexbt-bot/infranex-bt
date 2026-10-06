@@ -559,3 +559,16 @@ Work Log:
 
 Stage Summary:
 - Delivered: "Rent earn NO" = engine's trap filter — headline $/mo is whale-mean, newcomer EV is a fraction of rent cost; SN68 is a 1-of-64 lottery with 48GB hardware requirement
+
+---
+Task ID: knife-icon-explained
+Agent: main (Super Z)
+Task: Explain the crossed-swords icon beside "Rent earn: NO"
+
+Work Log:
+- Traced icon to opportunity-table.tsx:416-424 — Lucide "Swords" glyph shown when rent.knifeFight (rewardedRatio<10% AND top10>=85%)
+- Sibling icons: AlertTriangle = whale-mean only (rew<15%); Ban = not rentable (bare-metal/TEE)
+- NO work needed — pure UI explanation turn
+
+Stage Summary:
+- Swords = "knife-fight seat" warning: winner-take-all reward distribution; NOVA 1-of-64 earners triggers it
