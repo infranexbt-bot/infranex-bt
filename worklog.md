@@ -740,3 +740,18 @@ Stage Summary:
 - 5090 rental NOT justified: only 0-3%-earnChance subnets name it (SN74/SN10/SN53); saves ~$90-170/mo on the test
 - Month-1 test plan: register via 0.058 TAO burn, 14h immunity runway, weekly checkpoints (rewarded ratio, per-earner yield, alpha price), day-30 kill/scale gate
 - Analysis script committed for re-runs (rates/emissions drift); engine rates: 4090 $260/mo container
+
+---
+Task ID: gpu-mining-1mo-rental-verify
+Agent: main (Super Z)
+Task: Re-verify the committed one-month rented 4090/5090 verdict after context continuation ("is that done")
+
+Work Log:
+- Revival ritual OK (login: 200); pulled /api/gpu-landscape (stored snapshot block 9225329, TAO $302.21) and dumped A-bucket per-earner yields for cross-check
+- Built lightweight uniform-share cross-check model scripts/gpu-rental-ev.py (rental rates from Oct 2026 search: 4090 $0.20-0.40/hr, 5090 $0.35-0.69/hr; recycle ~0.5 TAO)
+- Re-ran committed scripts/rental-1mo-analysis.ts fresh: block 9225828, TAO $303.22 - full 16-candidate table reproduced; confirmed SN32 earnChance high (66%, rewardedRatio 94.1%, burn 0.056 TAO, NET -$58/mo) and SN123 (61%, NET -$215/mo); SN51 top-10% take 99% (earnChance 11%) - uniform-share optimism in cross-check model refuted by per-UID reward concentration data
+- Cross-check corroborates the committed verdict; committed cross-check script for the record
+
+Stage Summary:
+- Verdict stands re-verified at block 9225828: SN32 ItsAI primary on 1x rented 4090 (best newcomer odds, ~break-even -2/day tuition), SN123 MANTIS hedge, skip 5090, SN51 not a single-card mining play
+- Honest month-1 framing unchanged: nothing strongly positive-EV on rented consumer cards; treat ~$260/mo as experiment cost with day-30 kill/scale gate
