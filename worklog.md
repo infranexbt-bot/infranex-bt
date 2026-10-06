@@ -628,3 +628,18 @@ Work Log:
 
 Stage Summary:
 - Lium idea = NO: TDX secure-hardware requirement blocks rented GPUs entirely; door full; incumbents average negative net (-$107/mo); new-entrant EV -$1/mo. User's GPU-rental earnings idea fails on Lium exactly like on SN64/68/4
+
+---
+Task ID: lium-owned-rig-verdict
+Agent: main (Super Z)
+Task: Answer "I will BUILD 4090/A100 and run on Lium — does it work, good chance?" (user clarified: own rig, not rented)
+
+Work Log:
+- No new runs; applied SN51 facts to the owned-rig scenario
+- Key blocker restated: TDX is a SERVER CPU feature (Xeon SP + TDX hypervisor + dstack attestation) — a consumer-built 4090 rig cannot attest, so 0% join chance
+- Qualifying path costs: used TDX-capable server + A100 ≈ $15k+, 4090-qualifying build still needs Xeon SP host
+- Chances once qualified: ~11% displacement entry (0.5 TAO burn/attempt), 27.7% slots earned, top10 take 99%, median earner share 2.9% of whale-mean, EV -$1/mo, incumbents net -$107/mo
+- Delivered 5-question "kill test" for any GPU build idea (TDX/TEE host? open seat? positive EV? skill class? payback < 24mo?)
+
+Stage Summary:
+- Verdict: Lium with owned rig = consumer build 0% (no TDX), qualifying build ≈$15k+ for an 11% door into negative-EV seat with 99% whale capture — AVOID; kill-test checklist handed to user for any future GPU idea
