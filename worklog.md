@@ -528,3 +528,18 @@ Work Log:
 
 Stage Summary:
 - Answer: aim for "copy-paste" level (weeks of learning, not months); role = Fleet Operator (approve + watch, engines do heavy lifting); coder path doubles modeled income but 5-15h/week and bottom half earn $0
+
+---
+Task ID: hire-devops-advice
+Agent: main (Super Z)
+Task: Advise "should I hire a DevOps engineer?" for non-technical owner
+
+Work Log:
+- Pure advisory turn, no code changes; grounded in live engine numbers from tech-level-scenarios run
+- Core math: best modeled fit SN41 ≈$453/mo net vs hire costs ($10k+/mo full-time, $1k-3k/mo freelance, $500-1.5k/mo offshore) → all negative at 1-miner scale
+- Positioning: the app's DevOps Engine IS the $0 substitute (detect → recommend → human approves → act, proven in fault-drill demo); owner = approver, not engineer
+- Give break-even rule: hire only when fleet ≥10 miners / net ≥$4k/mo, then part-time contractor ≤25-30% of net
+- Middle option offered: per-incident freelancer ($50-100 one-off) instead of retainer
+
+Stage Summary:
+- Advice delivered: do NOT hire yet; learn copy-paste level; reconsider at 10+ miners; app engines fill the seat free until then
