@@ -511,3 +511,20 @@ Work Log:
 
 Stage Summary:
 - Fault drill loop verified live twice across sessions; drill currently ARMED and waiting for user's Approve click; "End fault drill" cleans up free
+
+---
+Task ID: tech-level-scenarios
+Agent: main (Super Z)
+Task: Answer "how technical should we be / best technical role" using the Miner Fit engine live
+
+Work Log:
+- Ran the wizard 3x live with 4090/$500/2-4h held constant, varying only techLevel
+- none → 0 fits, 127 excluded, staking baseline (consistent with prior session)
+- basic ("I can follow recipes") → 1 top fit: SN41 Almanac 69 fit, ≈$453/mo net modeled, CPU-only on ≈$90/mo VPS, 35% entry; stretch SN61 (needs coder) + SN64 (3% crowded); 115 excluded
+- coder → 3 top fits: SN61 RedTeam ≈$884/mo (25% entry), SN41 ≈$453/mo, SN62 Ridges ≈$371/mo (5% entry); SN64 still stretch; 115 excluded
+- Key insight delivered: biggest jump is none→basic (0→1 fit); SN41/SN61 are CPU-only so the 4090 is NOT needed for best fits; 4090 only matters for SN64 lottery (3%)
+- Screenshots: download/fit-level-basic.png, download/fit-level-coder.png
+- Restored user's TRUE profile (none/none/lt100/0) after tests — wizard stays honest
+
+Stage Summary:
+- Answer: aim for "copy-paste" level (weeks of learning, not months); role = Fleet Operator (approve + watch, engines do heavy lifting); coder path doubles modeled income but 5-15h/week and bottom half earn $0
