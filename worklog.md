@@ -601,3 +601,17 @@ Work Log:
 
 Stage Summary:
 - Delivered 3-horizon action plan: today (free profile honesty + Runbook reading), week 1-6 (copy-paste skills, $5 VPS playground), month 1+ ($90/mo VPS → SN41 via Deployment Engine mock rehearsal first); hard do-NOT list (no GPU buy, no hire, no rushed stake)
+
+---
+Task ID: 4090-vs-a100-verdict
+Agent: main (Super Z)
+Task: Direct verdict "build 4090 or A100 rig? chances to earn?" (user re-asked, wants decisiveness)
+
+Work Log:
+- No new runs needed; synthesized all prior live data (fit scenarios, rent-earn chains, GPU catalog rents) into a probability table
+- GPU doors all blocked/knife-fights: SN64 3% entry + Intel TDX/static-IP (home rig fails), SN4 2% earn + EV $12/mo, SN68 1.6% + 48GB gate, SN35 whale-mean red
+- Only honest 4090 income = rent it out on Akash ($226/mo gross catalog price → ~$150-180 net) — not Bittensor mining
+- Alternative for $2k: stake ≈$20/mo zero-work bar
+
+Stage Summary:
+- Verdict: build NEITHER now; every GPU door ≤3-11% with blocked/whale math; the 35% door (SN41) needs no GPU; $2k → stake until skills catch up
