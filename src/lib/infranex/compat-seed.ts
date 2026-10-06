@@ -135,8 +135,8 @@ export const COMPAT_SEED: Record<number, CompatSeedEntry> = {
   },
   50: { tier: "cpu-only", source: "inferred", note: "no GPU mention in README -> CPU/API/data task likely",
   },
-  51: { tier: "tee-required", source: "audit", note: "TEE/confidential compute mentioned (hardware constraints likely)",
-    quote: "neurons/executor - the agent installed on a GPU machine: exposes the machine to its miner's validators, runs the container inside an Intel TDX TEE so neither operators nor host machines see buyer content or miners' data.", evidenceSource: "Datura-ai/lium-io README"
+  51: { tier: "gpu-flexible", source: "readme", note: "CORRECTED 2026-10-06: GPU rental marketplace, no TEE/bare-metal/static-IP hosting requirement. Docker + sysbox-runc runtime is the full requirement (container sandbox, NOT TEE/TDX). The old audit entry quoted a since-removed README line that ran the executor inside an Intel TDX TEE; the current README makes a TDX-attested VM only one of three OPTIONAL paths to unrented-pool (idle-pay) eligibility for 8x H200/B200/B300 nodes (GPU splitting | GPU profiling | attested confidential VM), and dstacktee/ is an optional node-agent variant.",
+    quote: "Install Sysbox and the NVIDIA Container Toolkit on the GPU host. Validators reject a node without the `sysbox-runc` runtime.", evidenceSource: "Datura-ai/lium-io README (current) + Lium official provider docs"
   },
   52: { tier: "cpu-only", source: "inferred", note: "no GPU mention in README -> CPU/API/data task likely",
   },

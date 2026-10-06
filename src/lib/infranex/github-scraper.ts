@@ -902,6 +902,14 @@ const HOSTING_PATTERNS: Array<[keyof Omit<HostingRequirements, "notes">, RegExp]
  *  - TEE/static-IP mentions must read as requirements ("must", "runs
  *    inside", "deploy") or sit under a requirements-style heading — a bare
  *    feature-list mention ("TEE Attestation Verification") is not a rule.
+ *  - (2026-10-06, SN51 Lium fix) A TEE term that arrives as the tail of a
+ *    comma enumeration joined by "or" — "GPU splitting, GPU profiling or an
+ *    attested confidential VM" — is one OPTION in an earning-tier list, not
+ *    a hosting admission rule, unless an earlier token in the line is itself
+ *    TEE-class. SN94's "TDX or AMD SEV-SNP evidence" still fires: the head
+ *    of that enumeration IS a TEE term, and lines without a comma+"or"
+ *    before the match are untouched. Also: sysbox-runc is a container
+ *    SANDBOX runtime, not a TEE — its mention never implies TEE hardware.
  */
 const SECTION_HEADING_OK =
   /current implementation|requirement|hardware|deployment|deploy|setup|installation|hosting|infrastructure/;
@@ -910,8 +918,13 @@ const LINE_REQUIREMENTISH =
 const NEGATION_BEFORE =
   /\b(no|not|without|skip|avoid|neither|nor|don'?t|doesn'?t|can'?t|cannot|never)\s+(?:longer\s+|be\s+)?$/i;
 const ROADMAP_HEADING = /roadmap|future|planned|coming soon|not yet|backlog|vision|design/;
+// TEE-class hardware terms — if one appears BEFORE an or-enumerated TEE
+// match, the line still demands TEE (e.g. SN94 "TDX or AMD SEV-SNP").
+const TEE_CLASS_RE = /\bTEE\b|\bTDX\b|confidential|attest|SEV-SNP|nitro|enclave/i;
+// Sysbox = container sandbox runtime (SN51), never TEE hardware evidence.
+const SYSBOX_RUNTIME_RE = /sysbox/i;
 
-function parseHosting(text: string): HostingRequirements | null {
+export function parseHosting(text: string): HostingRequirements | null {
   const lines = text.split("\n");
   const notes = new Set<string>();
   const flags = { bareMetalOnly: false, teeRequired: false, staticIpRequired: false };
@@ -935,6 +948,24 @@ function parseHosting(text: string): HostingRequirements | null {
       const idx = m.index ?? 0;
       // Negation guard: "No Nitro enclave or KMS", "without TEE".
       if (NEGATION_BEFORE.test(line.slice(Math.max(0, idx - 48), idx))) continue;
+      // OR-option guard (SN51 fix, 2026-10-06): the TEE match sits after a
+      // comma enumeration joined by "or" and nothing earlier in the line is
+      // TEE-class → it is one alternative in an option list (an earning-tier
+      // path), not a standing requirement. sysbox mentions are sandbox
+      // runtime talk and never count as TEE-class evidence either way.
+      if (flag === "teeRequired") {
+        const pre = line.slice(0, idx);
+        if (SYSBOX_RUNTIME_RE.test(line) && !/\bTEE\b|\bTDX\b|confidential|attest/i.test(line)) {
+          // Pure sysbox/runtime line ("reject a node without sysbox-runc") —
+          // cannot evidence TEE.
+          continue;
+        }
+        const orTail = pre.match(/,\s*[^,]{0,80}\bor\s+[^,]*$/i);
+        // Test ONLY the text before the enumeration tail: adjectives that
+        // modify the matched alternative itself ("or an ATTESTED confidential
+        // VM") live inside orTail and must not count as earlier TEE evidence.
+        if (orTail && !TEE_CLASS_RE.test(pre.slice(0, pre.length - orTail[0].length))) continue;
+      }
       // Validator-only lines describe the VALIDATOR's hosting, not the miner's.
       if (/\bvalidators?\b/i.test(line) && !/\bminers?\b/i.test(line)) continue;
       // TEE / static-IP need requirement semantics; bare-metal patterns are
