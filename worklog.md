@@ -755,3 +755,17 @@ Work Log:
 Stage Summary:
 - Verdict stands re-verified at block 9225828: SN32 ItsAI primary on 1x rented 4090 (best newcomer odds, ~break-even -2/day tuition), SN123 MANTIS hedge, skip 5090, SN51 not a single-card mining play
 - Honest month-1 framing unchanged: nothing strongly positive-EV on rented consumer cards; treat ~$260/mo as experiment cost with day-30 kill/scale gate
+
+---
+Task ID: chutes-hosting-verify
+Agent: main (Super Z)
+Task: "check Chutes, is it bare metal or we can run rented GPU. Please research on this once again"
+
+Work Log:
+- Queried platform DB: SN64 Chutes row (scraped 2026-10-06 from github.com/chutesai/chutes-miner) flags bareMetalOnly+teeRequired+staticIpRequired
+- Live verification via web search + page_reader on chutesai/chutes-miner README (fetched today): (1) "ALL servers must be bare metal/VM, meaning it will not work on Runpod, Vast, etc." (2) "we do not currently support shared or dynamic IPs - the IPs must be unique, static, and provide a 1:1 port mapping" (3) "The chutes network is now TEE-exclusive" - all GPU worker nodes run inside Intel TDX confidential VMs via sek8s host-tools; legacy GraVal GPU-challenge verification no longer supported; node without chutes/tee=true label rejected at add-node (4) hosts must be TDX-capable (Intel TDX-enabled CPUs + supported GPUs) (5) RAM >= VRAM per GPU
+- Verdict: Chutes is bare-metal/dedicated-server only (TDX-capable Intel CPU + static unique IP) - rented GPU marketplaces (Vast/RunPod) and consumer-card paths are excluded; no change to SN32 ItsAI verdict for the one-month rented test
+
+Stage Summary:
+- SN64 Chutes confirmed bare-metal-only + TEE-exclusive (Intel TDX) + static-IP; rental marketplace mining impossible
+- GPU Landscape data for SN64 (bareMetal/TEE/staticIp badges) verified accurate against live README; no DB update needed
