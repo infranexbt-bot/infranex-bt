@@ -721,3 +721,22 @@ Stage Summary:
 - Key placements: A=16 (incl. SN51 lium marketplace + SN53/SN91/SN106 multi-path), B=8, C=17, D=73 (SN44 5090-ban, SN100 B200-first/5090-fallback, 39 unverified, 30 cpu-only, SN48 QPU, SN55 unspecified)
 - Live yields per earning miner ($/d, realizable): SN51 $1162, SN9 $11035, SN4 $14057, SN64 etc. - all paper-value at spot, honest footer explains concentration (2/256, 1/256 patterns)
 - Commit ec92d9d; standalone restart gotcha documented above (kill by "standalone/server.js" pattern)
+
+---
+Task ID: gpu-mining-1mo-rental
+Agent: main (Super Z)
+Task: "lets start GPU mining. lets test for one month GPU miner on 4090 or 5090 rented GPU. Analyse and provide the best subnet to mine for one month on 4090 or 5090 rented GPU."
+
+Work Log:
+- Revival ritual OK; pulled platform pipeline via new scripts/rental-1mo-analysis.ts (fetchLiveSnapshot block 9225692 TAO $304 -> mergeOpportunities with scraped overrides -> buildProfitRank -> consumer-bucket filter from gpu-landscape classifier)
+- Full 16-candidate decision table computed with the platform's own honest math: earnChance (newcomer month-1 odds), newcomer-adjusted revenue, engine rental P&L, whale/knife-fight flags, burn cost, alpha 24h
+- Key finding: every high-paper-profit row (SN9 NET $2782, SN36 $1788, SN80 $915) carries earnChance 0-2% + WHALE-MEAN + KNIFE-FIGHT (top-10% take 100% of rewards) - a month-1 newcomer earns $0 there
+- Only 2 candidates with HIGH newcomer earn chance: SN32 ItsAI (66%, 239/256 earned, burn 0.058 TAO, NET -$59/mo) and SN123 MANTIS (60%, 248/256 earned, burn 0.15 TAO, NET -$216/mo)
+- SN51 lium engine row is not comparable for a 1x rented card (priced 8x B300 fleet $25.6k rent; marketplace income path not modeled by emission math; top-10% take 99%)
+- Verified mechanics: SN32 = LLM-text detection (MGTD benchmark leader), container-friendly, no TEE/bare-metal/static-IP, deep pool (realizability 0.998), alpha stable
+
+Stage Summary:
+- Verdict delivered: rent 1x RTX 4090 container (~$0.35-0.40/hr, ~$260-290/mo), mine SN32 ItsAI as primary (best odds: 66% chance to earn, ~break-even -$59 at mean, ~-$2/day tuition), SN123 MANTIS as hedge (60%, -$216)
+- 5090 rental NOT justified: only 0-3%-earnChance subnets name it (SN74/SN10/SN53); saves ~$90-170/mo on the test
+- Month-1 test plan: register via 0.058 TAO burn, 14h immunity runway, weekly checkpoints (rewarded ratio, per-earner yield, alpha price), day-30 kill/scale gate
+- Analysis script committed for re-runs (rates/emissions drift); engine rates: 4090 $260/mo container
