@@ -615,3 +615,16 @@ Work Log:
 
 Stage Summary:
 - Verdict: build NEITHER now; every GPU door ≤3-11% with blocked/whale math; the 35% door (SN41) needs no GPU; $2k → stake until skills catch up
+
+---
+Task ID: sn51-lium-verdict
+Agent: main (Super Z)
+Task: Check "rent GPU on Lium subnet for earnings?" (user pivoted from Bittensor mining to Lium idea)
+
+Work Log:
+- Located Lium = SN51 lium.io in live chain data: 256/256 full, rewardedMiners 71 (27.7%), top10IncentiveShare 0.986, burn 0.5 TAO (~$150), Compute sharing class, GPU 4090 24GB
+- Opportunities row verdict: 41.4 AVOID · seat full · Rent earn NO (curated audit: executor must run in Intel TDX confidential VM with attestation — rented containers excluded) · "27.7% earn · top10 99% · EV $-1/mo" · net -$107/mo below $300 target
+- Screenshot download/sn51-lium-avoid.png
+
+Stage Summary:
+- Lium idea = NO: TDX secure-hardware requirement blocks rented GPUs entirely; door full; incumbents average negative net (-$107/mo); new-entrant EV -$1/mo. User's GPU-rental earnings idea fails on Lium exactly like on SN64/68/4
