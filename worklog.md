@@ -589,3 +589,15 @@ Work Log:
 
 Stage Summary:
 - Verdict delivered: do NOT build GPU infra; hardware is not the bottleneck (seats + skill are); plan = copy-paste skills → $90/mo VPS on SN41 ($453/mo modeled, 35% entry) → rent GPU later only if needed; rent-first-buy-later rule
+
+---
+Task ID: action-plan-now
+Agent: main (Super Z)
+Task: Answer "what should I do now?" with a concrete plan
+
+Work Log:
+- Verified Runbook (14) view exists in-app: Phase 1 start checklist (15 min), cash-out runbook, stake portfolio links — pointed user to it
+- No code changes; advisory synthesis of prior engine runs (fit scenarios, rent-earn, GPU catalog, build-vs-rent)
+
+Stage Summary:
+- Delivered 3-horizon action plan: today (free profile honesty + Runbook reading), week 1-6 (copy-paste skills, $5 VPS playground), month 1+ ($90/mo VPS → SN41 via Deployment Engine mock rehearsal first); hard do-NOT list (no GPU buy, no hire, no rushed stake)
