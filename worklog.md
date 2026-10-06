@@ -682,3 +682,20 @@ Stage Summary:
 - Stale data cause = wiped DB, not old scrapes. Catalog fully restored from chain registry (106 repos — more than the old 68)
 - All scrapes same-day fresh; GPU prices are live-per-request; chain data live
 - scripts/rebuild-catalog.ts is the reusable tool after any future DB wipe: bun --smol scripts/rebuild-catalog.ts && sync-all?force=true
+
+---
+Task ID: rtx5090-subnet-pick (+ sandbox-reset recovery)
+Agent: Super Z (main)
+Task: 研究 RTX 5090 (32GB consumer) 可用的子网清单
+
+Work Log:
+- 发现沙箱 16:37 重置：未提交源码/脚本丢失、DB 重建为空库、dev server 顶替 prod
+- 按 worklog runbook 恢复：rebuild-catalog (106 repos) → 重放 scraper OR-guard + compat-seed SN51 修复 → rescrape (103 ok, 67 GPU reqs) → correct-sn51-tee v2 (enrich 模式) → rebuild standalone + keepalive prod → git commit d996d7e 防再丢
+- take-snapshot.ts 直写 ChainSnapshot (block 9225329, 129 subnets, TAO $302.21)
+- rtx5090-fit-sweep.py 全库分类: FIT 13 / MAYBE 42 (多为 cpu-only/no-repo) / EXCLUDED 1 (SN44 明确禁 5090) / DATACENTER 20 / CPU-ONLY 30
+- README 批量验证: SN10 Pareton 有 4x RTX 5090 直跑证据; SN74 证据在 Dockerfile (sm_120=RTX 5090)
+- 每矿工 miner-emission 排名: SN51 ~$0.10/d 最高, 其余 <$0.01/d — GPU 子网 EV 仍为负 (电费 ~$0.5/d), SN51 的真实收益在租金而非 emission
+
+Stage Summary:
+- 5090 可用清单已交付 (Tier1 显式支持: SN74/53/10/100/51; Tier2 达标: SN9/32/96/123/26/36/106/80/81; 条件: SN91 每轮锁定/SN94 需 TEE)
+- 沙箱重置已完整恢复且全部修复已入 git
