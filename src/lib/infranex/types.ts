@@ -265,6 +265,7 @@ export type ViewKey =
   | "subnets"
   | "judge"
   | "cpu-guide"
+  | "gpu-landscape"
   | "cpus"
   | "gpus"
   | "miners"

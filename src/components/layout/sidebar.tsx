@@ -24,6 +24,7 @@ import {
   ShieldCheck,
   BookOpen,
   ListChecks,
+  Layers,
   Server,
   UserCheck,
 } from "lucide-react";
@@ -48,6 +49,7 @@ const NAV_GROUPS: { label: string; items: { key: ViewKey; label: string; icon: t
       { key: "subnets", label: "Subnets", icon: Network, hint: "03" },
       { key: "judge", label: "Validator Lab", icon: Gavel, hint: "04" },
       { key: "cpu-guide", label: "CPU Guide", icon: ListChecks, hint: "05" },
+      { key: "gpu-landscape", label: "GPU Landscape", icon: Layers, hint: "05b" },
     ],
   },
   {
