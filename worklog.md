@@ -543,3 +543,19 @@ Work Log:
 
 Stage Summary:
 - Advice delivered: do NOT hire yet; learn copy-paste level; reconsider at 10+ miners; app engines fill the seat free until then
+
+---
+Task ID: sn68-rent-earn-explained
+Agent: main (Super Z)
+Task: Explain SN68 NOVA "Rent earn: NO" to non-technical owner
+
+Work Log:
+- Read rent-earn.ts engine: Rent earn column = "will a RENTED GPU actually earn here?" (0-100 score, GREAT/OK/POOR/NO bands)
+- Pulled live chain facts for SN68: maxUids 64, minersCount 64 (full), rewardedMiners 1, top10IncentiveShare 1.0, burn 0.202 tao
+- Verdict computed: knife fight (1.6% slots earned, top10 100%), whale-mean headline $4,144 is ONE winner's income; new-entrant EV $66/mo; score 21 → NO band
+- GPU gate: NOVA needs RTX A6000 48GB (user's 4090 = 24GB, insufficient)
+- Verified rendered row in Opportunities view: "NO 21 · 1.6% earn · top10 100% · EV $66/mo"; screenshot download/sn68-nova-rent-earn-no.png
+- Contrast explained: SN90 NO = hardware can't rent (TEE/bare-metal); SN68 NO = rentable hardware but 1-winner knife fight; SN4 NO = EV $12/mo
+
+Stage Summary:
+- Delivered: "Rent earn NO" = engine's trap filter — headline $/mo is whale-mean, newcomer EV is a fraction of rent cost; SN68 is a 1-of-64 lottery with 48GB hardware requirement
