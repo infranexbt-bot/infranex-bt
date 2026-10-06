@@ -496,3 +496,18 @@ Stage Summary:
 - Fault Drill shipped: DevOps Engine → "Run fault drill (free)". Zero spend, zero chain calls, clearly badged, one-click cleanup
 - Drill currently ARMED and waiting for the user to click Approve → Execute
 - Ops card shows honest dashes (TEMP/UTIL —) because sandbox synthesizes nothing; card carries "Mock deployment — no real GPU running" strip
+
+---
+Task ID: devops-mock-demo-verified
+Agent: main (Super Z)
+Task: Re-verify the DevOps fault drill end-to-end after DB reset ("run the web app")
+
+Work Log:
+- Resurrected app (login: 200); found DB empty — previous drill rows wiped by rebuild
+- Re-armed drill via POST /api/devops/demo (sandbox DEMO-fault-drill on α61, $0 cost)
+- Browser-verified FULL loop fresh: card "Fault drill — sandbox GPU is running hot (91 °C)" → Approve → status "approved" → Execute → API shows status "acted" with "ACTION: Acknowledged" → change feed "acted · just now"
+- Screenshots: download/fault-drill-armed.png, download/fault-drill-completed.png
+- Re-armed a FRESH drill for the user to click Approve → Execute themselves
+
+Stage Summary:
+- Fault drill loop verified live twice across sessions; drill currently ARMED and waiting for user's Approve click; "End fault drill" cleans up free
