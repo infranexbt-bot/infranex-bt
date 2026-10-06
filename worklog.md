@@ -643,3 +643,21 @@ Work Log:
 
 Stage Summary:
 - Verdict: Lium with owned rig = consumer build 0% (no TDX), qualifying build ≈$15k+ for an 11% door into negative-EV seat with 99% whale capture — AVOID; kill-test checklist handed to user for any future GPU idea
+
+---
+Task ID: lium-web-research
+Agent: main (Super Z)
+Task: Web research on Lium (SN51) GPU rental marketplace for user's build-a-rig question
+
+Work Log:
+- web-search: Lium = SN51, decentralized P2P GPU rental marketplace by Datura AI; reported $964K month topping Bittensor subnets (tao.media Sep 2026); Kraken listing note Jul 2026; bittensor.ai lists it as "Confidential GPU Executor"
+- docs.lium.io (agent-native, .md endpoints): providers contribute GPUs to a global pool; renters pay USD hourly; Lium scores every node; single validator run by Lium team; export/sanctions compliance
+- KEY CORRECTION vs app's curated flag: TDX CVM is OPTIONAL and only for H100/H200/B200/GB200 ("consumer and workstation cards do not implement NVIDIA Confidential Computing") — a 4090 does NOT need TDX. App's CURATED_RENT_BLOCKS[51] is stale.
+- GPU allow-list: consumer RTX 50/40/30-series included; 4090 + 4090D listed; A100 80GB PCIe/SXM listed; only some models earn unrented-pool idle incentive (5080/4080/A10/T4/A2000 = 0.0 weight)
+- Two earnings streams: rental fees (95% provider share, USD-priced, paid daily in alpha to coldkey, 2-day delay) + subnet emission (41% of epoch to providers, alpha stake on hotkey per 72-min tempo)
+- Live lium.io/api/machines (92 models): RTX 4090 ref $0.30/hr (p_min 0.15/p_max 1.20), rental_rate 97.98%, 99 units listed, usd_per_epoch_unrented $0.36 (= $0.30/hr idle pay), usd_per_epoch_rented $0.0796; A100 SXM $0.70/hr rental_rate 100%, 63 units; A6000 $0.42/hr 98.4%, 62 units
+- Math: 4090 ≈ $201/mo rental (0.30×720×0.98×0.95) + ~$48/mo emission ≈ $249/mo gross, ~$50/mo power → ~$200/mo net → ~10mo payback on $2k; worst case 50% utilization ≈ $100 net → 20mo. A100 SXM: ~$480 net/mo on $12-18k card → 25-37mo payback. 4090 wins on capital efficiency.
+- Risks: both streams paid in ALPHA (price risk; SN51 realizability 99.7% though), emission whale-concentrated (top10 98.6% chain fact), single validator, Path A (email signup, nothing to buy) NOT open yet — Path B needs wallet+0.5 TAO burn+btcli+Sysbox+Docker+uptime, penalties for unreachable nodes, allow-list weights can change
+
+Stage Summary:
+- Lium = first GPU plan that works on paper: 4090 YES-ISH (~$200/mo net at today's demand, 10-13mo payback, no TDX), A100 NO (2.5-3yr payback). Kills the "all GPU doors blocked" narrative for the RENTAL-provider role (not emission mining). App's SN51 curated TDX block is stale vs live docs — offer to update. Setup needs operator skills or wait for Path A email signup.
