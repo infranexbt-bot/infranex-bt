@@ -699,3 +699,25 @@ Work Log:
 Stage Summary:
 - 5090 可用清单已交付 (Tier1 显式支持: SN74/53/10/100/51; Tier2 达标: SN9/32/96/123/26/36/106/80/81; 条件: SN91 每轮锁定/SN94 需 TEE)
 - 沙箱重置已完整恢复且全部修复已入 git
+
+---
+Task ID: gpu-landscape-page
+Agent: main (Super Z)
+Task: "Provide this GPU landscape, Category-wise side menu. in that page mention all these A) Consumer RTX class - 3090/4090/5090 (24-32 GB), B) Pro / workstation class - A6000, L40S, RTX PRO 6000 (48-96 GB), C) Datacenter class - A100 / H100 / H200 / B200 / B300 and D) Special cases"
+
+Work Log:
+- Classified all 106 SubnetOverride rows into 4 GPU classes (scripts/gpu-landscape-classify.py prototype, then production TS)
+- New src/lib/infranex/gpu-landscape.ts: CONSUMER/PRO/DC regexes + VRAM-floor fallback + 14 hand-curated overrides (SN44 ban, SN48 QPU, SN51 marketplace, SN53 3-path menu, SN55 unspecified, SN80/81/91/94 consumer-floor notes, SN85/102/4 pro+dc, SN100 DC-first-fallback, SN36 consumer)
+- Cross-class model: multi-path subnets (SN53 CPD, SN91 CP, SN106 CPD, SN4/102/120 BC) appear in EVERY qualifying class - 114 placements over 106 subnets
+- New /api/gpu-landscape (session-gated): SubnetOverride x latest ChainSnapshot; buildLive() = miner-score per-earning yield (em x realizability / rewarded x TAO), 0.6 conservative fallback flagged estimated
+- New GpuLandscapeView: sticky category side menu (A/B/C/D letter chips + VRAM band + live counts; horizontal scroll on mobile), yield-ranked cards (requirement quote mono block, compat tier badge, TEE/bare-metal/static-IP badges, cross-class letter chips, repo source link, VRAM floor + GPU count, per-earner yield + earning/registered), Special bucket grouped (bans/fallback/unspecified/unverified/quantum/cpu-only, last two as compact chips), honest EV footer (paper value, costs not deducted)
+- Wired: ViewKey "gpu-landscape", sidebar Intelligence hint 05b (Layers icon), VIEW_META Section 05b
+- BUGFIX during verify: empty-GPU + minVramGb=null rows fell into cpu-only branch -> unverified bucket was 0; split conditions -> unverified 39, cpu-only 30
+- Deploy gotcha (new): keepalive runs `bun .next/standalone/server.js`; pkill "next-server" does NOT match it - stale pre-build server held :3000 serving 404 for the new route while middleware 401'd unauth. Kill pattern: pkill -f "standalone/server.js"
+- Verified end-to-end: build registers /api/gpu-landscape; auth API test (A16/B8/C17/D73, D groups 1/1/1/39/1/30); agent-browser login -> view -> all 4 categories render (screenshots in tool-results/); zero console errors
+
+Stage Summary:
+- New permanent view: GPU Landscape (Section 05b) - the whole network bucketed by GPU class with category-wise side menu, exactly per user spec A/B/C/D
+- Key placements: A=16 (incl. SN51 lium marketplace + SN53/SN91/SN106 multi-path), B=8, C=17, D=73 (SN44 5090-ban, SN100 B200-first/5090-fallback, 39 unverified, 30 cpu-only, SN48 QPU, SN55 unspecified)
+- Live yields per earning miner ($/d, realizable): SN51 $1162, SN9 $11035, SN4 $14057, SN64 etc. - all paper-value at spot, honest footer explains concentration (2/256, 1/256 patterns)
+- Commit ec92d9d; standalone restart gotcha documented above (kill by "standalone/server.js" pattern)
