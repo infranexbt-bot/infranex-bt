@@ -572,3 +572,20 @@ Work Log:
 
 Stage Summary:
 - Swords = "knife-fight seat" warning: winner-take-all reward distribution; NOVA 1-of-64 earners triggers it
+
+---
+Task ID: build-vs-rent-advice
+Agent: main (Super Z)
+Task: Answer "should I build my own GPU infra? 4090 vs A100 vs H100?" with engine data
+
+Work Log:
+- Ran Miner Fit wizard 2 more live scenarios (coder + $2000/mo + 10h held constant):
+  - A100 80GB: top fits UNCHANGED — SN61 $869, SN41 $452, SN62 $371, SN124 $701, ALL "CPU-only, no GPU needed"; exclusions 115→111 (A100 unlocked ~nothing)
+  - H100 farm 141GB+: still SN61+SN41 on top (CPU-only); new SN35 $9,366/mo at 49 fit BUT red demand (decaying) + whale-mean + 11% entry; 107 excluded
+- Pulled live GPU catalog rents (Akash): 3090 $110/mo, 4090 $226/mo, A100 $971/mo, H100 $1,861/mo, PRO6000 96GB $1,051/mo
+- Economics: A100 ~$15k buy / H100 farm ~$50k+; buy-vs-rent breakeven 9-27 months; SN64 needs Intel TDX bare metal (home 4090 can't); SN35 whale-mean EV collapse risk (NOVA precedent $4,144→$66)
+- Staking bar: $20k staked ≈ $170-230/mo zero-work baseline
+- Screenshot download/fit-level-h100-farm.png; wizard restored to TRUE profile (none/none/lt100/0)
+
+Stage Summary:
+- Verdict delivered: do NOT build GPU infra; hardware is not the bottleneck (seats + skill are); plan = copy-paste skills → $90/mo VPS on SN41 ($453/mo modeled, 35% entry) → rent GPU later only if needed; rent-first-buy-later rule
