@@ -661,3 +661,24 @@ Work Log:
 
 Stage Summary:
 - Lium = first GPU plan that works on paper: 4090 YES-ISH (~$200/mo net at today's demand, 10-13mo payback, no TDX), A100 NO (2.5-3yr payback). Kills the "all GPU doors blocked" narrative for the RENTAL-provider role (not emission mining). App's SN51 curated TDX block is stale vs live docs — offer to update. Setup needs operator skills or wait for Path A email signup.
+
+---
+Task ID: catalog-refresh-2026-10-06
+Agent: main (Super Z)
+Task: User said "yes update the apps stale" — refresh the app's stale data
+
+Work Log:
+- Freshness audit: SubnetOverride had only 8 curated seed rows (DB rebuild had wiped the ~68 scraped ones); chain metadata + alpha price history files fresh (same-day); WorkerStatus/upstreamState empty by design (workers default-off on 4GB box)
+- Wrote scripts/rebuild-catalog.ts — reads on-chain SubnetIdentitiesV3 registry (authoritative per DATA-AUDIT-1), upserts {netuid, name, githubUrl} without touching scraped fields; identity decode mirrors chain.ts idText()
+- Rebuild result: 106 chain-registered repos found; overrides 8 → 106 (created=98, updated=8)
+- Minted admin token (scripts/mint-session-token.ts); POST /api/subnets/sync-all?force=true → 322s, total=106 scraped=103 errors=3 (SN39/SN95/SN126 have no README — honest no-data)
+- Verified all 103 scraped rows now dated 2026-10-06
+- GPU offers API live: RTX4090 $0.31/hr ($226/mo), 24 Akash offers, source=akash, fetched on request (no staleness)
+- Browser check: login POST → dashboard "CHAIN SYNCED block 9,222,574, 129 subnets, TAO $303.57"; Opportunities view renders 128/128 scored rows with real names (SN79 MVTRX OK64, SN33 ReadyAl OK63, SN5 Hone OK63, SN83 CliqueAI…), RUN 6 / WATCH 11 / AVOID 111
+- Screenshot: download/catalog-refreshed-opportunities.png
+- Note: /opportunities is a 404 — the app is a single-page client; all views live under / with client-side switching
+
+Stage Summary:
+- Stale data cause = wiped DB, not old scrapes. Catalog fully restored from chain registry (106 repos — more than the old 68)
+- All scrapes same-day fresh; GPU prices are live-per-request; chain data live
+- scripts/rebuild-catalog.ts is the reusable tool after any future DB wipe: bun --smol scripts/rebuild-catalog.ts && sync-all?force=true
