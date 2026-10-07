@@ -911,3 +911,21 @@ Stage Summary:
 - New permanent Section 05c Miner Playbook: 105/105 subnets with researched miner intelligence (what it does, hardware, requirements, miner job, top-10 mindset+levers, follow-the-leaders), live-yield-joined, confidence-flagged (97/7/1).
 - Key agent corrections vs platform metadata worth follow-up: SN94 mining needs TDX/SEV CVMs (not plain CUDA); SN74 CPU-only per repo (5090 rec unsupported); SN116 testnet-only no rewards; SN54 needs GPU 8GB+ (was CPU-only); SN105 Beam/SN115 MoirAI thin/derived.
 - Recovery runbook proven again: snapshot + parallel rescrape rebuilds platform data in ~10 min after a DB wipe.
+
+---
+Task ID: sidebar-scroll
+Agent: main (Super Z)
+Task: "for side menu bar add scroll to see all the options"
+
+Work Log:
+- Root cause: sidebar used Radix ScrollArea, but this repo's ui/scroll-area.tsx renders Root WITHOUT overflow-hidden. In the fixed aside (inset-y-0 flex-col), the flex-1 Root resolved min-height:auto -> grew to full 1068px content height inside a 100vh aside -> viewport never overflowed -> bottom options (Runbook, Access Control, footer card) clipped with no scrollbar. custom-scroll class on it was inert (styles native webkit scrollbars, not Radix's).
+- Fix (SIDEBAR-SCROLL-1) in src/components/layout/sidebar.tsx: replaced both Radix ScrollArea regions (desktop aside + mobile Sheet) with native scroll containers: div.custom-scroll.min-h-0.flex-1.overflow-y-auto.overscroll-contain (padding moved to inner wrapper so the thin scrollbar hugs the edge). Desktop aside also got overflow-hidden. Mobile SheetContent became flex flex-col so flex-1 actually constrains. Removed unused ScrollArea import.
+- globals.css: .custom-scroll gained Firefox support (scrollbar-width: thin; scrollbar-color) alongside existing webkit 6px rules.
+- Build (bun run build) exit 0; prod restarted via pkill standalone/server.js + run-prod-keepalive relaunch; login: 200.
+- Browser verification (1280x720, logged in): aside .custom-scroll overflowY=auto, clientH 656 vs scrollH 1068 -> scrollable; programmatic scroll clamps at exactly 412 (= scrollH-clientH); elementFromPoint inside aside; screenshots sidebar-scroll-{top,bottom}.png show all 18 options + Access Control 15 + Chain Synced card reachable at bottom.
+- Mobile (390x844): sheet scroller clientH 764 vs scrollH 1068, 19 nav buttons, parent display flex; screenshot sidebar-scroll-mobile.png confirms full list + footer reachable.
+- Forensics: CLI mouse wheel/scroll gestures did NOT move the container -> armed a capture-phase wheel listener; events arrived at clientX=0,clientY=0 (CLI dispatches wheel at viewport origin and scrolls page root, ignoring cursor). Automation-tool artifact, not an app defect: zero wheel/preventDefault handlers in src (grep), container is a plain native overflow region, so real browser wheel/trackpad over the sidebar uses standard native scrolling. Also added thin Firefox scrollbar so the affordance is visible cross-browser.
+
+Stage Summary:
+- Sidebar (desktop + mobile) is now a properly constrained native scroll region; all 18 nav options + admin entry + chain-status footer reachable on any viewport height.
+- 3 screenshots in tool-results/sidebar-scroll-{top,bottom,mobile}.png; no schema/API changes; zero wheel JS added (native scrolling untouched on purpose).

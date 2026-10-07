@@ -2,7 +2,6 @@
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { useNetwork } from "@/hooks/use-network";
 import { useQuery } from "@tanstack/react-query";
@@ -161,21 +160,26 @@ export function Sidebar({
 
   return (
     <>
-      {/* Desktop */}
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r bg-sidebar lg:flex">
+      {/* Desktop — SIDEBAR-SCROLL-1: native scroll region so every nav option
+          stays reachable on short viewports (18 entries + footer card exceed
+          100vh). min-h-0 constrains the flex item; overscroll-contain stops the
+          wheel from chaining to the page once the list ends. */}
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col overflow-hidden border-r bg-sidebar lg:flex">
         <SidebarBrand />
-        <ScrollArea className="flex-1 px-3 py-5 custom-scroll">
-          {NavList}
-          <div className="my-5 px-1">
-            <div className="editorial-rule" />
+        <div className="custom-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain">
+          <div className="px-3 py-5">
+            {NavList}
+            <div className="my-5 px-1">
+              <div className="editorial-rule" />
+            </div>
+            <SidebarFooter />
           </div>
-          <SidebarFooter />
-        </ScrollArea>
+        </div>
       </aside>
 
       {/* Mobile */}
       <Sheet open={mobileOpen} onOpenChange={onMobileOpenChange}>
-        <SheetContent side="left" className="w-72 border-r bg-sidebar p-0">
+        <SheetContent side="left" className="flex w-72 flex-col border-r bg-sidebar p-0">
           <SheetTitle className="sr-only">Navigation menu</SheetTitle>
           <SheetDescription className="sr-only">
             Primary navigation for the Infranex BT dashboard
@@ -192,13 +196,17 @@ export function Sidebar({
               <X className="h-4 w-4" />
             </Button>
           </div>
-          <ScrollArea className="flex-1 px-3 py-5 custom-scroll">
-            {NavList}
-            <div className="my-5 px-1">
-              <div className="editorial-rule" />
+          {/* SIDEBAR-SCROLL-1 — same native scroll contract as desktop; the
+              Sheet body is now a flex column so flex-1 actually constrains it. */}
+          <div className="custom-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain">
+            <div className="px-3 py-5">
+              {NavList}
+              <div className="my-5 px-1">
+                <div className="editorial-rule" />
+              </div>
+              <SidebarFooter />
             </div>
-            <SidebarFooter />
-          </ScrollArea>
+          </div>
         </SheetContent>
       </Sheet>
     </>
