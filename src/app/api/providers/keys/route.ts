@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireActiveUserCookies } from "@/lib/auth-admin";
+// AUDIT-3: was two separate imports from this module (AI slop) — merged.
+import { requireActiveAdmin, requireActiveUserCookies } from "@/lib/auth-admin";
 import { db } from "@/lib/db";
-import { requireActiveAdmin } from "@/lib/auth-admin";
 import { decryptSecret, encryptSecret } from "@/lib/devops/crypto";
 import {
   PROVIDER_META,
@@ -9,7 +9,6 @@ import {
   maskKey,
   validateProviderKey,
   invalidateProvidersCache,
-  type ProviderId,
 } from "@/lib/infranex/providers";
 import { invalidateCpuProvidersCache } from "@/lib/infranex/cpu-providers";
 import { logAudit } from "@/lib/infranex/audit";

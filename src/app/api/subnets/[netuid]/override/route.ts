@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { requireActiveUser } from "@/lib/auth-admin";
+import { requireActiveUser, requireActiveUserRequest } from "@/lib/auth-admin";
 
 export const dynamic = "force-dynamic";
 
@@ -10,10 +10,14 @@ export const dynamic = "force-dynamic";
 const GITHUB_URL_RE = /^https:\/\/(www\.)?github\.com\/[A-Za-z0-9][A-Za-z0-9._-]*\/[A-Za-z0-9][A-Za-z0-9._-]*(\.git)?(\/.*)?$/;
 
 // GET /api/subnets/[netuid]/override — get the user override for a subnet
+// AUDIT-3 — in-handler gate (was proxy-only): the override row carries the
+// githubUrl that feeds install plans; never serve it unauthenticated.
 export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ netuid: string }> }
 ) {
+  const gate = await requireActiveUserRequest(_req);
+  if ("error" in gate) return NextResponse.json({ error: gate.error }, { status: gate.status });
   const { netuid } = await params;
   const n = parseInt(netuid, 10);
   const override = await db.subnetOverride.findUnique({ where: { netuid: n } });

@@ -929,3 +929,35 @@ Work Log:
 Stage Summary:
 - Sidebar (desktop + mobile) is now a properly constrained native scroll region; all 18 nav options + admin entry + chain-status footer reachable on any viewport height.
 - 3 screenshots in tool-results/sidebar-scroll-{top,bottom,mobile}.png; no schema/API changes; zero wheel JS added (native scrolling untouched on purpose).
+
+---
+Task ID: audit-3
+Agent: main (Super Z) + 2 Explore agents (audit-1-dead-code, audit-2-security)
+Task: "check for Dead codes, security bugs and AI mistakes and fix it"
+
+Work Log:
+- Dispatched 2 parallel read-only Explore agents: (1) dead-code sweep of all 276 src files (import graph + double-grep evidence), (2) security audit of all 74 API routes (auth-gating matrix, sinks, secrets, proxy). Parent independently verified every finding in source before fixing.
+- SECURITY FIXES (tagged AUDIT-3):
+  - M-1: 7 GET handlers executed Prisma reads with NO in-handler gate (proxy-only): profitability-config, alerts/channels, autopilot/rules, subnets/[netuid]/override, deployments/[id]/registration, deployments/[id]/revisions, devops/hosts/[id]/install. Added requireActiveUserCookies/requireActiveUserRequest gates. Verified: all return 401 without cookie, 200 with.
+  - M-2: blind SSRF via chain-published axon endpoints in service-health probeAxon (attacker-controlled axon endpoint could hit 127.0.0.1/169.254.169.254/RFC1918 on a timer). Added isPrivateProbeEndpoint(): strict canonical-IPv4 parse (rejects leading-zero octal, decimal-int, hex forms), IPv6 loopback/ULA/link-local, private ranges 0/8,10/8,127/8,100.64/10,169.254/16,172.16/12,192.168/16,198.18/15. Prod-blocked, dev allows mock axons (same policy as validateWebhookUrl).
+  - L-1: open redirect on login ?next= (//evil.com + /\evil.com start with "/" but leave origin) — sanitized at definition in login/page.tsx. Browser-verified: ?next=//evil.com lands on /.
+  - L-2: login rate-limiter XFF fallback used leftmost (client-controlled) entry — now rightmost (proxy-appended) hop.
+  - L-3: validateWebhookUrl hardening — rejects non-canonical IPv4 spellings (0177.0.0.1 octal, 2130706433 decimal, 0x7f hex) that inet_aton resolvers accept but regex private-checks miss.
+  - L-4: writeEnvCommand (inspector.ts) — all remote-derived env values charset-scrubbed like gpuName was; gpuVramMb NaN-guarded.
+  - L-5: next.config.ts — full CSP added (default-src self; script/style +unsafe-inline for layout bootstrap scripts & React styles; img data:/blob:; object-src none; base-uri self; form-action self; frame-ancestors kept for PREVIEW-FRAME-1) + HSTS max-age 1y. Browser walk of dashboard/playbook/landscape: 0 securitypolicyviolation events, 0 console errors.
+  - I-2: login user-enumeration timing oracle — unknown-userId path now burns a real scrypt verify via cached decoy hash (dummyCodeHash); disabled-account path padded too.
+  - I-4: generateAccessCode modulo bias (byte%31 favored first 8 chars ~2.6%) — rejection sampling at 248 (31×8).
+- DEAD CODE REMOVED (all double-grep verified zero refs before deletion):
+  - buildLauncherScript() daemon-bridge.ts (~45 lines, superseded by daemon/HMAC flow)
+  - validateAkashKey() akash.ts (akashGet retained — 2 other callers)
+  - interface LocalTelemetry local-agent.ts
+  - globals.css orphans: .shimmer+keyframes, .hover-lift (3 blocks), .glow-primary+.dark variant (glow-soft KEPT — used by sidebar/banner), .table-row+hover, .scrollbar-hide, .surface-elevated, .ring-inset-subtle, .dot-pattern, .gradient-mask-r, custom .animate-in+keyframes (REAL BUG: shadowed identically-named tw-animate-css utility used by all shadcn dialogs/dropdowns/toasts → enter animations ran wrong keyframes; tw-animate-css now serves it; reduced-motion selector updated)
+  - 18 unused imports across 16 files (monitoring-view ×7, optimization, gpu-landscape ScrollArea, gpus formatCurrency, subnets AlertTriangle, deployments TrendingUp, cpu-guide type, system-view type, provision-dialog useEffect, deploy-stepper useRef, subnet-miners-panel Badge, profit-rank TrendingUp, req-dialog Coins, providers encryptSecret, autopilot TriggerKind, triggers safeArray, judge/simulate DIMENSION_CATALOG, providers/keys ProviderId)
+  - Deliberately kept: 242 over-exported internal symbols, 33 unused shadcn sub-exports, prisma CLI dep — convention, zero risk.
+- AI MISTAKES: found+fixed the duplicate @/lib/auth-admin import in providers/keys/route.ts (lines 2+4 imported same module separately — merged). Swept src for console.log (1 intentional OOM-guard boot log in workers.ts — kept), TODO/FIXME/XXX (only doc text), <img> external (none), debugger/data-testid (none). No XSS sinks (2 static), no $queryRaw, no client secrets — agents confirmed CLEAN, parent spot-verified.
+- Verify: bunx tsc --noEmit → 0; bun run build → exit 0; prod restarted (pkill standalone + keepalive relaunch); login 200; 7 routes 401 unauth / 200 auth; CSP+HSTS headers present; browser: login OK, ?next guard OK, dashboard/playbook/landscape render clean, 0 CSP violations, 0 errors; screenshot tool-results/audit-postfix-dashboard.png.
+
+Stage Summary:
+- Platform hardened: defense-in-depth restored (every data-touching handler now carries its own DB-backed gate, not just the edge proxy), SSRF surface closed on both axon probes and webhook validators, login flow hardened (redirect, limiter, timing, codegen bias), real CSP+HSTS deployed.
+- Codebase slimmed: ~120 dead lines removed incl. one REAL latent bug (CSS .animate-in shadowing tw-animate-css) that subtly degraded every shadcn popup animation.
+- 18 unused imports + duplicate-module import cleaned; zero behavior changes outside the intended fixes; tsc+build+browser all green.

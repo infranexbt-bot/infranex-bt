@@ -109,12 +109,17 @@ const FIX_TOOLKIT_CMD =
   "nvidia-ctk runtime configure --runtime=docker && systemctl restart docker";
 
 function writeEnvCommand(facts: HostFacts): string {
+  // AUDIT-3 (L-4) — every remote-derived value is charset-scrubbed like
+  // gpuName already was: the values land inside single-quoted printf args,
+  // so a quote/apostrophe/dollar from a odd /etc/os-release or nvidia-smi
+  // output must never reach the shell.
+  const scrub = (v: string) => v.replace(/[^A-Za-z0-9 .:/_-]/g, "").slice(0, 120);
   const lines = [
-    `INFRANEX_HOST_OS=${facts.os ?? "unknown"}`,
-    `INFRANEX_GPU=${(facts.gpuName ?? "unknown").replace(/[^A-Za-z0-9 .-]/g, "")}`,
-    `INFRANEX_GPU_VRAM_MB=${facts.gpuVramMb ?? 0}`,
-    `INFRANEX_DRIVER=${facts.driverVersion ?? "unknown"}`,
-    `INFRANEX_CUDA=${facts.driverCuda ?? "unknown"}`,
+    `INFRANEX_HOST_OS=${scrub(facts.os ?? "unknown")}`,
+    `INFRANEX_GPU=${scrub(facts.gpuName ?? "unknown")}`,
+    `INFRANEX_GPU_VRAM_MB=${Number.isFinite(facts.gpuVramMb) ? facts.gpuVramMb : 0}`,
+    `INFRANEX_DRIVER=${scrub(facts.driverVersion ?? "unknown")}`,
+    `INFRANEX_CUDA=${scrub(facts.driverCuda ?? "unknown")}`,
     `CUDA_VISIBLE_DEVICES=0`,
   ];
   return `mkdir -p /root/.infranex && printf '%s\\n' ${lines

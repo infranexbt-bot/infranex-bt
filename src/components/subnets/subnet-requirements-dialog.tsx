@@ -27,7 +27,6 @@ import {
   Terminal,
   Server,
   Network,
-  Coins,
   Package,
   Zap,
   ExternalLink,

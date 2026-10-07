@@ -44,14 +44,6 @@ export interface LocalHostSpecs {
   python?: string;
 }
 
-export interface LocalTelemetry {
-  load1?: number;
-  memUsedMb?: number;
-  memTotalMb?: number;
-  tempC?: number | null;
-  uptimeS?: number;
-}
-
 export function generateLocalToken(): string {
   return crypto.randomBytes(24).toString("hex"); // 48 hex chars
 }

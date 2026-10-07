@@ -532,56 +532,6 @@ if __name__ == "__main__":
 }
 
 // ---------------------------------------------------------------------------
-// Container-safe launchers — install scripts per environment
-// ---------------------------------------------------------------------------
-
-export function buildLauncherScript(opts: {
-  minerCommand: string;
-  workDir: string;
-}): { flavor: "systemd" | "pm2" | "watchdog"; script: string } {
-  return {
-    flavor: "systemd",
-    script: `#!/usr/bin/env bash
-# Infranex container-safe miner launcher — systemd → PM2 → bash watchdog.
-set -u
-MINER_CMD=${JSON.stringify(opts.minerCommand)}
-WORK_DIR=${JSON.stringify(opts.workDir)}
-cd "$WORK_DIR"
-
-if [ -d /run/systemd/system ]; then
-  cat > /etc/systemd/system/infranex-miner.service <<UNIT
-[Unit]
-Description=Infranex managed miner
-After=network-online.target
-
-[Service]
-Type=simple
-WorkingDirectory=$WORK_DIR
-ExecStart=$MINER_CMD
-Restart=always
-RestartSec=10
-
-[Install]
-WantedBy=multi-user.target
-UNIT
-  systemctl daemon-reload
-  systemctl enable --now infranex-miner
-  echo "launcher=systemd"
-elif command -v pm2 >/dev/null 2>&1; then
-  pm2 delete infranex-miner >/dev/null 2>&1 || true
-  pm2 start "$MINER_CMD" --name infranex-miner --cwd "$WORK_DIR"
-  echo "launcher=pm2"
-else
-  nohup bash -c 'while true; do '"$MINER_CMD"'; echo "[watchdog] exited rc=$? — restarting in 10s" >&2; sleep 10; done' \\
-    >> /var/log/infranex-miner.log 2>&1 &
-  echo $! > /var/run/infranex-miner.pid
-  echo "launcher=watchdog"
-fi
-`,
-  };
-}
-
-// ---------------------------------------------------------------------------
 // Bridge — used by the Trigger Engine's approved actions
 // ---------------------------------------------------------------------------
 

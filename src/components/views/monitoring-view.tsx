@@ -1,9 +1,8 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import {
   Activity,
@@ -16,14 +15,12 @@ import {
   XCircle,
   Cpu,
   Wifi,
-  Clock,
   DollarSign,
-  Gauge,
   Zap,
   RefreshCw,
 } from "lucide-react";
-import { cn, formatCurrency, formatNumber, formatRelativeTime, formatDuration } from "@/lib/utils";
-import { useMonitoring, type MonitoringOverview } from "@/hooks/use-monitoring";
+import { cn, formatCurrency, formatRelativeTime, formatDuration } from "@/lib/utils";
+import { useMonitoring } from "@/hooks/use-monitoring";
 import type { MonitoredDeployment } from "@/lib/infranex/monitoring";
 import { TriggerCenter } from "@/components/cards/trigger-center";
 import { UidDefensePanel } from "@/components/cards/uid-defense-panel";

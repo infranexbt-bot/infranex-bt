@@ -35,7 +35,6 @@ import {
   Server,
   ChevronDown,
   ChevronUp,
-  TrendingUp,
 } from "lucide-react";
 
 const usd = (n: number) =>

@@ -32,7 +32,6 @@ import {
 } from "@/hooks/use-network";
 import { useProfitabilityConfig } from "@/hooks/use-profitability";
 import { useLocalHosts } from "@/hooks/use-local-hosts";
-import type { LiveNetworkSnapshot } from "@/lib/infranex/chain";
 import type { ViewKey } from "@/lib/infranex/types";
 import { cn } from "@/lib/utils";
 

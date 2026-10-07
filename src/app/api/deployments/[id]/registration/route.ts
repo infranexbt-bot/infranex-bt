@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireActiveAdmin } from "@/lib/auth-admin";
+import { requireActiveAdmin, requireActiveUserRequest } from "@/lib/auth-admin";
 import { db } from "@/lib/db";
 import {
   checkRegistration,
@@ -57,6 +57,10 @@ export async function GET(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // AUDIT-3 — in-handler gate (was proxy-only): the wizard context leaks the
+  // host IP + wallet/scp/ssh command surface. Never serve it unauthenticated.
+  const gate = await requireActiveUserRequest(req);
+  if ("error" in gate) return NextResponse.json({ error: gate.error }, { status: gate.status });
   try {
     const { id } = await params;
     const force = new URL(req.url).searchParams.get("force") === "1";

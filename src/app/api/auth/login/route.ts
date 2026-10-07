@@ -18,11 +18,14 @@ const attempts = new Map<string, { count: number; resetAt: number }>();
 
 function clientIp(req: NextRequest): string {
   // WINDUP-1: prefer x-real-ip — Caddy sets it from the actual remote host.
-  // x-forwarded-for is client-spoofable, and the limiter is keyed on this
-  // value, so header rotation previously minted fresh brute-force buckets.
+  // AUDIT-3 (L-2): when falling back to x-forwarded-for, use the RIGHTMOST
+  // entry — the hop appended by the nearest trusted proxy. The leftmost
+  // entry is client-controlled (header rotation minted fresh buckets);
+  // the rightmost can only be forged if the last proxy forwards client
+  // XFF verbatim, which Caddy does not.
   return (
     req.headers.get("x-real-ip") ||
-    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    req.headers.get("x-forwarded-for")?.split(",").map((s) => s.trim()).filter(Boolean).pop() ||
     "local"
   );
 }

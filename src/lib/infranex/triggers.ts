@@ -5,7 +5,6 @@ import {
   type TriggerEventDTO,
   toDTO,
   safeParse,
-  safeArray,
   commitFinding,
   autoResolve,
 } from "./triggers-core";

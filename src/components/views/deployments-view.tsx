@@ -21,7 +21,6 @@ import {
   Server,
   Cpu,
   DollarSign,
-  TrendingUp,
   Wrench,
   KeyRound,
   RotateCw,

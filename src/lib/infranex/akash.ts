@@ -57,20 +57,8 @@ async function akashGet(path: string, key?: string): Promise<AkashJson> {
 }
 
 // --- Key validation ----------------------------------------------------------
-
-/**
- * Console API keys are validated against the account-scoped deployments
- * endpoint: a valid key answers 200 (even with zero deployments), a bad one
- * 401 with { error, message }.
- */
-export async function validateAkashKey(key: string): Promise<{ ok: boolean; message: string }> {
-  const res = await akashGet("/deployments", key);
-  if (res.status === 401 || res.status === 403) {
-    return { ok: false, message: "Key rejected by Akash Console (401) — double-check the API key." };
-  }
-  if (!res.ok) return { ok: false, message: `Akash Console API HTTP ${res.status}` };
-  return { ok: true, message: "Key valid — Akash Console account verified." };
-}
+// AUDIT-3: validateAkashKey() removed — dead code, never wired into
+// validateProviderKey() (providers.ts), which owns all key checks.
 
 // --- GPU offers (PUBLIC — no key needed) -------------------------------------
 

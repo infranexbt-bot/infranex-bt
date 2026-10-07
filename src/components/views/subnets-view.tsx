@@ -22,7 +22,7 @@ import {
 } from "@/lib/infranex/compat";
 import { CompatLegend } from "@/components/subnets/compat-badge";
 import { useToast } from "@/hooks/use-toast";
-import { Search, RefreshCw, Network, Info, Github, CheckCircle2, AlertTriangle, ServerCrash } from "lucide-react";
+import { Search, RefreshCw, Network, Info, Github, CheckCircle2, ServerCrash } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Subnet } from "@/lib/infranex/types";
 

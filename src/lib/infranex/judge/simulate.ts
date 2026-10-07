@@ -5,7 +5,6 @@ import {
   type DimensionScore,
   type Verdict,
   type Recommendation,
-  DIMENSION_CATALOG,
 } from "./types";
 
 /**

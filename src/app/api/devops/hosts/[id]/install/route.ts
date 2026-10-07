@@ -5,7 +5,7 @@
 //          persists it as "staged" (nothing runs until steps are executed).
 
 import { NextRequest, NextResponse } from "next/server";
-import { requireActiveAdmin } from "@/lib/auth-admin";
+import { requireActiveAdmin, requireActiveUserRequest } from "@/lib/auth-admin";
 import { db } from "@/lib/db";
 import { pullSubnetRequirements } from "@/lib/devops/subnet-requirements";
 import { buildInstallPlan } from "@/lib/devops/installer";
@@ -17,6 +17,10 @@ export async function GET(
   _req: Request,
   ctx: { params: Promise<{ id: string }> }
 ) {
+  // AUDIT-3 — in-handler gate (was proxy-only): the install plan embeds
+  // wallet/hotkey names and repo URLs. Never serve it unauthenticated.
+  const gate = await requireActiveUserRequest(_req);
+  if ("error" in gate) return NextResponse.json({ error: gate.error }, { status: gate.status });
   const { id } = await ctx.params;
   const row = await db.hostInstall.findFirst({
     where: { hostId: id },

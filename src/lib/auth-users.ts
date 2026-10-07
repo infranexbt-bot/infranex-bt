@@ -51,10 +51,28 @@ export function verifyCode(code: string, stored: string): boolean {
  * Inactive accounts are rejected. lastLoginAt is NOT touched here (the login
  * route does it once the cookie is minted).
  */
+let dummyHashCache: string | null = null;
+/** AUDIT-3 (I-2) — decoy hash so unknown-user logins pay the same scrypt
+ * cost as real ones; without it, response timing reveals whether a userId
+ * exists (user-enumeration oracle). */
+function dummyCodeHash(): string {
+  if (!dummyHashCache) dummyHashCache = hashCode("INFRANEX-TIMING-PAD-XXXX-XXXX");
+  return dummyHashCache;
+}
+
 export async function verifyLogin(userId: string, code: string): Promise<AppUserRow | null> {
   if (!userId || !code) return null;
   const row = await db.appUser.findUnique({ where: { userId } });
-  if (!row || !row.active) return null;
+  if (!row) {
+    // AUDIT-3 (I-2) — timing pad: burn the same scrypt cost as a real verify.
+    verifyCode(code, dummyCodeHash());
+    return null;
+  }
+  if (!row.active) {
+    // Disabled accounts must be indistinguishable from bad codes, timing-wise.
+    verifyCode(code, row.codeHash);
+    return null;
+  }
   if (!verifyCode(code, row.codeHash)) return null;
   return { userId: row.userId, label: row.label, role: row.role };
 }
@@ -66,10 +84,17 @@ export async function verifyLogin(userId: string, code: string): Promise<AppUser
 
 /** Human-typeable code: XXXX-XXXX-XXXX-XXXX from a no-ambiguity alphabet. */
 export function generateAccessCode(): string {
-  const group = () =>
-    Array.from(crypto.randomBytes(4))
-      .map((b) => CODE_ALPHABET[b % CODE_ALPHABET.length])
-      .join("");
+  // AUDIT-3 (I-4) — rejection sampling: 31 × 8 = 248, so bytes < 248 map
+  // onto the 31-char alphabet with zero modulo bias (byte % 31 previously
+  // favored the first 8 alphabet characters by ~2.6%).
+  const group = () => {
+    const out: string[] = [];
+    while (out.length < 4) {
+      const b = crypto.randomBytes(1)[0];
+      if (b < 248) out.push(CODE_ALPHABET[b % CODE_ALPHABET.length]);
+    }
+    return out.join("");
+  };
   return [group(), group(), group(), group()].join("-");
 }
 

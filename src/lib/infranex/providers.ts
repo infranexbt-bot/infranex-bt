@@ -20,7 +20,7 @@
 // ---------------------------------------------------------------------------
 
 import { db } from "@/lib/db";
-import { decryptSecret, encryptSecret } from "@/lib/devops/crypto";
+import { decryptSecret } from "@/lib/devops/crypto";
 import { akashGpuOffers } from "./akash";
 import { fetchRunpodGpus, normalizeModel, type RunpodGpuType } from "./runpod";
 import type { GPUOffer } from "./types";

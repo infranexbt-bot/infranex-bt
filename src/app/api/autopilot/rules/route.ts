@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { toRuleDTO } from "@/lib/infranex/autopilot";
 import { TRIGGER_KIND_META } from "@/lib/infranex/triggers-core";
-import { requireActiveAdmin } from "@/lib/auth-admin";
+import { requireActiveAdmin, requireActiveUserCookies } from "@/lib/auth-admin";
 
 export const dynamic = "force-dynamic";
 
@@ -13,12 +13,15 @@ export const dynamic = "force-dynamic";
  *   POST  → create a rule { name, kind, minSeverity, maxPerHour }
  *           or { action: "run" } to execute one autopilot pass now.
  *
- * Auth is enforced by the proxy (all /api/* gated).
+ * Auth: AUDIT-3 — GET re-checks the session in-handler (rule payloads are
+ * operator data); mutations re-verify the admin role in-handler.
  */
 
 const VALID_MIN_SEVERITY = new Set(["info", "warning", "critical"]);
 
 export async function GET() {
+  const gate = await requireActiveUserCookies();
+  if ("error" in gate) return NextResponse.json({ error: gate.error }, { status: gate.status });
   const rules = await db.autopilotRule.findMany({ orderBy: { createdAt: "desc" } });
   return NextResponse.json({ rules: rules.map(toRuleDTO) });
 }

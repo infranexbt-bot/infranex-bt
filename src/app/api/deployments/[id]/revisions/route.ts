@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { listRevisions, rollbackToRevision } from "@/lib/infranex/deployment/revisions";
 import { SESSION_COOKIE, verifySessionToken } from "@/lib/auth";
-import { requireActiveAdmin } from "@/lib/auth-admin";
+import { requireActiveAdmin, requireActiveUserRequest } from "@/lib/auth-admin";
 
 export const dynamic = "force-dynamic";
 
@@ -13,8 +13,8 @@ export const dynamic = "force-dynamic";
  *                    (restores config + requirements, pushes apply_config
  *                    via daemon / ticks mocks) and return the result note.
  *
- * Session enforcement happens in the proxy (all /api/* is gated); the token
- * here is read only to attribute the rollback to an operator.
+ * AUDIT-3 — GET re-checks the session in-handler (revision snapshots embed
+ * full deployment config); the token is also read to attribute rollbacks.
  */
 
 async function actorOf(req: NextRequest): Promise<string> {
@@ -26,6 +26,8 @@ export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const gate = await requireActiveUserRequest(_req);
+  if ("error" in gate) return NextResponse.json({ error: gate.error }, { status: gate.status });
   const { id } = await params;
   try {
     const revisions = await listRevisions(id);

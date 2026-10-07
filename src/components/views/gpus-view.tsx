@@ -35,7 +35,7 @@ import {
 import { gpuModels, gpuProviders } from "@/lib/infranex/data";
 import { useMergedGpuOffers } from "@/hooks/use-gpu-offers";
 import { ProviderKeysDialog } from "@/components/gpus/provider-keys-dialog";
-import { cn, formatCurrency } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 interface GpusViewProps {
   /** "Provision" — open the guided deploy wizard with this offer preselected (FLOW-1). */

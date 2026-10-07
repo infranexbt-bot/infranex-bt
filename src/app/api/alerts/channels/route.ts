@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireActiveAdmin } from "@/lib/auth-admin";
+import { requireActiveAdmin, requireActiveUserCookies } from "@/lib/auth-admin";
 import { db } from "@/lib/db";
 import {
   createChannel,
@@ -16,11 +16,14 @@ export const dynamic = "force-dynamic";
  *   GET   → all channels (URL masked to a hint — never the plaintext)
  *   POST  → create a channel (ADMIN-ONLY) { name, kind, url, minSeverity, digest }
  *
- * The proxy guarantees a valid session for GET; mutations re-verify the role
- * AND that the account is still active (WINDUP-1 shared gate).
+ * The proxy guarantees a valid session for GET; AUDIT-3 re-checks it in the
+ * handler anyway (channel names/statuses are operator data), and mutations
+ * re-verify the role AND that the account is still active (WINDUP-1 gate).
  */
 
 export async function GET() {
+  const gate = await requireActiveUserCookies();
+  if ("error" in gate) return NextResponse.json({ error: gate.error }, { status: gate.status });
   const rows = await db.alertChannel.findMany({ orderBy: { createdAt: "desc" } });
   return NextResponse.json({
     channels: rows.map((r) => ({

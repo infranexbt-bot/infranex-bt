@@ -39,7 +39,6 @@ import {
   useSavePlatformSettings,
   useAckMasterKeyBackup,
   useAudit,
-  type WalletProfile,
 } from "@/hooks/use-platform";
 import { useQuery } from "@tanstack/react-query";
 import type { ViewKey } from "@/lib/infranex/types";

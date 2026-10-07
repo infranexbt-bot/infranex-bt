@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { requireActiveAdmin } from "@/lib/auth-admin";
+import { requireActiveAdmin, requireActiveUserCookies } from "@/lib/auth-admin";
 import {
   sanitizeProfitabilityConfig,
   DEFAULT_PROFITABILITY_CONFIG,
@@ -21,6 +21,9 @@ async function readOrCreate(): Promise<ProfitabilityConfig> {
 }
 
 export async function GET() {
+  // AUDIT-3 — in-handler gate (was proxy-only); engine settings are operator data.
+  const gate = await requireActiveUserCookies();
+  if ("error" in gate) return NextResponse.json({ error: gate.error }, { status: gate.status });
   try {
     const config = await readOrCreate();
     return NextResponse.json(config, {

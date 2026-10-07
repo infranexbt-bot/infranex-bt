@@ -215,6 +215,70 @@ export async function resolveAxonEndpoint(dep: {
  * a 400/404/422 from the serving app is still proof the endpoint answers
  * and a clean latency measurement. Connect/timeout/5xx = validators fail.
  */
+
+/**
+ * AUDIT-3 (M-2) — SSRF guard for chain-published axon endpoints. A subnet
+ * operator controls what their axon advertises on-chain; without this check
+ * a crafted endpoint (127.0.0.1, 169.254.169.254, RFC1918, or a non-canonical
+ * IPv4 literal like 2130706433 / 0177.0.0.1) would get probed on a timer from
+ * inside the platform host. Production blocks private/loopback/link-local
+ * targets; development allows them so local mock axons keep working.
+ * Returns true when the endpoint must NOT be fetched.
+ */
+export function isPrivateProbeEndpoint(rawEndpoint: string): boolean {
+  const endpoint = rawEndpoint.trim().toLowerCase().replace(/^\[/, "").replace(/\]$/, "");
+  if (!endpoint || endpoint.length > 253) return true;
+  if (endpoint === "localhost" || endpoint.endsWith(".localhost") || endpoint === "0.0.0.0" || endpoint === "::1") {
+    return true;
+  }
+  if (endpoint.includes(":")) {
+    // IPv6 literal — block loopback, link-local (fe80::/10), ULA (fc00::/7)
+    // and v4-mapped loopback; allow global unicast.
+    return (
+      endpoint === "::1" ||
+      endpoint === "::" ||
+      endpoint.startsWith("fe8") || endpoint.startsWith("fe9") ||
+      endpoint.startsWith("fea") || endpoint.startsWith("feb") ||
+      endpoint.startsWith("fc") || endpoint.startsWith("fd") ||
+      endpoint.startsWith("::ffff:127.") || endpoint.startsWith("::ffff:10.")
+    );
+  }
+  // Strict canonical IPv4: exactly 4 decimal octets, no leading zeros.
+  // Anything else that is IP-literal-shaped (decimal int, hex/octal octets)
+  // is treated as private — a public axon never needs those spellings.
+  const quad = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.exec(endpoint);
+  if (quad) {
+    const parts = quad.slice(1);
+    const octs = parts.map(Number);
+    const malformed =
+      octs.some((o) => o > 255) || parts.some((s) => s.length > 1 && s.startsWith("0"));
+    if (malformed) return true;
+    const [a, b] = octs;
+    return (
+      a === 0 || a === 10 || a === 127 ||
+      (a === 100 && b >= 64 && b <= 127) || // CGNAT
+      (a === 169 && b === 254) || // link-local (cloud metadata)
+      (a === 172 && b >= 16 && b <= 31) ||
+      (a === 192 && b === 168) ||
+      (a === 198 && (b === 18 || b === 19)) || // benchmark range
+      (a === 192 && b === 0 && octs[2] === 0) // IETF protocol assignments
+    );
+  }
+  if (/^\d+$/.test(endpoint)) return true; // decimal IP literal (2130706433)
+  if (/(^|\.)(0x[0-9a-f]+|0[0-7]+)$/.test(endpoint)) return true; // hex/octal octets
+  if (!/^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/.test(endpoint)) return true;
+  return false; // plausible public FQDN
+}
+
+const BLOCKED_PROBE: ProbeOutcome = {
+  ok: false,
+  httpStatus: null,
+  ttfbMs: null,
+  totalMs: null,
+  errorKind: "connect",
+  errorDetail: "blocked: private/loopback endpoint (SSRF guard)",
+};
+
 export async function probeAxon(
   endpoint: string,
   port: number,
@@ -222,6 +286,9 @@ export async function probeAxon(
   inject?: (endpoint: string, port: number) => Promise<ProbeOutcome>
 ): Promise<ProbeOutcome> {
   if (inject) return inject(endpoint, port);
+  if (process.env.NODE_ENV === "production" && isPrivateProbeEndpoint(endpoint)) {
+    return BLOCKED_PROBE;
+  }
   const url = `http://${endpoint}:${port}/`;
   const started = Date.now();
   try {

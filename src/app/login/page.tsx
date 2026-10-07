@@ -25,7 +25,13 @@ export default function LoginPage() {
 function LoginForm() {
   const router = useRouter();
   const params = useSearchParams();
-  const nextPath = params.get("next") || "/";
+  // AUDIT-3 (L-1) — open-redirect guard: protocol-relative ("//evil.com") and
+  // backslash ("/\\evil.com") forms start with "/" but navigate OFF-origin.
+  const nextParam = params.get("next") || "/";
+  const nextPath =
+    nextParam.startsWith("/") && !nextParam.startsWith("//") && !nextParam.startsWith("/\\")
+      ? nextParam
+      : "/";
 
   const [userId, setUserId] = useState("");
   const [code, setCode] = useState("");

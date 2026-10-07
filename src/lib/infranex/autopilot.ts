@@ -1,6 +1,5 @@
 import { db } from "@/lib/db";
 import { approveTrigger, actOnTrigger } from "./triggers";
-import type { TriggerKind } from "./triggers-core";
 
 /**
  * TIER3 — Autopilot policy engine.

@@ -50,6 +50,20 @@ export function validateWebhookUrl(rawUrl: string): void {
 
   // URL.hostname keeps IPv6 literals bracketed — strip for uniform checks.
   const host = u.hostname.toLowerCase().replace(/^\[/, "").replace(/\]$/, "");
+
+  // AUDIT-3 (L-3) — reject NON-CANONICAL IPv4 spellings that inet_aton-style
+  // resolvers accept but the regex checks below miss: "0177.0.0.1" (octal),
+  // "2130706433" (decimal int), "0x7f.0.0.1" (hex). A public webhook host is
+  // always a canonical dotted-quad or a proper FQDN — anything else is
+  // IP-literal trickery and is refused outright.
+  const quad = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.exec(host);
+  if (quad && quad.slice(1).some((s) => s.length > 1 && s.startsWith("0"))) {
+    throw new Error("Webhook host must use canonical dotted-quad IP literals");
+  }
+  if (/^\d+$/.test(host) || /(^|\.)(0x[0-9a-f]+|0[0-7]+)$/.test(host)) {
+    throw new Error("Webhook host must be a DNS name or canonical IP literal");
+  }
+
   const privateHost =
     host === "localhost" ||
     host.endsWith(".localhost") ||
