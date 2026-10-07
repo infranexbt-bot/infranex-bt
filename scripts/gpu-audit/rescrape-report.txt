@@ -1,122 +1,121 @@
-SN  6 | gpu=-                      vram=-    cdlspec=? | numinouslabs/numinous
+SN  6 | gpu=None (CPU-only)        vram=0    cdlspec=? | numinouslabs/numinous
 SN  1 | gpu=-                      vram=-    cdlspec=? | macrocosm-os/apex
-SN  5 | gpu=-                      vram=-    cdlspec=? | hone-subnet-org/hone-subnet
-SN  3 | gpu=-                      vram=-    cdlspec=? | unarbos/teutonic
+SN  5 | gpu=None (CPU-only)        vram=0    cdlspec=? | hone-subnet-org/hone-subnet
+SN  3 | gpu=8× H200/B200-class node (or multi-node setup) vram=141  cdlspec=? | unarbos/teutonic
 SN  7 | gpu=None (CPU-only)        vram=0    cdlspec=false | entrius/allways
-SN  8 | gpu=-                      vram=-    cdlspec=? | taoshidev/vanta-network
+SN  8 | gpu=None (CPU-only)        vram=0    cdlspec=? | taoshidev/vanta-network
 SN 10 | gpu=RTX 5090               vram=-    cdlspec=? | Pareton-ai/pareton
-SN 11 | gpu=-                      vram=-    cdlspec=? | trajectoryRL/trajectoryRL
+SN 11 | gpu=None (CPU-only)        vram=0    cdlspec=? | trajectoryRL/trajectoryRL
 SN  9 | gpu=RTX 4090               vram=16   cdlspec=? | macrocosm-os/iota
-SN  2 | gpu=-                      vram=-    cdlspec=? | inference-labs-inc/subnet-2
-SN 16 | ERROR: Invalid GitHub URL | 0x
-SN  4 | gpu=-                      vram=-    cdlspec=? | manifold-inc/targon
+SN  4 | gpu=8× H100 SXM / H200 / B200 / B300 / RTX PRO 6000 Blackwell (TEE hardware profiles) vram=80   cdlspec=? | manifold-inc/targon
+SN 16 | ERROR: No repo resolvable for org 0x | 0x
+SN 13 | gpu=None (CPU-only)        vram=0    cdlspec=? | macrocosm-os/data-universe
+SN  2 | gpu=None (CPU-only)        vram=0    cdlspec=? | inference-labs-inc/subnet-2
+SN 15 | gpu=None (CPU-only)        vram=0    cdlspec=? | ORO-AI/oro
 SN 18 | gpu=None (CPU-only)        vram=0    cdlspec=false | Orpheus-AI/Zeus
-SN 13 | gpu=-                      vram=-    cdlspec=? | macrocosm-os/data-universe
-SN 15 | gpu=-                      vram=-    cdlspec=? | ORO-AI/oro
 SN 14 | gpu=B300                   vram=-    cdlspec=? | latent-to/cacheon
-SN 20 | gpu=-                      vram=-    cdlspec=? | witnessvision/witness_subnet/
 SN 21 | gpu=None (CPU-only)        vram=0    cdlspec=false | ippcteam/SN21-adtao
-SN 22 | gpu=-                      vram=-    cdlspec=? | datura-ai/desearch
+SN 20 | gpu=-                      vram=-    cdlspec=? | witnessvision/witness_subnet/
+SN 22 | gpu=None (CPU-only)        vram=0    cdlspec=? | datura-ai/desearch
 SN 12 | gpu=A100                   vram=-    cdlspec=? | backend-developers-ltd/ComputeHorde/
 SN 23 | gpu=-                      vram=-    cdlspec=? | TrishoolAI/trishool-phase2
+SN 26 | gpu=NVIDIA GPU 12+ GB VRAM (recommended: 24+ GB) vram=12   cdlspec=? | 0xsigurd/Perturb
 SN 24 | gpu=-                      vram=-    cdlspec=? | SILX-LABS/QUASAR-SUBNET/
 SN 17 | gpu=4x H200                vram=-    cdlspec=? | 404-Repo/404-gen-subnet
-SN 26 | gpu=-                      vram=-    cdlspec=? | 0xsigurd/Perturb
-SN 30 | ERROR: Invalid GitHub URL | 0x
-SN 31 | ERROR: Invalid GitHub URL | 0x
+SN 30 | ERROR: No repo resolvable for org 0x | 0x
+SN 31 | ERROR: No repo resolvable for org 0x | 0x
 SN 32 | gpu=RTX 4090               vram=24   cdlspec=true | It-s-AI/llm-detection
 SN 27 | gpu=-                      vram=-    cdlspec=? | SILX-LABS/Orion
 SN 29 | gpu=8x B300                vram=-    cdlspec=? | coldint/hotfloat
 SN 34 | gpu=A100                   vram=80   cdlspec=true | BitMind-AI/bitmind-subnet
 SN 33 | gpu=-                      vram=-    cdlspec=? | afterpartyai/bittensor-conversation-genome-project
-SN 36 | gpu=-                      vram=-    cdlspec=? | EpagoFoundation/epago
 SN 25 | gpu=-                      vram=-    cdlspec=? | urfoundation/sn
-SN 28 | gpu=-                      vram=-    cdlspec=? | taostat/gm-miner
+SN 36 | gpu=1× consumer GPU        vram=-    cdlspec=? | EpagoFoundation/epago
 SN 37 | gpu=-                      vram=-    cdlspec=? | Aurelius-Protocol/Aurelius-Protocol
-SN 42 | ERROR: Invalid GitHub URL | 0x
 SN 38 | gpu=-                      vram=-    cdlspec=? | chronollm/sn38
+SN 42 | ERROR: No repo resolvable for org 0x | 0x
+SN 28 | gpu=-                      vram=-    cdlspec=? | taostat/gm-miner
 SN 43 | gpu=None (CPU-only)        vram=0    cdlspec=false | GraphiteAI/Graphite-Subnet
 SN 19 | gpu=-                      vram=-    cdlspec=? | taostat/blockmachine
-SN 40 | gpu=-                      vram=-    cdlspec=? | RalphLabsAI/ralph
-SN 47 | ERROR: Invalid GitHub URL | forgenet47/gpuforge
-SN 41 | gpu=-                      vram=-    cdlspec=? | corvxai/almanac
+SN 40 | gpu=NVIDIA H100 PCIe (subnet-rented eval GPU) vram=80   cdlspec=? | RalphLabsAI/ralph
+SN 41 | gpu=None (CPU-only)        vram=0    cdlspec=? | corvxai/almanac
 SN 48 | gpu=None (QPU — quantum hardware) vram=0    cdlspec=false | qbittensor-labs/quantum-compute
+SN 44 | gpu=1× GPU ≥16 GB VRAM (RTX 5090/B200/H200/H20/MI300X excluded) vram=16   cdlspec=? | score-technologies/turbovision
 SN 45 | gpu=-                      vram=-    cdlspec=? | Team-Rizzo/alpharidge-ai
-SN 44 | gpu=-                      vram=-    cdlspec=? | score-technologies/turbovision
+SN 47 | gpu=H100                   vram=-    cdlspec=? | forgenet47/gpuforge
 SN 50 | gpu=None (CPU-only)        vram=0    cdlspec=false | mode-network/synth-subnet
 SN 49 | gpu=A100                   vram=-    cdlspec=? | nepher-ai/nepher-subnet
 SN 54 | gpu=None (CPU-only)        vram=0    cdlspec=false | yanez-compliance/MIID-subnet
-SN 51 | gpu=-                      vram=-    cdlspec=? | Datura-ai/lium-io
-SN 53 | gpu=-                      vram=-    cdlspec=? | hanlinai/engy
-SN 58 | ERROR: Invalid GitHub URL | 0x
-SN 46 | gpu=-                      vram=-    cdlspec=? | Subnet46/sn46-validator
-SN 55 | gpu=-                      vram=-    cdlspec=? | genomesio/subnet-niome
-SN 56 | gpu=-                      vram=-    cdlspec=? | gradients-ai/G.O.D
-SN 60 | gpu=-                      vram=-    cdlspec=? | Bitsec-AI/sandbox
-SN 63 | gpu=None (CPU-only)        vram=0    cdlspec=false | qbittensor-labs/enigma
+SN 51 | gpu=8x B300                vram=-    cdlspec=? | Datura-ai/lium-io
 SN 39 | ERROR: No README or requirements found | https://github.com/deprecated/deprecated
-SN 61 | gpu=-                      vram=-    cdlspec=? | RedTeamSubnet/RedTeam
+SN 53 | gpu=2× RTX 4090/5090, or 1× L40S / RTX 6000 Ada (48 GB), or H100/H200/B200 vram=24   cdlspec=? | hanlinai/engy
+SN 55 | gpu=GPU required (model/VRAM unspecified) vram=-    cdlspec=? | genomesio/subnet-niome
+SN 46 | gpu=None (CPU-only)        vram=0    cdlspec=? | Subnet46/sn46-validator
+SN 56 | gpu=None (CPU-only)        vram=0    cdlspec=? | gradients-ai/G.O.D
+SN 60 | gpu=-                      vram=-    cdlspec=? | Bitsec-AI/sandbox
+SN 58 | gpu=-                      vram=-    cdlspec=? | robotensor/attune-subnet
 SN 52 | gpu=-                      vram=-    cdlspec=? | tensorplex-labs/dojo
+SN 63 | gpu=None (CPU-only)        vram=0    cdlspec=false | qbittensor-labs/enigma
+SN 61 | gpu=None (CPU-only)        vram=0    cdlspec=? | RedTeamSubnet/RedTeam
 SN 62 | gpu=-                      vram=-    cdlspec=? | ridgesai/ridges
 SN 65 | gpu=-                      vram=-    cdlspec=? | taofu-labs/true-performance-network
 SN 67 | gpu=-                      vram=-    cdlspec=? | harnyx/harnyx
-SN 69 | gpu=-                      vram=-    cdlspec=? | HeraldMedia/herald
-SN 73 | ERROR: Invalid GitHub URL | 0x
+SN 69 | gpu=None (CPU-only)        vram=0    cdlspec=? | HeraldMedia/herald
+SN 73 | ERROR: No repo resolvable for org 0x | 0x
 SN 71 | gpu=-                      vram=-    cdlspec=? | leadpoet/leadpoet
-SN 66 | gpu=-                      vram=-    cdlspec=? | conjectures-io/conjectures-validator
-SN 74 | gpu=-                      vram=-    cdlspec=? | entrius/gittensor/tree/main
-SN 68 | gpu=-                      vram=-    cdlspec=? | metanova-labs/nova/
 SN 64 | gpu=8x H200                vram=48   cdlspec=? | chutesai/chutes
-SN 79 | gpu=None (CPU-only)        vram=0    cdlspec=false | taos-im/sn-79
+SN 68 | gpu=2× GPUs with >48 GB VRAM each (Boltz-2 inference) vram=48   cdlspec=? | metanova-labs/nova/
+SN 66 | gpu=-                      vram=-    cdlspec=? | conjectures-io/conjectures-validator
+SN 74 | gpu=NVIDIA GeForce RTX 5090 (32 GB) vram=32   cdlspec=? | entrius/gittensor/tree/main
 SN 72 | gpu=GTX 1660 Super         vram=4    cdlspec=true | natixnetwork/streetvision-subnet
+SN 79 | gpu=None (CPU-only)        vram=0    cdlspec=false | taos-im/sn-79
+SN 78 | gpu=None (CPU-only)        vram=0    cdlspec=? | Umi-BitSign/umi
+SN 80 | gpu=1× NVIDIA GPU 24 GB (recommended: A100 80 GB) vram=24   cdlspec=? | openroboto-ai/openroboto-subnet
 SN 76 | gpu=-                      vram=-    cdlspec=? | heroncovelabs/ormas-subnet
-SN 80 | gpu=-                      vram=-    cdlspec=? | openroboto-ai/openroboto-subnet
-SN 78 | gpu=-                      vram=-    cdlspec=? | Umi-BitSign/umi
+SN 87 | ERROR: No repo resolvable for org 0x | 0x
 SN 83 | gpu=None (CPU-only)        vram=0    cdlspec=false | toptensor/CliqueAI
-SN 87 | ERROR: Invalid GitHub URL | 0x
+SN 81 | gpu=1–2× NVIDIA GPU ≥24 GB each (H100/H200 reference) vram=24   cdlspec=? | reliquadotai/reliquary
 SN 88 | gpu=None (CPU-only)        vram=0    cdlspec=false | mobiusfund/investing
-SN 81 | gpu=-                      vram=-    cdlspec=? | reliquadotai/reliquary
 SN 75 | gpu=-                      vram=-    cdlspec=? | thenervelab/thebrain
-SN 85 | gpu=-                      vram=-    cdlspec=? | vidaio-subnet/vidaio-subnet
-SN 92 | ERROR: Invalid GitHub URL | 0x
-SN 82 | gpu=-                      vram=-    cdlspec=? | compelle/compelle-validator
+SN 92 | ERROR: No repo resolvable for org 0x | 0x
+SN 85 | gpu=L4 / L40S / RTX PRO 6000 (≥16 GB per GPU) vram=16   cdlspec=? | vidaio-subnet/vidaio-subnet
 SN 89 | gpu=-                      vram=-    cdlspec=? | DeltaCompute24/InfiniteQuant-Subnet
 SN 77 | gpu=-                      vram=-    cdlspec=? | creativebuilds/sn77
 SN 90 | gpu=24x H200               vram=-    cdlspec=? | KubeTEE-AI/kubetee-subnet
-SN 96 | gpu=RTX 4090               vram=24   cdlspec=true | verathos-ai/verathos
-SN 94 | gpu=-                      vram=-    cdlspec=? | AlveusLabs/SN94-BitSota
-SN 99 | ERROR: Invalid GitHub URL | 0x
-SN 91 | gpu=-                      vram=-    cdlspec=? | TensorLink-AI/cascade
+SN 91 | gpu=RTX 4090 / RTX 3090 / L40S / L40 / A6000 (pinned per round) vram=24   cdlspec=? | TensorLink-AI/cascade
 SN 93 | gpu=-                      vram=-    cdlspec=? | bitcast-network/bitcast
+SN 99 | ERROR: No repo resolvable for org 0x | 0x
+SN 96 | gpu=RTX 4090               vram=24   cdlspec=true | verathos-ai/verathos
 SN101 | gpu=None (CPU-only)        vram=0    cdlspec=false | tag101-ai/tag101
-SN103 | gpu=None (CPU-only)        vram=0    cdlspec=false | orgs/Capcomp-AI/repositories
-SN104 | gpu=None (CPU-only)        vram=0    cdlspec=false | taostatus/taostatus-subnet
-SN102 | gpu=-                      vram=-    cdlspec=? | Connito-AI/Connito
 SN 98 | gpu=-                      vram=-    cdlspec=? | neverplayalone/neverplayalone_subnet
-SN100 | gpu=-                      vram=-    cdlspec=? | CortexLM/cortex
-SN107 | gpu=None (CPU-only)        vram=0    cdlspec=false | minos-protocol/minos_subnet
-SN109 | ERROR: Invalid GitHub URL | 0x
-SN110 | ERROR: Invalid GitHub URL | 0x
+SN100 | gpu=NVIDIA B200 (fallback RTX 5090 / RTX PRO 6000) vram=32   cdlspec=? | CortexLM/cortex
+SN103 | ERROR: No repo resolvable for org 0x | 0x
+SN102 | gpu=A100/H100 class 40 GB+ (A6000 48 GB works) vram=40   cdlspec=? | Connito-AI/Connito
+SN 94 | gpu=1× CUDA GPU ≥24 GB VRAM (tested A10G g5.2xlarge; validator quickstart) vram=24   cdlspec=? | cathedralai/cathedral-sandbox
+SN104 | gpu=None (CPU-only)        vram=0    cdlspec=false | taostatus/taostatus-subnet
 SN 97 | gpu=-                      vram=-    cdlspec=? | unarbos/albedo
-SN112 | ERROR: Invalid GitHub URL | 0x
-SN113 | ERROR: Invalid GitHub URL | 0x
-SN106 | gpu=-                      vram=-    cdlspec=? | nodexo-ai/nodexo
+SN109 | ERROR: No repo resolvable for org 0x | 0x
+SN110 | ERROR: No repo resolvable for org 0x | 0x
+SN107 | gpu=None (CPU-only)        vram=0    cdlspec=false | minos-protocol/minos_subnet
+SN112 | ERROR: No repo resolvable for org 0x | 0x
+SN113 | ERROR: No repo resolvable for org 0x | 0x
 SN108 | gpu=-                      vram=-    cdlspec=? | TatsuProject/ChipForge_SN108
-SN116 | ERROR: Invalid GitHub URL | 0x
+SN106 | gpu=H100 80GB (1–2) / A100 80GB (1–4) / RTX A6000 48GB / RTX 4090 24GB vram=24   cdlspec=? | nodexo-ai/nodexo
 SN114 | gpu=-                      vram=-    cdlspec=? | DendriteHQ/SOMA
-SN111 | gpu=-                      vram=-    cdlspec=? | DeSciClaims/Claims
 SN 95 | ERROR: No README or requirements found | https://github.com/actual-computer/actual-subnet-95
+SN111 | gpu=None (CPU-only)        vram=0    cdlspec=? | DeSciClaims/Claims
 SN105 | gpu=-                      vram=-    cdlspec=? | orgs/Beam-Network/repositories
-SN118 | gpu=-                      vram=-    cdlspec=? | orgs/ditto-assistant/repositories
+SN116 | gpu=-                      vram=-    cdlspec=? | carbonphysicsai/Carbon
 SN115 | gpu=-                      vram=-    cdlspec=? | moirai115/MoirAI
-SN122 | gpu=None (CPU-only)        vram=0    cdlspec=false | CookingTao
+SN118 | gpu=-                      vram=-    cdlspec=? | orgs/ditto-assistant/repositories
 SN123 | gpu=RTX 4090               vram=-    cdlspec=true | Barbariandev/MANTIS
+SN120 | gpu=2× H100 80 GB or 2× RTX PRO 6000 96 GB (miner slots) vram=80   cdlspec=? | AffineFoundation/affine
+SN117 | gpu=None (CPU-only)        vram=0    cdlspec=? | everyframe-studios/everyframe-miner
+SN122 | gpu=None (CPU-only)        vram=0    cdlspec=false | CookingTao
 SN124 | gpu=None (CPU-only)        vram=0    cdlspec=false | swarm-subnet/swarm
-SN120 | gpu=-                      vram=-    cdlspec=? | AffineFoundation/affine
-SN125 | gpu=-                      vram=-    cdlspec=? | Barbariandev/refinery
-SN119 | gpu=-                      vram=-    cdlspec=? | capabilityforge-next/capabilityforge
+SN125 | gpu=NVIDIA B200 (only SKU class allowed to score) vram=180  cdlspec=? | Barbariandev/refinery
 SN128 | gpu=-                      vram=-    cdlspec=? | byteleapai/byteleap-Miner
+SN119 | gpu=-                      vram=-    cdlspec=? | capabilityforge-next/capabilityforge
 SN121 | gpu=-                      vram=-    cdlspec=? | sundae-bar/bittensor-subnet
-SN117 | ERROR: No README or requirements found | https://github.com/everyframe-studios/everyframe-miner
 SN127 | gpu=-                      vram=-    cdlspec=? | astridintelligence/sn-127
 SN126 | ERROR: No README or requirements found | https://github.com/attelierai/attelierai_subnet/

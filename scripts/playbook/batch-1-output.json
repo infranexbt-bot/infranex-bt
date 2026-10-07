@@ -1,0 +1,647 @@
+[
+ {
+  "netuid": 1,
+  "whatItDoes": "A decentralized 'outsourcing intelligence' platform: customers define measurable competitions (task + data + scoring function) and a global pool of human and agentic-AI solvers competes to solve them. Validators score submissions in isolated sandboxes and emissions flow winner-takes-all to the top-ranked solver. Used for autoresearch, algorithm discovery, RL training and data engineering.",
+  "hardwareRec": "No fixed GPU floor in repo — compute is competition-dependent (often CPU + LLM-agent workflows; some competitions may want GPUs). Budget mostly for research time and per-competition submission fees, not always hardware.",
+  "keyRequirements": [
+   "Apex CLI installed from repo (uv workspace)",
+   "Bittensor wallet linked via `apex link`",
+   "Per-competition submission fee (varies, listed in docs)",
+   "Solution must match the competition's file format",
+   "Top leaderboard rank at payout time wins",
+   "Agentic mining guide: repo AGENTS.md"
+  ],
+  "minerJob": "Miners are 'solvers': pick an active competition, fork the baseline in shared/competition/, and iterate on a solution maximizing the objective f(x)→R. Submissions go through the Apex CLI, which signs, charges the entry fee and uploads; validators run each submission in an isolated sandbox against the customer's scoring function and keep leaderboards continuously updated. Rewards are winner-takes-all per competition — the top-ranked submission earns that competition's emissions on-chain, shifting as the leaderboard changes. Solutions are community-shared, so progress compounds.",
+  "minerJobProvide": [
+   "Competition solutions (code/models) scoring best on f(x)",
+   "Per-competition submissions in the required format",
+   "Iterated improvements beating other solvers' leaders",
+   "Agentic research workflows per AGENTS.md",
+   "Deployable artifacts for competition owners"
+  ],
+  "top10Strategy": "Treat each competition as a short research sprint: read the per-competition spec, fork the baseline, and spend budget only where expected score gain is largest — winner-takes-all makes 'pretty good' worthless. Study shared solutions and compound on the community's best ideas. Pick competitions matching your edge rather than entering everything; a fee is sunk cost unless you can plausibly reach rank 1.",
+  "top10Levers": [
+   "Pick competitions matching your team's edge",
+   "Fork and improve the repo baseline solution",
+   "Agentic loops (LLM researchers) to widen search",
+   "Continuous iteration as leaderboards update",
+   "Fee discipline: enter only when rank-1 is plausible",
+   "Understand scoring quirks and sandbox constraints"
+  ],
+  "followTopMiners": "Watch the docs.macrocosmos.ai current-competitions page and `apex list -c <id> -t` leaderboards; track taostats.io/subnet/1 weight shifts per competition; join the Macrocosmos Discord #apex; monitor repo commits and AGENTS.md updates.",
+  "confidence": "repo-verified",
+  "sources": [
+   {"label": "Apex README (master)", "url": "https://raw.githubusercontent.com/macrocosm-os/apex/master/README.md"},
+   {"label": "Apex SOLVERS.md", "url": "https://raw.githubusercontent.com/macrocosm-os/apex/master/SOLVERS.md"}
+  ]
+ },
+ {
+  "netuid": 7,
+  "whatItDoes": "A settlement layer for AI agents: an agent holding SOL, TAO, BTC or another supported asset submits one swap and receives the destination asset natively in its own wallet — no bridges, wrapped tokens or custodian. Miners are market makers: they post quotes, lock collateral and fulfill swaps; validators verify both legs on-chain and slash collateral on failure.",
+  "hardwareRec": "CPU only (any small VPS runs it via Docker Compose). The real input is capital: SOL or TAO collateral bonds, funded delivery wallets per chain (BTC/ETH/etc.), plus a one-time 0.1 SOL identity deposit for hotkey binding.",
+  "keyRequirements": [
+   "Python 3.10+, Docker Compose miner stack",
+   "Bittensor wallet; .env with PORT/WALLET_PATH",
+   "Collateral bond (SOL purse or locked TAO vault bond)",
+   "Private keys per delivery chain (BTC, ETH, ...)",
+   "alw miner bind-hotkey + activate before quoting",
+   "Failed deliveries are slashed from your collateral"
+  ],
+  "minerJob": "Run the reference miner container and quote lanes (e.g. SOL↔TAO) with `alw miner post`. When a taker reserves your quote, you deliver the destination asset to their wallet within the swap window; validators attest both legs on-chain and your credibility accrues from completed swaps. The optional Quote Optimizer auto-reprices 0.4% under the best competing quote inside the validators' 0.5% crown band, pulls quotes when wallets can't cover a full fill, and reports strikes via Discord webhooks.",
+  "minerJobProvide": [
+   "Native cross-chain swap fulfillment (SOL/TAO/BTC lanes)",
+   "Exchange-rate quotes locked with collateral",
+   "24/7 unattended settlement service",
+   "Collateral-backed pricing risk",
+   "Optional optimized market-making strategy"
+  ],
+  "top10Strategy": "This is a market-making business, not a compute one: earnings come from being the best quote on active lanes while never missing a fill. Undercut rivals inside the 0.5% crown band, keep delivery wallets funded for full-size fills (a missed fill costs a 10% premium strike), and tune the optimizer's per-lane tolerances. More collateral → bigger fill capacity → more weight; strikes and timeouts destroy both TAO and standing.",
+  "top10Levers": [
+   "Tightest quotes within the 0.5% crown band",
+   "Deep collateral covering full-size fills",
+   "Quote Optimizer with tuned lane tolerances",
+   "Multi-lane coverage incl. opt-in BTC lanes",
+   "Zero missed fills / no timeout strikes",
+   "Funded BTC fee reserves on BTC lanes",
+   "Uptime with dead-man-switch quote pulls"
+  ],
+  "followTopMiners": "Track taostats.io/subnet/7 top-UID dividends, docs.all-ways.io updates and the @allways_io X account; watch your own webhook strike/fee alerts and the public API (api.all-ways.io) quote book to see which hotkeys lead each lane.",
+  "confidence": "repo-verified",
+  "sources": [
+   {"label": "Allways README (master)", "url": "https://raw.githubusercontent.com/entrius/allways/master/README.md"}
+  ]
+ },
+ {
+  "netuid": 13,
+  "whatItDoes": "Macrocosmos's data-scraping and sentiment subnet: miners scrape real-time X (Twitter), Reddit and YouTube-transcript data, store it locally, and expose it to validators that power products like Gravity (no-code scraping), Nebula (visualization) and the Macrocosmos API/MCP. Businesses and other subnets buy this data; miners earn for holding fresh, desirable, non-duplicated data.",
+  "hardwareRec": "CPU only — no GPU needed. Prioritize cores for scraping throughput, large fast storage/databases for DataEntities, and bandwidth. S3-compatible storage setup required for public dataset upload.",
+  "keyRequirements": [
+   "Miner runs the scraper stack per docs/miner.md",
+   "Large local storage for DataEntity buckets",
+   "S3-compatible upload of anonymized stores",
+   "Data must be <30 days old to score",
+   "Macrocosmos Miner Data Compliance Policy (GDPR)",
+   "Respect source ToS; anonymized data only"
+  ],
+  "minerJob": "Day-to-day the miner scrapes configured DataSources (X, Reddit, YouTube transcripts), files each DataEntity into buckets (source, time bucket, label) forming its MinerIndex, and answers validator queries for that index. Validators sample and verify items to build a credibility score, then weight miners by data value: freshness (<30 days), position on the Dynamic Desirability List (driven by Gravity user requests), and a duplication factor that pays a premium for data few others hold. Miners also upload anonymized copies to S3 for public dataset access.",
+  "minerJobProvide": [
+   "Fresh social-media scrapes (X, Reddit, YouTube)",
+   "MinerIndex reporting to validators on demand",
+   "Verifiable sample data passing credibility checks",
+   "Anonymized dataset uploads to S3",
+   "Coverage of desirable, low-duplication buckets"
+  ],
+  "top10Strategy": "Win by differentiation, not volume: use the hosted sn13-dashboard to find buckets where desirability is high but few miners hold data, since duplication directly divides value. Keep everything under 30 days old, refresh continuously, and never inflate your index — credibility sampling punishes misrepresentation harder than honest smallness. React fast when the Desirability List changes (updates are announced ahead of time).",
+  "top10Levers": [
+   "Dashboard-driven bucket selection (sn13-dashboard)",
+   "Freshness discipline (<30d, continuous refresh)",
+   "Low-duplication niche data over common scrapes",
+   "Desirability-list tracking and fast reconfiguration",
+   "Perfect credibility on sampled verification",
+   "Scraping throughput and 24/7 reliability",
+   "Compliant, ToS-respecting collection pipeline"
+  ],
+  "followTopMiners": "Watch the hosted sn13-dashboard for bucket coverage, the wandb validator logs (macrocosmos/data-universe-validators), taostats.io/subnet/13 top UIDs, and the Macrocosmos Discord; monitor repo and macrocosm-os/scrapers commits for new DataSources.",
+  "confidence": "repo-verified",
+  "sources": [
+   {"label": "Data Universe README (master)", "url": "https://raw.githubusercontent.com/macrocosm-os/data-universe/master/README.md"}
+  ]
+ },
+ {
+  "netuid": 20,
+  "whatItDoes": "A video-understanding benchmark subnet: miners submit immutable video-language model weights; evaluator validators privately test them on random audiovisual clips from a 1,000-video catalogue and crown one 'king' per window. 100% of each validator's weight goes to that single king (0% burn otherwise) — a winner-take-all leaderboard for multimodal video models.",
+  "hardwareRec": "Miner needs no GPU to serve — a CPU server distributes weights (packages up to 24–44 GB). GPU spend goes into training/selecting a model strong enough to beat the king; A100/H100-class for experimentation.",
+  "keyRequirements": [
+   "Allowlisted archs: salmonn2-pro, qwen2.5-omni, qwen3-omni",
+   "Full safetensors weights (no adapters), size-capped",
+   "One hotkey binds one model permanently",
+   "CPU model server on public IP (default port 8091)",
+   "Pinned TLS + btauth/1 signed requests; zstd ranges",
+   "Downloaders must hold ≥100,000 SN20 alpha"
+  ],
+  "minerJob": "Run `witness-benchmark-miner prepare` to hash the package and mint a TLS certificate, `serve` to host weights over authenticated TLS (HTTP/1.1 keep-alive, 4 MiB ranges, zstd), and `commit` to publish the wm2 manifest+cert commitment on-chain. Evaluators download the weights, run the model on private video clips with validator-owned loaders, and score quality/reward/paired-king metrics; the miner never serves inference. Your model stays king only while challengers fail to beat its paired reward by more than 0.02.",
+  "minerJobProvide": [
+   "Immutable video-LM weights (one per hotkey)",
+   "Authenticated TLS weight-distribution endpoint",
+   "On-chain wm2 model commitment",
+   "Uptime through the evaluation window",
+   "A model that beats the reigning king"
+  ],
+  "top10Strategy": "King-of-the-hill: study the reigning king's published scores and only enter a model you believe clears the +0.02 paired-improvement margin with aggregate quality >0.05 — a terminal evaluation consumes the hotkey for that evaluator, and one hotkey binds one model forever. Serve from a fast, stable endpoint: slow downloads (15-minute acquisition cap) are dropped without scoring. New submissions queue for the next two-epoch window.",
+  "top10Levers": [
+   "Model quality beating king by >0.02 margin",
+   "Fast, reliable weight serving (zstd, keep-alive)",
+   "Choosing the right allowlisted architecture",
+   "Timing entry to window openings",
+   "Tracking evaluation-v3 scoring changes",
+   "Endpoint availability so retries keep queue spot"
+  ],
+  "followTopMiners": "Track the witness dashboard (queue, kings, per-window scores), taostats.io/subnet/20 weight concentration on the single king, repo commit cadence (evaluation-v3, window policy changes), and witnessvision.io announcements.",
+  "confidence": "repo-verified",
+  "sources": [
+   {"label": "Witness README (master)", "url": "https://raw.githubusercontent.com/witnessvision/witness_subnet/master/README.md"},
+   {"label": "Witness miner guide", "url": "https://raw.githubusercontent.com/witnessvision/witness_subnet/master/docs/miner.md"}
+  ]
+ },
+ {
+  "netuid": 26,
+  "whatItDoes": "A decentralized adversarial-robustness network. Validators publish an ImageNet-1k image every two minutes; miners must find an imperceptible perturbation that flips EfficientNetV2-L's prediction. Outputs feed a growing adversarial-training dataset and on-chain robustness certificates (relevant to EU AI Act conformity) for enterprise and safety customers.",
+  "hardwareRec": "Miner: 8 vCPU / 32 GB RAM with any 8+ GB NVIDIA GPU (12–24 GB comfortable); attack search speed matters more than VRAM. Optional model track (fine-tuning EfficientNetV2-L) wants a bigger GPU. No axon exposure needed; rentals fine.",
+  "keyRequirements": [
+   "Python 3.10+, Node 18+/PM2, scripts/run_miner.sh",
+   "Miner env: WALLET_NAME/HOTKEY, NETUID, NETWORK",
+   "Registered hotkey; no axon exposure required",
+   "Submissions: image URL + sha256 pixel hash",
+   "Hard gates: L∞ bounds, SSIM, PSNR, label flip",
+   "Model track: on-chain commitment sha256(model||hotkey)"
+  ],
+  "minerJob": "Poll the task API for the current ImageNet-1k image, run your attack (baseline is PGD) to find a perturbation within L∞/SSIM/PSNR limits that flips the classifier, then upload the image and submit its URL plus pixel hash. Validators recompute hashes and score: smaller, subtler perturbations score higher ((1−ratio)² terms plus small margin/novelty bonuses). Scanning emissions split 75/20/5 across the top three ranks; separately, a daily adversarially-trained EfficientNetV2-L contest pays 20% of miner emissions to the day's winner. Weights come from stake-weighted cross-validator leaderboard ranks.",
+  "minerJobProvide": [
+   "Verified adversarial examples per ~2-minute task",
+   "Compliant perturbations passing all hard gates",
+   "Leaderboard-topping attack scores (75/20/5)",
+   "Optional fine-tuned adversarially-trained EfficientNetV2-L",
+   "Stable image URLs with matching pixel hashes"
+  ],
+  "top10Strategy": "Emissions are brutally top-heavy — rank 1 takes 75% of the 80% scanning pot — so optimize attack quality: minimize L∞/RMSE ratios while staying under epsilon and above SSIM/PSNR floors, and poll fast enough to never miss a task. Beating the baseline PGD (better initialization, momentum, adaptive steps) is the core lever. Note avgScore needs a ~50-record history before it counts. The daily model track is a separate lottery — enter only with a genuinely strong fine-tune.",
+  "top10Levers": [
+   "Stronger attack optimizer than baseline PGD",
+   "Minimize L∞/RMSE ratios under gates",
+   "Low-latency task polling and submission",
+   "Consistency: top-3 on every validator's leaderboard",
+   "Optional daily model-track fine-tune wins",
+   "Build the 50-record scoring history fast",
+   "Uptime across all validators' windows"
+  ],
+  "followTopMiners": "Watch the public leaderboard reports (per-validator avgScore), taostats.io/subnet/26 for the 75/20/5 weight pattern, repo commits for scoring-constant changes (PERTURB_* envs), and the perturbai.io whitepaper/Discord.",
+  "confidence": "repo-verified",
+  "sources": [
+   {"label": "Perturb README (master)", "url": "https://raw.githubusercontent.com/0xsigurd/Perturb/master/README.md"}
+  ]
+ },
+ {
+  "netuid": 34,
+  "whatItDoes": "A GAN-style competition for synthetic-media detection. Discriminative miners submit image/video/audio deepfake-detection classifiers; generative miners run servers producing synthetic media on demand; validators benchmark both. Detectors improve as fakes improve. Products serve provenance/detection APIs; app.bitmind.ai tracks the reigning kings per modality.",
+  "hardwareRec": "Discriminative track: no GPU hosting — upload safetensors classifiers (the A100/80 GB input spec reflects the generative track). Generative track: GPU inference server (A100-class) producing image+video at volume. Detector miners can run anywhere.",
+  "keyRequirements": [
+   "Models: safetensors only (ONNX rejected)",
+   "gascli d push for detector submissions",
+   "Weekly-refreshed GASBench + GAS-Station data",
+   "Generators must clear fool-rate gate (img>2%, vid>1%)",
+   "C2PA-signed generator outputs",
+   "Submission allowances shared across modalities"
+  ],
+  "minerJob": "Detectors: train a media-provenance classifier, zip and push via gascli; validators score it (sn34_score = MCC + Brier error) on public, private-holdout and fresh GAS-Station data across three modalities. Each lane has a king (image 40%, video 40%, audio 4% of miner emissions) split 85/10/5 across the current and two previous kings; dethrone by +0.01 sn34_score on the same benchmark version. Generators: answer validator prompts with verified synthetic media; the 16% generator pot pays per verified volume × √(price/baseline) × pass-rate, only in modalities that clear the 7-day fool-rate gate.",
+  "minerJobProvide": [
+   "Detection classifiers for image/video/audio",
+   "sn34_score improvements over reigning kings",
+   "Synthetic-media generation endpoint (optional track)",
+   "C2PA-signed verifiable generations",
+   "Fresh-model submissions within allowance limits"
+  ],
+  "top10Strategy": "Detector lanes are king-of-the-hill with 85/10/5 memory — beating a king by just 0.01 takes the lane, so track each lane's sn34_score and target the weakest modality (audio is only 4%). Prioritize calibration (Brier) as much as accuracy, and retrain weekly against refreshed GAS-Station fakes. For generators, clearing the fool-rate gate is binary; after that, verified volume and the model price multiplier drive payout.",
+  "top10Levers": [
+   "Dethrone the weakest lane (image/video/audio)",
+   "Calibration-tuned models (Brier + MCC)",
+   "Weekly retraining on GAS-Station refreshes",
+   "Fool-rate gate clearance for generators",
+   "Generation volume with strong price multiplier",
+   "Free submission allowance management",
+   "Robustness to the augmentation blend in scoring"
+  ],
+  "followTopMiners": "Track app.bitmind.ai leaderboard kings per modality, `gascli d perf` for your benchmark scores, taostats.io/subnet/34 dividend concentration, the BitMind Discord for round-config changes, and docs/Incentive.md updates.",
+  "confidence": "repo-verified",
+  "sources": [
+   {"label": "GAS/BitMind README (master)", "url": "https://raw.githubusercontent.com/BitMind-AI/bitmind-subnet/master/README.md"},
+   {"label": "GAS Incentive Mechanism doc", "url": "https://raw.githubusercontent.com/BitMind-AI/bitmind-subnet/master/docs/Incentive.md"}
+  ]
+ },
+ {
+  "netuid": 43,
+  "whatItDoes": "A decentralized network for graph optimization, currently focused on the Traveling Salesman Problem. Validators send synthetic TSP instances; miners return tours scored against the best cohort solution and a greedy benchmark. Aimed at logistics/routing use cases; a planned frontend will let users submit their own graph problems.",
+  "hardwareRec": "CPU only — TSP quality is algorithm work, not GPU work. The repo ships four starter algorithms (Nearest Neighbour, Dynamic Programming, Beam Search, Hybrid Pointer Network); custom high-performance solvers are the differentiator.",
+  "keyRequirements": [
+   "Python miner per docs/miner.md",
+   "Respond with tours within the required timeframe",
+   "Support coordinate (undirected) and edge (directed) inputs",
+   "Beat the greedy benchmark or be penalized",
+   "Team warns of breaking changes — join Discord"
+  ],
+  "minerJob": "Run the miner neuron from the Graphite repo; validators broadcast TSP instances and the miner returns high-quality tours computed by its solver. Scoring compares your tour length relative to the best solution in the cohort and a benchmark greedy heuristic; solutions falling short of the benchmark are penalized. Upgrading from the bundled heuristics to stronger solvers (better local search, or improved learned approaches like the provided pointer network) is how weight share is won.",
+  "minerJobProvide": [
+   "Near-optimal TSP tours per instance",
+   "Responses within the scoring timeframe",
+   "Custom solver improvements over bundled algorithms",
+   "Consistent quality across graph sizes",
+   "Support for directed/undirected input formats"
+  ],
+  "top10Strategy": "This is an algorithms race: the bundled algorithms are the floor, not the ceiling — winners implement stronger TSP solvers (OR-tools/LKH-style local search or improved learned models) that reliably beat the greedy benchmark by a wide margin at low latency. Because scoring is relative to the cohort, small consistent margins across every instance compound into a dominant weight share.",
+  "top10Levers": [
+   "Stronger custom TSP solver than baselines",
+   "Low-latency tour computation",
+   "Wide margin over the greedy benchmark",
+   "Consistency across instance sizes/types",
+   "Track repo/Discord for scoring changes",
+   "Efficient CPU implementations (no GPU waste)"
+  ],
+  "followTopMiners": "Watch taostats.io/subnet/43 top UIDs and weight spread, the Graphite Discord for scoring/algorithm updates (team warns of breaking changes), and commit cadence on GraphiteAI/Graphite-Subnet.",
+  "confidence": "repo-verified",
+  "sources": [
+   {"label": "Graphite README (master)", "url": "https://raw.githubusercontent.com/GraphiteAI/Graphite-Subnet/master/README.md"}
+  ]
+ },
+ {
+  "netuid": 49,
+  "whatItDoes": "A decentralized robotics tournament. Miners train RL policies for benchmark environments and submit agent code; validators run each agent inside isolated GPU sandbox containers (Isaac Sim 6.1 + Isaac Lab 3.0), score it, and the tournament winner takes all weights. Buyers get benchmarked robotics policies and an evaluation harness.",
+  "hardwareRec": "GPU workstation for training policies (input spec: 1× A100-class); the submission itself is a CLI upload. Validator-side scoring GPUs (A100+, ~20 GB sandbox image) are not the miner's burden.",
+  "keyRequirements": [
+   "nepher-miner CLI + miner_config.yaml (wallet + API key)",
+   "Submit agents via `nepher-miner submit`",
+   "Policies must run in Isaac Lab sandboxes",
+   "Tournament API: api.nepher.ai/tournament",
+   "EnvHub serves benchmark environment downloads",
+   "Winner takes all weights per tournament"
+  ],
+  "minerJob": "Train reinforcement-learning policies against Nepher's benchmark environments (downloaded from EnvHub), package the agent, and submit it through the nepher-miner CLI to the Tournament API. Validators evaluate every submitted agent inside ephemeral sandbox containers with dropped capabilities, read-only mounts, whitelisted networking and GPU access, then post scores; the tournament winner collects all of that round's weight. `nepher-miner validate` lets you pre-check an agent before submitting.",
+  "minerJobProvide": [
+   "Trained RL policies for robotics benchmarks",
+   "Agent code that passes sandbox evaluation",
+   "Tournament submissions via nepher-miner CLI",
+   "Locally validated agents before submission",
+   "Winning policies across tournament rounds"
+  ],
+  "top10Strategy": "Winner-takes-all per tournament: pick benchmarks where you can train a clearly better policy rather than entering everything, and always run `nepher-miner validate` locally first — a sandbox eval failure wastes a submission. Expect an arms race in RL training quality (reward shaping, training compute, robustness to sandbox conditions). Track which environments current tournaments use and specialize.",
+  "top10Levers": [
+   "Superior RL policy training (compute + shaping)",
+   "Local `nepher-miner validate` before submitting",
+   "Specialize in current tournament environments",
+   "Robust policies under sandbox conditions",
+   "Fast iteration per tournament cycle",
+   "Track EnvHub environment releases"
+  ],
+  "followTopMiners": "Track api.nepher.ai/tournament standings and winners, docs.nepher.ai for tournament rules, the Nepher Discord, taostats.io/subnet/49 weight concentration, and repo commit cadence.",
+  "confidence": "repo-verified",
+  "sources": [
+   {"label": "Nepher README (master)", "url": "https://raw.githubusercontent.com/nepher-ai/nepher-subnet/master/README.md"}
+  ]
+ },
+ {
+  "netuid": 55,
+  "whatItDoes": "A decentralized generator of synthetic CRISPR experiment datasets for the HBB (beta-globin) gene locus. Validators broadcast dataset-generation tasks; miners produce lists of experiments (guide RNAs, targets, mutations, Cas systems, cell types) which validators score through a five-stage biological validation pipeline. Output feeds genome-editing ML research.",
+  "hardwareRec": "Repo lists no GPU requirement — the workload is structured data generation (CPU; LLM-assisted generation plausible). Input metadata flags 'GPU required, model/VRAM unspecified' — confirm with the team before renting GPUs.",
+  "keyRequirements": [
+   "Generate experiments per the task contract",
+   "Required: guideRNA, coordinates, mutation, Cas, cell type",
+   "Forbidden: predicted efficiencies/repair outcomes/labels",
+   "Upload datasets to validator-provided S3",
+   "Validation evolves: structural → statistical → biophysical → ML",
+   "Same challenge broadcast to all miners"
+  ],
+  "minerJob": "Receive the CRISPR task spec from validators, generate a diverse list of biologically plausible experiments conforming to the contract (20–23bp guideRNAs, PAM-valid targets, whitelisted HBB mutations like HbS, Cas9/Cas12a, approved cell types), and upload the dataset to the validator's S3 bucket. Validators alone compute biological outcomes through five progressive stages (syntax, statistical plausibility, biophysical simulation, cross-consistency ML, distributional fidelity to real CRISPR data) and weight miners by multi-stage scores. Predicting outcomes yourself is prohibited.",
+  "minerJobProvide": [
+   "Structurally valid CRISPR experiment lists",
+   "Biologically plausible guide/target/mutation combos",
+   "High mutation-coverage diversity (HBB variants)",
+   "S3 dataset uploads per task",
+   "Datasets passing all five validation stages"
+  ],
+  "top10Strategy": "Rewards track distributional fidelity and realism, not volume: maximize coverage of allowed HBB variants, cell types and Cas choices while keeping GC content, PAM syntax and spatial statistics inside plausible ranges. Because stage 5 compares against real CRISPR data, miners who tune generation to real-data statistics outperform naive generators. Validation constraints tighten over time — adapt fast when stages evolve.",
+  "top10Levers": [
+   "Distributional match to real CRISPR data",
+   "Max mutation/variant coverage within whitelist",
+   "Perfect structural compliance (PAM, guide length)",
+   "Diversity across cell types and Cas systems",
+   "Adapt as validation stages tighten",
+   "Throughput of dataset generation"
+  ],
+  "followTopMiners": "Track taostats.io/subnet/55 top UIDs, repo docs (miner_guide.md, evolving validation constraints), the Bittensor Discord, and commit cadence on genomesio/subnet-niome for validation-stage changes.",
+  "confidence": "repo-verified",
+  "sources": [
+   {"label": "NIOME README (master)", "url": "https://raw.githubusercontent.com/genomesio/subnet-niome/master/README.md"}
+  ]
+ },
+ {
+  "netuid": 63,
+  "whatItDoes": "A bounty-based challenge subnet, not a production work network: emissions accumulate in an on-chain Treasury Wallet to fund prize pools for deep-tech challenges (currently Breaking RSA with Terra Quantum and Hardening Quantum Proof with BlueQubit). Solvers compete to break targets first; the winner drains the pool and winning solutions are open-sourced.",
+  "hardwareRec": "Minimum is 1 CPU core / 8 GB RAM, but winning is compute-bound: RSA milestones fall to serious CPU+GPU number-theory rigs (RSA-460 fell in 3.9 h to a GPU lattice siever). The quantum challenge rewards strong CPU/RAM simulation setups.",
+  "keyRequirements": [
+   "Submit source-code solutions, not just answers",
+   "Small TAO fee per submission; unlimited resubmits",
+   "Test first via enigma-workbench Docker mode",
+   "RSA solutions run in 4h-walled Docker containers",
+   "No ongoing emissions — prizes only",
+   "Winning code is open-sourced after verification"
+  ],
+  "minerJob": "Pick a live challenge (e.g. factor the current RSA milestone), develop a solver in the provided workbench, and validate locally with `enigma-workbench test`. Submit the solution directory; validators run it in fixed, network-isolated Docker environments (RSA: RTX PRO 6000-class host, 4-hour wall time) and verify output. The first valid solution drains the prize pool via validator-governed treasury payout (60% threshold, 50% quorum, timelock). Expect no per-epoch income — this is discrete bounty hunting with each milestone harder than the last.",
+  "minerJobProvide": [
+   "Working source-code solutions to live challenges",
+   "Workbench-validated submissions",
+   "Record-setting factorization / peaked-circuit results",
+   "Open-source methods building on prior winners",
+   "Reproducible runs inside the 4h Docker contract"
+  ],
+  "top10Strategy": "Treat it as a research bounty: read the published winning code (each win is open-sourced) and compound on it — the Level-2 quantum winner built directly on Level-1's release. Hardware edge matters (GPU lattice sieving broke RSA-460/480), so estimate your compute against the 4-hour wall before paying submission fees. Solve milestones early: pools grow while unsolved, but first valid solution takes all.",
+  "top10Levers": [
+   "Specialized algorithms (GNFS sieving, MPS beam search)",
+   "GPU-accelerated compute within the 4h contract",
+   "Building on open-sourced prior winners",
+   "Workbench validation before paid submission",
+   "Early entry while pools accumulate",
+   "Track milestone difficulty progression"
+  ],
+  "followTopMiners": "Watch qbittensorlabs.com/enigma for current milestones and prize pools, the treasury page for payouts, taostats.io/subnet/63 for emissions flow, the project Discord, and repo commit cadence for new challenge drops.",
+  "confidence": "repo-verified",
+  "sources": [
+   {"label": "Enigma README (master)", "url": "https://raw.githubusercontent.com/qbittensor-labs/enigma/master/README.md"}
+  ]
+ },
+ {
+  "netuid": 69,
+  "whatItDoes": "A verified media-placement subnet: PR firms and contributors publish editorial articles in real news outlets against briefs. Validators run a code-only verification oracle checking each article on the outlet's own page (signed registry, brief window, topic match, not-paid-content, text match) and weight the contributor's hotkey by verified USD value; uncovered emission burns.",
+  "hardwareRec": "CPU only — in fact no miner server at all. The real 'hardware' is PR placement: you need real outlets willing to publish on-brief editorial content. Hotkey is registered through the Herald website with a wallet extension.",
+  "keyRequirements": [
+   "Register hotkey on netuid 69 via Herald website",
+   "Google sign-in + wallet extension (Talisman/SubWallet/Polkadot.js)",
+   "Upload article text BEFORE publishing",
+   "Add live link; outlet must be in the signed registry",
+   "Article must stay live through a 30-day vesting window",
+   "Miner neuron deprecated — no server needed"
+  ],
+  "minerJob": "There is no miner service: contributors register a hotkey on the website, pick an open brief (topic, optional date window, prepaid reward pool), upload the draft before publication, then add the published link. Once per daily epoch each validator verifies signatures, coldkey-hotkey ownership, outlet-registry membership, timing, topic, text match and paid-content status. Verified articles vest value by outlet tier and search presence in daily installments over 30 days; removal or conversion to paid content forfeits the rest. Emissions flow to your hotkey pro rata to payable USD.",
+  "minerJobProvide": [
+   "Verified editorial articles in real outlets",
+   "On-brief topic coverage",
+   "Pre-publication signed text uploads",
+   "30-day article persistence",
+   "Registered hotkey earning emission shares"
+  ],
+  "top10Strategy": "Rewards scale with outlet tier and search presence, so placement quality beats article count — one high-tier placement in a pooled brief can outweigh many low-tier posts. Choose briefs with prepaid pools and less competition, keep articles live for the full 30-day vest, and never let outlets tag them as paid. When contributor value exceeds the day's emission it's shared pro rata.",
+  "top10Levers": [
+   "High-tier outlet placements",
+   "Briefs with prepaid reward pools",
+   "30-day persistence (vesting discipline)",
+   "Topic fidelity to brief requirements",
+   "Not-paid-content compliance",
+   "Search-visible articles (pricing input)",
+   "Disciplined upload-then-publish workflow"
+  ],
+  "followTopMiners": "Track taostats.io/subnet/69 weight distribution and the burn share, the Herald website brief board for open campaigns, docs/miner.md changes, and repo release cadence (spec version bumps).",
+  "confidence": "repo-verified",
+  "sources": [
+   {"label": "Herald README (master)", "url": "https://raw.githubusercontent.com/HeraldMedia/herald/master/README.md"}
+  ]
+ },
+ {
+  "netuid": 77,
+  "whatItDoes": "A liquidity-mining subnet: SN77 token holders vote on Uniswap V3 liquidity pools; a central server computes miner weights from votes and in-range LP positions, and validators set those weights on-chain. Miners earn by providing concentrated liquidity to voted pools — emissions flow pro rata to position quality and depth.",
+  "hardwareRec": "CPU only (a laptop runs the CLI). The real resource is capital in Uniswap V3 positions: weight = liquidity depth × Gaussian proximity to the current tick, so active range management matters more than any server hardware.",
+  "keyRequirements": [
+   "Register hotkey ↔ EVM address (`just register`)",
+   "In-range Uniswap V3 positions only (strict tick check)",
+   "Weights recomputed ~every 5 min from live ticks",
+   "Fee tier sets scoring std-dev (100→10 ... 10000→500)",
+   "Bittensor wallet with stake on subnet 77",
+   "Miners need MINER_HOTKEY and ETH_KEY in .env"
+  ],
+  "minerJob": "Link your hotkey to an EVM address, then open and manage concentrated Uniswap V3 liquidity positions in pools that token holders have voted weight onto. Every ~5 minutes the server recomputes pool emissions from alpha-weighted votes, then scores each position (Gaussian of distance to range bounds, midpoint 4× weighted, scaled by liquidity/1e9) and normalizes within each pool. Your miner weight is your share of voted pool emissions — no servers run day-to-day, just active LP management monitored via `bun run pools`.",
+  "minerJobProvide": [
+   "In-range Uniswap V3 liquidity in voted pools",
+   "Registered hotkey↔EVM linkage",
+   "Actively managed tick ranges near price",
+   "Deep liquidity (score scales with size)",
+   "Continuous position monitoring"
+  ],
+  "top10Strategy": "This is quantitative LP management: rewards favor positions tightly concentrated around the current price (Gaussian scoring, midpoint 4× weight) in pools capturing the most vote-weighted emissions. Narrow ranges earn more but churn with price — balance width against repositioning frequency and impermanent loss. Watch which pools voters favor (voting power = voter alpha share) and move liquidity there early.",
+  "top10Levers": [
+   "Tight in-range positions near current tick",
+   "Target pools with highest vote weight",
+   "Large liquidity depth",
+   "Midpoint-centered range placement (4× weight)",
+   "Active repositioning as price moves",
+   "Low-fee-tier std-dev advantage (100→10)",
+   "Monitor /pools + /positions for shifts"
+  ],
+  "followTopMiners": "Watch the 77.creativebuilds.io /pools /weights /allMiners endpoints, run `just verify-weights` to audit the published formula, track taostats.io/subnet/77 dividend distribution, and repo commit cadence for weight-formula changes.",
+  "confidence": "repo-verified",
+  "sources": [
+   {"label": "SN77 README (master)", "url": "https://raw.githubusercontent.com/creativebuilds/sn77/master/README.md"}
+  ]
+ },
+ {
+  "netuid": 85,
+  "whatItDoes": "A decentralized video-processing subnet: validators send synthetic and organic jobs — upscaling (scored by PIE-APP with VMAF threshold validation) and compression (scored by VMAF quality-vs-size with a ≥1.25x ratio requirement) — and miners return processed video. Creators and businesses use it for affordable upscaling/compression; speed and quality tiers set rewards.",
+  "hardwareRec": "Per input spec: L4 / L40S / RTX PRO 6000, ≥16 GB VRAM per GPU — upscaling models are VRAM-hungry. Faster GPUs also win the duration/speed tier multipliers (S_L, S_pre), so GPU throughput directly pays.",
+  "keyRequirements": [
+   "Serve upscaling + compression endpoints per miner docs",
+   "Upscaling scored by PIE-APP; VMAF threshold check",
+   "Compression: ≥1.25x size reduction + VMAF gates",
+   "Hard zero below VMAF_threshold − 5",
+   "Handle synthetic + organic (chunked) queries",
+   "Speed tiers reward faster processing"
+  ],
+  "minerJob": "Run the Vidaio miner with AI upscaling and compression models (optimize open-source models like Video2X or ship your own). Validators benchmark by downscaling high-resolution videos for you to upscale and providing videos to compress; outputs are scored via VMAF (compression: full-video via Docker/libvmaf) and PIE-APP (upscaling), with speed/duration multipliers layered on quality. Organic user videos arrive chunked and queued — process and return them within service windows; consistency compounds through the tier multipliers.",
+  "minerJobProvide": [
+   "Video upscaling service (PIE-APP scored)",
+   "Video compression meeting VMAF thresholds",
+   "≥1.25x compression ratios",
+   "Fast turnaround earning speed-tier multipliers",
+   "Organic query processing at volume",
+   "Custom/optimized upscaling models"
+  ],
+  "top10Strategy": "Two levers compound: model quality (PIE-APP/VMAF headroom above thresholds — the soft zone punishes threshold-huggers and below threshold−5 scores zero) and speed (tier multipliers reward duration improvements). Tune pipelines for throughput (batching, GPU utilization) without dropping quality, keep 24/7 availability so organic chunks don't time out, and follow the team's miner checklists for current scoring weights.",
+  "top10Levers": [
+   "Maximize PIE-APP upscaling quality",
+   "Clear VMAF thresholds with headroom",
+   "Speed-tier optimization (duration multipliers)",
+   "High GPU utilization / batching throughput",
+   "Reliable organic-query handling",
+   "Custom models over open-source baselines",
+   "Follow miner checklists for scoring updates"
+  ],
+  "followTopMiners": "Track taostats.io/subnet/85 top UIDs and dividends, vidaio.io and @vidaio_ X for competition/parameter changes, docs/incentive_mechanism.md updates (e.g. w_vmaf 0.3), and the miner checklists in repo docs.",
+  "confidence": "repo-verified",
+  "sources": [
+   {"label": "Vidaio README (master)", "url": "https://raw.githubusercontent.com/vidaio-subnet/vidaio-subnet/master/README.md"},
+   {"label": "Vidaio incentive mechanism doc", "url": "https://raw.githubusercontent.com/vidaio-subnet/vidaio-subnet/master/docs/incentive_mechanism.md"}
+  ]
+ },
+ {
+  "netuid": 94,
+  "whatItDoes": "A verifiable-compute network: operators run confidential-computing machines (Intel TDX or AMD SEV-SNP guests); validators verify fresh TEE attestation evidence bound to the live HTTPS key, reject duplicate machines, and run bounded SAT tasks — each distinct verified machine adds score to its UID. Buyers get attested, verifiable compute capacity.",
+  "hardwareRec": "TEE-capable VM required: Intel TDX (with /sys/kernel/config/tsm/report) or AMD SEV-SNP (/dev/sev-guest) — plain SEV/vTPM insufficient. GPU is NOT a qualified mining path today. Cloud TDX instances are the natural rental option.",
+  "keyRequirements": [
+   "Intel TDX VM or AMD SEV-SNP guest",
+   "Public IPv4 + inbound TCP 8081",
+   "Python 3.12, Git, Docker, nft, curl inside the guest",
+   "Bittensor CLI 11.1.0 on a separate wallet machine",
+   "Miner-owned control host for signed snapshot refresh",
+   "Duplicate hardware/endpoints score zero",
+   "Coldkeys and seeds stay off workers"
+  ],
+  "minerJob": "Provision TDX/SEV-SNP machines, run the pinned worker image per docs/MINING.md (root-owned launcher; TLS key generated inside the guest), and keep a control host refreshing signed validator-access snapshots. Validators verify fresh attestation quotes, bind evidence to your live HTTPS endpoint on :8081, reject duplicates, then run a bounded SAT task; each distinct verified machine adds to your UID's score. Registration, uptime or advertised machine counts alone earn nothing — verification is the product. No public validator-result feed exists; confirm weights on-chain.",
+  "minerJobProvide": [
+   "Fresh TEE attestation evidence per machine",
+   "HTTPS worker endpoint on :8081",
+   "Distinct verified machines per UID",
+   "Signed snapshot refresh from control host",
+   "Passing bounded SAT work",
+   "Unique hardware (no duplicates)"
+  ],
+  "top10Strategy": "Scale = number of distinct machines that each independently pass verification — one TDX VM is a proof of concept; a fleet of attested, non-duplicate machines is the business. Rehearse three times locally before paying for anything, keep every machine's evidence fresh (stale quotes fail), and confirm finalized weight rows on-chain rather than trusting dashboards or health checks.",
+  "top10Levers": [
+   "Fleet of distinct attested TDX/SEV-SNP machines",
+   "Fresh evidence on every validator check",
+   "Reliable :8081 endpoint uptime",
+   "Unique hardware (duplicates score zero)",
+   "Correct snapshot-refresh automation",
+   "Follow docs/MINING.md exactly (checksums, launchers)"
+  ],
+  "followTopMiners": "No public validator-result feed — confirm chain weights directly (docs/MINING.md §5), follow GitHub issues and docs updates on cathedral-sandbox, and coordinate with validator operators on AMD socket policy and admission.",
+  "confidence": "repo-verified",
+  "sources": [
+   {"label": "Cathedral Sandbox README (master)", "url": "https://raw.githubusercontent.com/cathedralai/cathedral-sandbox/master/README.md"}
+  ]
+ },
+ {
+  "netuid": 102,
+  "whatItDoes": "A decentralized MoE training network: the model is split into expert groups hosted across independent miners; validators coordinate training steps, aggregate expert contributions and score miners to drive TAO rewards. Participation means contributing trained expert weights to a shared LLM rather than serving end users.",
+  "hardwareRec": "Per input spec: A100/H100 class, 40 GB+ VRAM (A6000 48 GB works). Expect sustained training-style GPU load, not inference. Datacenter-class or pro cards; consumer 24 GB cards likely insufficient.",
+  "keyRequirements": [
+   "Host expert group(s) of the shared MoE model",
+   "Coordinate with the validator training schedule",
+   "High-bandwidth transfer of weights/activations/gradients",
+   "Sustained uptime across training rounds",
+   "Operational docs live at connito.ai/docs/miner"
+  ],
+  "minerJob": "Run the Connito miner per connito.ai/docs/miner: your machine hosts one or more expert groups of the network's MoE LLM. Validators orchestrate the training loop — routing activations to experts, collecting updated weights/gradients, aggregating — and score miners on contribution quality and reliability, setting weights each epoch. Because this is collaborative training, rewards track consistent participation and useful expert updates across rounds rather than one-shot benchmark wins.",
+  "minerJobProvide": [
+   "Hosted MoE expert partitions",
+   "Timely expert weight/gradient updates",
+   "Reliable participation across training steps",
+   "Bandwidth for activation/gradient exchange",
+   "Contribution to a shared trained LLM"
+  ],
+  "top10Strategy": "With collaborative training, steady correct participation beats heroics: keep your experts online for every coordinated step, minimize transfer latency, and follow the official miner docs for version pins — missed rounds likely forfeit credit for that step. The 40 GB+ VRAM floor filters competition; reliable datacenter hosting and fast networking are the practical moats for breaking into the top ranks.",
+  "top10Levers": [
+   "100% round attendance (no missed steps)",
+   "Fast interconnect for weight/gradient exchange",
+   "40 GB+ VRAM headroom for expert groups",
+   "Follow pinned versions in official docs",
+   "Stable long-running hosting (no restarts)",
+   "Watch validator coordination changes"
+  ],
+  "followTopMiners": "Track connito.ai/docs (miner/validator guides), taostats.io/subnet/102 top UIDs and emission concentration, and Connito-AI/Connito commit cadence for protocol changes.",
+  "confidence": "derived",
+  "sources": [
+   {"label": "Connito README (master, stub — details deferred to connito.ai docs)", "url": "https://raw.githubusercontent.com/Connito-AI/Connito/master/README.md"}
+  ]
+ },
+ {
+  "netuid": 111,
+  "whatItDoes": "A scientific-information-extraction subnet: miners receive paper-extraction tasks and return structured claim-evidence packets grounded in the source text (via an agent pipeline using the ARA artifact model). Validators audit grounding, claim-evidence link validity and task-scope coverage. Buyers get structured, audited scientific claims for research and tooling.",
+  "hardwareRec": "CPU: 4 cores / 16 GB min (8 cores / 32 GB recommended), 50 GB disk, public Axon port. No GPU needed with hosted LLM providers — budget OpenRouter/Chutes API credits instead (Hermes agent harness).",
+  "keyRequirements": [
+   "Python 3.12 (3.11+ min); Bittensor SDK pinned 10.5.0",
+   "agent_v1 pipeline with Hermes agent harness",
+   "LLM provider credentials (OpenRouter recommended)",
+   "Public Axon endpoint; artifacts API uploads",
+   "Docker images published (Targon rentals documented)",
+   "Coldkey only in wallet dir, never in .env"
+  ],
+  "minerJob": "Run the miner neuron with the agent_v1 pipeline: when validators send paper-extraction tasks, your agent (Hermes harness + configured LLM provider) reads the paper, extracts contribution claims with grounded evidence spans, and writes structured agent artifacts (agent_output.json plus manifests), uploaded via artifacts.claims111.ai. Validators audit each packet for source grounding, valid claim-evidence links and task coverage, and score miners accordingly. A reachable Axon is mandatory; grounding discipline and output quality drive rewards.",
+  "minerJobProvide": [
+   "Structured claim-evidence packets per paper",
+   "Grounded evidence links to source text",
+   "Agent artifacts via signed uploads",
+   "Reachable Axon for task delivery",
+   "Low-hallucination, audit-passing extractions"
+  ],
+  "top10Strategy": "Rewards follow audit pass-rate: grounding every claim in verifiable source text beats aggressive extraction — failed grounding audits zero you out. Tune the agent stack (model choice, retries, PDF extraction method) for precision over recall, watch the dashboard for task patterns, and keep concurrency within your CPU/RAM budget (workers spawn per paper). API credit burn is the real cost — optimize tokens per paper.",
+  "top10Levers": [
+   "Perfect source grounding (audit survival)",
+   "Strong extraction model via OpenRouter/Chutes",
+   "Token-efficient agent runs (cost control)",
+   "Concurrency tuned to hardware",
+   "Track dashboard + validator audit criteria",
+   "Stable Axon uptime",
+   "Follow agent_v1 pipeline updates"
+  ],
+  "followTopMiners": "Watch dashboard.claims111.ai miner views, api.claims111.ai/docs, taostats.io/subnet/111 top UIDs, repo commit cadence (agent_v1 evolves fast) and the claims-reference-miner pinned commits.",
+  "confidence": "repo-verified",
+  "sources": [
+   {"label": "Claims README (master)", "url": "https://raw.githubusercontent.com/DeSciClaims/Claims/master/README.md"}
+  ]
+ },
+ {
+  "netuid": 119,
+  "whatItDoes": "An incentive network for training-data improvement: miners generate bounded synthetic or licensed data patches (initially math and natural sciences) with record-level provenance; validators verify rights, privacy, lineage and contamination, then train a frozen baseline with each patch and reward measured capability improvements. Quality gains — not dataset size or compute — earn TAO.",
+  "hardwareRec": "No GPU requirement stated in the repo. Patch generation likely leans on LLM API budgets rather than local GPUs; the train-and-evaluate comparisons run validator-side under identical conditions.",
+  "keyRequirements": [
+   "Bounded data patches with record-level provenance",
+   "Appropriate usage rights mandatory (no unlicensed material)",
+   "No private info or real-minor data",
+   "Pass contamination/leakage/duplication checks",
+   "Patches tested against a frozen baseline",
+   "Objective subjects first: math + natural sciences"
+  ],
+  "minerJob": "Produce candidate data patches — synthetic or licensed examples with answers, reasoning steps, calculations and explanations for learning-oriented tasks — carrying provenance metadata per record. Validators run a GENERATE → VERIFY → TRAIN → EVALUATE → REWARD pipeline: they check rights, privacy, lineage, duplication and evaluation leakage, then fine-tune a frozen baseline with your patch under identical training and evaluation conditions. Rewards are proportional to measurable improvements in factual accuracy, reasoning quality, calibration, clear age-appropriate communication and safety without unnecessary refusal.",
+  "minerJobProvide": [
+   "Synthetic/licensed training-data patches",
+   "Record-level provenance metadata",
+   "Measured capability improvements vs baseline",
+   "Rights-clean, privacy-safe content",
+   "Math/science reasoning examples"
+  ],
+  "top10Strategy": "It's an A/B-test economy: your patch must beat the frozen baseline under identical training conditions, so prioritize data that moves measurable metrics — worked examples with correct steps and units, calibration pairs, safety-without-refusal cases — over bulk. Contamination or evaluation leakage disqualifies a patch; verify uniqueness before submitting. Start with narrow, objectively-checkable domains where you can demonstrably lift accuracy.",
+  "top10Levers": [
+   "Patches that measurably lift baseline accuracy",
+   "Rigorous provenance and rights documentation",
+   "Zero contamination/leakage (disqualifying)",
+   "High-quality step-level reasoning data",
+   "Target weak baseline areas (calibration, safety)",
+   "Narrow domains with objective scoring"
+  ],
+  "followTopMiners": "Track taostats.io/subnet/119 top UIDs, repo commit cadence for evaluation-standard updates (scope expands only as reliable evaluation standards arrive), and any published baseline/evaluation changes before crafting patches.",
+  "confidence": "derived",
+  "sources": [
+   {"label": "CapabilityForge Next README (master, short)", "url": "https://raw.githubusercontent.com/capabilityforge-next/capabilityforge/master/README.md"}
+  ]
+ },
+ {
+  "netuid": 125,
+  "whatItDoes": "An incentivized ML-research network: miners submit optimizer code; validators train a ~360M Llama-style model with it under a fixed B200 budget (≤20 h, FineWeb-Edu) and score validation loss. Confirmed improvements beyond an adaptive bar (floor 0.03 nats) earn credit with a 14-day half-life. First research target: better gradient descent.",
+  "hardwareRec": "No GPU needed merely to serve a submission — the validator's B200 runs scored runs (B200 is the only SKU allowed to score; 180 GB VRAM class). Real research requires your own training compute (A100/H100-class realistic).",
+  "keyRequirements": [
+   "Optimizer code per sn125/miner_template.py interface",
+   "Serve source from registered hotkey; commit source hash",
+   "Fund evaluation credits (fee ≈ rental cost +10%)",
+   "Both initial and confirmation runs must qualify",
+   "Linux + Python 3.12 dedicated environment",
+   "Improvement must exceed the adaptive bar (≥0.03 nats)",
+   "Verify production identity/treasury before paying"
+  ],
+  "minerJob": "Implement an optimizer in Python against the template interface, test it against matched controls on your own compute, then serve its source from your miner hotkey and fund evaluation credits for the round. Validators verify the committed source hash, run the scored training contract (360M model, seq 2,048, batch 32, ≤188k steps on one B200), and confirm promising candidates with a second validator-funded run. Credit scales with improvement size and decays with a 14-day half-life; rewards are shared by credit weight and unearned emission burns.",
+  "minerJobProvide": [
+   "Novel optimizer source code",
+   "Locally validated loss improvements",
+   "Hash-committed, revealable submissions",
+   "Evaluation-credit funding per round",
+   "Reproducible research evidence"
+  ],
+  "top10Strategy": "Pure research competition: study the signed round contract before spending (historical reference numbers are not live targets), and only submit candidates that clear the adaptive improvement bar in your own matched-control tests — failed paid evaluations are pure loss. Compounding wins matter: confirmed optimizers become the frontier others must beat, so iteration speed on the learning-rate-schedule/update-rule search space (including LLM research agents) is the real edge.",
+  "top10Levers": [
+   "Genuinely novel update rules / LR schedules",
+   "Local matched-control testing before paying",
+   "Compute for rapid candidate iteration",
+   "Credit-budget economics (fee vs expected value)",
+   "Track signed round announcements + live frontier",
+   "Build on confirmed prior winners",
+   "LLM research agents to widen the search"
+  ],
+  "followTopMiners": "Track the Refinery dashboard/artifact publications, signed round announcements (fee + treasury), the MINING.md economics section, taostats.io/subnet/125 rewards distribution, and Barbariandev/refinery commit cadence.",
+  "confidence": "repo-verified",
+  "sources": [
+   {"label": "Refinery README (master)", "url": "https://raw.githubusercontent.com/Barbariandev/refinery/master/README.md"}
+  ]
+ }
+]

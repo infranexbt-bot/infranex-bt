@@ -9,6 +9,7 @@ import { SubnetsView } from "@/components/views/subnets-view";
 import { JudgeView } from "@/components/views/judge-view";
 import { CpuGuideView } from "@/components/views/cpu-guide-view";
 import { GpuLandscapeView } from "@/components/views/gpu-landscape-view";
+import { MinerPlaybookView } from "@/components/views/miner-playbook-view";
 import { GpusView } from "@/components/views/gpus-view";
 import { CpusView } from "@/components/views/cpus-view";
 import { MinersView } from "@/components/views/miners-view";
@@ -35,6 +36,7 @@ const VIEW_META: Record<
   judge: { title: "Validator Lab", eyebrow: "Section · 04 · Validator intelligence" },
   "cpu-guide": { title: "CPU Guide", eyebrow: "Section · 05 · Harnyx SN67 mining path" },
   "gpu-landscape": { title: "GPU Landscape", eyebrow: "Section · 05b · GPU class requirements" },
+  "miner-playbook": { title: "Miner Playbook", eyebrow: "Section · 05c · How to win each subnet" },
   gpus: { title: "GPU Catalog", eyebrow: "Section · 06 · Infrastructure" },
   cpus: { title: "CPU Catalog", eyebrow: "Section · 06b · CPU infrastructure" },
   miners: { title: "My Miners", eyebrow: "Section · 09 · Portfolio" },
@@ -97,6 +99,7 @@ export default function Home() {
       {view === "judge" && <JudgeView />}
       {view === "cpu-guide" && <CpuGuideView onNavigate={setView} />}
       {view === "gpu-landscape" && <GpuLandscapeView />}
+      {view === "miner-playbook" && <MinerPlaybookView />}
       {view === "gpus" && (
         <GpusView
           onProvision={(offerId) => {

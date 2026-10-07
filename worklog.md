@@ -769,3 +769,145 @@ Work Log:
 Stage Summary:
 - SN64 Chutes confirmed bare-metal-only + TEE-exclusive (Intel TDX) + static-IP; rental marketplace mining impossible
 - GPU Landscape data for SN64 (bareMetal/TEE/staticIp badges) verified accurate against live README; no DB update needed
+
+---
+Task ID: playbook-r5
+Agent: general-purpose (playbook-r5)
+Task: Research batch 5 (17 subnets: SN5,11,18,24,32,40,47,53,61,67,75,81,91,100,107,117,123) miner-side mechanics and write scripts/playbook/batch-5-output.json playbook entries
+
+Work Log:
+- Read worklog + batch-5-input.json; 17 subnets, all with githubUrl, no name/category metadata
+- Fetched all 17 repo READMEs via raw.githubusercontent (master, main fallback) — 17/17 HTTP 200, zero 404s (saved /tmp/pb-r5-sn*-readme.md)
+- Follow-up fetches (5 more, ~1.3 calls/subnet total): SN18 docs/Mining.md (GPU for training only, inference CPU), SN24 docs/mining.md (multi-GPU FSDP fragment training), SN81 docs/mining.md (1-2x >=24GB GPU hardware table, protocol v6 FIFO), SN100 proof+bounty miner guides (tar<=5MiB signed submissions, bounty N/10 cap)
+- No z-ai web_search needed — repo evidence sufficient for all 17; no ambiguous repos
+- Wrote batch-5-output.json: one object per subnet in input order, all 11 schema fields
+- QA: fixed an accidental zero-width-space key (whatItDoes on SN81 entry), trimmed SN18/SN91 hardwareRec to <=40 words; validator script confirms: 17 entries, order matches input, all word/length limits pass, JSON parses
+
+Stage Summary:
+- Delivered scripts/playbook/batch-5-output.json — 17/17 entries, ALL confidence=repo-verified (0 derived, 0 thin)
+- Notable findings: SN47 GPUForge explicitly NOT ready for miners (H100/NVAT design doc only); SN91 cascade miner needs no local GPU (funds Lium training pod per leg); SN117 Everyframe = Phala TEE-attested worker + provider-API arbitrage, no GPU; SN32/SN123 corroborate platform engine data (66%/60% newcomer earn chance, broad reward distribution)
+- No app/prisma/src files touched; only the output JSON + this worklog entry
+
+---
+Task ID: playbook-r6
+Agent: general-purpose (playbook-r6)
+Task: Research miner-side playbooks for batch 6 (17 subnets) -> scripts/playbook/batch-6-output.json
+
+Work Log:
+- Read batch-6-input.json (17 subnets: SN6,12,19,25,33,41,48,54,62,68,76,83,93,101,108,118,124)
+- Fetched raw GitHub READMEs (master branch) for all 16 direct repos — 16/16 hit 200 on first try, zero 404s
+- SN118 input githubUrl was an ORG page (github.com/orgs/ditto-assistant/repositories); GitHub API rate-limited, so probed candidate repos: resolved to ditto-assistant/ditto-subnet (README found, SN118 confirmed)
+- Extra evidence fetches: taostat/blockmachine-miner README (SN19 node eligibility/capacity/incentive detail) and toptensor/CliqueAI docs/mechanism.md (SN83 scoring formulas), swarm miner/docs/miner.md (SN124 training stack)
+- Key repo corrections vs input metadata: SN54 input said CPU-only but README mandates GPU 8GB+ VRAM (FLUX image gen is the only scored task); SN48 confirmed QPU-only (not GPU mineable, 90% burn); SN93 flagged as only ~2% of emission (bitcast-x carries ~98%); SN108 "bareMetalOnly" hosting note is about state persistence (./data), not a rental ban
+- Wrote batch-6-output.json: 17 entries, input order, all fields per spec; trimmed 5 hardwareRec fields to the 40-word cap
+- Validation: python json.load OK; order match True; all field/array length limits pass; confidence breakdown 17 repo-verified / 0 derived / 0 thin
+- Research-only task: no DB, prisma, src, or other script changes; ~22 total HTTP calls (~1-2 per subnet)
+
+Stage Summary:
+- batch-6-output.json delivered: 17/17 subnets repo-verified (README evidence for every entry, incl. resolved SN118 org->repo)
+- Notable: SN6/25/33/41/48/62/76/83/93/101/118/124 are CPU/API-play subnets; SN12 A6000-class, SN68 2x>48GB, SN54 8GB+ GPU, SN19 disk-heavy nodes
+- Next agent can import these playbooks into the platform catalog; SN54's input metadata (CPU-only) conflicts with repo and may warrant a SubnetOverride correction
+---
+Task ID: playbook-r3
+Agent: general-purpose (playbook-r3)
+Task: Research subnets batch 3 — write miner-side playbooks for 18 subnets (batch-3-input.json) to batch-3-output.json
+
+Work Log:
+- Read worklog (772 lines) for context; no code/DB/prisma touched — research + data-file only
+- Fetched 16/18 repo READMEs in one curl loop (master→main fallback) to /tmp/pb-r3/sn<N>.md; all 16 hits on master
+- SN97 unarbos/albedo README 404 on all branches/names; GitHub API rate-limited; web_search revealed repo renamed to unarbos/distil (SN97 "Distil", teacher Kimi-K2.6, ex-Albedo/Qwen) → fetched distil README (26KB) = full verification
+- SN105 input githubUrl was an ORG page (Beam-Network/repositories), no repo README; guessed BeamCore 404; web_search + page_reader on b1m.ai → Beam = decentralized bandwidth network (PoB, orchestrators/workers, ~760Gb/s, ~1150 miners) = derived
+- SN115 MoirAI README is product marketing only (no miner mechanics/incentive) → honest "thin"
+- Extra docs: SN65 docs/Miner.md (tpn CLI workflow) fetched for full miner ops detail
+- Wrote batch-3-output.json (Write + Edit 2-pass, same input order: 3,9,15,22,28,37,45,51,58,65,72,79,89,97,105,115,121,128)
+- Validation: json.load OK; 18 entries, order matches input; field-length checks (whatItDoes≤70/hardwareRec≤40/minerJob≤120/top10Strategy≤100 words, arrays 3-7 items ≤25 words) initially flagged 9 hardwareRec overruns → trimmed via MultiEdit → re-validated: violations NONE
+
+Stage Summary:
+- Output: scripts/playbook/batch-3-output.json — 18/18 entries, STRICT JSON, parses clean
+- Confidence: 16 repo-verified, 1 derived (SN105 Beam — org-page githubUrl, site+search evidence), 1 thin (SN115 MoirAI — no miner docs)
+- Repo 404/ambiguity notes: SN97 resolved via rename (albedo→distil, Kimi-K2.6 teacher since 2026-05-02, WTA, worst-3-axis composite); SN105 resolved at product level only (b1m.ai, no repo README)
+- Notable mechanics captured: SN28 TEE/Phala API-spread miner, SN51 Lium 3-pool emission split (top-10 ≈99%), SN45 pay=verified-volume×reputation (USD-pegged), SN89 Wilson-qualified signal tiers, SN121 winner-takes-most SKILL.md contests (burn between challenges), SN128 lease-revenue=100% score
+- No app code, prisma/, or other scripts/ modified; /tmp/pb-r3/* holds raw evidence
+
+---
+Task ID: playbook-r1
+Agent: general-purpose (playbook-r1)
+Task: Research subnets batch 1 — write miner-side playbook entries for 18 subnets from scripts/playbook/batch-1-input.json to scripts/playbook/batch-1-output.json
+
+Work Log:
+- Read batch-1-input.json (18 subnets: 1,7,13,20,26,34,43,49,55,63,69,77,85,94,102,111,119,125)
+- Fetched all 18 repo READMEs from raw.githubusercontent.com (master branch; all succeeded, no 404s) into /tmp/pb-r1/readme-<netuid>.md
+- 4 follow-up doc fetches: Apex SOLVERS.md, Witness docs/miner.md, BitMind docs/Incentive.md, Vidaio docs/incentive_mechanism.md
+- SN102 Connito: README is a 972-byte stub; connito.ai/docs/miner is Cloudflare-blocked (curl got challenge page; z-ai page_reader failed). Ran 1 web search (z-ai web_search) — no new specifics → marked "derived"
+- SN119 CapabilityForge: README fetched but short (mechanism-level only, no operational detail) → marked "derived"
+- Notable corrections vs input metadata: SN94 GPU is NOT a qualified mining path (TEE TDX/SEV-SNP is); SN34 A100/80GB applies to generative track only (discriminative = no GPU hosting); SN26 miner GPU floor is 8+ GB per repo (12/24GB in input is validator-side); SN125 B200 is validator scoring hardware, miners serve code; SN63 miner min = 1 core/8GB but winning is compute-bound; SN55 GPU "unspecified" — repo lists no GPU requirement
+- Wrote batch-1-output.json (18 entries, same order) with fields: whatItDoes, hardwareRec, keyRequirements, minerJob, minerJobProvide, top10Strategy, top10Levers, followTopMiners, confidence, sources (only URLs actually fetched)
+- Validation passed: JSON parses; order matches input; all field word limits OK; arrays 3-7 items; no app/prisma/other-scripts files touched
+
+Stage Summary:
+- Output: scripts/playbook/batch-1-output.json — 18/18 entries; confidence 16 repo-verified / 2 derived / 0 thin; zero 404s
+- Derived-only: SN102 (stub README + Cloudflare-blocked docs), SN119 (mechanism-level README)
+- Suggested follow-up: retry connito.ai/docs/miner via a JS-capable reader for SN102; fetch docs/MINING.md (SN94) and MINING.md (SN125) if deeper ops detail needed for batch 2 context
+
+---
+Task ID: playbook-r2
+Agent: general-purpose (playbook-r2)
+Task: Research miner-side playbooks for bittensor subnets batch 2 (18 subnets) and write scripts/playbook/batch-2-output.json
+
+Work Log:
+- Read worklog tail + batch-2-input.json (18 subnets: SN2,8,14,21,27,36,44,50,56,64,71,78,88,96,104,114,120,127)
+- Fetched all 18 repo READMEs (raw.githubusercontent master->main fallback): 18/18 OK, zero 404s; saved to /tmp/pb-r2-readme-<netuid>.md
+- Deep-dived 4 extra docs within budget: SN120 MINER_QUICKSTART.md, SN14 miner-guide/incentives.md, SN78 CURRENT_MINER_OPERATION.md, SN44 MINER.md (404 on both main/docs paths -> SN44 confidence=derived)
+- SN127: repo is validator-daemon only; page_reader on astrid.global gave corporate marketing only; web_search unhelpful -> confidence=derived (mechanics derived from validator README: Arena competitions, replayed-PnL top-3 60/30/10, rest burn)
+- Notable verified facts folded in: SN21 rank curve 50/25/10 cap 20 earners + CPU-only; SN104 = testnet 501 per README + 95% burn UID; SN78 current rewards = HTTPS health-check bridge (no translation scoring yet); SN120 signed-source H200/SM90 pilot nonpayable; SN8 hotkey blacklist/drawdown eliminations; SN64 TEE/bare-metal/static-IP (matches platform DB)
+- Security note: SN2 README contains a hex-encoded prompt-injection comment ("ignore all previous instructions..."); ignored, no effect on output
+- Wrote scripts/playbook/batch-2-output.json (18 objects, input order); validated with python3 json.load: parses OK; word-limit checks (whatItDoes<=70, hardwareRec<=40, minerJob<=120, top10Strategy<=100, arrays 3-7 items <=25 words) all PASS
+- No changes to prisma/, src/, DB, or other scripts/
+
+Stage Summary:
+- Delivered batch-2-output.json: 18/18 entries — 16 repo-verified, 2 derived (SN44, SN127), 0 thin; JSON parses, all field limits respected
+- Only repo 404: SN44 MINER.md (referenced by README but missing on main and docs/); everything else README-verified
+- Key flags for platform: SN104 README says netuid 501 (testnet) — mainnet status unconfirmed; SN120 pilot currently nonpayable; SN78 pays via bridge equal-weight health checks, not translation quality
+- Reusable evidence files in /tmp/pb-r2-readme-*.md (ephemeral); playbook itself is self-contained with sources
+
+---
+Task ID: playbook-r4
+Agent: general-purpose (playbook-r4)
+Task: Research subnets batch 4 — write miner-side playbook entries for 17 subnets from scripts/playbook/batch-4-input.json to scripts/playbook/batch-4-output.json
+
+Work Log:
+- Read worklog tail + batch-4-input.json (17 subnets: SN4,10,17,23,29,38,46,52,60,66,74,80,90,98,106,116,122)
+- Fetched all 17 repo READMEs via raw.githubusercontent (master first, main fallback): 17/17 HTTP 200, zero 404s; saved /tmp/pb-r4-<netuid>-readme.md
+- Follow-up evidence fetches (~1.5 calls/subnet total): SN4 docs/miner/miner.md (TargonOS, hardware profiles, per-card auction pricing), SN90 docs/miner/miner.md 404'd → mined the 91KB README directly (onboarding, 100 TAO deposit, USD price card), SN106 MINER_QUICKSTART.md (ZkGEMM proofs, rental ports 8091+20000-20100, EVM mirror), SN122 resolved org-level githubUrl (github.com/CookingTao) via profile HTML → CookingTAO-Subnet repo + docs/miner/submission_guidelines.md (90/10 reward split, 1,000-alpha stake gate)
+- z-ai usage: 2 web_searches (SN29 to resolve hotfloat/Cacheon branding; SN46 to identify subnet) + 1 page_reader (SN52 Tensorplex mechanism docs: generator/discriminator roles, trap rounds)
+- Key findings: SN29 coldint/hotfloat README is branded "Cacheon (SN14)" while bittensor.ai lists SN29 as hotfloat LLM-inference arena — same mechanics (containerized servers vs pinned vLLM, 80/20 winner pool, 1% margin); flagged, confidence=derived. SN74 Gittensor needs NO GPU (input's RTX 5090 contradicts repo; noted). SN46 repo is validator-only software (no miner flow documented) → derived. SN116 Carbon explicitly testnet-only, non-paying demonstrations → flagged in entry
+- Wrote batch-4-output.json (Write + Edit 2-pass, input order preserved, all 11 schema fields)
+- Validation: python3 json.load OK; 17 entries, order matches input; confidence 15 repo-verified / 2 derived / 0 thin; word-limit checker flagged 3 hardwareRec overruns (SN98/106/116) → trimmed via MultiEdit → re-validated: violations NONE
+- No app code, prisma/, DB, or other scripts/ touched; raw evidence in /tmp/pb-r4-*.md
+
+Stage Summary:
+- Output: scripts/playbook/batch-4-output.json — 17/17 entries, STRICT JSON, parses clean
+- Confidence: 15 repo-verified, 2 derived (SN29 branding mismatch resolved via bittensor.ai; SN46 validator-only repo), 0 thin
+- Ambiguity flags for platform: SN29 input metadata is SN14-Cacheon-branded repo content (netuid discrepancy worth a SubnetOverride note); SN74 input GPU rec (RTX 5090) is contradicted by repo (CPU-only); SN116 pre-production (no rewards yet)
+- Standout mechanics: SN4 per-card auctions with burn of unallocated emission; SN38 weekly clear + TEE leak-gate (#1 ≈52%); SN66 pay-0.5-TAO Lean proof bounties; SN90 7-node TDX cluster + 100 TAO collateral, priced vs Targon feed; SN98 winner-take-all Minecraft agents; SN122 meta-subnet rewarding third-party miner code
+
+---
+Task ID: miner-playbook
+Agent: main (Super Z)
+Task: "lets add more details about all subnets... 1) What it does 2) Recommended GPU or CPU 3) Key Requirements 4) Miners Job 5) Mindset to be on top 10 6) Follow other top miners footstep — implement all this at a glance in the platform"
+
+Work Log:
+- CRITICAL DISCOVERY: db/custom.db was wiped by sandbox restore (only 8 SubnetOverride rows, no ChainSnapshot) — GPU Landscape API was serving from a dead snapshot. Recovered: bun --smol scripts/take-snapshot.ts (block 9231804, 129 subnets, TAO $288.50) + bun --smol scripts/rescrape-parallel.ts (105 overrides, 68 with GPU, 16 scrape errors tolerable). Verified via /api/gpu-landscape: buckets 16/8/17/72, SN64 hosting badges intact.
+- Schema: added model SubnetPlaybook (MINER-PLAYBOOK-1) to prisma/schema.prisma; bunx prisma db push + generate.
+- Research: scripts/gen-playbook-batches.ts split 105 subnets into 6 batch inputs; dispatched 6 parallel general-purpose agents (playbook-r1..r6, Task IDs above) — each fetched repo READMEs (raw.githubusercontent master/main), follow-up docs, websites; output scripts/playbook/batch-N-output.json.
+- Merge: scripts/merge-playbook.ts validated (field presence, string[] typing, confidence enum, no dupes, netuids match inputs) and upserted 105 SubnetPlaybook rows (97 repo-verified, 7 derived, 1 thin).
+- API: src/app/api/playbook/route.ts — session-gated (requireActiveUserCookies), joins SubnetPlaybook + SubnetOverride + latest ChainSnapshot via buildLive; entries sorted by per-earner yield; Cache-Control no-store.
+- View: src/components/views/miner-playbook-view.tsx — Section 05c "Miner Playbook": header with confidence legend + honest concentration note, universal top-10 levers panel, search/conf-filter/sort toolbar, 340px sticky list (yield badges, confidence dots), detail panel with 6 numbered sections + sources + taostats/repo/site links.
+- Wiring: types.ts ViewKey "miner-playbook", sidebar Intelligence group (Target icon, hint 05c), page.tsx VIEW_META + render.
+- Build fixes: route hosting JSON keys (bareMetalOnly/teeRequired/staticIpRequired long-form) via Record<string,unknown> coercion; view referenced data.totalSubnets instead of data.meta.totalSubnets.
+- Build exit 0; browser walkthrough: login -> Miner Playbook 05c -> list (105 rows, sorted by yield) -> SN116 detail (all 6 sections render, honest testnet-only flag present); screenshots tool-results/miner-playbook-{list,full}.png; zero console errors.
+
+Stage Summary:
+- New permanent Section 05c Miner Playbook: 105/105 subnets with researched miner intelligence (what it does, hardware, requirements, miner job, top-10 mindset+levers, follow-the-leaders), live-yield-joined, confidence-flagged (97/7/1).
+- Key agent corrections vs platform metadata worth follow-up: SN94 mining needs TDX/SEV CVMs (not plain CUDA); SN74 CPU-only per repo (5090 rec unsupported); SN116 testnet-only no rewards; SN54 needs GPU 8GB+ (was CPU-only); SN105 Beam/SN115 MoirAI thin/derived.
+- Recovery runbook proven again: snapshot + parallel rescrape rebuilds platform data in ~10 min after a DB wipe.

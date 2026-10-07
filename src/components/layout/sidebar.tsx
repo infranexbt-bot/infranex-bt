@@ -27,6 +27,7 @@ import {
   Layers,
   Server,
   UserCheck,
+  Target,
 } from "lucide-react";
 import type { ViewKey } from "@/lib/infranex/types";
 
@@ -50,6 +51,7 @@ const NAV_GROUPS: { label: string; items: { key: ViewKey; label: string; icon: t
       { key: "judge", label: "Validator Lab", icon: Gavel, hint: "04" },
       { key: "cpu-guide", label: "CPU Guide", icon: ListChecks, hint: "05" },
       { key: "gpu-landscape", label: "GPU Landscape", icon: Layers, hint: "05b" },
+      { key: "miner-playbook", label: "Miner Playbook", icon: Target, hint: "05c" },
     ],
   },
   {

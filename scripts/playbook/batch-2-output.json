@@ -1,0 +1,625 @@
+[
+ {
+  "netuid": 2,
+  "whatItDoes": "Inference Labs' Proof-of-Inference subnet: builds zk-ML verification so an AI prediction can be proven to come from a specific model. Miners produce verifiable predictions plus zero-knowledge proofs; validators verify proofs and score them. It earns by supplying verifiable-inference infrastructure - trust-minimized AI outputs for buyers who cannot trust a black-box API.",
+  "hardwareRec": "CPU-only per README: 8-core 3.2GHz+ (3.6GHz+ competitive), 32-64GB RAM, 400Mbps-1Gbps symmetric network, 1-2TB NVMe SSD. zk-proving is CPU-heavy; faster CPU/network/storage directly raises rewards. Rented cloud VMs are fine; no GPU required.",
+  "keyRequirements": [
+   "Run the sn2-miner Rust binary (prebuilt release, Docker image, or build from source)",
+   "Registered hotkey on netuid 2 (finney); PM2 or Docker+watchtower recommended",
+   "Score = cryptographic integrity, time-to-proof, proof size, and response time",
+   "Binaries auto-update every 5 minutes with atomic replacement - do not fight it",
+   "HTTP (port 8091) and QUIC (btlightning) endpoints reachable"
+  ],
+  "minerJob": "Runs the sn2-miner Rust daemon over HTTP/QUIC. Validators push input data; the miner runs its custom verifiable model - an AI model compiled into a zero-knowledge circuit - and returns the prediction plus a zk proof. Validators verify proofs via the Expander backend and weight miners on proof size, generation time, and response latency. Rewards flow purely from Yuma weights on those performance metrics, so better proving hardware and efficiency mean higher weight. Prebuilt binaries self-update every 5 minutes.",
+  "minerJobProvide": [
+   "Verified AI predictions returned to validator requests",
+   "A zero-knowledge proof of inference per prediction (Expander-compatible)",
+   "Fast time-to-proof (scored directly)",
+   "Compact proofs (proof size is scored)",
+   "High-uptime HTTP and QUIC endpoints"
+  ],
+  "top10Strategy": "This is a systems/efficiency race, not a model-quality race: winners minimize proof time, proof size, and response latency on strong bare-metal CPUs and 1Gbps+ links. A newcomer breaks top-10 by over-provisioning CPU clock, NVMe, and network, keeping the binary current via auto-update, and watching the stats dashboard to see where the proof-latency frontier sits - every performance point is scored.",
+  "top10Levers": [
+   "CPU clock speed and core count for faster proving",
+   "1Gbps+ symmetric network to cut response latency",
+   "64GB+ RAM and NVMe storage headroom",
+   "Always-current binaries (auto-update channel)",
+   "Track sn2-stats.inferencelabs.com and wandb for frontier metrics"
+  ],
+  "followTopMiners": "Watch taostats.io/subnet/2 top UIDs and incentive spread, the sn2-stats.inferencelabs.com dashboard and wandb.ai/inferencelabs/subnet-2 for proof-latency distributions, and GitHub release cadence on inference-labs-inc/subnet-2.",
+  "confidence": "repo-verified",
+  "sources": [
+   {"label": "subnet-2 README (hardware, incentive, install)", "url": "https://github.com/inference-labs-inc/subnet-2"},
+   {"label": "Inference Labs SN2 documentation", "url": "https://sn2-docs.inferencelabs.com/"}
+  ]
+ },
+ {
+  "netuid": 8,
+  "whatItDoes": "Vanta Network (formerly Taoshi's Proprietary Trading Network): miners submit LONG/SHORT/FLAT futures trade signals across forex, crypto, equities, and commodities (Hyperliquid perps included). Validators simulate fills with fees and slippage, track each miner's equity, and pay weekly PnL-ranked emissions. External traders and the dashboard consume the signals; top miners receive funding via Vanta programs.",
+  "hardwareRec": "CPU only. Signal submission is strategy logic, not compute-bound; a small VPS (2-4 cores, 8GB RAM) suffices. Real costs are strategy R&D and registration burns; rented GPUs are pointless here.",
+  "keyRequirements": [
+   "Submit orders during market hours per asset class (crypto 24/7, forex Sun 17:00-Fri 17:00 ET, equities 09:30-16:00 ET)",
+   "Never exceed 5% intraday or 8% end-of-day drawdown from high-water mark - instant elimination",
+   "No plagiarism: copied orders trigger elimination",
+   "Each registration needs a fresh unused hotkey; eliminated hotkeys are permanently blacklisted",
+   "Carry fees (10.95%/3% per year), spread fees (0.03% crypto, 0.01% equities, 0.005% commodities) and slippage apply",
+   "Rank below 25th in your asset class starts a 90-day probation"
+  ],
+  "minerJob": "Runs a miner daemon that submits directional orders with entries/exits to validators during market hours. Validators validate trades, simulate portfolio returns with carry fees, spread fees, and leverage-scaled slippage, and continuously track equity against drawdown limits. Weights follow the previous week's PnL scaled by penalties under a debt-based scoring system, with payout periods ending Sunday 00:00 UTC. Elimination is effectively permanent: blacklisted hotkeys cannot re-register, so read docs/miner.md before starting.",
+  "minerJobProvide": [
+   "Timely LONG/SHORT/FLAT signals per supported trade pair",
+   "Consistent positive PnL with controlled drawdown",
+   "Unique, non-plagiarized order flow",
+   "Continuous activity (no 60-day order gaps)",
+   "Risk discipline within intraday and EOD drawdown limits"
+  ],
+  "top10Strategy": "A zero-sum trading arena where top miners are genuine quant/ML shops. Survive first: small size, strict intraday risk, no leverage spikes; then compound one backtested edge across many pairs to smooth weekly PnL - weights pay last week's PnL net of penalties, so consistency beats home runs. Use the dashboard and Vanta Trading Discord's open strategy resources; expect eliminations while you iterate.",
+  "top10Levers": [
+   "Backtested, unique strategy with positive expectancy across pairs",
+   "Hard risk limits - drawdown control is survival",
+   "Diversification across asset classes (each class ranks separately)",
+   "Minimize carry/spread/slippage drag (low leverage, shorter holds)",
+   "Weekly PnL consistency over single lucky trades"
+  ],
+  "followTopMiners": "Track the vantanetwork.io dashboard top traders and their return/drawdown profiles, taostats.io/subnet/8 incentive distribution, and docs/miner.md plus the Vanta Trading Discord for rule changes (fees, pairs, drawdown thresholds).",
+  "confidence": "repo-verified",
+  "sources": [
+   {"label": "vanta-network README (rules, eliminations, fees)", "url": "https://github.com/taoshidev/vanta-network"},
+   {"label": "Vanta miner installation doc", "url": "https://github.com/taoshidev/vanta-network/blob/main/docs/miner.md"}
+  ]
+ },
+ {
+  "netuid": 14,
+  "whatItDoes": "Cacheon is an inference-speed competition built around SGLang: the validator owns the model, workload, and engine, and miners submit inspectable optimizations - served-model modules or the scheduler's prefix cache - that must measurably speed up end-to-end serving without quality loss. LLM operators benefit from faster/cheaper serving; rewards flow only to measured, qualified improvements.",
+  "hardwareRec": "Platform data: B300-class GPU (1). Mining itself is code optimization: a local dev GPU to profile SGLang helps, but qualification runs on validator-owned no-egress OCI workers. Software is pre-release; expect policy churn.",
+  "keyRequirements": [
+   "Submit one optimization against a validator-published arena target (forward_pass modules or prefix cache)",
+   "Must beat the arena incumbent by the required margin after one complete audited qualification PASS",
+   "Stay within behavior and quality limits - speed alone earns nothing",
+   "Possible TAO anti-spam admission gate paid to subnet owner (--pay locks the quote ~300 blocks)",
+   "Python 3.11+; run cacheon.cli scan/verify locally before submitting"
+  ],
+  "minerJob": "Not a 24/7 service. Miners study the validator-published arena, engineer an optimization (engine module or prefix-cache change), run local scan/verify checks, then commit and submit the bundle. The validator builds and runs the candidate in isolated no-egress workers, measures end-to-end latency on the registered agent workload under its speed/quality policy, and records a crown plus V1 credit only if the incumbent is beaten by the required margin. A publisher later combines eligible claims into an on-chain weight vector.",
+  "minerJobProvide": [
+   "Inspectable optimization code for a registered engine target",
+   "Measured end-to-end latency improvement over the incumbent",
+   "Preserved output quality within policy limits",
+   "Passing audited qualification (node audit + graph checks)",
+   "Occasional new crown for the target"
+  ],
+  "top10Strategy": "A kernel/systems-engineering game: read the docs (concepts, architecture, slot contract), pick one hot target, and profile the SGLang path locally before submitting - blind micro-tweaks waste the admission gate. Because reward requires beating the incumbent on the validator's own benchmark, submissions from engineers with real CUDA/SGLang skill can win fast; the pool of qualified optimizations is tiny and pre-release means early movers shape targets.",
+  "top10Levers": [
+   "Deep SGLang/CUDA optimization skill",
+   "Local profiling harness reproducing the registered workload",
+   "Target selection where the incumbent is weak",
+   "Submit only strong candidates (admission gate economics)",
+   "Follow repo commit cadence for fast-moving policy changes"
+  ],
+  "followTopMiners": "Watch cacheon.ai/docs (rendered repo docs) and the latent-to/cacheon commit cadence since this is pre-release, plus taostats.io/subnet/14 for weight distribution and which UIDs hold crowns in validator publications.",
+  "confidence": "repo-verified",
+  "sources": [
+   {"label": "cacheon README (design boundaries, miner SDK)", "url": "https://github.com/latent-to/cacheon"},
+   {"label": "How miners earn rewards (incentives doc)", "url": "https://github.com/latent-to/cacheon/blob/main/docs/miner-guide/incentives.md"}
+  ]
+ },
+ {
+  "netuid": 21,
+  "whatItDoes": "SN21 (ippcteam) is a verifiable prediction market for Google Ads campaign outcomes. An operator publishes daily baskets of real account changes (budget/bid changes, pauses); miner containers predict P10/P50/P90 outcome distributions at 7/14/28-day horizons; settled results feed standings that drive emissions. Ad-tech buyers get calibrated forecasts of campaign impact.",
+  "hardwareRec": "CPU only: 2 cores/4GB min, 4 cores/8GB+ recommended, 20GB SSD. GPU optional for heavier models. Container must run deterministic, network-isolated, under RAM/time budgets.",
+  "keyRequirements": [
+   "Ship a digest-pinned container: stdin episodes to stdout P10/P50/P90 per horizon (7/14/28d)",
+   "Commit sn21-model:v1:<repo>@sha256:<digest> on chain; the subnet pulls and runs it daily",
+   "Emissions: 1st place 50%, 2nd 25%, 3rd 10% of pot, geometric tail, hard cap 20 earners",
+   "250 weighted predictions to place; full standing at 1,000",
+   "Score: pinball 50%, interval coverage 10%, direction 15%, goal metric; 12-day half-life standing",
+   "Horizon weights: 7d 20%, 14d 35%, 28d 45%"
+  ],
+  "minerJob": "Build a forecasting model, package it as a digest-pinned container implementing the MINER_MODEL_SPEC I/O contract, and commit its digest on chain once. Each day the subnet runs your container (network=none, budgeted) against a fresh basket of Google Ads episodes; it emits probabilistic deltas per horizon. Outcomes settle at day 15/22/36; scores roll into a 12-day half-life standing that a published rank curve maps to chain weights. You never POST daily predictions - the container is the miner.",
+  "minerJobProvide": [
+   "Deterministic container emitting calibrated P10/P50/P90 forecasts",
+   "Calibration (interval coverage), not just point accuracy",
+   "Direction accuracy on the goal metric",
+   "Long-horizon stability (28d carries 45% weight)",
+   "Maintained on-chain digest commitment"
+  ],
+  "top10Strategy": "The rank curve is brutally top-heavy (50/25/10), so top-10 means out-calibrating everyone on quantile accuracy. Start from the docs' training pipeline, backtest against published receipts with verify_day.py, and optimize pinball loss plus coverage before adding complexity. Placement needs 250 weighted predictions and standings decay with a 12-day half-life, so ship early and iterate continuously; a genuinely calibrated simple model beats a fancy miscalibrated one.",
+  "top10Levers": [
+   "Pinball-loss optimization across P10/P50/P90 quantiles",
+   "Interval coverage tuning (10% of score)",
+   "Horizon-aware training (28d weight 45%)",
+   "Early, consistent submission to accumulate standing",
+   "Local score reproduction via verify_day.py receipts"
+  ],
+  "followTopMiners": "Track the public accuracy/receipt feeds and standings (docs/SN21_VERIFYING.md), taostats.io/subnet/21 weights, and repo docs SN21_REWARDS.md and SN21_STAKING.md - the published feeds mirror the operator's scored record.",
+  "confidence": "repo-verified",
+  "sources": [
+   {"label": "SN21-adtao README (daily stream, scoring, emissions, hardware)", "url": "https://github.com/ippcteam/SN21-adtao"}
+  ]
+ },
+ {
+  "netuid": 27,
+  "whatItDoes": "Orion (SILX Labs) is a data-mining subnet: campaigns (currently coding, math, technical, and general-knowledge data for the Quasar model) define what a model needs; miners turn assigned source batches into model-ready datasets and upload signed snapshots. Validators replay a hidden sample to verify, and pay only valid, useful, non-duplicate work. Quasar is the first consumer.",
+  "hardwareRec": "One modest GPU to run the campaign-pinned Quasar-Preview model locally (--devices 0), plus CPU/RAM for data processing. Needs a Chutes API key and Python 3.11-3.13 with uv. Rented cloud GPUs work.",
+  "keyRequirements": [
+   "Python 3.11-3.13 + uv; install locked deps with uv run --frozen",
+   "Chutes API key for the campaign-pinned hosted judge",
+   "Process assigned real batches (not individual records) into model-ready datasets",
+   "Upload one signed dataset snapshot per assignment to the S3 bucket/prefix",
+   "Rewards = verified quality x useful token volume x signed availability history",
+   "Invalid, duplicated, stale, or unverifiable work scores zero"
+  ],
+  "minerJob": "Run the Orion miner CLI: it picks up signed campaigns and assignments, downloads assigned source data, processes it into model-ready dataset batches, compares the hosted judge against the locally-run Quasar-Preview revision (auto-downloaded from Hugging Face and cached), and uploads one signed snapshot. Validators independently replay a hidden sample, score verified quality and useful token volume, multiply by your signed availability history, and set weights. Availability is a direct reward multiplier, so uptime compounds.",
+  "minerJobProvide": [
+   "Model-ready dataset snapshots per campaign assignment",
+   "Signed uploads that survive hidden-sample replay",
+   "Local Quasar-Preview runs matching the pinned revision",
+   "Sustained signed availability history",
+   "Zero duplication or staleness in submissions"
+  ],
+  "top10Strategy": "Rewards are quality x volume x availability, so top-10 means high throughput of verified-good data with near-perfect uptime. Automate the whole loop (assignment pickup, processing, judge comparison, signed upload), invest in processing quality over raw volume, and never let the miner go offline - availability multiplies everything. Deduplicate aggressively: stale or duplicate work pays zero and can poison your record.",
+  "top10Levers": [
+   "Uptime and availability history (direct multiplier)",
+   "Dataset quality that survives hidden-sample replay",
+   "Processing throughput on real assigned batches",
+   "Clean dedup and freshness discipline",
+   "Right-sized GPU so Quasar-Preview inference stays fast"
+  ],
+  "followTopMiners": "Watch taostats.io/subnet/27 weight distribution and per-UID earnings, SILX-LABS/Orion commit cadence (campaign mechanics evolve), and Hugging Face silx-ai Quasar releases since your local model must match the pinned revision.",
+  "confidence": "repo-verified",
+  "sources": [
+   {"label": "Orion README (how it works, rewards, install)", "url": "https://github.com/SILX-LABS/Orion"}
+  ]
+ },
+ {
+  "netuid": 36,
+  "whatItDoes": "Epago is an adversarial arena building the world's frontier open deep-research model. Miners fine-tune the reigning king (genesis: Tongyi-DeepResearch-30B-A3B, a 30.5B MoE with ~3.3B active params) and submit challengers; validators run blind statistical duels on fresh research tasks. Beat the king at 99.9% confidence across a stake-weighted validator quorum and you hold the crown and roughly 90% of emissions.",
+  "hardwareRec": "1x consumer GPU is viable for serving/eval of the 3.3B-active MoE; fine-tuning challengers wants more VRAM (LoRA on 24GB feasible). Status badge says testnet-ready - confirm mainnet mechanics before committing spend.",
+  "keyRequirements": [
+   "Fine-tune the current king and submit a digest-pinned Hugging Face checkpoint via timelock commit-reveal",
+   "Challenger must beat the king at 99.9% LCB over adaptive floor delta=0.05x(1-king accuracy), confirmed twice",
+   "Coronation requires accept verdicts covering >=51% of validator stake",
+   "Gates: config lock, size cap, 3 attempts per hotkey per round, one model per round, escalating loser cooldowns",
+   "Emissions: king 90% falling to 85%, arena (3 most recent ex-kings) 10% rising to 15%",
+   "A copy of the king mathematically cannot beat it by delta"
+  ],
+  "minerJob": "Miners are model trainers: fork/fine-tune the reigning king checkpoint, improve deep-research procedure quality (decompose, search, cross-check, attribute), upload a private digest-pinned checkpoint to HF, and commit through timelock commit-reveal so eval tasks are unknowable pre-reveal. Validators duel king vs challenger on ~1,000 fresh tasks (800 derived from the reveal's block hash, 200 from each validator's private pool). Winner-takes-most: ~90% of emissions to the crowned king, 10-15% to the three most recent ex-kings.",
+  "minerJobProvide": [
+   "Digest-pinned challenger checkpoint (private unless crowned)",
+   "Measurable deep-research quality gain over the king",
+   "Compliant harness (config lock, size cap, no harness-breaking)",
+   "Fresh weights (copied weights are fingerprint-terminal)",
+   "Verified reward data produced as a duel byproduct"
+  ],
+  "top10Strategy": "Top-10 means being one of a handful of serious fine-tuners: mine the published headroom (base model scores 33.9% on Epago's exam; the 34-to-56 gap with perfect retrieval is the target; episodes die at turn/clock/context limits). Build a tight local eval loop mirroring the task style, train procedure skills, and submit only challengers that clear delta in your own testing - losing costs escalating cooldown time.",
+  "top10Levers": [
+   "Fine-tuning skill on the 30B MoE base",
+   "Local eval harness mirroring duel task style",
+   "Attack episode completion failures (turn/clock/context)",
+   "Clean passage of cheap CPU intake gates",
+   "Iteration cadence faster than loser cooldowns reset"
+  ],
+  "followTopMiners": "Track the Epago dashboard (docs/DASHBOARD.md) for the current crown and reign age, taostats.io/subnet/36 weight concentration, and repo/docs updates - status is testnet-ready, so mechanism changes land in the repo first.",
+  "confidence": "repo-verified",
+  "sources": [
+   {"label": "epago README (mechanism, emissions, anti-gaming)", "url": "https://github.com/EpagoFoundation/epago"},
+   {"label": "Epago mining handbook", "url": "https://github.com/EpagoFoundation/epago/blob/main/docs/MINING.md"}
+  ]
+ },
+ {
+  "netuid": 44,
+  "whatItDoes": "TurboVision (Score) is a decentralized intelligence layer for live video and imagery, focused on professional sports. Validators run scoring jobs per Element from a manifest - building ground truth (real or SAM3 pseudo-GT), calling eligible miners' models from the on-chain registry, and paying per-Element winners. Sports and media buyers get structured, decision-ready data from raw footage.",
+  "hardwareRec": "Per platform data: 1x GPU with >=16GB VRAM; RTX 5090, B200, H200, H20, MI300X explicitly excluded - plan 4090/A6000/L40S-class hardware. Workload is computer-vision model serving on video.",
+  "keyRequirements": [
+   "Contribute models that solve Elements in the active Manifest",
+   "Hugging Face account with write access (HUGGINGFACE_USERNAME/API_KEY required)",
+   "Chutes developer account and CHUTES_API_KEY required",
+   "Validators call eligible miners from the on-chain registry and score outputs on live data",
+   "Per-element weight share; winners chosen over each element's eval_window (days)",
+   "Bittensor hotkey folder copied onto every host running TurboVision"
+  ],
+  "minerJob": "Miners publish and serve vision models addressing the Manifest's Elements (detection/tracking-style tasks on sports footage). The validator runner executes scoring jobs on a fixed block cadence (default 300 blocks per element): it fetches a challenge, builds ground truth, calls eligible registered miners, scores outputs, and emits shards to R2; aggregated per-Element scores pick winners whose weight share is normalized and set on-chain. MINER.md was 404 at research time, so follow repo docs and Score's channels for the exact miner contract.",
+  "minerJobProvide": [
+   "Vision model endpoints solving Manifest Elements",
+   "Accurate predictions on live video/imagery windows",
+   "Reliable availability at each element's block cadence",
+   "HF-hosted model artifacts with pinned versions",
+   "Consistent scores across eval windows"
+  ],
+  "top10Strategy": "Score is per-Element winner-take-share: pick Elements where competition is thin and accuracy against the validator's ground-truth pipeline (real GT or SAM3 pseudo-GT) is achievable. Optimize for the actual scoring windows - 300-block cadence, eval_window lookbacks - not generic benchmarks. A newcomer wins by shipping one high-accuracy Element fast and then iterating on the pseudo-GT edge cases validators actually measure.",
+  "top10Levers": [
+   "Element selection (thin-competition targets first)",
+   "Accuracy against SAM3 pseudo-GT quirks",
+   "Low-latency, always-on model endpoints",
+   "Fast response to manifest updates",
+   "Clean Chutes/HF integration (no scoring gaps)"
+  ],
+  "followTopMiners": "Track taostats.io/subnet/44 weight holders, Manifest updates in the repo (elements, weights, blacklist file), and winner snapshots emitted on every set_weights; watch wearescore.com and Score's channels for manifest changes.",
+  "confidence": "derived",
+  "sources": [
+   {"label": "turbovision README (setup, runner/validator flow)", "url": "https://github.com/score-technologies/turbovision"},
+   {"label": "MINER.md (404 at research time - referenced but missing)", "url": "https://github.com/score-technologies/turbovision/blob/main/MINER.md"}
+  ]
+ },
+ {
+  "netuid": 50,
+  "whatItDoes": "Synth (Mode Network) pays miners for synthetic price data: ensembles of 1,000 simulated price paths for crypto, equities, and commodities across 24h and 1h horizons. Validators score ensembles with CRPS against real price moves; emissions split equally across three competitions (Crypto 1h, Crypto 24h, Commodities/Equities 24h). AI agents, options traders, and portfolio managers consume the distributions.",
+  "hardwareRec": "CPU only - path generation is numerical code (reference synth/miner/price_simulation.py). A modest VPS works; response latency matters because predictions are due before start_time and misses get the 90th-percentile penalty.",
+  "keyRequirements": [
+   "Return 1,000 paths before start_time; invalid or late submissions score the 90th-percentile penalty",
+   "Three competitions with equal emission thirds: Crypto 1h (5-min increments, beta 0.3), Crypto 24h, Commodities/Equities 24h",
+   "Match the validator's price feed: Binance spot for BTC/ETH/SOL/XRP, Hyperliquid for the rest",
+   "Capture volatility clustering and fat-tailed distributions",
+   "Rolling average windows: 5 days (1h) and 10 days (24h); softmax allocation on relative rank"
+  ],
+  "minerJob": "Run an always-on daemon answering validator requests every ~15-32 minutes per asset: given (start_time, asset, time_increment, time_horizon, num_simulations), fetch the live price from the same feed the validator scores against, generate 1,000 correlated price paths (calibrated stochastic-vol models capturing volatility clustering and fat tails), and return them before start_time. Per-prompt CRPS scores roll into 5/10-day windows and emissions flow through a softmax on relative rank - small CRPS wins move big emission shares.",
+  "minerJobProvide": [
+   "1,000-path probabilistic forecasts per request, on time",
+   "Calibrated distributions competitive on CRPS",
+   "Realistic dynamics: volatility clustering, fat tails",
+   "Feed-matched spot prices at t0",
+   "Continuous availability across 13 assets and 3 competitions"
+  ],
+  "top10Strategy": "A quant research grind on a CPU base: build a proper stochastic-volatility/correlation simulator, calibrate continuously to the exact feeds, and never miss a deadline - the 90th-percentile penalty is brutal. The softmax is sharpest at beta 0.3 in Crypto 1h, where small calibration wins move large emission shares. Newcomers break top-10 by out-calibrating incumbents on one competition first, then expanding to the others.",
+  "top10Levers": [
+   "Calibrated stochastic-volatility simulation code",
+   "Feed parity with the validator (Binance/Hyperliquid at t0)",
+   "Deadline reliability (penalty avoidance)",
+   "Competition selection (beta 0.3 Crypto 1h is sharpest)",
+   "Daily backtesting against realized moves"
+  ],
+  "followTopMiners": "Track taostats.io/subnet/50 CRPS-ranked UIDs and emission shares, the asset-change table in the README (feeds migrate, assets added often), and the Synth Discord for parameter changes.",
+  "confidence": "repo-verified",
+  "sources": [
+   {"label": "synth-subnet README (task, competitions, scoring)", "url": "https://github.com/mode-network/synth-subnet"},
+   {"label": "Synth API docs", "url": "https://api.synthdata.co/docs"}
+  ]
+ },
+ {
+  "netuid": 56,
+  "whatItDoes": "G.O.D (Gradients on Demand) runs recurring training tournaments: miners submit open-source training code (repo plus exact commit); the validator runs that code on its own GPU trainers, evaluates the resulting models, and advances winners through rounds. Consumers get trained models, and winning repositories are published open-source at gradients-opensource.",
+  "hardwareRec": "CPU only for the miner itself - training executes on validator-controlled GPU trainer infrastructure. You need a dev box to write/test training code plus 0.4-0.7 TAO entry fees per tournament.",
+  "keyRequirements": [
+   "Submit a training repo plus exact commit; the validator validates then runs it on dedicated trainers",
+   "Entry fees: Environment 0.6 TAO, Text 0.7 TAO, Image 0.4 TAO",
+   "Weekly windows Monday 09:00/11:00/13:00 UTC (Environment/Text/Image); minimum 4-5 miners to activate",
+   "Group, knockout/final, and boss/champion rounds; PvP evaluation for Environment tournaments",
+   "Code must be open-source; winning repos are published to gradients-opensource",
+   "Tournament performance feeds validator weight setting"
+  ],
+  "minerJob": "The miner exposes training repositories for tournament tasks. Each week you prepare training code for the task family (instruct/chat/DPO/GRPO for Text, diffusion for Image, environment/PvP for Environment), submit the repo and commit when a tournament opens, pay the fee, and wait while validator-side trainers execute the code and evaluate outputs through rounds. Your between-tournament job is iterating on training code based on last round's evaluations. Weights come from tournament outcomes, not uptime or hardware.",
+  "minerJobProvide": [
+   "Open-source training code per tournament task family",
+   "Validated repo+commit that trains successfully on validator trainers",
+   "Models that win evaluation rounds",
+   "Round-over-round iterative improvements",
+   "Entry fee paid per tournament entered"
+  ],
+  "top10Strategy": "You compete on training-code quality, evaluated blind on validator GPUs - so maximize what generalizes: robust hyperparameters, clean data pipelines, proven recipes (GRPO/DPO variants) that do not overfit one task. Track the api.gradients.io tournament endpoints and study prior winning repos on gradients-opensource to see what wins. Newcomers can place by entering consistently - minimum-miner thresholds mean tournaments sometimes barely fill.",
+  "top10Levers": [
+   "Strong open training recipes (GRPO/DPO, diffusion)",
+   "Code robustness on unknown validator hardware",
+   "Studying winning repos at gradients-opensource",
+   "Consistent weekly entry with budgeted fees",
+   "Round-format awareness (boss/champion rounds)"
+  ],
+  "followTopMiners": "Watch api.gradients.io/v1/tournaments/active and /latest/details for winners, the gradients-opensource org for winning code, taostats.io/subnet/56 weight distribution, and the repo's docs/miner.md guide.",
+  "confidence": "repo-verified",
+  "sources": [
+   {"label": "G.O.D README (tournaments, fees, scheduling)", "url": "https://github.com/gradients-ai/G.O.D"},
+   {"label": "G.O.D miner guide", "url": "https://github.com/gradients-ai/G.O.D/blob/main/docs/miner.md"}
+  ]
+ },
+ {
+  "netuid": 64,
+  "whatItDoes": "Chutes is Bittensor's serverless AI inference marketplace: miners operate GPU worker nodes that run community-deployed 'chutes' (vLLM/Python apps) and earn from real user inference traffic plus subnet emissions. It is the largest consumer-facing inference network; earnings scale with hardware size, uptime, and served demand.",
+  "hardwareRec": "8x H200-class node per platform data. Hard rules: bare metal/dedicated only (no Runpod/Vast), Intel TDX-capable CPUs with TEE via sek8s host-tools, unique static IP with 1:1 port mapping, RAM >= VRAM per GPU. Rental marketplaces banned.",
+  "keyRequirements": [
+   "Bare metal/dedicated server only - Runpod, Vast, and shared hosting will not work",
+   "TEE-exclusive: GPU nodes run inside Intel TDX confidential VMs via sek8s host-tools (chutes/tee=true label)",
+   "Unique static IPs with 1:1 port mapping; no shared or dynamic IPs",
+   "RAM >= VRAM per GPU; TDX-capable Intel CPUs required",
+   "Miner software at rayonlabs/chutes-miner; GraVal GPU verification middleware",
+   "Legacy GraVal-only verification no longer supported - TDX enforced"
+  ],
+  "minerJob": "Operate a GPU worker node joined to the chutes Kubernetes fabric (sek8s) inside an Intel TDX confidential VM. The node pulls and serves chute images (vLLM-based model apps), handles encrypted inference traffic routed by the chutes API, and passes periodic hardware/TEE verification. Income comes from actual per-token inference revenue distributed on top of Yuma emissions - idle nodes earn little, so served demand and model coverage matter as much as raw specs.",
+  "minerJobProvide": [
+   "TEE-attested GPU inference capacity (TDX confidential VM)",
+   "Served user inference across deployed chutes",
+   "High uptime with static-IP reachability",
+   "Authentic hardware attestation (GraVal/TEE checks)",
+   "Model coverage matching user demand"
+  ],
+  "top10Strategy": "Chutes rewards real revenue capture, not spec-sheet presence: run hardware matching high-demand chutes (8x H200-class), keep TDX/sek8s tooling current, and maximize served traffic with strong uptime. Entry cost is high - dedicated TDX-capable servers - so model break-even against per-token rates at api.chutes.ai/pricing before buying. Newcomers rarely beat established fleets on price; target underserved models or regions instead.",
+  "top10Levers": [
+   "Served inference volume (revenue share)",
+   "TDX-capable dedicated hardware at competitive $/GPU-hour",
+   "Uptime and fast chute cold-starts",
+   "Model coverage aligned with demand",
+   "Staying current with sek8s/TEE tooling releases"
+  ],
+  "followTopMiners": "Watch taostats.io/subnet/64 top UIDs and emission concentration, api.chutes.ai/pricing for GPU rates, rayonlabs/chutes-miner and chutesai/sek8s commit cadence, and the Chutes Discord for TEE rollout changes.",
+  "confidence": "repo-verified",
+  "sources": [
+   {"label": "chutes README (SDK, graval, deployment fees)", "url": "https://github.com/chutesai/chutes"},
+   {"label": "chutes miner (rayonlabs)", "url": "https://github.com/rayonlabs/chutes-miner"},
+   {"label": "sek8s host-tools (TEE provisioning)", "url": "https://github.com/chutesai/sek8s/tree/main/host-tools"}
+  ]
+ },
+ {
+  "netuid": 71,
+  "whatItDoes": "Leadpoet is an AI sales-intelligence competition: miners improve an open-source sales-research agent that finds companies matching hidden ICPs with verifiable intent evidence. A daily arena evaluates submitted agents on 20 hidden ICPs; buyers get qualified B2B leads. The champion's code becomes the next public baseline and earns the largest emission share for weeks.",
+  "hardwareRec": "CPU only - agents run via approved brokered APIs (OpenRouter, Scrapingdog, Deepline) inside the sandboxed gateway. Your real costs are API spend (about $4 sourcing limit per ICP) and engineering time.",
+  "keyRequirements": [
+   "Implement harness.run_icp(icp) returning at most 5 companies as JSON with evidence",
+   "Include the verbatim Tyche AGPL-3.0 LICENSE beside harness.py (checked at upload and gateway)",
+   "No direct network access - use the broker protocol with approved operations only",
+   "$4 sourcing limit per ICP across OpenRouter/Scrapingdog/Deepline; $0.80 per qualified company for cost eligibility",
+   "Daily rounds: submit on Day 0 while 20 ICPs stay hidden; evaluation starts ~00:00 UTC Day 1",
+   "Champion must beat the daily baseline by >=0.5 points and keep API credentials funded (else -50% incentive)"
+  ],
+  "minerJob": "Mine by engineering, not serving: fork the leadpoet-sales-agent baseline (lab branch), improve the run_icp research pipeline (search, intent-signal matching, evidence verification), and submit your archive via the CLI to the gateway. Each round runs your agent on 20 hidden ICPs under frozen tool and cost limits; scorers verify fit, intent, evidence, and cost eligibility. The top eligible agent beating the baseline by the margin is promoted as the next baseline; the champion earns 30%, 24%, 18%, 12%, then 6% of emissions across successive 140-epoch reward weeks.",
+  "minerJobProvide": [
+   "Submitted agent archive passing license and schema checks",
+   "Qualified companies with verified intent evidence per ICP",
+   "Cost-eligible sourcing within $4/ICP and $0.80/company limits",
+   "Output schema v6 compliance (intent_details paragraph)",
+   "Beat-baseline performance to claim champion weeks"
+  ],
+  "top10Strategy": "A research-agent engineering race with compounding rewards: the champion keeps earning for weeks (30% down to 6%), so one great agent pays repeatedly. Win by maximizing verified-company yield per sourcing dollar - smart provider routing, tight intent-signal filtering, bulletproof evidence URLs. Check /arena/v1/current for each round's pinned schema and policy markers; small schema mistakes zero companies. A newcomer can beat a public baseline quickly with better search discipline.",
+  "top10Levers": [
+   "Verified-company yield per sourcing dollar",
+   "Schema and policy compliance per round markers",
+   "Provider routing efficiency (OpenRouter/Scrapingdog/Deepline)",
+   "Evidence quality that passes independent judging",
+   "Daily submission cadence (the baseline moves daily)"
+  ],
+  "followTopMiners": "Track the subnet71.com leaderboard and champion reigns, repo round publications (scores and baselines), /arena/v1/current policy markers, taostats.io/subnet/71 emission shares, and the Leadpoet Discord for round changes.",
+  "confidence": "repo-verified",
+  "sources": [
+   {"label": "leadpoet README (daily schedule, limits, rewards)", "url": "https://github.com/leadpoet/leadpoet"},
+   {"label": "Subnet 71 leaderboard", "url": "https://subnet71.com"}
+  ]
+ },
+ {
+  "netuid": 78,
+  "whatItDoes": "UMI (Umi-BitSign) builds ASL-to-English translation on Bittensor via endpoint competition and public model contributions. Endpoint miners serve translation models (may stay private); contributors submit licensed models for promotion into public baselines. Today a temporary bridge pays equal weights to registered miners passing HTTPS health checks - translation scoring is not yet the reward path.",
+  "hardwareRec": "CPU-only accepted: the bridge phase only checks an HTTPS endpoint, and docs include Apple Silicon setup for model work. A lightweight keepalive qualifies now; real model serving needs modest compute, no GPU requirement stated.",
+  "keyRequirements": [
+   "Registered SN78 hotkey with public IP and port announced on chain",
+   "Serve https://ANNOUNCED_IP:PORT/healthz - HTTP 200 within 5 seconds, response <=16KiB, no redirect",
+   "System-trusted TLS certificate valid for the announced IP (self-signed or hostname-only rejected)",
+   "UID must have no validator permit; UID 0 and owner-associated hotkeys excluded",
+   "Shared coldkey/IP/funding groups split equal weight among passing UIDs",
+   "Registration does not guarantee rewards - check the current quote and bridge rules"
+  ],
+  "minerJob": "During the live bridge phase the miner's job is minimal: keep a registered hotkey with an announced IP/port and serve a healthz HTTPS endpoint passing validator health checks (5s response, trusted TLS for that IP). Weights are set per finalized row - every qualifying coldkey/IP/funding group gets equal total weight divided among its passing UIDs, refreshed before each write; failed endpoints get zero for that row. Open-competition intake is live, but accepted_no_weight receipts do not pay; the bridge is the current reward mechanism.",
+  "minerJobProvide": [
+   "Always-on HTTPS /healthz endpoint (5s response, trusted TLS)",
+   "Stable announced IP and port on chain",
+   "Registered hotkey in good standing",
+   "Optional private or contributed ASL-translation model for the future competition"
+  ],
+  "top10Strategy": "Right now this is an ops checklist, not a competition: equal weights mean every passing UID earns the same, so top-10 equals reliable infrastructure - static IP, valid TLS, uptime monitoring - plus multiple qualifying hotkeys within the shared-group rules. Build the real edge for when translation scoring activates: train and serve a strong ASL-to-English model now and follow docs/CURRENT_MINER_OPERATION.md closely, since bridge rules change without a sunset date.",
+  "top10Levers": [
+   "Endpoint uptime and TLS correctness",
+   "Multiple qualifying hotkeys (respect funding-group rules)",
+   "Cheap VPS footprint during the health-check phase",
+   "Early ASL model and competition readiness",
+   "Tracking bridge policy updates (connection guide)"
+  ],
+  "followTopMiners": "Watch taostats.io/subnet/78 weight distribution (bridge rows are equal-share), the repo's docs/miners/connection.md and upgrade manifest (deploy/miner-upgrade/current.json), and api.umi.vision/v1/competition/status for phase changes.",
+  "confidence": "repo-verified",
+  "sources": [
+   {"label": "umi README (phases, competition, requirements)", "url": "https://github.com/Umi-BitSign/umi"},
+   {"label": "What SN78 miners should run now", "url": "https://github.com/Umi-BitSign/umi/blob/main/docs/CURRENT_MINER_OPERATION.md"}
+  ]
+ },
+ {
+  "netuid": 88,
+  "whatItDoes": "Investing (Subnet 88, Mobius Fund) is a decentralized AUM experiment: miners file portfolio strategies - TAO/Alpha staking allocations and US-stock portfolios via MOO/MOC orders - that validators score on return, drawdown, Kelly-derived odds, and more. Retail and institutional investors consume the strategies; the 88 Quant Fund is powered by the subnet.",
+  "hardwareRec": "CPU only. A small Ubuntu 22.04 VPS runs the miner; one machine can host multiple hotkeys/strategies on extra axon ports. Strategy quality matters, not compute. Alpha anti-spam stake: ~192 staked + 64 paid.",
+  "keyRequirements": [
+   "File strategies under Investing/strat/ - auto-submitted; file timestamps drive rebalancing",
+   "Anti-spam stake on coldkey: currently 192 Alpha staked + 64 Alpha paid (subject to adjustment)",
+   "US stocks: MOO/MOC order types only; submissions before 09:28 and 15:50 ET",
+   "Scoring: return, max drawdown (MAR), Kelly-derived odds, LSR, volatility, timeframe",
+   "UID space and emissions partitioned by asset ratio (api.investing88.ai/ratio)",
+   "3-day immunity for new miners; overly similar strategies get reduced scores"
+  ],
+  "minerJob": "Run neurons/miner.py under PM2 and drop strategy files into Investing/strat/ - the miner auto-submits and resubmits on timestamp changes (rebalancing). TAO/Alpha strategies are staking allocations; US-stock strategies are daily MOO/MOC allocations with slippage and transaction fees. Validators compute daily scores (00:00 UTC TAO/Alpha, 06:00 UTC stocks) using return/drawdown/Kelly/LSR metrics and set weights; the dashboard shows raw rankings instantly. Backtest with the bundled bin/simst tool before filing.",
+  "minerJobProvide": [
+   "Portfolio strategy files (TAO/Alpha and US-stock allocations)",
+   "Timely rebalancing within order-type cutoffs",
+   "Positive APR with controlled max drawdown",
+   "Genuinely unique strategies (similarity penalized)",
+   "Coldkey Alpha stake held against spam"
+  ],
+  "top10Strategy": "A strategy-research game with low infrastructure cost: iterate with simst backtests, target high MAR (return over max drawdown) and smooth daily wins (LSR matters), and pick the asset partition with the weakest competition. Multiple hotkeys on one machine are allowed, but near-duplicate strategies get cut. A disciplined low-drawdown newcomer can reach top-10 in months because scoring rewards consistency over size.",
+  "top10Levers": [
+   "High MAR (return/max-drawdown) strategies",
+   "High probability of daily profit (Kelly odds)",
+   "Partition selection by asset-ratio competition",
+   "simst backtesting before every filing",
+   "Multiple hotkeys with genuinely distinct strategies"
+  ],
+  "followTopMiners": "Track db.investing88.ai daily rankings per asset class, taostats.io/subnet/88 emission shares, api.investing88.ai/ratio for partition shifts, and the repo's Investing/strat/ README for scoring updates.",
+  "confidence": "repo-verified",
+  "sources": [
+   {"label": "investing README (mining, scoring, stake rules)", "url": "https://github.com/mobiusfund/investing"},
+   {"label": "Investing dashboard", "url": "https://db.investing88.ai"}
+  ]
+ },
+ {
+  "netuid": 96,
+  "whatItDoes": "Verathos is the verifiable serving layer for Bittensor intelligence: model creators publish exact model identities; independent operators serve them via vLLM endpoints or GGUF mesh pools behind one OpenAI-compatible API. Validators verify execution (Gleipnir proof protocol) and run unpredictable capacity audits; rewards flow to operators by measured utility, latency, throughput, and reliability.",
+  "hardwareRec": "1x RTX 4090 (24GB) per platform data supports current qualified lanes; choose the vLLM endpoint or GGUF mesh worker path. Install via verathos.ai/install.sh; check active network policy for which models/lanes currently earn emissions.",
+  "keyRequirements": [
+   "Serve a registered model identity with a qualified verification profile (Gleipnir protocol)",
+   "vLLM endpoint or GGUF mesh pool (coordinator + CUDA workers) lanes",
+   "Return responses with proof metadata; pass unpredictable integrity and capacity audits",
+   "Emissions gated by active network policy (eligible models/lanes change)",
+   "Rewards from measured utility, latency, throughput, reliability, and verified operation",
+   "HTTPS endpoint setup; multi-endpoint operation supported"
+  ],
+  "minerJob": "Operate inference endpoints: run the guided installer (verathos setup / verathos start), register your endpoint, and serve the currently qualified models with vLLM, or join a GGUF mesh pool as a CUDA worker behind a coordinator. Day-to-day the endpoint answers OpenAI-compatible chat completions with attached verification metadata while validators probe performance and launch surprise execution and capacity audits. Earnings track routed traffic quality - health, score evidence, and audit history decide weights.",
+  "minerJobProvide": [
+   "OpenAI-compatible inference endpoint with verification metadata",
+   "Passing unpredictable Gleipnir execution audits",
+   "Demonstrated capacity under audit",
+   "Low-latency, high-throughput serving",
+   "Model identity served exactly as registered"
+  ],
+  "top10Strategy": "Serving economics plus audit integrity: pick the policy-eligible model your hardware serves best (4090-class for current lanes), tune vLLM for throughput and latency, and never fail an integrity audit - one failure can zero you. Watch docs/economic_model.md and network-policy announcements because lanes change. Newcomers break top-10 by being early on a newly-qualified model lane before incumbents crowd it.",
+  "top10Levers": [
+   "Policy-lane selection (newly qualified models)",
+   "vLLM/GGUF throughput tuning",
+   "Clean audit history (integrity + capacity)",
+   "Multi-endpoint scaling",
+   "Latency and reliability on routed traffic"
+  ],
+  "followTopMiners": "Track taostats.io/subnet/96 top operators, verathos.ai/docs network-policy and economic-model updates, repo release cadence (Gleipnir proof protocol v3), and which model identities are currently emission-eligible.",
+  "confidence": "repo-verified",
+  "sources": [
+   {"label": "verathos README (operators, verification, setup)", "url": "https://github.com/verathos-ai/verathos"},
+   {"label": "Verathos docs", "url": "https://verathos.ai/docs"}
+  ]
+ },
+ {
+  "netuid": 104,
+  "whatItDoes": "Taostatus sources working LLM API access from miners for the BT Arena Protocol's AI agent pipeline. A miner's entire job: keep one working LLM credential (e.g. GPT-4o) available and hand it over encrypted when polled. Rewards track reliability, latency, volume, and model tier. NOTE: README states netuid 501 (testnet) - verify mainnet status before registering.",
+  "hardwareRec": "CPU only - no inference runs locally. The real cost is the contributed LLM API key (the protocol consumes real calls); a $2-5 VPS runs the miner. Pick high-tier models for the tier-weight multiplier.",
+  "keyRequirements": [
+   "Configure one LLM API key for an allowed provider/model and opt in",
+   "Answer only the LLMKeySynapse request: encrypt the key client-side and return it; never contact the protocol directly",
+   "Score = 0.5 reliability + 0.25 latency + 0.25 volume, multiplied by model-tier weight",
+   "A key marked inactive scores 0.0 regardless of tier; quiet windows are skipped, not penalized",
+   "95% of emissions burn to UID 25 (BURN_PERCENTAGE 0.95) - only 5% reaches miners",
+   "README states Netuid 501 (testnet)"
+  ],
+  "minerJob": "Run neurons/miner.py with your hotkey; it listens for the single LLMKeySynapse request and replies with your client-side-encrypted API key (or declines cleanly if not opted in or the model does not match). The validator relays keys to the BT Arena protocol backend, which draws on the key operationally and reports usage (success/failure counts, latency, volume). Those reports become your score via an exponential moving average - liveness alone earns nothing; only real verified usage accumulates weight. Keep the key funded, high-tier, and heavily used.",
+  "minerJobProvide": [
+   "One working, funded LLM API credential on an allowed model",
+   "Encrypted key delivery on every validator poll",
+   "Sustained real usage with high success rate",
+   "Fast response latency",
+   "High-tier model selection (tier multiplier)"
+  ],
+  "top10Strategy": "The 95% burn makes absolute earnings small - treat this as yield-on-an-API-key, not a mining business. Win the 5% pool by contributing a top-tier model (tier x1.0) that the protocol actually uses heavily at near-100% success. Read docs/HOW_IT_WORKS.md for the scoring formula, keep provider credit topped up (an exhausted or revoked key scores zero instantly), and confirm mainnet/netuid status before committing.",
+  "top10Levers": [
+   "Model tier selection (GPT-4o-class x1.0)",
+   "Reliability: keep the key valid and funded",
+   "Volume: ensure the protocol actually uses your key",
+   "Low decline rate on validator polls",
+   "Understanding the 95% burn economics before committing"
+  ],
+  "followTopMiners": "Watch taostats.io/subnet/104 weights vs the burn share, docs/HOW_IT_WORKS.md worked examples, and repo commits for allowed-model list changes - the protocol's usage reports drive everything.",
+  "confidence": "repo-verified",
+  "sources": [
+   {"label": "taostatus-subnet README (roles, incentive, burn)", "url": "https://github.com/taostatus/taostatus-subnet"},
+   {"label": "How it works (scoring walkthrough)", "url": "https://github.com/taostatus/taostatus-subnet/blob/main/docs/HOW_IT_WORKS.md"}
+  ]
+ },
+ {
+  "netuid": 114,
+  "whatItDoes": "SOMA (Dendrite) is a competition subnet for context compression: miners build algorithms and models that shrink AI-agent context (history, tool outputs, files) while preserving task success. Validators run real agent workloads with your compression enabled, scoring task quality and weighted token consumption against uncompressed baselines. Buyers: anyone running context-heavy agents.",
+  "hardwareRec": "Unspecified. Algorithmic compression is CPU-only; hybrid model-based approaches may want a modest GPU. The platform/validators execute workloads (their floor: 4 cores, 16GB RAM, 500GB SSD). You need a registered hotkey on netuid 114.",
+  "keyRequirements": [
+   "Build a compression solution compatible with the active competition rules (miner/README_prompting.md)",
+   "Upload submissions to the SOMA platform, tied to your registered hotkey",
+   "Scored on task performance plus weighted token consumption vs uncompressed baseline",
+   "Quality preservation matters - compression that breaks previously-passing tasks fails",
+   "Consistency across tasks and repeated runs is scored",
+   "Cycle: submission window -> screening/qualification -> evaluation"
+  ],
+  "minerJob": "Develop and upload compression solutions during submission windows: algorithmic (summarization, selection, structured state), model-based, or hybrids. The platform associates submissions with your hotkey, screens and qualifies them, then validators execute standardized agent workloads with your compression active - measuring whether agents still complete tasks while consuming fewer weighted tokens (input/cached/output priced differently). Aggregated rankings feed subnet weights. Between cycles you iterate on your weakest measured signal.",
+  "minerJobProvide": [
+   "Compression solution compatible with the active competition",
+   "Token savings without task failures",
+   "Stable results across repeated runs",
+   "Platform-registered submission per hotkey",
+   "Iterative improvements across competition cycles"
+  ],
+  "top10Strategy": "The objective is maximum useful compression, not maximum ratio. Study which token categories are weighted (cached input vs fresh) and design for real economic savings while keeping task success at baseline. Ship early in each submission window, use screening feedback, and iterate - quality preservation is where most entries die. Newcomers with strong summarization/prompt engineering can beat heavier model-based approaches.",
+  "top10Levers": [
+   "Task-success preservation at high compression ratios",
+   "Weighted-token optimization (cached vs fresh input)",
+   "Fast iteration across competition cycles",
+   "Screening/qualification pass rate",
+   "Consistency across repeated evaluations"
+  ],
+  "followTopMiners": "Track the SOMA platform dashboard and competition announcements, taostats.io/subnet/114 weight distribution, repo commit cadence (active rules in miner/README_prompting.md), and validator docs for workload changes.",
+  "confidence": "repo-verified",
+  "sources": [
+   {"label": "SOMA README (overview, evaluation, cycle)", "url": "https://github.com/DendriteHQ/SOMA"},
+   {"label": "SOMA miner setup guide", "url": "https://github.com/DendriteHQ/SOMA/blob/main/docs/miner/miner-setup.md"}
+  ]
+ },
+ {
+  "netuid": 120,
+  "whatItDoes": "Affine (subnet 120) runs a synchronous inference-verification training loop: a checkpoint publishes, miners produce private training batches (math reasoning), artifacts freeze for public audit, verified batches score, and the next checkpoint trains. It is a verifiable training economy - miners sell correctness-attested training compute (TOPLOC-verified batches).",
+  "hardwareRec": "2x H100 80GB or 2x RTX PRO 6000 96GB (miner slots) per platform data. Current qualified inference profile: H200/SM90, FP32 eager, TF32 disabled, torch 2.14.0 + transformers 5.14.1 + toploc 0.1.6. Manifest pins are mandatory.",
+  "keyRequirements": [
+   "Signed Ed25519 activation for your subnet-120 hotkey (no operator whitelist)",
+   "Run signed approved source only (affine.io/mining.json authority; subnet.source_bootstrap)",
+   "MATH contract: K=1/L=1, at most 3 batches per UID, at most 16 prescribed attempts per task",
+   "Upload selected-token logprobs plus TOPLOC (not full-vocabulary arrays); audits check sampler consistency",
+   "Match the pinned numerical profile exactly - other hardware/runtime profiles do not qualify",
+   "Current pilot is nonpayable (no new-mechanism chain weights) - verify payout status before scaling"
+  ],
+  "minerJob": "Run the signed-source miner: activate your Ed25519 identity, bootstrap the approved source pinned at affine.io/mining.json, and generate math training batches under the epoch protocol (checkpoint -> private batches -> freeze/public audit -> verify/score -> train). Batches carry selected-token log probabilities and TOPLOC attestations; audits recheck prescribed sampler consistency, and cheap-eligible unaudited submissions feed training independently. Payout aggregation excludes rejected records. Follow docs/MINER_QUICKSTART.md and the live manifest - the contract pins hardware, packages, and attempt ceilings.",
+  "minerJobProvide": [
+   "Verified math training batches (TOPLOC-attested)",
+   "Selected-token logprob uploads within contract limits",
+   "Signed-source execution exactly per manifest",
+   "Sampler-consistent prescribed attempts",
+   "Epoch-to-epoch participation with valid activations"
+  ],
+  "top10Strategy": "Strict compliance is the whole game: the manifest pins exact GPU profile, package versions, and attempt limits, and audits reject anything off-spec - most entrants fail on setup, not skill. Get the signed pipeline running cleanly first, then optimize batch quality within the 16-attempt ceiling. Watch STATE.md and the evidence checks for what operators actually accept, and confirm real payouts before scaling since the pilot is nonpayable.",
+  "top10Levers": [
+   "Exact manifest compliance (hardware/packages/numerics)",
+   "Batch quality within prescribed attempt limits",
+   "TOPLOC plus sampler consistency passing audits",
+   "Fast epoch turnaround (3 batches per UID)",
+   "Monitoring STATE.md and operator evidence channels"
+  ],
+  "followTopMiners": "Watch affine.io/llms.txt and the signed OPEN manifest, repo STATE.md plus ops.check_epoch_evidence outputs, taostats.io/subnet/120 weights, and MINER_QUICKSTART.md changes - the contract is versioned aggressively.",
+  "confidence": "repo-verified",
+  "sources": [
+   {"label": "affine README (epoch loop, evidence checks)", "url": "https://github.com/AffineFoundation/affine"},
+   {"label": "Affine MATH miner quickstart", "url": "https://github.com/AffineFoundation/affine/blob/main/docs/MINER_QUICKSTART.md"}
+  ]
+ },
+ {
+  "netuid": 127,
+  "whatItDoes": "Astrid (subnet 127) runs trading competitions on its Arena platform: miners trade, validators independently replay every trade to compute PnL rankings, and on-chain weights pay the top-3 of each completed competition 60/30/10 of that competition's emission share (the rest burns). This repo is the validator daemon only; miners participate via the Astrid Arena (arena-api.astrid.global).",
+  "hardwareRec": "CPU only - the miner is a trader on the Arena platform; the validator does the heavy trade-replay compute. Watch the trade-activity and execution-run correlation eligibility rules, which disqualify sloppy execution.",
+  "keyRequirements": [
+   "Compete in Astrid Arena trading competitions; completed ones enter a delayed-emissions payout window",
+   "Top-3 eligible participants by replayed PnL earn 60/30/10 of EMISSIONS_PERCENT per competition",
+   "The remainder of each competition's allocation burns (UID 0)",
+   "Eligibility: trade activity plus execution-run correlation (disqualified participants filtered)",
+   "The validator replays all trades independently - reported PnL must match replayed PnL"
+  ],
+  "minerJob": "Miners register on the Astrid Arena platform and compete in periodic trading competitions; all trades and execution runs are recorded via the public Arena API. After a competition completes and enters its payout window, validators fetch every trade, run eligibility checks (activity plus execution correlation), replay them to compute true PnL, and rank the top three - weights go on-chain 60/30/10. Your day-to-day is building a trading edge on the Arena; rewards are strictly competition-outcome-based.",
+  "minerJobProvide": [
+   "Competition trades with matching execution runs",
+   "Positive replayed PnL versus other participants",
+   "Eligibility compliance (activity + correlation)",
+   "Top-3 finishes per competition to earn"
+  ],
+  "top10Strategy": "Winner-take-most per competition (60/30/10) means you need podium finishes, not median performance. Study which competitions have thin fields, manage risk so replayed PnL stays clean - disqualification wipes you - and iterate strategy per market. Because validators replay everything, execution integrity matters as much as alpha. Newcomers should paper-trade the Arena first and enter competitions with the fewest strong regulars.",
+  "top10Levers": [
+   "Competition selection (field strength varies)",
+   "Clean execution runs passing correlation checks",
+   "Risk-managed strategies that avoid disqualification",
+   "PnL consistency to reach top-3 repeatedly",
+   "Tracking platform and eligibility rule changes"
+  ],
+  "followTopMiners": "Track the Arena's completed-competitions endpoint and leaderboards (arena-api.astrid.global), taostats.io/subnet/127 weight flows after each payout window, and astridintelligence/sn-127 commits - emission parameters are hardcoded in src/core/arena/constants.ts.",
+  "confidence": "derived",
+  "sources": [
+   {"label": "sn-127 validator README (replay, weights, burn)", "url": "https://github.com/astridintelligence/sn-127"},
+   {"label": "Astrid Intelligence site (corporate, miner details thin)", "url": "https://astrid.global"}
+  ]
+ }
+]

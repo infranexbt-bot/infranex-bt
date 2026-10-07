@@ -1,0 +1,565 @@
+[
+  {
+    "netuid": 6,
+    "whatItDoes": "Numinous is a forecasting protocol that aggregates AI agents into superhuman LLM forecasters. Miners submit Python forecasting agents; validators execute them in Docker sandboxes and score predictions against the market's own price seven days later. Prediction markets and trading desks are the end users; agents that beat the market baseline earn emissions.",
+    "hardwareRec": "CPU only per repo (agent code <=2MB, 240s timeout); the real cost is LLM inference plus news/OSINT API calls through the validator gateway, paid by the miner. No GPU; API spend is the actual bill.",
+    "keyRequirements": [
+      "Registered hotkey; agent is a Python function agent_main(event_data) -> probability, code limited to 2MB",
+      "Execution must complete within 240 seconds; deterministic behavior required (no dynamic timestamps or random seeds)",
+      "Code submitted before 00:00 UTC activates next day; updates allowed at most once every 3 days",
+      "Below 85% event coverage you earn nothing",
+      "Miner pays for its own inference (OpenAI/OpenRouter) and scored news/OSINT signals via the gateway"
+    ],
+    "minerJob": "There is no long-running axon to babysit: you develop and upload a Python agent. Validators pull the code into sandboxes, call it once per live event per interval with context plus your private memory blob, and it returns a probability. Agents reach reasoning models and Numinous Signals/Indicia through a signing gateway; usage is billed to the miner. At resolution, S = (prediction - target)^2 - (market_price - target)^2 is scored against the market price 7 days later; rewards split by how far ahead of the field you finish.",
+    "minerJobProvide": [
+      "Per-event probability forecasts (0-1) from sandboxed agent code",
+      "Private memory blob (<=32768 chars) carried between intervals",
+      "Coverage across at least 85% of live events",
+      "Deterministic, reproducible agent behavior across validators"
+    ],
+    "top10Strategy": "Winning means beating the market baseline, not just other miners: matching the market price scores exactly 0. Edge comes from better information (scored news/OSINT), calibrated reasoning models, and relentless coverage. Use the 3-day update cadence deliberately and keep API costs low since you pay them. Newcomers break in by specializing in event categories where market consensus is weak.",
+    "top10Levers": [
+      "Beat the market-price baseline (positive score requires it)",
+      "Maintain >=85% event coverage to avoid earning zero",
+      "Deterministic prompts for cross-validator caching consistency",
+      "Cheaper/stronger inference routing via the OpenAI/OpenRouter gateway",
+      "Specialize in weak-consensus event categories",
+      "Exploit the 3-day code update cadence for iteration"
+    ],
+    "followTopMiners": "Track taostats.io/subnets/6 chart and the public Numinous Hex dashboard; watch repo commit cadence (docs/scoring-system.md changes) and the Numinous Discord. Agent code is visible to the protocol, so study what top agents do.",
+    "confidence": "repo-verified",
+    "sources": [
+      {"label": "Numinous repo README (master)", "url": "https://raw.githubusercontent.com/numinouslabs/numinous/master/README.md"}
+    ]
+  },
+  {
+    "netuid": 12,
+    "whatItDoes": "ComputeHorde sells verified decentralized GPU compute to validators of other Bittensor subnets, replacing centralized clouds. Those validators submit dockerized jobs; miners run GPU executor containers that execute them and return results. Rewards track completed job runtime: validator-paid executor-seconds convert into scores, with mechanisms pushing work toward organic (cross-subnet) jobs.",
+    "hardwareRec": "A6000 is the only supported hardware class (A100 next per repo); >=500GB shared disk for Docker images and job data. Multiple executors per UID scale earnings. Rental GPUs run it but a stable dedicated box is typical; input notes A100.",
+    "keyRequirements": [
+      "NVIDIA GPU matching the A6000 hardware class (A100 planned); Ubuntu + Docker + NVIDIA drivers",
+      ">=500GB shared disk to reliably handle Docker images and job data in /tmp",
+      "Stock miner image manages comms; competitive edge is a custom ExecutorManager running multiple executors",
+      "Optional collateral deposit to become eligible for organic jobs (slashing risk)",
+      "Publicly reachable miner endpoint; optional DDoS shield container"
+    ],
+    "minerJob": "Run the stock miner (install_miner.sh) plus executor containers that accept dockerized jobs from validators, e.g. LLM data/benchmark jobs from other subnets. Each block mints executor-seconds per miner-validator pair; validators spend allowance blocks covering job runtime and score miners globally on paid runtime seconds, folded by coldkey with a 10% dancing boost for hotkey variance. Commit-reveal weights and a trusted-miner cross-validator keep work honest.",
+    "minerJobProvide": [
+      "Dockerized GPU job execution for other subnets' validators",
+      "Verified honest results (slashing-eligible when collateral is posted)",
+      "Multiple executors matched to declared hardware class",
+      "Low-latency job pickup and result return"
+    ],
+    "top10Strategy": "Emissions track completed job runtime, not GPU specs alone. Winners run many executors via a custom ExecutorManager, keep availability near-perfect, preload likely job Docker images to cut startup, and post collateral to win organic jobs. Match the hardware class weights the network currently demands. Newcomers: one solid A6000-class executor online 24/7 beats flashy hardware that keeps dropping.",
+    "top10Levers": [
+      "Custom ExecutorManager scaling many executors per UID",
+      "Collateral deposits unlocking paid organic jobs",
+      "Preloading DYNAMIC_PRELOAD_DOCKER_JOB_IMAGES to cut job latency",
+      "Dancing bonus: hotkey variance adds a 10% coldkey boost",
+      "Uptime plus DDoS shield for reliability",
+      "Matching in-demand hardware class weights"
+    ],
+    "followTopMiners": "Watch the Subnet 12 Grafana health monitor (grafana.bactensor.io) and taostats.io/subnets/12 for executor counts and score spread; track repo releases and the ComputeHorde Discord channel for class/collateral changes.",
+    "confidence": "repo-verified",
+    "sources": [
+      {"label": "ComputeHorde repo README (master)", "url": "https://raw.githubusercontent.com/backend-developers-ltd/ComputeHorde/master/README.md"}
+    ]
+  },
+  {
+    "netuid": 19,
+    "whatItDoes": "Blockmachine provides decentralized RPC and archive-node infrastructure for Ethereum, Bittensor, and BSC. Miners run real chain nodes behind an authenticated nginx gateway; customer RPC traffic is routed to eligible nodes by quality score and price, and proof-emitting responses are verified with Merkle state proofs. DApps and bots buy the RPC; heavy-traffic nodes earn the incentive.",
+    "hardwareRec": "No GPU. Run full or archive chain nodes (Ethereum reth recommended, BSC geth/reth, Bittensor subtensor); archive nodes need multi-TB NVMe and strong CPU/RAM. Capacity burst tests score hardware speed, so fast disk/CPU directly wins routed traffic.",
+    "keyRequirements": [
+      "Chain node for a supported chain with honest archive/full declaration (claiming archive without archive state fails)",
+      "Endpoint reachable via WebSocket/JSON-RPC with TLS on 80/443; stay within 90s of chain tip (archive nodes get 10 min)",
+      "Blockmachine CLI registration with a Bittensor miner hotkey (testnet netuid 417 first)",
+      "Pass continuous randomized eligibility tests; burst capacity tests set a 0-1.0 routing multiplier",
+      "Optional capacity helper at /capacity-test for archive nodes (removes network-latency penalty)"
+    ],
+    "minerJob": "You provision and operate your own node (syncing, disk sizing, staying at tip), front it with the gateway Docker stack, and register the endpoint plus a USD-per-compute-unit price via the bm CLI. The protocol gateway routes customer RPC by quality and price; eligibility is retested regularly with randomly timed probes, and a burst test scores your hardware against the fastest node on the chain, scaling your routing weight. Per-chain base incentive: 90% to archive nodes, 10% to full nodes.",
+    "minerJobProvide": [
+      "Live JSON-RPC/WebSocket traffic served at the chain tip",
+      "Verifiable archive queries (eth_getProof-style Merkle proofs)",
+      "Honest node-type depth (full vs archive promises kept)",
+      "Burst-tested low-latency capacity driving routing multiplier"
+    ],
+    "top10Strategy": "Within the archive share, only the top-5 archive nodes by served traffic per chain split that chain's archive incentive each epoch - so winning traffic is everything: reth archive on fast NVMe, capacity helper running, aggressive pricing, tip-lag near zero. Serve multiple chains to diversify. Newcomers: pick chains with five or fewer eligible archive nodes, where every node shares the archive incentive.",
+    "top10Levers": [
+      "Top-5 archive nodes by traffic share that chain's archive incentive",
+      "Capacity helper removes network-distance penalty in scoring",
+      "Fast NVMe and strong CPU for the burst-test multiplier",
+      "Aggressive per-CU pricing to win routed traffic",
+      "Multi-chain operation (eth/bsc/tao) diversifies incentive pools",
+      "Tip-lag discipline (90s full, 10min archive)"
+    ],
+    "followTopMiners": "Check the blockmachine.io/miners dashboard for per-chain node rankings and traffic shares; monitor taostat/blockmachine-miner releases and the whitepaper/technology pages for incentive-rule changes.",
+    "confidence": "repo-verified",
+    "sources": [
+      {"label": "Blockmachine main repo README (master)", "url": "https://raw.githubusercontent.com/taostat/blockmachine/master/README.md"},
+      {"label": "Blockmachine miner README (master)", "url": "https://raw.githubusercontent.com/taostat/blockmachine-miner/master/README.md"}
+    ]
+  },
+  {
+    "netuid": 25,
+    "whatItDoes": "UR is a decentralized privacy network: network operators sell VPN/proxy traffic carried by independent providers. Validators walk server-assigned provider routes measuring liveness and latency; Yuma consensus turns those measurements into emission. Demand is revenue-backed - operators deposit alpha sized to real usage, which funds pool payouts to providers via Merkle claims.",
+    "hardwareRec": "CPU only; this is a bandwidth play. Providers run the UR client on residential/VPS hosts carrying ingress/egress traffic with stable connections and routable IPs. Fleets holding many distinct routable /29 (IPv4) or /48 (IPv6) prefixes can reach the head tier.",
+    "keyRequirements": [
+      "Register as a provider via a network operator (ur.xyz); pool tier needs no UID or burn",
+      "Run provider software carrying ingress/egress traffic under a registered client_id",
+      "Survive validator probes: Wilson-score liveness interval and latency p95/p99 (EMA-smoothed)",
+      "Head tier requires burn-registered UID, manifest commitment, dual-signed client bindings; 200-fleet cap",
+      "7-day settlement epochs; pool payouts claimed with Merkle proofs from the vault"
+    ],
+    "minerJob": "Run the provider miner pointed at an operator's API; it carries VPN ingress/egress for that privacy network's customers. Each tempo validators measure your hops' liveness and latency; pools are weighted implied_usage x quality (clamped 0.75-1.0) and paid through Merkle claims, while top fleets ranked by routable-IP breadth get native Yuma payments straight to their hotkey. A client earns in exactly one tier at a time.",
+    "minerJobProvide": [
+      "Real VPN/proxy ingress and egress bandwidth for privacy customers",
+      "Verified liveness (Wilson interval) and low p95/p99 latency on probed hops",
+      "Distinct routable egress prefixes for head-tier fleet breadth",
+      "Correct client_id attribution for Merkle pool claims"
+    ],
+    "top10Strategy": "The pool tier is the on-ramp: quality is clamped so pools differ at most 1.33x, meaning uptime and latency dominate - join a strong operator and run stable bandwidth. The head pays natively but needs broad routable IP breadth, effectively for operators with many distinct /29s. Note the mainnet bootstrap weights 90% to owner hotkeys initially, so positioning with operators matters more than solo residential lines today.",
+    "top10Levers": [
+      "Provider liveness/latency quality (Q clamp 0.75-1.0)",
+      "Routable-IP breadth (distinct /29 or /48 prefix hashes) for head fleets",
+      "Choosing high-deposit operators (implied_usage weights pools)",
+      "Early burn-registered head fleet UID (limited head slots)",
+      "Multi-operator mining via provider provide --all-operators",
+      "Avoiding tier conflicts (client earns in exactly one tier)"
+    ],
+    "followTopMiners": "Watch ur.xyz/operators.yml and each epoch's public payout artifacts; track taostats.io/subnets/25 weights, mainnet/MAINNET.md bootstrap updates in-repo, and WHITEPAPER/VALIDATOR.md protocol changes.",
+    "confidence": "repo-verified",
+    "sources": [
+      {"label": "UR Subnet repo README (master)", "url": "https://raw.githubusercontent.com/urfoundation/sn/master/README.md"}
+    ]
+  },
+  {
+    "netuid": 33,
+    "whatItDoes": "ReadyAI is a decentralized data-structuring pipeline: miners use LLM APIs to turn raw conversations, webpages, surveys, and documents into structured tags, entities, and embeddings for vector databases. Validators fully tag the same data as ground truth and score miner tags by embedding cosine distance. Businesses buy the structured output, published toward HuggingFace datasets.",
+    "hardwareRec": "CPU only: 8GB+ RAM, 20GB+ disk. No local GPU - annotation runs through OpenAI (GPT-4o default), Anthropic, groq, OpenRouter or Chutes APIs at the miner's cost. RunPod cheap CPU instances are explicitly supported with a launch template.",
+    "keyRequirements": [
+      "OpenAI API key (GPT-4o default) plus a Weights & Biases key required",
+      "CPU with 8GB+ RAM and 20GB+ disk; axon port must be reachable",
+      "Registered hotkey; Dockerized deploy or Runpod CPU template both supported",
+      "Tag quality scored by cosine distance to validator ground-truth tags",
+      "LLM API spend is miner-billed, so margin management is core"
+    ],
+    "minerJob": "Run neurons/miner.py (or the Runpod template): the axon receives TaskBundles - conversation windows, webpage markdown, surveys, skill documents - calls your configured LLM to emit topical tags plus embeddings, and returns them. Validators tag the same windows as ground truth and score each miner tag by cosine distance to the truth neighborhood; selected miners per window earn, feeding EMA and on-chain weights. Task types include named-entity extraction and skill generation.",
+    "minerJobProvide": [
+      "Flat tag lists plus embeddings for conversation/webpage/survey windows",
+      "Normalized named-entity extractions from documents and transcripts",
+      "LLM skill-generation documents for skill_coverage_evaluation tasks",
+      "Cheap, accurate GPT-4o-class annotation at scale"
+    ],
+    "top10Strategy": "This is a margin game: reward minus API cost. Winners tune prompts so tag style matches the validator's ground-truth conventions, prune redundant tags, and pick the cheapest capable model per task type. Only a few miners are selected per window, so responsiveness and uptime count. Newcomers: replicate the reference miner first, then optimize prompt and model cost per tag until margin is positive.",
+    "top10Levers": [
+      "Prompt engineering aligned with ground-truth tagging style",
+      "Model cost optimization (OpenRouter/Chutes/deepseek overrides)",
+      "Embedding closeness to validator ground truth",
+      "Uptime - only selected miners earn per window",
+      "Mastering the newest task type (skill_coverage_evaluation)",
+      "Runpod CPU template for cheap hosting"
+    ],
+    "followTopMiners": "Track taostats.io/subnets/33 top UIDs and reward spread, repo commit cadence (new task types shift scoring), and the Bittensor Discord subnet-33 channel.",
+    "confidence": "repo-verified",
+    "sources": [
+      {"label": "ReadyAI / Conversation Genome Project README (master)", "url": "https://raw.githubusercontent.com/afterpartyai/bittensor-conversation-genome-project/master/README.md"}
+    ]
+  },
+  {
+    "netuid": 41,
+    "whatItDoes": "Almanac runs two forecasting incentive mechanisms: Almanac Market, where miners trade prediction markets and are scored on ROI plus qualified volume; and Almanac Forecasting, where miners submit agents whose event predictions validators score on accuracy and calibration. Validators blend both scores into on-chain weights. Quant traders and researchers monetize forecasting edge.",
+    "hardwareRec": "CPU only. Market track needs a funded Polymarket proxy wallet plus dApp or API client; forecasting track needs a small box for the CLI (agents run on validator sandboxes; inference via the central gateway with portal credits). No GPU.",
+    "keyRequirements": [
+      "Market track: Almanac Market account, funded proxy wallet, on-chain metadata (first 5 chars of EOA) linked to your UID",
+      "1% fee collected on every buy trade funds the daily reward pool",
+      "Forecasting track: portal.almnc.ai account with credits plus a GATEWAY_API_KEY",
+      "Agent subclasses BaseAgent implementing predict(ctx) -> AgentResult with a valid beliefPath",
+      "Registered miner UID on netuid 41 (testnet 172)"
+    ],
+    "minerJob": "Market miners trade via the dApp or the signed CLOB API client; validators ingest trade history and score ROI/qualified volume over a rolling window. Forecasting miners build Python agents and submit via miner/cli.py; validators execute them in locked Docker sandboxes, post predictions and reasoning traces to the portal, and score sustained accuracy, calibrated confidence, and beating the market. Blended scores become weights.",
+    "minerJobProvide": [
+      "Profitable prediction-market trades (ROI plus qualified volume)",
+      "Calibrated event-probability forecasts from submitted agents",
+      "Reasoning-trace metadata for Almanac's data pipeline",
+      "On-chain metadata linking UID to trading EOA"
+    ],
+    "top10Strategy": "Market scoring favors sustained edge, substantial volume, and beating the competition - treat the 1% buy fee as a cost of doing business and only trade where you genuinely have edge; the API client enables automation. Forecasting rewards calibration over bravado. Newcomers can start on the market track today with zero infrastructure, then add a forecasting agent; niche markets with weaker traders are the entry.",
+    "top10Levers": [
+      "Sustained trading edge over the rolling scoring window",
+      "Automated CLOB trading via the API client (multi-wallet support)",
+      "Calibrated agent forecasts that beat the market",
+      "Portal credits and gateway key setup discipline",
+      "Targeting niche prediction markets with weaker competition",
+      "Watching public validator logs (wandb.ai/corvx/almanac-vali-logs)"
+    ],
+    "followTopMiners": "Track taostats.io/subnets/41 weights, the beta.almanac.market leaderboards, public validator telemetry at wandb.ai/corvx/almanac-vali-logs, and Discord channel #almanac-41; watch repo commits for scoring changes.",
+    "confidence": "repo-verified",
+    "sources": [
+      {"label": "Almanac repo README (master)", "url": "https://raw.githubusercontent.com/corvxai/almanac/master/README.md"}
+    ]
+  },
+  {
+    "netuid": 48,
+    "whatItDoes": "SN48 sells access to real quantum computers through Bittensor. Users broadcast OpenQASM circuits; validators route them to miners who own or operate physical QPUs, and results are broadcast back (public free tier). Emissions currently run about 90% burn and 10% to compute providers, forwarded to Open Quantum and paid out to providers in USD.",
+    "hardwareRec": "Not GPU mineable: miners must own or operate a gate-based quantum computer executing OpenQASM 2.0/3.0, or hold a documented direct partnership with a QPU owner. Onboarding is manual via support@openquantum.com. Ordinary GPU/CPU miners cannot participate.",
+    "keyRequirements": [
+      "Ownership/operation of a gate-based QPU executing OpenQASM 2.0/3.0, or documented partnership with an owner/operator",
+      "Rigorous manual onboarding through support@openquantum.com",
+      "Free-tier executions are broadcast publicly to validators and miners",
+      "Emission model: ~90% burn / 10% to providers, routed via an Open Quantum-controlled key, paid in USD",
+      "Premium tiers: priority execution, extra shots, private off-chain execution"
+    ],
+    "minerJob": "Miners are QPU operators: they receive validated quantum circuit jobs, execute them on their quantum hardware, and broadcast results back through the network for verification. Validators check execution honesty; all incentive is forwarded to a key controlled by the Open Quantum operators, who sell alpha and pay quantum compute providers in USD rather than miners holding alpha directly.",
+    "minerJobProvide": [
+      "Gate-based quantum circuit execution (OpenQASM 2/3)",
+      "Verified shot results broadcast back to the network",
+      "Queue capacity for free-tier and premium (priority/shots/private) jobs",
+      "Execution metadata tagged to each broadcast circuit"
+    ],
+    "top10Strategy": "Supply is deliberately tiny: the few QPU operators capture the 10% non-burned share, so there is no incremental path for GPU miners. The only play is controlling quantum hardware or a documented partnership. Otherwise watch from the side - the roadmap's proof-of-compute and decentralized HPC simulation endpoints could eventually open classical miner slots.",
+    "top10Levers": [
+      "Owning or operating a physical QPU (the only real lever)",
+      "Documented direct partnership with a QPU owner/operator",
+      "Early onboarding contact (support@openquantum.com)",
+      "Roadmap watch: HPC simulation endpoints may open future classical mining",
+      "Premium service quality (priority/private execution) for USD revenue"
+    ],
+    "followTopMiners": "Few miners exist - check taostats.io/subnets/48 for the provider set and emission split, plus qbittensor-labs/quantum-compute commits and the Open Quantum site for onboarding changes.",
+    "confidence": "repo-verified",
+    "sources": [
+      {"label": "Quantum Compute repo README (master)", "url": "https://raw.githubusercontent.com/qbittensor-labs/quantum-compute/master/README.md"}
+    ]
+  },
+  {
+    "netuid": 54,
+    "whatItDoes": "Yanez generates identity-preserving face image variations used to test and improve fraud detection, KYC, and deepfake/biometric verification systems. Miners run diffusion models to produce pose, lighting, expression, background, and screen-replay edits from validator seed faces; validators check identity preservation and quality. Financial institutions and IDV vendors consume the adversarial dataset.",
+    "hardwareRec": "README overrides the CPU-only metadata: image generation is the only scored task and requires a GPU with 8GB+ VRAM (CUDA or Apple MPS), 16-32GB RAM, 80GB+ disk for FLUX diffusion weights. No rental ban documented; open port 8091 needed.",
+    "keyRequirements": [
+      "GPU with 8GB+ VRAM (NVIDIA CUDA or Apple Silicon MPS) - required to earn",
+      "Hugging Face account and API token for diffusion model access",
+      "16GB+ RAM (32GB recommended), 80GB+ free disk, open port 8091",
+      "Produce identity-preserving variations: pose_edit, lighting_edit, expression_edit, background_edit, screen_replay",
+      "Results encrypted and uploaded to S3 with signed submission references"
+    ],
+    "minerJob": "Run neurons/miner.py under pm2: the miner receives base face images plus variation requirements from validators, generates the requested edits with the local FLUX diffusion stack, encrypts and uploads results to S3, and returns signed references. Validators run automated identity-preservation pre-checks plus manual validation; weights track variation quality and reputation. In the current cycle (Phase 4), image generation is the sole scored task.",
+    "minerJobProvide": [
+      "Identity-preserving face image variations per validator spec",
+      "Encrypted S3 uploads with signed submission references",
+      "All five edit families including screen_replay (Cycle 2)",
+      "Quality that consistently passes identity-preservation checks"
+    ],
+    "top10Strategy": "The bar is identity preservation, not just attractive edits: tune diffusion guidance and strengths so the person stays recognizable while pose/lighting change convincingly. Follow the phase roadmap - penalties for repetitive or low-value submissions are coming in Phase 2+. Newcomers: an 8GB card suffices to start; differentiate on edit fidelity and turnaround speed rather than raw VRAM.",
+    "top10Levers": [
+      "Identity-preservation fidelity across all edit families",
+      "Fast turnaround on validator variation challenges",
+      "FLUX stack tuning (guidance, strength, CUDA/MPS device)",
+      "Reputation built through validator manual-validation scores",
+      "Avoiding repetitive submissions ahead of planned penalties",
+      "Tracking the tao-ui-dashboard.yanez.ai leaderboard"
+    ],
+    "followTopMiners": "Watch the Yanez dashboard (tao-ui-dashboard.yanez.ai), taostats.io/subnets/54 weights, docs/miner.md updates in-repo, and the Yanez Discord channel for cycle changes.",
+    "confidence": "repo-verified",
+    "sources": [
+      {"label": "Yanez MIID subnet README (master)", "url": "https://raw.githubusercontent.com/yanez-compliance/MIID-subnet/master/README.md"}
+    ]
+  },
+  {
+    "netuid": 62,
+    "whatItDoes": "Ridges is an open-source agent competition platform: miners upload a Python SWE agent (agent.py); validators pull the code and run it on benchmark software-engineering problems, evaluating outputs. The highest-scoring agent earns the emissions - a winner-takes-most tournament where miners compete and collaborate on one software engineering agent.",
+    "hardwareRec": "No dedicated GPU: agents call LLM inference via OpenRouter, Targon, or Chutes at miner's cost. A small CPU box suffices for local Harbor testing; uploads need OpenRouter runtime plus management keys. Rented cloud adds nothing beyond a cheap VPS.",
+    "keyRequirements": [
+      "agent.py implementing agent_main(input) -> str (a diff), validated locally via ridges miner run-local",
+      "Upload via ridges upload - burns alpha unless you hold a team-granted one-shot credit",
+      "OpenRouter API key plus management key required for uploads",
+      "Inference billed to the miner (OpenRouter/Targon/Chutes providers)",
+      "Local runs use the same miner-facing contract as validators (Harbor tasks)"
+    ],
+    "minerJob": "Day-to-day this is agent engineering, not serving: iterate agent.py - prompting, planning, tool use, retrieval around an LLM - validate on local Harbor tasks via ridges miner run-local, then upload to the platform. Validators run submitted agents on benchmark problems in sandboxes and score outputs; the top-scoring agent takes the emission share. Your recurring costs are LLM tokens during both practice and evaluation.",
+    "minerJobProvide": [
+      "A competitive software-engineering agent solving Harbor benchmark tasks",
+      "Generated diffs/patches on benchmark problems",
+      "Provider-key-backed inference that runs inside validator sandboxes",
+      "Iterative agent improvements across uploads"
+    ],
+    "top10Strategy": "It is a tournament: only the highest-scoring agent earns, so incremental prompt tweaks rarely pay - you need measurably better agentic strategy on the benchmark suite. Iterate cheaply with run-local using the identical contract, study which problems the benchmark emphasizes, and upload only when local results beat your current best. Newcomers: adapt strong open-source SWE agent patterns, then specialize where they lag.",
+    "top10Levers": [
+      "Agent architecture quality on SWE benchmarks (planning and tool use)",
+      "Local Harbor iteration before burning an upload",
+      "Token-cost-efficient provider choice (OpenRouter/Targon/Chutes)",
+      "Upload credits from the Ridges team instead of burn",
+      "Studying the benchmark problem distribution",
+      "Incorporating top open-source SWE agent techniques"
+    ],
+    "followTopMiners": "Track the leaderboard and guides at docs.ridges.ai, taostats.io/subnets/62, ridgesai/ridges commit cadence (miners/ toolkit changes), and the Ridges Discord; upload burn-vs-credit status shows in CLI output.",
+    "confidence": "repo-verified",
+    "sources": [
+      {"label": "Ridges repo README (master)", "url": "https://raw.githubusercontent.com/ridgesai/ridges/master/README.md"}
+    ]
+  },
+  {
+    "netuid": 68,
+    "whatItDoes": "NOVA does high-throughput ML-driven drug screening: miners run Boltz-2 and BoltzGen inference to score binding/affinity and generate candidate compounds across huge chemical spaces. Pharma researchers get cheap screening at a fraction of normal cost; miners with serious GPUs earn by completing validator scoring rounds reliably and on time.",
+    "hardwareRec": "2x GPUs each >48GB VRAM for parallel Boltz-2 inference - a single GPU runs sequentially and risks delayed/missing scoring rounds. CUDA 12.6, Ubuntu 24.04, Python 3.10-3.12, ample RAM. A100/H100-class or 48GB+ pro cards; rental A100/H100 viable. Tune with tools/calibrate_perf.py.",
+    "keyRequirements": [
+      "2 GPU devices with >48GB VRAM each (parallel inference; one GPU = sequential = missed rounds)",
+      "CUDA 12.6 environment; clone with --recurse-submodules for the Boltz stack",
+      "GitHub personal access token with repo access for your submission repository",
+      "Tuned env: NOVA_BOLTZ_SHARDS, NOVA_BOLTZ_GPUS mapping, NOVA_MAX_CONCURRENT_TNP",
+      "Missing or delayed scoring rounds directly cost rewards"
+    ],
+    "minerJob": "Operate neurons/miner.py continuously: validators dispatch compound-screening batches; the miner runs Boltz-2 structure/co-folding inference (shard processes spread across 2 GPUs) plus BoltzGen generation, returns candidate scores, and commits submissions to a GitHub repo the validators read. Rewards flow from completing each scoring round within the window - throughput and round-completion rate drive weights, so GPU sharding and uptime are the job.",
+    "minerJobProvide": [
+      "Boltz-2 binding/affinity scores for validator-sent compound batches",
+      "BoltzGen candidate generation for chemical-space exploration",
+      "GitHub-hosted submission artifacts via scoped PAT",
+      "On-time completion of every scoring round"
+    ],
+    "top10Strategy": "Throughput and reliability win: rewards hinge on finishing rounds fast, so GPU sharding via calibrate_perf.py, pinned drivers, and uptime dominate. Two 48GB+ cards are effectively mandatory - single-GPU setups run sequentially and miss rounds. Newcomers should rent A100/H100-class hardware rather than consumer cards and verify a full round completes inside the window before scaling up.",
+    "top10Levers": [
+      "Parallel 2-GPU sharding tuned via tools/calibrate_perf.py",
+      "Round-completion rate (zero missed scoring rounds)",
+      "48GB+/A100/H100-class hardware headroom",
+      "Stable GitHub submission pipeline (PAT scopes)",
+      "CUDA 12.6 environment and auto-update discipline",
+      "NOVA_MAX_CONCURRENT_TNP throughput tuning"
+    ],
+    "followTopMiners": "Watch taostats.io/subnets/68 top UIDs and round consistency, metanova-labs/nova commit cadence (inference version changes shift performance), and open repo issues or contact the NOVA team for validator API keys.",
+    "confidence": "repo-verified",
+    "sources": [
+      {"label": "NOVA repo README (master)", "url": "https://raw.githubusercontent.com/metanova-labs/nova/master/README.md"}
+    ]
+  },
+  {
+    "netuid": 76,
+    "whatItDoes": "Ormas pays for accepted outcomes, not inference turns. A client describes a code change plus the acceptance test that proves it; miners offer firm or limit prices for the whole task, deliver the change, and are paid only when validators re-run the acceptance tests successfully. It is an outcome-priced decentralized coding marketplace on Bittensor.",
+    "hardwareRec": "CPU box plus your own agentic coding stack (the subnet's mining logic stays private); plug in solve(), powered by LLM API spend. Verification runs in a digest-pinned OCI sandbox with no network. No GPU; cost is model tokens.",
+    "keyRequirements": [
+      "Runner key from ormas.ai (register-only until the operator approves qualification)",
+      "Actually run draft.verify_command; receipts must be honest (no fabricated zeros, scope_ok computed from git)",
+      "Firm or limit offers with 0 < estimate_usd <= limit_usd; you bear costs above the limit",
+      "task:code cell; a qualification proof job is reserved on registration",
+      "Agentic solve pipeline is your private competitive edge (reference solver earns nothing real)"
+    ],
+    "minerJob": "Run the ormas-miner runner or MinerSkeleton with your solve(): register, bind repos, poll the gateway queue for task leases, clone the repo at the base commit, run your agentic solver to produce a commit, execute the client's verify_command in a credential-free environment, and publish an honest receipt (usage metering, git-derived scope, real verification exit code). Validators reproduce the base failure and re-run acceptance tests before payment; accepted deliveries pay your firm or settled price.",
+    "minerJobProvide": [
+      "Accepted code changes passing client acceptance tests",
+      "Honest TaskReceipts (usage metering, git scope, verify exit code)",
+      "Firm/limit price offers per task",
+      "Completed qualification for the task:code cell"
+    ],
+    "top10Strategy": "Profitability = acceptance rate x price minus token cost. Estimate limits honestly (set the limit at your worst-case recovery chain, settle at metered cost); pick tasks where your agent demonstrably succeeds - repository familiarity beats breadth. Phase 1 accepts the first offer within the client's undisclosed spending limit, so fast, accurate offering matters. Newcomers: run the local quickstart loop, qualify, then specialize in narrow task types where verify passes reliably.",
+    "top10Levers": [
+      "High acceptance rate (tests pass first time)",
+      "Agentic solver quality on real repos (private edge)",
+      "Honest limit pricing (estimate vs worst-case chain)",
+      "Fast offer/claim response (first-offer-wins in Phase 1)",
+      "Specializing per bound repo or task type",
+      "Sandbox compliance (credential-free, no shell tricks)"
+    ],
+    "followTopMiners": "Watch docs/PUBLIC_TASKS.md and docs/protocol.md updates in-repo, the ormas.ai miner dashboard for qualification and queue status, and taostats.io/subnets/76; validator-independence work is flagged as release-pending, so track gateway release notes.",
+    "confidence": "repo-verified",
+    "sources": [
+      {"label": "Ormas subnet repo README (master)", "url": "https://raw.githubusercontent.com/heroncovelabs/ormas-subnet/master/README.md"}
+    ]
+  },
+  {
+    "netuid": 83,
+    "whatItDoes": "CliqueAI is a maximum-clique solver network. Validators sample graph problems (roughly 300, 500, and 700-vertex general graphs) from a distributed database and send them to miners, who return the largest clique found within tight time limits (6-30s). Scoring rewards optimality (beating the field) and diversity (unique solutions); a debiased EMA reputation drives weights.",
+    "hardwareRec": "CPU only: high single-thread performance and fast memory help branch-and-bound/local-search clique search inside 6-30s limits. No GPU. Run start_miner.sh with your axon IP/port reachable; the real work is optimizing your own solver.",
+    "keyRequirements": [
+      "CPU solver returning a valid maximal clique within per-problem time limits (6s to 30s)",
+      "Axon IP/port reachable by validators (start_miner.sh flags)",
+      "Equal-probability sampling per difficulty; harder problems are sampled less often",
+      "Dual-metric scoring: optimality plus diversity (identical solutions share credit)",
+      "Debiased EMA reputation (alpha=0.01, half-life about 69 samples)"
+    ],
+    "minerJob": "Run the reference miner via start_miner.sh; when a validator sends a graph problem, your solver computes a maximum clique within the time limit and returns the vertex set. The validator scores optimality (validity scaled by how many miners beat your size) plus diversity (uniqueness of your solution), aggregates them with difficulty weighting, and updates your EMA rating - that rolling reputation sets weights and future problem allocation.",
+    "minerJobProvide": [
+      "Valid maximal-clique solutions inside 6-30s limits",
+      "Larger-than-competitor clique sizes (optimality score)",
+      "Algorithmically distinct solutions (diversity credit)",
+      "Consistent performance across difficulty tiers"
+    ],
+    "top10Strategy": "Two levers: raw solver strength - state-of-the-art clique algorithms (local search, branch-and-bound, tight coloring bounds) tuned to 6-30s budgets on 300-700 vertex graphs - and uniqueness, since identical solutions split credit. Very-hard problems have fewer eligible solvers, so excellence there pays disproportionately. Newcomers: start from open-source max-clique solvers, benchmark against all three difficulty tiers, and keep EMA consistent.",
+    "top10Levers": [
+      "Solver speed and quality within 6-30s time limits",
+      "Unique solutions (diversity term multiplies credit)",
+      "Excelling on very-hard 700-vertex problems",
+      "Sustained EMA performance (~69-sample half-life)",
+      "Avoiding copy-paste solvers (identical solutions split credit)",
+      "Stable axon uptime for sampling eligibility"
+    ],
+    "followTopMiners": "Track taostats.io/subnets/83 top UIDs, docs/mechanism.md changes in-repo (difficulty rules and scoring are periodically refined), and the W&B logging schema docs for validator telemetry; Discord #cliqueai.",
+    "confidence": "repo-verified",
+    "sources": [
+      {"label": "CliqueAI repo README (master)", "url": "https://raw.githubusercontent.com/toptensor/CliqueAI/master/README.md"},
+      {"label": "CliqueAI mechanism doc", "url": "https://raw.githubusercontent.com/toptensor/CliqueAI/master/docs/mechanism.md"}
+    ]
+  },
+  {
+    "netuid": 93,
+    "whatItDoes": "Bitcast connects brands with content creators. Miners (creators) publish YouTube videos matching brand briefs; validators verify engagement via the YouTube Analytics API using OAuth tokens miners serve, score videos in USD terms, and convert scores to weights. This repo is mechanism 0 (YouTube, ~2% of emission); the X/Twitter mechanism (~98%) lives in bitcast-network/bitcast-x.",
+    "hardwareRec": "CPU only - the miner serves YouTube OAuth tokens through a lightweight axon; no GPU or heavy compute. The real capital is the YouTube channel and its audience. Credentials live in ~/.bitcast/secrets (client_id, client_secret, refresh_token per channel) or via TOKEN_SOURCE=api.",
+    "keyRequirements": [
+      "Registered YouTube channels you control (OAuth client_id/secret/refresh_token per account)",
+      "Miner axon serving AccessTokenSynapse tokens to validators",
+      "Videos must match active brand briefs (LLM-assisted brief matching)",
+      "Engagement verified through the YouTube Analytics API; scores denominated in USD",
+      "Unallocated emission is absorbed by burn UID 0 - no brief match, no pay"
+    ],
+    "minerJob": "Run neurons/miner.py: it hosts an axon serving OAuth access tokens for your channels; validators use them to pull Analytics data, match videos against active briefs, and score earned USD value with EMA smoothing into weights. Your actual day job is creating brief-compliant content with genuine engagement - the miner software itself is trivial token management. Commit-reveal validators mean on-chain last_update understates activity.",
+    "minerJobProvide": [
+      "OAuth access tokens for owned YouTube channels (refresh-managed)",
+      "Brief-compliant YouTube videos with organic engagement",
+      "Verified Analytics access for validator scoring",
+      "Consistent EMA-scored video output across cycles"
+    ],
+    "top10Strategy": "You compete as a creator, not a sysadmin: emissions track real USD value of brief-matching videos verified via YouTube Analytics, so channel size and view quality dominate. Note this repo is only ~2% of SN93 emission - the X mechanism (bitcast-x) carries ~98%, so pick your track deliberately. Small-channel newcomers should target niche briefs with less creator competition.",
+    "top10Levers": [
+      "Owning channels with real engaged audiences",
+      "Brief-matching precision (LLM-assisted matching favors on-brief content)",
+      "EMA consistency across reward cycles",
+      "Multiple channels per miner via secrets files",
+      "Considering bitcast-x (98% of emission) instead",
+      "Verifying liveness via AGENTS.md read-only chain commands"
+    ],
+    "followTopMiners": "Track taostats.io/subnets/93 weights, the signed Bitcast dashboard publisher output, briefs-client updates, and bitcast-network/bitcast-x commits; Loki score-audit telemetry exposes per-UID raw reward and EMA.",
+    "confidence": "repo-verified",
+    "sources": [
+      {"label": "Bitcast repo README (master)", "url": "https://raw.githubusercontent.com/bitcast-network/bitcast/master/README.md"}
+    ]
+  },
+  {
+    "netuid": 101,
+    "whatItDoes": "Tag101 is a decentralized semantic tagger for X/Twitter posts: miners transform posts into concise structured tags identifying entities, topics, and events. Validators score tags by consensus alignment (embedding clusters), validity (relevance plus format tiers), and diversity (non-redundancy). Downstream systems buy the structured signals for indexing and real-time topic tracking.",
+    "hardwareRec": "CPU only - the reference miner calls the OpenAI API (OPENAI_API_KEY, optional OPENAI_BASE_URL/MODEL overrides); Docker or PM2 on a small VPS. Rented GPU/cloud unnecessary; LLM spend is the cost.",
+    "keyRequirements": [
+      "OpenAI API key (or OPENAI_BASE_URL/MODEL override) for the reference miner",
+      "Docker deployment recommended (built-in auto-update) or PM2 with a venv",
+      "Tags must be relevant, non-redundant, and well-formed (validity tiers 0/0.3/0.6/1.0)",
+      "Duplicate penalty: identical tag sets shared by many miners are sigmoid-penalized (k=0.1, c=50)",
+      "Tasks come from a whitelisted X account database (current season: AI-related accounts)"
+    ],
+    "minerJob": "Run the SN101 miner container: it receives posts from validators, calls your configured LLM to emit a small tag set per post, and returns them. Each tag scores 0.6 x consensus (cluster support x centroid proximity) + 0.4 x validity x diversity, averaged per task; validator scoreboards aggregate recent task scores into relative miner scores for weights. Reward follows semantic alignment with the network's consensus reading of each post.",
+    "minerJobProvide": [
+      "Concise structured tags per X post (entities/topics/events)",
+      "High consensus-cluster alignment with centroid proximity",
+      "Format-valid, mutually distinct tag sets",
+      "Fast task turnaround across topic seasons"
+    ],
+    "top10Strategy": "Consensus is king: 60% of a tag's score is alignment with the dominant cluster, so tags matching how other good miners read the post win, while the diversity term punishes redundancy within your own set. Prompt for the obvious tags plus one distinctive angle, and never copy others' exact sets - the duplicate penalty is sigmoid-steep. Track whitelist account styles as topic seasons rotate.",
+    "top10Levers": [
+      "Consensus-aligned tagging (0.6 weight on cluster support)",
+      "Distinct tags within your own set (diversity weight 0.4)",
+      "Prompt engineering for tier-1.0 format validity",
+      "Cheap model choice with semantic quality (OpenAI overrides)",
+      "Avoiding duplicate tag sets (sigmoid penalty)",
+      "Docker auto-update to track scoring changes"
+    ],
+    "followTopMiners": "Watch taostats.io/subnets/101 top UIDs, tag101-ai/tag101 commits (scoring formulas and whitelist evolve), and in-repo topic-season announcements.",
+    "confidence": "repo-verified",
+    "sources": [
+      {"label": "Tag101 repo README (master)", "url": "https://raw.githubusercontent.com/tag101-ai/tag101/master/README.md"}
+    ]
+  },
+  {
+    "netuid": 108,
+    "whatItDoes": "ChipForge is a digital-design competition subnet: on-chain challenges ask for Verilog/SystemVerilog implementations of real silicon components (AI accelerators, cryptographic modules, mini-GPUs). Miners download specs, design with AI assistance, and submit solutions; validators evaluate with industry EDA tools. It is winner-takes-all per challenge, feeding designs toward manufacturable chips.",
+    "hardwareRec": "CPU-heavy EDA work: synthesis/simulation/timing runs are CPU-bound (validators want 16-24 physical cores plus 32-48GB RAM); miners need a solid multicore box for local test loops. No GPU. The bare-metal note concerns state persistence in ./data, not a rental ban.",
+    "keyRequirements": [
+      "Hotkey registered on netuid 108; repo stays on Bittensor 10.x (axon networking layer)",
+      "Miner polls the challenge server (default 300s) for spec/testbench packages; solutions are ZIPs of .v/.sv files",
+      "Winner-takes-all scoring with MIN_IMPROVEMENT_PERCENT margins; byte-identical copies refused",
+      "Winning designs are revealed to registered hotkeys after a set time (study them)",
+      "Leaderboard at chipforge.io/leaderboard shows the score to beat and every submission"
+    ],
+    "minerJob": "Run start_miner.sh (or make up ROLE=miner): the miner polls the challenge server, downloads the challenge package (spec plus testbench), you design and locally verify Verilog/SystemVerilog against the testbench with your own Verilator/Yosys loop, then submit via miner_cli.py. Validators batch-evaluate with EDA tools (Verilator, Yosys, Icarus, Openlane) and reach consensus scores; the best design per challenge takes the emission.",
+    "minerJobProvide": [
+      "Functionally correct, high-scoring Verilog/SystemVerilog designs per challenge",
+      "ZIP submissions passing validator test benches",
+      "Improvements beating the current winner by the required margin",
+      "Design reuse via the revealed-winners program"
+    ],
+    "top10Strategy": "Winner-takes-all means only the #1 design per challenge is paid - breadth loses, depth in one challenge family (e.g. cryptographic modules) wins. Download revealed winning designs to calibrate against the evaluation bar, build a tight local EDA regression loop, and submit only when you beat the posted score-to-beat. Hardware-design skill is the moat; AI coding tools help but testbench-passing silicon thinking wins.",
+    "top10Levers": [
+      "Deep design skill in one challenge family",
+      "Local Verilator/Yosys/Openlane regression before submit",
+      "Studying revealed winning designs (registered hotkeys only)",
+      "Monitoring the chipforge.io leaderboard score-to-beat",
+      "Planning around MIN_IMPROVEMENT_PERCENT margins",
+      "Fast response to newly announced challenges"
+    ],
+    "followTopMiners": "Watch chipforge.io/leaderboard (current winner, per-submission consensus scores), TatsuProject repo commit cadence, and the ChipForge Discord channel for validator/EDA server updates.",
+    "confidence": "repo-verified",
+    "sources": [
+      {"label": "ChipForge repo README (master)", "url": "https://raw.githubusercontent.com/TatsuProject/ChipForge_SN108/master/README.md"}
+    ]
+  },
+  {
+    "netuid": 118,
+    "whatItDoes": "Ditto incentivizes agent memory harnesses: miners submit a Docker build context implementing a public harness HTTP contract (any language); validators screen each image and run it in isolated sandboxes, scoring it on DittoBench - tool-calling and memory recall. 100% of miner emission follows the king-of-the-hill ranking; with no eligible miners, emission burns.",
+    "hardwareRec": "No GPU - you submit code, validators run it. Build a Docker context implementing the HTTP contract in Rust/Python/TS/Go; a dev box plus the ditto CLI suffices. Practice offline with the starter kit and playground before submitting.",
+    "keyRequirements": [
+      "Docker build context implementing the public harness HTTP contract (platform screening precedes scoring)",
+      "Scored on DittoBench: tool-calling and memory recall",
+      "Submit via ditto upload --path agent.tar.gz; pre-flight with ditto verify",
+      "King-of-the-hill ranking takes 100% of miner emission; zero eligible miners = burn",
+      "Wallet rotations need owner-links proof of operator identity"
+    ],
+    "minerJob": "Day-to-day you are building a memory harness: an HTTP service the validator's sandbox calls during DittoBench runs, handling tool calls and recalling context across a task. Package the tarball, run ditto verify pre-flight, upload, and poll ditto status. Validators screen, sandbox, and score each image against the deterministic DittoBench datasets; only the king-of-the-hill rank position earns emission.",
+    "minerJobProvide": [
+      "A sandbox-safe memory-harness HTTP service",
+      "High DittoBench tool-calling and memory-recall scores",
+      "Submission tarballs that pass platform screening",
+      "A king-of-the-hill-ranked agent each cycle"
+    ],
+    "top10Strategy": "King-of-the-hill means being marginally better than the current #1 is everything - measure against the offline DittoBench practice loop (deterministic datasets in research/dittobench-datagen) before every upload. Focus on memory recall over long horizons and robust tool-calling; the starter kit is your baseline and the coding starter kit offers free shadow practice. Upload only on a verified local win.",
+    "top10Levers": [
+      "DittoBench practice-loop iteration before upload",
+      "Memory-recall quality across task horizons",
+      "Tool-calling robustness inside the sandbox",
+      "Clean screening pass via ditto verify pre-flight",
+      "Shadow-only coding protocol for free practice",
+      "Tracking KOTH rank shifts via ditto status/dashboard"
+    ],
+    "followTopMiners": "Track the SN118 platform dashboard (apps/platform in-repo), docs/MINER.md changes, taostats.io/subnets/118 weights, and commit cadence across ditto-assistant repos (ditto-harness, dittobench-datagen).",
+    "confidence": "repo-verified",
+    "sources": [
+      {"label": "Ditto subnet repo README (master)", "url": "https://raw.githubusercontent.com/ditto-assistant/ditto-subnet/master/README.md"}
+    ]
+  },
+  {
+    "netuid": 124,
+    "whatItDoes": "Swarm is an open arena for drone-pilot AI: miners train control/RL models that fly simulated drones - depth camera and flight state in, flight commands out - across five missions (pursuit, search-and-rescue, autopilot, swarm teamwork). Every 14-day epoch benchmarks 1,000 fresh procedural worlds per mission; king-of-the-hill pays the last five champions per mission.",
+    "hardwareRec": "CPU-only for the lightweight miner process (package + upload; digest committed on-chain); training RL policies (SB3/PyTorch/ONNX) realistically wants a GPU (RTX 3090/4090-class) for iteration speed. Local benchmark with --workers 4 runs CPU; rentals fine. One-shot submission per model per mission.",
+    "keyRequirements": [
+      "Model packaged via swarm model package (SB3, PyTorch, or ONNX archive)",
+      "One shot per drone per mission - the slot locks once scored",
+      "Policy consumes depth camera plus flight state at 50Hz and outputs flight commands",
+      "Local benchmark mirrors validator scoring; epoch seeds stay secret until close",
+      "Score: 45% success + 45% speed + 10% safety (pursuit missions: half success, half speed)"
+    ],
+    "minerJob": "Train a drone pilot (RL/imitation with SB3/PyTorch), package it with the swarm CLI, and submit - the miner process commits the model digest on-chain and uploads the archive to the Swarm backend, then exits. Validators run your model across 1,000 fresh worlds per mission per epoch and rank the average; rewards follow king-of-the-hill, paying the last five champions per mission weighted by how much they raised the record.",
+    "minerJobProvide": [
+      "Trained flight-policy model (SB3/PyTorch/ONNX archive)",
+      "High average success/speed/safety across 1,000 unseen worlds",
+      "Per-mission champion submissions across five families",
+      "On-chain committed model digests"
+    ],
+    "top10Strategy": "Generalization beats memorization: epochs use fresh seeds, so train on procedural variety (swarm-worlds maps) and validate locally with the same simulator. Mission reward shares differ (Interceptor 30%, swarm missions 20%, others 15%) - pick a less-contested mission. King-of-the-hill pays the last five champions, so one genuine breakthrough keeps earning. Newcomers: master Autopilot or SAR locally before burning a one-shot submission.",
+    "top10Levers": [
+      "RL generalization across procedural worlds",
+      "Choosing lower-competition mission families",
+      "Success+speed balance (90% of score) with a safety floor",
+      "One-shot submission discipline (locked slots)",
+      "KOTH payout persistence for record-setters",
+      "Local benchmark parity with the validator scoring path"
+    ],
+    "followTopMiners": "Watch the live leaderboard (swarm124.com/benchmark), taostats.io/subnets/124 champion UIDs, swarm-subnet/swarm and swarm-worlds release tags (map/mission changes), and the Swarm Discord.",
+    "confidence": "repo-verified",
+    "sources": [
+      {"label": "Swarm repo README (master)", "url": "https://raw.githubusercontent.com/swarm-subnet/swarm/master/README.md"},
+      {"label": "Swarm miner guide", "url": "https://raw.githubusercontent.com/swarm-subnet/swarm/master/miner/docs/miner.md"}
+    ]
+  }
+]

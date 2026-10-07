@@ -1,0 +1,213 @@
+[
+ {
+  "netuid": 6,
+  "name": null,
+  "category": null,
+  "description": "--- Numinous (Subnet 6) is a forecasting protocol whose goal is to aggregate agents into superhuman LLM forecasters.",
+  "recommendedGpu": "None (CPU-only)",
+  "minVramGb": 0,
+  "gpuCount": null,
+  "hosting": null,
+  "githubUrl": "https://github.com/numinouslabs/numinous",
+  "website": null
+ },
+ {
+  "netuid": 12,
+  "name": null,
+  "category": null,
+  "description": "designed to supercharge Bittensor with scalable and trusted GPU computing power.",
+  "recommendedGpu": "A100",
+  "minVramGb": null,
+  "gpuCount": 1,
+  "hosting": null,
+  "githubUrl": "https://github.com/backend-developers-ltd/ComputeHorde/",
+  "website": null
+ },
+ {
+  "netuid": 19,
+  "name": null,
+  "category": null,
+  "description": "- Website: https://blockmachine.io - Twitter: https://x.com/blockmachine_io - Whitepaper: https://blockmachine.io/whitepaper",
+  "recommendedGpu": null,
+  "minVramGb": null,
+  "gpuCount": null,
+  "hosting": null,
+  "githubUrl": "https://github.com/taostat/blockmachine",
+  "website": null
+ },
+ {
+  "netuid": 25,
+  "name": null,
+  "category": null,
+  "description": "Bittensor SN25 (netuid 25): a subnet for a decentralized privacy network.",
+  "recommendedGpu": null,
+  "minVramGb": null,
+  "gpuCount": null,
+  "hosting": null,
+  "githubUrl": "https://github.com/urfoundation/sn",
+  "website": null
+ },
+ {
+  "netuid": 33,
+  "name": null,
+  "category": null,
+  "description": "--- --- ReadyAI is an open-source initiative aimed at provide a low-cost resource-minimal data structuring and semantic tagging pipeline for any individual or business.",
+  "recommendedGpu": null,
+  "minVramGb": null,
+  "gpuCount": null,
+  "hosting": null,
+  "githubUrl": "https://github.com/afterpartyai/bittensor-conversation-genome-project",
+  "website": null
+ },
+ {
+  "netuid": 41,
+  "name": null,
+  "category": null,
+  "description": "Almanac is a validator stack for decentralized agentic forecasting and market prediction performance on Bittensor.",
+  "recommendedGpu": "None (CPU-only)",
+  "minVramGb": 0,
+  "gpuCount": null,
+  "hosting": null,
+  "githubUrl": "https://github.com/corvxai/almanac",
+  "website": null
+ },
+ {
+  "netuid": 48,
+  "name": null,
+  "category": null,
+  "description": "The Quantum Compute subnet is unlike any other subnet on Bittensor.",
+  "recommendedGpu": "None (QPU — quantum hardware)",
+  "minVramGb": 0,
+  "gpuCount": null,
+  "hosting": null,
+  "githubUrl": "https://github.com/qbittensor-labs/quantum-compute",
+  "website": null
+ },
+ {
+  "netuid": 54,
+  "name": null,
+  "category": null,
+  "description": "--- Yanez is a next-generation identity testing and identity data generation subnet designed to enhance fraud detection, KYC systems, and biometric verification.",
+  "recommendedGpu": "None (CPU-only)",
+  "minVramGb": 0,
+  "gpuCount": null,
+  "hosting": null,
+  "githubUrl": "https://github.com/yanez-compliance/MIID-subnet",
+  "website": null
+ },
+ {
+  "netuid": 62,
+  "name": null,
+  "category": null,
+  "description": "Ridges is an Bittensor subnet that acts as an open source agent competition platform, where miners both compete and collaborate on a software engineering agent.",
+  "recommendedGpu": null,
+  "minVramGb": null,
+  "gpuCount": null,
+  "hosting": null,
+  "githubUrl": "https://github.com/ridgesai/ridges",
+  "website": null
+ },
+ {
+  "netuid": 68,
+  "name": null,
+  "category": null,
+  "description": "NOVA harnesses global compute and collective intelligence to navigate huge unexplored chemical spaces, uncovering breakthrough compounds at a fraction of the cost and time.",
+  "recommendedGpu": "2× GPUs with >48 GB VRAM each (Boltz-2 inference)",
+  "minVramGb": 48,
+  "gpuCount": 2,
+  "hosting": null,
+  "githubUrl": "https://github.com/metanova-labs/nova/",
+  "website": null
+ },
+ {
+  "netuid": 76,
+  "name": null,
+  "category": null,
+  "description": "> Ormas pays for accepted outcomes, not inference turns. > A client describes a change and the test that proves it.",
+  "recommendedGpu": null,
+  "minVramGb": null,
+  "gpuCount": null,
+  "hosting": null,
+  "githubUrl": "https://github.com/heroncovelabs/ormas-subnet",
+  "website": null
+ },
+ {
+  "netuid": 83,
+  "name": null,
+  "category": null,
+  "description": "CliqueAI - AI-Powered Maximum Clique Solver Network Four-stage autonomous mechanism for distributed problem solving Advanced AI algorithms curate complex graph problems from our distributed database.",
+  "recommendedGpu": "None (CPU-only)",
+  "minVramGb": 0,
+  "gpuCount": null,
+  "hosting": null,
+  "githubUrl": "https://github.com/toptensor/CliqueAI",
+  "website": null
+ },
+ {
+  "netuid": 93,
+  "name": null,
+  "category": null,
+  "description": "Reengineered Bitcast subnet: a clean, lean, async-first Python codebase on Bittensor 10.x.",
+  "recommendedGpu": null,
+  "minVramGb": null,
+  "gpuCount": null,
+  "hosting": null,
+  "githubUrl": "https://github.com/bitcast-network/bitcast",
+  "website": null
+ },
+ {
+  "netuid": 101,
+  "name": null,
+  "category": null,
+  "description": "Tag101 - The Decentralized Tagger for Social Posts Tag101 models a decentralized semantic tagging network where miners transform X (formerly Twitter) posts into concise, structured tags.",
+  "recommendedGpu": "None (CPU-only)",
+  "minVramGb": 0,
+  "gpuCount": null,
+  "hosting": null,
+  "githubUrl": "https://github.com/tag101-ai/tag101",
+  "website": null
+ },
+ {
+  "netuid": 108,
+  "name": null,
+  "category": null,
+  "description": "ChipForge introduces the first digital design subnet for decentralized hardware innovation.",
+  "recommendedGpu": null,
+  "minVramGb": null,
+  "gpuCount": null,
+  "hosting": {
+   "bareMetalOnly": true,
+   "teeRequired": false,
+   "staticIpRequired": false,
+   "notes": [
+    "- State: everything that must survive restarts (validator state, emission state, bans, downloaded submissions, logs, miner challenge packages) is kept in ./data (DATA_DIR). Moving from a bare-metal validator? Run make mi"
+   ]
+  },
+  "githubUrl": "https://github.com/TatsuProject/ChipForge_SN108",
+  "website": null
+ },
+ {
+  "netuid": 118,
+  "name": null,
+  "category": null,
+  "description": "A Bittensor subnet that incentivizes agent memory harnesses.",
+  "recommendedGpu": null,
+  "minVramGb": null,
+  "gpuCount": null,
+  "hosting": null,
+  "githubUrl": "https://github.com/orgs/ditto-assistant/repositories",
+  "website": null
+ },
+ {
+  "netuid": 124,
+  "name": null,
+  "category": null,
+  "description": "Drones are moving into everyday life: delivering packages, inspecting bridges and power lines, searching for survivors after a disaster.",
+  "recommendedGpu": "None (CPU-only)",
+  "minVramGb": 0,
+  "gpuCount": null,
+  "hosting": null,
+  "githubUrl": "https://github.com/swarm-subnet/swarm",
+  "website": null
+ }
+]

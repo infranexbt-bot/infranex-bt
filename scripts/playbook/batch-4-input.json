@@ -1,0 +1,220 @@
+[
+ {
+  "netuid": 4,
+  "name": null,
+  "category": null,
+  "description": "Targon is a next-generation AI infrastructure platform that leverages Trusted Execution Environment and Confidential Compute to secure the entire stack.",
+  "recommendedGpu": "8× H100 SXM / H200 / B200 / B300 / RTX PRO 6000 Blackwell (TEE hardware profiles)",
+  "minVramGb": 80,
+  "gpuCount": 8,
+  "hosting": {
+   "bareMetalOnly": false,
+   "teeRequired": true,
+   "staticIpRequired": false,
+   "notes": [
+    "- NVIDIA Confidential Compute integration OR"
+   ]
+  },
+  "githubUrl": "https://github.com/manifold-inc/targon",
+  "website": null
+ },
+ {
+  "netuid": 10,
+  "name": null,
+  "category": null,
+  "description": "Workload-Specific Inference Optimization. Every Improvement Raises the Baseline.",
+  "recommendedGpu": "RTX 5090",
+  "minVramGb": null,
+  "gpuCount": 1,
+  "hosting": null,
+  "githubUrl": "https://github.com/Pareton-ai/pareton",
+  "website": null
+ },
+ {
+  "netuid": 17,
+  "name": null,
+  "category": null,
+  "description": "A decentralized 3D content generation competition running on Bittensor Subnet",
+  "recommendedGpu": "4x H200",
+  "minVramGb": null,
+  "gpuCount": 4,
+  "hosting": null,
+  "githubUrl": "https://github.com/404-Repo/404-gen-subnet",
+  "website": null
+ },
+ {
+  "netuid": 23,
+  "name": null,
+  "category": null,
+  "description": "A Bittensor subnet building the SOTA AI guard model. Miners submit adversarial prompts that validators evaluate via agents (OpenClaw + Judge); scores are aggregated and written as on-chain weights.",
+  "recommendedGpu": null,
+  "minVramGb": null,
+  "gpuCount": null,
+  "hosting": null,
+  "githubUrl": "https://github.com/TrishoolAI/trishool-phase2",
+  "website": null
+ },
+ {
+  "netuid": 29,
+  "name": null,
+  "category": null,
+  "description": "Inference optimization. Fastest server wins.",
+  "recommendedGpu": "8x B300",
+  "minVramGb": null,
+  "gpuCount": 8,
+  "hosting": null,
+  "githubUrl": "https://github.com/coldint/hotfloat",
+  "website": null
+ },
+ {
+  "netuid": 38,
+  "name": null,
+  "category": null,
+  "description": "Bittensor Subnet 38: Competitive training of chronologically consistent Large Language Models.",
+  "recommendedGpu": null,
+  "minVramGb": null,
+  "gpuCount": null,
+  "hosting": null,
+  "githubUrl": "https://github.com/chronollm/sn38",
+  "website": null
+ },
+ {
+  "netuid": 46,
+  "name": null,
+  "category": null,
+  "description": "SN46 validator for Linux x86_64 (Ubuntu 22.04+). Defaults to Finney mainnet, subnet 46, with our platform URL and signer built in.",
+  "recommendedGpu": "None (CPU-only)",
+  "minVramGb": 0,
+  "gpuCount": null,
+  "hosting": null,
+  "githubUrl": "https://github.com/Subnet46/sn46-validator",
+  "website": null
+ },
+ {
+  "netuid": 52,
+  "name": null,
+  "category": null,
+  "description": "Dojo V2 transforms conventional Generative Adversarial Network (GAN) into a competitive, decentralized GAN built on the principle of zero-sum incentives.",
+  "recommendedGpu": null,
+  "minVramGb": null,
+  "gpuCount": null,
+  "hosting": null,
+  "githubUrl": "https://github.com/tensorplex-labs/dojo",
+  "website": null
+ },
+ {
+  "netuid": 60,
+  "name": null,
+  "category": null,
+  "description": "--- Bitsec is a Bittensor subnet for building AI security agents that find high and critical severity vulnerabilities in real software projects.",
+  "recommendedGpu": null,
+  "minVramGb": null,
+  "gpuCount": null,
+  "hosting": null,
+  "githubUrl": "https://github.com/Bitsec-AI/sandbox",
+  "website": null
+ },
+ {
+  "netuid": 66,
+  "name": null,
+  "category": null,
+  "description": "This is the complete validator repository for conjectures.io, Bittensor Subnet",
+  "recommendedGpu": null,
+  "minVramGb": null,
+  "gpuCount": null,
+  "hosting": null,
+  "githubUrl": "https://github.com/conjectures-io/conjectures-validator",
+  "website": null
+ },
+ {
+  "netuid": 74,
+  "name": null,
+  "category": null,
+  "description": "Incentivize open source contributions. Open source powers the modern world, yet most contributors work for free.",
+  "recommendedGpu": "NVIDIA GeForce RTX 5090 (32 GB)",
+  "minVramGb": 32,
+  "gpuCount": null,
+  "hosting": null,
+  "githubUrl": "https://github.com/entrius/gittensor/tree/main",
+  "website": null
+ },
+ {
+  "netuid": 80,
+  "name": null,
+  "category": null,
+  "description": "> Season change (2026-09-01): the simulation track now runs LingBot-VLA 2.0 > (competition 2).",
+  "recommendedGpu": "1× NVIDIA GPU 24 GB (recommended: A100 80 GB)",
+  "minVramGb": 24,
+  "gpuCount": null,
+  "hosting": null,
+  "githubUrl": "https://github.com/openroboto-ai/openroboto-subnet",
+  "website": null
+ },
+ {
+  "netuid": 90,
+  "name": null,
+  "category": null,
+  "description": "> Enterprise-grade confidential computing for SOTA AI services and enhanced services for enterprises on decentralized Kubernetes across Bittensor miner clusters --- Known as Pierre in the Bittensor community, I have mined since February",
+  "recommendedGpu": "24x H200",
+  "minVramGb": null,
+  "gpuCount": 24,
+  "hosting": {
+   "bareMetalOnly": false,
+   "teeRequired": true,
+   "staticIpRequired": false,
+   "notes": [
+    "KubeTEE AI is the AI Factory of the Bittensor network: it turns decentralized GPU clusters into a confidential factory for SOTA AI services and enhanced services for enterprises. Inference, NeMo microservices, retrieval,"
+   ]
+  },
+  "githubUrl": "https://github.com/KubeTEE-AI/kubetee-subnet",
+  "website": null
+ },
+ {
+  "netuid": 98,
+  "name": null,
+  "category": null,
+  "description": "Never Play Alone leverages the power of Bittensor to build low-latency, living AI agents that adapt in real time and play alongside humans.",
+  "recommendedGpu": null,
+  "minVramGb": null,
+  "gpuCount": null,
+  "hosting": null,
+  "githubUrl": "https://github.com/neverplayalone/neverplayalone_subnet",
+  "website": null
+ },
+ {
+  "netuid": 106,
+  "name": null,
+  "category": null,
+  "description": "Verified decentralized compute on Bittensor. This repository contains the public operator software for running Nodexo miners and validators, plus the CLI and setup scripts used to manage them.",
+  "recommendedGpu": "H100 80GB (1–2) / A100 80GB (1–4) / RTX A6000 48GB / RTX 4090 24GB",
+  "minVramGb": 24,
+  "gpuCount": null,
+  "hosting": null,
+  "githubUrl": "https://github.com/nodexo-ai/nodexo",
+  "website": null
+ },
+ {
+  "netuid": 116,
+  "name": null,
+  "category": null,
+  "description": "Discovery and evidence infrastructure for Physics AI. Carbon is building a research network that helps engineers find better fast physics models and establish where they can rely on them.",
+  "recommendedGpu": null,
+  "minVramGb": null,
+  "gpuCount": null,
+  "hosting": null,
+  "githubUrl": "https://github.com/carbonphysicsai/Carbon",
+  "website": null
+ },
+ {
+  "netuid": 122,
+  "name": null,
+  "category": null,
+  "description": null,
+  "recommendedGpu": "None (CPU-only)",
+  "minVramGb": 0,
+  "gpuCount": null,
+  "hosting": null,
+  "githubUrl": "https://github.com/CookingTao",
+  "website": null
+ }
+]

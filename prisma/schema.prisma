@@ -116,6 +116,27 @@ model SubnetOverride {
   updatedAt      DateTime @updatedAt
 }
 
+// MINER-PLAYBOOK-1 — per-subnet miner intelligence researched from the
+// subnet's repo / docs / website. One row per netuid. Free-text fields carry
+// the narrative; JSON-string fields carry structured lists so the view can
+// render them as chips/bullets. confidence: "repo-verified" | "derived" | "thin"
+model SubnetPlaybook {
+  netuid          Int      @id
+  whatItDoes      String?  // plain-English: what the subnet does and why it earns
+  hardwareRec     String?  // recommended GPU/CPU + counts + practical notes
+  keyRequirements String?  // JSON string[]: tech/env requirements a miner must satisfy
+  minerJob        String?  // what the miner actually runs/provides day-to-day (technical)
+  minerJobProvide String?  // JSON string[]: concrete deliverables the miner supplies
+  top10Strategy   String?  // mindset paragraph: how rewards are won and how to break into top-10
+  top10Levers     String?  // JSON string[]: specific, actionable levers ranked by impact
+  followTopMiners String?  // how to study incumbents: explorers, metrics, repos, discord
+  confidence      String?  // "repo-verified" | "derived" | "thin"
+  sources         String?  // JSON {label,url}[] actually consulted
+  researchedAt    DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
 model ChainSnapshot {
   id              Int      @id @default(autoincrement())
   blockNumber     Int

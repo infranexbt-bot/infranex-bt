@@ -266,6 +266,7 @@ export type ViewKey =
   | "judge"
   | "cpu-guide"
   | "gpu-landscape"
+  | "miner-playbook"
   | "cpus"
   | "gpus"
   | "miners"
