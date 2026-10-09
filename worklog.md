@@ -980,3 +980,18 @@ Stage Summary:
 - Platform fully restored and serving: playbook/landscape/overrides 100% populated, prod standalone + keepalive up.
 - Reusable audit tooling committed: scripts/audit-route-auth.py, audit-deadcode.py, playbook-audit.ts, reseed-requirements-offline.ts, fix-audit-findings.ts.
 - Open: SN58 (Attune) playbook text lacks TEE mention that structured evidence confirms (research-completeness note, not a contradiction); deployments/hosts/provider-keys operational rows from before the wipe are NOT recoverable from artifacts (only subnet-level data was cached).
+
+---
+Task ID: opp-rank-basis
+Agent: main (Super Z)
+Task: "Opportunities page: Ranked opportunities ranked by net ROI, seat safety & alpha hold value should display at a glance. Adjust the alignment."
+
+Work Log:
+- Revival ritual: login 200; logged into app via agent-browser (admin), screenshotted Opportunities view before/after at 1600/1280/900 widths.
+- Diagnosis: CardTitle had a text-xs span "ranked by net ROI, seat safety & alpha hold value" inline after the 20px title — baseline-hung run-on look (CardTitle is leading-none flex). Table itself has 717px horizontal overflow at 1600w (14 columns by design, scrollable) — left as-is, no IA reorder.
+- Fix (opportunities-view.tsx only): title stands alone; new RANK_BASIS const renders "Ranked by" + 3 aligned chips (DollarSign Net ROI / ShieldCheck seat safety / Coins Alpha hold value) on the title row via flex (lg:flex-row justify-between, wraps below on narrow), chip tooltips map each axis to its columns (Net Monthly/Est. APY, seat badge under Score, Alpha 24h + Liq.).
+- Verify: bunx tsc --noEmit 0; bun run build exit 0; standalone restarted (bun --smol server.js, keepalive); login 200; live data confirmed via /api/network (129 subnets, block 9,245,067, source live); browser: header chips aligned on title row at 1600 & 1280, wrap cleanly at 900; table renders 128 rows.
+- Commit 8c8d254 "opp-header: rank-basis chips replace inline title suffix".
+
+Stage Summary:
+- Ranking basis (net ROI, seat safety, alpha hold value) now displays at a glance in the Ranked opportunities card header, aligned as chips instead of a squeezed inline suffix; zero table/IA changes; dashboard compact mode untouched.
