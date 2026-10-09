@@ -69,14 +69,11 @@ export async function createEnrollment(name: string) {
 /** Verify a one-time enrollment token → the pending host row, or null. */
 export async function verifyEnrollmentToken(token: string) {
   if (!token || token.length > 128) return null;
-  const row = await db.localHost.findFirst({
-    where: { status: "pending", enrollTokenHash: { not: null } },
-  });
-  // Constant-ish sweep: compare hashes of ALL pending rows (no early leak).
+  // Constant-ish sweep: compare hashes of ALL pending rows (no early leak,
+  // no short-circuit timing oracle on the first row).
   const pending = await db.localHost.findMany({
     where: { status: "pending", enrollTokenHash: { not: null } },
   });
-  void row;
   const hash = sha256Hex(token);
   const match = pending.find(
     (p) =>

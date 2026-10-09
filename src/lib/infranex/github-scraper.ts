@@ -1155,8 +1155,9 @@ export function parseInfraStack(text: string): InfraStack | null {
   return { services, orchestration, ramRule, networkRule, storageRule, hostClass };
 }
 
-// Parse VRAM requirements from text (README or requirements)
-function parseVram(text: string): number | null {
+// Parse VRAM requirements from text (README or requirements).
+// Exported: pure parser, reused by offline reseed passes over cached READMEs.
+export function parseVram(text: string): number | null {
   // Look for patterns like "80GB VRAM", "80 GB", "VRAM: 80GB", "min 80GB"
   // (\d{1,3}: min_vram 4-8 GB specs are legitimate — SN72 declares 4 GB).
   const patterns = [
@@ -1267,7 +1268,9 @@ const GPU_LOOSE_CONTEXT =
 const OTHER_SUBNET_MENTION =
   /\b(subnet\s?\d{1,3}|chutes|targon|lium|gradients|compute.?horde)\b/i;
 
-function parseGpuWithContext(readme: string): GpuMatch | null {
+// Exported: pure parser (same rationale as parseHosting/parseMinComputeSpec) —
+// offline reseed passes and audit scripts run it over cached README text.
+export function parseGpuWithContext(readme: string): GpuMatch | null {
   for (const strict of [true, false]) {
     const ctx = strict ? GPU_STRICT_CONTEXT : GPU_LOOSE_CONTEXT;
     for (const line of readme.split("\n")) {
