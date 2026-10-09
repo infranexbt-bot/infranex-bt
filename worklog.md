@@ -1010,3 +1010,18 @@ Work Log:
 
 Stage Summary:
 - The ranked table now leads with what it ranks by: seat safety, net ROI, alpha hold value all at a glance in the first screenful; chips in the card header remain as the legend mapping each axis to its columns.
+
+---
+Task ID: opp-rank-basis-3
+Agent: main (Super Z)
+Task: User follow-up ("still the same, please check" + screenshot): column order was live but the "Ranked by" chips floated top-right, disconnected from the columns they describe — user perceives them as unaligned.
+
+Work Log:
+- Root causes found: (1) legend chips sat far from their columns; (2) deployment bug — pre-rebuild bun server (cmdline "bun --smol server.js", no "standalone/" prefix) survived pkill -f "standalone/server.js" and kept serving stale chunk refs → unstyled page + "Application error" during verification; new build was fine.
+- Fix (db0d6da): two-tier table header in opportunity-table.tsx — group-header row labels the axis over its exact columns (SEAT SAFETY/Score, NET ROI/Net Monthly+Est. APY, ALPHA HOLD VALUE/Alpha+Liq., Mining lenses, Earning reality, Hardware & risk); #/Subnet/Action rowSpan=2; group cells are real <th> so labels stay aligned at any scroll position; tooltips carry the axis explanations. Removed floating chips + RANK_BASIS const from opportunities-view.tsx (title back to clean single line). Compact mode: single-row header preserved via {compact &&} branches.
+- Ops fix: kill stale server by PID, relaunch fresh standalone (chunks now 200), keepalive pattern note: pkill pattern must match "server.js" not "standalone/server.js".
+- Verify: tsc 0, build 0, login 200, CSS/JS chunk 200s; browser at 1568×750: group labels centered over their columns with live data (128 rows, RedTeam 71.1 RUN $1,149 +99.10% $3.44▲1.9% 14,915), scrolled-right pass shows labels traveling with columns; 0 console errors.
+
+Stage Summary:
+- Ranking basis now displayed at a glance AND structurally aligned: each axis label sits directly on its columns inside the table header and scrolls with them; floating chips removed.
+- Lesson recorded: stale-server detection — after rebuild, verify a chunk URL 200s before trusting login:200 (HTML can serve from memory while static chunks 404).
