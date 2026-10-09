@@ -995,3 +995,18 @@ Work Log:
 
 Stage Summary:
 - Ranking basis (net ROI, seat safety, alpha hold value) now displays at a glance in the Ranked opportunities card header, aligned as chips instead of a squeezed inline suffix; zero table/IA changes; dashboard compact mode untouched.
+
+---
+Task ID: opp-rank-basis-2
+Agent: main (Super Z)
+Task: User follow-up with screenshot: "still not aligned properly. make sure it is displayed at a glance" — the header chips alone weren't enough; the Alpha (24h) column was cut off at the right edge of their 1568px viewport (717px table overflow), so the third ranking axis was not glanceable.
+
+Work Log:
+- Diagnosed from user screenshot: chips are legend-only; the ranked table's own metrics need to be glanceable. Alpha (24h)/Liq. sat at columns 9-10 of 14, ~600px past the visible edge.
+- Reordered opportunity-table.tsx columns (header + body kept in lockstep, verified via tsc + grep of sort keys): # → Subnet → Score(+seat badge) → Net Monthly → Est. APY → Alpha (24h) → Liq. → Rent earn → Your odds → Demand → Util. → GPU Req. → Risk → Action. Net Monthly/Est. APY = net ROI axis, seat badge under Score = seat safety axis, Alpha+Liq. = alpha hold value axis — all front-loaded; secondary lenses pushed right (still scrollable).
+- Dashboard compact mode untouched (renders # / Subnet / Net Monthly / Action only; colSpan semantics unchanged).
+- Verify: tsc 0; build exit 0; standalone restarted (bun --smol), login 200; browser at 1568×750 (user's width): all three ranking axes fully visible without scroll ($1,141 ✓target · +98.70% · $3.42 ▲1.4% · 14,879), scrolled-right pass shows remaining columns render clean, 0 console errors.
+- Commit 831983b "opp-table: ranking axes lead the column order" (on top of 8c8d254 rank-basis chips).
+
+Stage Summary:
+- The ranked table now leads with what it ranks by: seat safety, net ROI, alpha hold value all at a glance in the first screenful; chips in the card header remain as the legend mapping each axis to its columns.
