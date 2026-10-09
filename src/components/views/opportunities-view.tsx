@@ -22,7 +22,7 @@ import {
   RENT_EARN_BAND_STYLE,
 } from "@/lib/infranex/rent-earn";
 import { cn, opportunityBand } from "@/lib/utils";
-import { TrendingUp, LayoutGrid, List, Cpu, Settings2, CloudCog } from "lucide-react";
+import { TrendingUp, LayoutGrid, List, Cpu, Settings2, CloudCog, DollarSign, ShieldCheck, Coins } from "lucide-react";
 import type { Opportunity } from "@/lib/infranex/types";
 
 interface OpportunitiesViewProps {
@@ -31,6 +31,29 @@ interface OpportunitiesViewProps {
 }
 
 const GPU_FILTER_KEY = "infranex-gpu-filter";
+
+// RANK-BASIS-1 — the three Miner's-Ledger axes the ranking is built on,
+// surfaced as aligned chips in the card header so the ranking basis reads at
+// a glance (title stays alone on its line; the old inline suffix hung off the
+// title baseline like a run-on sentence). Each chip's tooltip points to the
+// column(s) that carry the metric.
+const RANK_BASIS: { label: string; icon: typeof DollarSign; tip: string }[] = [
+  {
+    label: "Net ROI",
+    icon: DollarSign,
+    tip: "Net Monthly column — per-earning-miner revenue minus GPU + infra cost; Est. APY annualizes it.",
+  },
+  {
+    label: "Seat safety",
+    icon: ShieldCheck,
+    tip: "Seat badge under Score — slot pressure, reward concentration, burn, immunity.",
+  },
+  {
+    label: "Alpha hold value",
+    icon: Coins,
+    tip: "Alpha (24h) + Liq. columns — price trend, exit liquidity, slippage.",
+  },
+];
 
 // "What can my rig run?" — subnets whose required VRAM fits the selected GPU.
 // CPU-only shows subnets whose work type needs no GPU at all.
@@ -277,13 +300,25 @@ export function OpportunitiesView({ onSelectOpportunity, onStartMining }: Opport
 
       <Card className="border-border/60 bg-card/40 backdrop-blur-sm">
         <CardHeader className="pb-3">
-          <CardTitle className="text-display flex items-center gap-2 text-xl">
-            <TrendingUp className="h-4 w-4 text-primary" />
-            Ranked opportunities
-            <span className="text-xs font-normal text-muted-foreground">
-              ranked by net ROI, seat safety & alpha hold value
-            </span>
-          </CardTitle>
+          <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+            <CardTitle className="text-display flex items-center gap-2 text-xl">
+              <TrendingUp className="h-4 w-4 text-primary" />
+              Ranked opportunities
+            </CardTitle>
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="text-xs text-muted-foreground">Ranked by</span>
+              {RANK_BASIS.map(({ label, icon: Icon, tip }) => (
+                <span
+                  key={label}
+                  title={tip}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-background/40 px-2.5 py-1 text-xs font-medium text-foreground/80"
+                >
+                  <Icon className="h-3 w-3 text-primary" />
+                  {label}
+                </span>
+              ))}
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           {layout === "table" ? (
