@@ -201,6 +201,48 @@ export function OpportunityTable({
                   Score
                 </SortableTh>
               )}
+              <SortableTh
+                k="netMonthlyUsd"
+                align="right"
+                sortKey={sortKey}
+                dir={dir}
+                onSort={handleSort}
+              >
+                Net Monthly
+              </SortableTh>
+              {!compact && (
+                <SortableTh
+                  k="estimatedApy"
+                  align="right"
+                  sortKey={sortKey}
+                  dir={dir}
+                  onSort={handleSort}
+                >
+                  Est. APY
+                </SortableTh>
+              )}
+              {!compact && (
+                <SortableTh
+                  k="alphaChange24h"
+                  align="right"
+                  sortKey={sortKey}
+                  dir={dir}
+                  onSort={handleSort}
+                >
+                  Alpha (24h)
+                </SortableTh>
+              )}
+              {!compact && (
+                <SortableTh
+                  k="liquidityTao"
+                  align="right"
+                  sortKey={sortKey}
+                  dir={dir}
+                  onSort={handleSort}
+                >
+                  Liq.
+                </SortableTh>
+              )}
               {!compact && (
                 <SortableTh
                   k="rentEarn"
@@ -225,26 +267,6 @@ export function OpportunityTable({
               )}
               {!compact && (
                 <SortableTh
-                  k="estimatedApy"
-                  align="right"
-                  sortKey={sortKey}
-                  dir={dir}
-                  onSort={handleSort}
-                >
-                  Est. APY
-                </SortableTh>
-              )}
-              <SortableTh
-                k="netMonthlyUsd"
-                align="right"
-                sortKey={sortKey}
-                dir={dir}
-                onSort={handleSort}
-              >
-                Net Monthly
-              </SortableTh>
-              {!compact && (
-                <SortableTh
                   k="demandScore"
                   align="right"
                   sortKey={sortKey}
@@ -256,28 +278,6 @@ export function OpportunityTable({
                   >
                     Demand
                   </span>
-                </SortableTh>
-              )}
-              {!compact && (
-                <SortableTh
-                  k="alphaChange24h"
-                  align="right"
-                  sortKey={sortKey}
-                  dir={dir}
-                  onSort={handleSort}
-                >
-                  Alpha (24h)
-                </SortableTh>
-              )}
-              {!compact && (
-                <SortableTh
-                  k="liquidityTao"
-                  align="right"
-                  sortKey={sortKey}
-                  dir={dir}
-                  onSort={handleSort}
-                >
-                  Liq.
                 </SortableTh>
               )}
               {!compact && (
@@ -381,6 +381,80 @@ export function OpportunityTable({
                         </div>
                       </TableCell>
                     )}
+                    <TableCell className="text-right">
+                      <div className="flex flex-col items-end gap-0.5">
+                        <span
+                          title={
+                            prof
+                              ? `Revenue ${formatCurrency(prof.expectedRevenueUsd)} − GPU ${formatCurrency(prof.gpuRentalUsd)} − storage ${formatCurrency(prof.storageUsd)} − infra ${formatCurrency(prof.infrastructureUsd)} − other ${formatCurrency(prof.otherOperatingTotalUsd)} = net ${formatCurrency(prof.netMonthlyUsd)}/mo`
+                              : o.gpuCostMonthlyUsd != null
+                                ? `Gross $${(o.grossMonthlyUsd ?? 0).toLocaleString()} − GPU $${Math.round(o.gpuCostMonthlyUsd).toLocaleString()} − infra $${Math.round(o.infraCostMonthlyUsd ?? 0).toLocaleString()} — what a median-performing miner keeps per month${o.rewardRealizability != null && o.rewardRealizability < 0.9 ? ` · rewards realizable at ${(o.rewardRealizability * 100).toFixed(0)}% of spot (thin pool)` : ""}`
+                                : "Per-earning-miner monthly revenue"
+                          }
+                          className={cn(
+                            "tabular font-semibold",
+                            (o.netMonthlyUsd ?? o.estimatedMonthlyRewardUsd) > 0
+                              ? "text-success"
+                              : (o.netMonthlyUsd ?? o.estimatedMonthlyRewardUsd) < 0
+                                ? "text-destructive"
+                                : "text-muted-foreground"
+                          )}
+                        >
+                          {formatCurrency(o.netMonthlyUsd ?? o.estimatedMonthlyRewardUsd)}
+                        </span>
+                        {prof && (
+                          <span
+                            className={cn(
+                              "text-[10px] font-medium",
+                              prof.meetsMinimum ? "text-success" : "text-destructive"
+                            )}
+                            title={
+                              prof.meetsMinimum
+                                ? `Meets the minimum net profit target ($${prof.targetUsd.toLocaleString()}/mo) — margin ${prof.profitMarginPct.toFixed(0)}%, ROI ${prof.roiMonthlyPct.toFixed(0)}%/mo`
+                                : `Below the minimum net profit target by ${formatCurrency(prof.shortfallUsd)}/mo — AVOID`
+                            }
+                          >
+                            {prof.meetsMinimum
+                              ? `✓ ≥ $${prof.targetUsd.toLocaleString()} target`
+                              : `✗ < $${prof.targetUsd.toLocaleString()} target`}
+                          </span>
+                        )}
+                      </div>
+                    </TableCell>
+                    {!compact && (
+                      <TableCell className="text-right tabular font-medium text-success">
+                        {formatPercent(o.estimatedApy)}
+                      </TableCell>
+                    )}
+                    {!compact && (
+                      <TableCell className="text-right">
+                        <div className="flex flex-col items-end gap-0.5">
+                          <span className="mono tabular text-muted-foreground">
+                            {o.alphaPriceUsd != null && o.alphaPriceUsd > 0
+                              ? `$${o.alphaPriceUsd < 1 ? o.alphaPriceUsd.toFixed(4) : o.alphaPriceUsd.toFixed(2)}`
+                              : "—"}
+                          </span>
+                          {o.alphaChange24h != null && (
+                            <span
+                              className={cn(
+                                "tabular text-[10px]",
+                                o.alphaChange24h >= 0 ? "text-success" : "text-destructive"
+                              )}
+                            >
+                              {o.alphaChange24h >= 0 ? "▲" : "▼"} {Math.abs(o.alphaChange24h).toFixed(1)}%
+                            </span>
+                          )}
+                        </div>
+                      </TableCell>
+                    )}
+                    {!compact && (
+                      <TableCell
+                        className="text-right mono tabular text-muted-foreground"
+                        title="TAO-side pool depth — exit liquidity for converting mined alpha"
+                      >
+                        {o.liquidityTao != null ? formatNumber(o.liquidityTao) : "—"}
+                      </TableCell>
+                    )}
                     {!compact && (() => {
                       const rent = rentMap.get(o.id);
                       if (!rent) return <TableCell className="text-xs text-muted-foreground">—</TableCell>;
@@ -454,51 +528,6 @@ export function OpportunityTable({
                       </TableCell>
                     )}
                     {!compact && (
-                      <TableCell className="text-right tabular font-medium text-success">
-                        {formatPercent(o.estimatedApy)}
-                      </TableCell>
-                    )}
-                    <TableCell className="text-right">
-                      <div className="flex flex-col items-end gap-0.5">
-                        <span
-                          title={
-                            prof
-                              ? `Revenue ${formatCurrency(prof.expectedRevenueUsd)} − GPU ${formatCurrency(prof.gpuRentalUsd)} − storage ${formatCurrency(prof.storageUsd)} − infra ${formatCurrency(prof.infrastructureUsd)} − other ${formatCurrency(prof.otherOperatingTotalUsd)} = net ${formatCurrency(prof.netMonthlyUsd)}/mo`
-                              : o.gpuCostMonthlyUsd != null
-                                ? `Gross $${(o.grossMonthlyUsd ?? 0).toLocaleString()} − GPU $${Math.round(o.gpuCostMonthlyUsd).toLocaleString()} − infra $${Math.round(o.infraCostMonthlyUsd ?? 0).toLocaleString()} — what a median-performing miner keeps per month${o.rewardRealizability != null && o.rewardRealizability < 0.9 ? ` · rewards realizable at ${(o.rewardRealizability * 100).toFixed(0)}% of spot (thin pool)` : ""}`
-                                : "Per-earning-miner monthly revenue"
-                          }
-                          className={cn(
-                            "tabular font-semibold",
-                            (o.netMonthlyUsd ?? o.estimatedMonthlyRewardUsd) > 0
-                              ? "text-success"
-                              : (o.netMonthlyUsd ?? o.estimatedMonthlyRewardUsd) < 0
-                                ? "text-destructive"
-                                : "text-muted-foreground"
-                          )}
-                        >
-                          {formatCurrency(o.netMonthlyUsd ?? o.estimatedMonthlyRewardUsd)}
-                        </span>
-                        {prof && (
-                          <span
-                            className={cn(
-                              "text-[10px] font-medium",
-                              prof.meetsMinimum ? "text-success" : "text-destructive"
-                            )}
-                            title={
-                              prof.meetsMinimum
-                                ? `Meets the minimum net profit target ($${prof.targetUsd.toLocaleString()}/mo) — margin ${prof.profitMarginPct.toFixed(0)}%, ROI ${prof.roiMonthlyPct.toFixed(0)}%/mo`
-                                : `Below the minimum net profit target by ${formatCurrency(prof.shortfallUsd)}/mo — AVOID`
-                            }
-                          >
-                            {prof.meetsMinimum
-                              ? `✓ ≥ $${prof.targetUsd.toLocaleString()} target`
-                              : `✗ < $${prof.targetUsd.toLocaleString()} target`}
-                          </span>
-                        )}
-                      </div>
-                    </TableCell>
-                    {!compact && (
                       <TableCell className="text-right">
                         {o.demandScore != null && o.demandBand ? (
                           <span
@@ -533,35 +562,6 @@ export function OpportunityTable({
                         ) : (
                           <span className="text-muted-foreground" title="Not enough on-chain data for a demand score">—</span>
                         )}
-                      </TableCell>
-                    )}
-                    {!compact && (
-                      <TableCell className="text-right">
-                        <div className="flex flex-col items-end gap-0.5">
-                          <span className="mono tabular text-muted-foreground">
-                            {o.alphaPriceUsd != null && o.alphaPriceUsd > 0
-                              ? `$${o.alphaPriceUsd < 1 ? o.alphaPriceUsd.toFixed(4) : o.alphaPriceUsd.toFixed(2)}`
-                              : "—"}
-                          </span>
-                          {o.alphaChange24h != null && (
-                            <span
-                              className={cn(
-                                "tabular text-[10px]",
-                                o.alphaChange24h >= 0 ? "text-success" : "text-destructive"
-                              )}
-                            >
-                              {o.alphaChange24h >= 0 ? "▲" : "▼"} {Math.abs(o.alphaChange24h).toFixed(1)}%
-                            </span>
-                          )}
-                        </div>
-                      </TableCell>
-                    )}
-                    {!compact && (
-                      <TableCell
-                        className="text-right mono tabular text-muted-foreground"
-                        title="TAO-side pool depth — exit liquidity for converting mined alpha"
-                      >
-                        {o.liquidityTao != null ? formatNumber(o.liquidityTao) : "—"}
                       </TableCell>
                     )}
                     {!compact && (
