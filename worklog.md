@@ -961,3 +961,22 @@ Stage Summary:
 - Platform hardened: defense-in-depth restored (every data-touching handler now carries its own DB-backed gate, not just the edge proxy), SSRF surface closed on both axon probes and webhook validators, login flow hardened (redirect, limiter, timing, codegen bias), real CSP+HSTS deployed.
 - Codebase slimmed: ~120 dead lines removed incl. one REAL latent bug (CSS .animate-in shadowing tw-animate-css) that subtly degraded every shadcn popup animation.
 - 18 unused imports + duplicate-module import cleaned; zero behavior changes outside the intended fixes; tsc+build+browser all green.
+
+---
+Task ID: code-audit (audit-4)
+Agent: Super Z (main)
+Task: "check for Dead codes, security bugs and AI mistakes and fix it" (user also asked "load the web app" mid-session)
+
+Work Log:
+- Loaded web app via revival ritual; discovered stale dev server squatting port 3000, keepalive loop-restarting on missing standalone build, and ALL data tables wiped (only AppUser 5 rows survived via /tmp mirror).
+- AUTH-AUDIT-1 (scripts/audit-route-auth.py): enumerated 74 API routes, mapped auth guards. Result: 68 session-gated via requireActive* (DB-backed revocation, fail-closed), 6 machine-auth HMAC or inherently public (login/logout). Read auth.ts/auth-admin.ts/auth-users.ts/daemon-bridge.ts/local-agent.ts/proxy.ts — HMAC timing-safe compares, ±5min replay windows, scrypt+timing-pad login, httpOnly/SameSite/Secure cookies, rate limiting, audit logging. No raw SQL, no eval, dangerouslySetInnerHTML only for 2 static constants. Secrets: users.local.json never committed, .env* gitignored.
+- DEADCODE-1 (scripts/audit-deadcode.py): 198 non-entry src files scanned → 4 candidates, all alive (2 dynamic imports in triggers.ts, 2 framework entry points). Zero dead files. Removed ONE in-file AI leftover: dead findFirst query in verifyEnrollmentToken discarded via `void row;`.
+- DB-RESTORE-1: rebuilt from research artifacts — take-snapshot (block 9244789, TAO $275.27), sync-overrides-standalone (105 scraped/16 errored), merge-playbook (105 rows: 97 repo-verified/7 derived/1 thin), new scripts/reseed-requirements-offline.ts filled remaining 34 GPU/category gaps from cached README corpus + pre-wipe dataset.json appGpuRequired; exported parseGpuWithContext/parseVram from github-scraper for offline reuse. Restored .devops-secret from /tmp mirror (AES-GCM decrypt continuity). Rebuilt standalone prod, relaunched keepalive.
+- PLAYBOOK-AUDIT-1 (scripts/playbook-audit.ts + fix-audit-findings.ts): cross-validated AI-written playbook text vs structured scraped data. Fixed 3 real contradictions: SN4 bareMetalOnly false→true (TargonOS wipes disks), SN28 stale "RTX 4060 Ti 16GB"→CPU-only TEE container (repo taostat/gm-miner has zero GPU mentions), SN108 bareMetalOnly true→false (README line is ./data state persistence, not a ban). Restored 105 missing subnet names from fresh chain snapshot. Auditor negation guards added ("no bare metal"/"not a rental ban" are debunkings). gpu-landscape.ts formula verified against canonical (emission × realizability ÷ rewarded × TAO; fallback ×0.6 flagged estimated); gpu-rental-ev.py prior fixes (LOTTERY band, ×24 break-even) confirmed intact; chain.ts emission math correct (7200 blocks/day).
+- Verified: tsc clean, bun run build clean, login 200, /api/playbook 105 entries + /api/gpu-landscape buckets (33/9/18/55 after SN28 fix) render live in browser (screenshots).
+
+Stage Summary:
+- Commit 6a8ea56 "audit-4: dead-code sweep, auth-coverage verification, playbook data consistency fixes" (on top of 0b8026e audit-3 from Oct 7 — the codebase had already had 3 audit rounds; this round found the code remarkably clean, the real problems were a sandbox wipe + 3 data contradictions + 1 dead query).
+- Platform fully restored and serving: playbook/landscape/overrides 100% populated, prod standalone + keepalive up.
+- Reusable audit tooling committed: scripts/audit-route-auth.py, audit-deadcode.py, playbook-audit.ts, reseed-requirements-offline.ts, fix-audit-findings.ts.
+- Open: SN58 (Attune) playbook text lacks TEE mention that structured evidence confirms (research-completeness note, not a contradiction); deployments/hosts/provider-keys operational rows from before the wipe are NOT recoverable from artifacts (only subnet-level data was cached).
