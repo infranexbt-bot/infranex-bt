@@ -30,7 +30,7 @@ import { SeatChanceBadge } from "@/components/subnets/seat-chance-badge";
 import { RegisterOddsInline } from "@/components/cards/register-odds";
 import { HostingChips } from "@/components/cards/hosting-requirements";
 import { useOddsTrends } from "@/hooks/use-odds";
-import { Swords, AlertTriangle, Ban } from "lucide-react";
+import { Swords, AlertTriangle, Ban, DollarSign, ShieldCheck, Coins } from "lucide-react";
 import type { Opportunity } from "@/lib/infranex/types";
 
 interface OpportunityTableProps {
@@ -84,6 +84,7 @@ function SortableTh({
   sortKey,
   dir,
   onSort,
+  rowSpan,
 }: {
   k: SortKey;
   children: React.ReactNode;
@@ -91,9 +92,11 @@ function SortableTh({
   sortKey: SortKey;
   dir: "asc" | "desc";
   onSort: (k: SortKey) => void;
+  rowSpan?: number;
 }) {
   return (
     <TableHead
+      rowSpan={rowSpan}
       className={align === "right" ? "text-right" : align === "center" ? "text-center" : ""}
     >
       <button
@@ -189,13 +192,84 @@ export function OpportunityTable({
       <div className="table-container">
         <Table>
           <TableHeader>
+            {/* RANK-BASIS-2 — group header row: the three ranking axes label
+                their exact columns (and scroll with them), so the basis of
+                the ranking is aligned at a glance instead of floating in the
+                card header. # / Subnet / Action span both header rows. */}
+            {!compact && (
+              <TableRow className="table-header hover:bg-transparent border-b-0">
+                <SortableTh k="rank" sortKey={sortKey} dir={dir} onSort={handleSort} rowSpan={2}>
+                  #
+                </SortableTh>
+                <SortableTh k="subnetName" sortKey={sortKey} dir={dir} onSort={handleSort} rowSpan={2}>
+                  Subnet
+                </SortableTh>
+                <TableHead
+                  className="h-7 text-center"
+                  title="Seat safety axis — slot pressure, reward concentration, burn cost, immunity. Detail lives in the seat badge under Score."
+                >
+                  <span className="inline-flex items-center gap-1">
+                    <ShieldCheck className="h-3 w-3 text-primary" />
+                    Seat safety
+                  </span>
+                </TableHead>
+                <TableHead
+                  colSpan={2}
+                  className="h-7 text-center"
+                  title="Net ROI axis — per-earning-miner revenue minus GPU + infra cost (Net Monthly), annualized (Est. APY)."
+                >
+                  <span className="inline-flex items-center gap-1">
+                    <DollarSign className="h-3 w-3 text-primary" />
+                    Net ROI
+                  </span>
+                </TableHead>
+                <TableHead
+                  colSpan={2}
+                  className="h-7 text-center"
+                  title="Alpha hold value axis — price + 24h trend (Alpha) and exit liquidity (Liq.) for converting mined alpha."
+                >
+                  <span className="inline-flex items-center gap-1">
+                    <Coins className="h-3 w-3 text-primary" />
+                    Alpha hold value
+                  </span>
+                </TableHead>
+                <TableHead
+                  colSpan={2}
+                  className="h-7 text-center"
+                  title="Mining lenses — Rent earn (rented-rig viability) and Your odds (first-month earn odds if you register today)."
+                >
+                  Mining lenses
+                </TableHead>
+                <TableHead
+                  colSpan={2}
+                  className="h-7 text-center"
+                  title="Earning reality — demand backing the rewards (Demand) and share of slots that earned last epoch (Util.)."
+                >
+                  Earning reality
+                </TableHead>
+                <TableHead
+                  colSpan={2}
+                  className="h-7 text-center"
+                  title="Hardware & risk — minimum VRAM + recommended GPU (GPU Req.) and the subnet's risk band (Risk)."
+                >
+                  Hardware &amp; risk
+                </TableHead>
+                <TableHead rowSpan={2} className="text-right">
+                  Action
+                </TableHead>
+              </TableRow>
+            )}
             <TableRow className="table-header hover:bg-transparent">
-              <SortableTh k="rank" sortKey={sortKey} dir={dir} onSort={handleSort}>
-                #
-              </SortableTh>
-              <SortableTh k="subnetName" sortKey={sortKey} dir={dir} onSort={handleSort}>
-                Subnet
-              </SortableTh>
+              {compact && (
+                <>
+                  <SortableTh k="rank" sortKey={sortKey} dir={dir} onSort={handleSort}>
+                    #
+                  </SortableTh>
+                  <SortableTh k="subnetName" sortKey={sortKey} dir={dir} onSort={handleSort}>
+                    Subnet
+                  </SortableTh>
+                </>
+              )}
               {!compact && (
                 <SortableTh k="score" sortKey={sortKey} dir={dir} onSort={handleSort}>
                   Score
@@ -307,7 +381,7 @@ export function OpportunityTable({
                   Risk
                 </SortableTh>
               )}
-              <TableHead className="text-right">Action</TableHead>
+              {compact && <TableHead className="text-right">Action</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
