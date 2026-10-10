@@ -1040,3 +1040,18 @@ Work Log:
 
 Stage Summary:
 - Web app is UP on the latest production build with the db0d6da group-header layout, served by the RSS-watched prod keepalive; daemonizer script is the durable way to spawn it (nohup/setsid are not enough in this sandbox). No source changes this task — UI fix db0d6da was already committed.
+
+---
+Task ID: playbook-reseed
+Agent: main (Super Z)
+Task: User: "check why Miner Playbook page is not displaying any data" — page showed "0 subnets · block — · TAO $0.00", list "No matches."
+
+Work Log:
+- Reproduced in browser (playbook-broken.png); /api/playbook returned {"entries":[], totalSubnets:0}.
+- Root cause: sandbox reset wiped the SQLite data volume — SubnetPlaybook=0, ChainSnapshot=0, UidSnapshot=0, SubnetRequirements=0 (AppUser 5 survived via re-seed). SubnetPlaybook is populated ONLY by scripts/merge-playbook.ts from scripts/playbook/batch-{1..6}-output.json (105 researched entries), and that script gates on every batch netuid existing in SubnetOverride — which also had only 8 rows left.
+- INFRANEX_WORKERS=off in the prod keepalive (OOM guard) means no background repopulation — manual reseed required.
+- Fix chain: (1) /api/network returns 129 live subnets, 120 with identityGithub — verified all 105 batch netuids covered by live chain identity (zero missing); (2) wrote scripts/reseed-overrides-from-chain.ts — CREATE-ONLY upsert of {netuid, githubUrl=identityGithub, name} for batch netuids (never updates existing rows, so the 8 surviving hand-scraped rows are untouched); created 97, coverage 105/105; (3) bun --smol scripts/merge-playbook.ts → 105 playbook rows (repo-verified=97 derived=7 thin=1, matches original distribution).
+- Verify: API entries=105; browser: left list populated (SN1, DSperse, Targon, Hone, Numinous…), SN1 detail card full render with repo-verified badge, footer live block 9,250,846 TAO $279.74; 0 console errors (playbook-fixed.png).
+
+Stage Summary:
+- Miner Playbook data restored from the committed research batches; recovery script saved for future resets. Follow-up if DB resets again: run reseed-overrides-from-chain.ts then merge-playbook.ts (order matters — gate first). GitHub metadata on the 97 recreated override rows is chain-identity-only until a real scrape (POST /api/subnets/sync-all) enriches them — playbook page itself is unaffected (self-contained research content).
