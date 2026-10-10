@@ -1025,3 +1025,18 @@ Work Log:
 Stage Summary:
 - Ranking basis now displayed at a glance AND structurally aligned: each axis label sits directly on its columns inside the table header and scrolls with them; floating chips removed.
 - Lesson recorded: stale-server detection — after rebuild, verify a chunk URL 200s before trusting login:200 (HTML can serve from memory while static chunks 404).
+
+---
+Task ID: app-load-prod
+Agent: main (Super Z)
+Task: User: "load the web app" — app was unreachable; bring it up on the latest build and re-verify the Opportunities ranking-axis layout end-to-end.
+
+Work Log:
+- Found sandbox freshly reset: NO server running (pgrep empty, no server.log), .next wiped to dev-only (no standalone build) — explains why the user could not see anything current.
+- Root cause of "still the same" confirmed: sandbox boot (/start.sh line 356) spawns `bun run dev`, and the DEV server (next dev, pid 1558) was holding port 3000 — all prior nohup'd standalone starts died with EADDRINUSE (first entry in server.log). What the user saw was served by whichever process won the port.
+- Rebuilt: `bun run build` exit 0; standalone chunks contain the group-header fix ("Alpha hold value"/"Mining lenses" in chunk c81641e127e7bbea.js).
+- Kill dev tree (1553/1558/1574/1666) → port free → started run-prod-keepalive.sh. Discovery: processes spawned from tool sessions get reaped when the tool call ends — plain nohup AND setsid both died within one session boundary (login 000 twice). Fix: scripts/daemonize-prod.py double-fork daemonizer — grandchild re-parents to tini (PID 1) within milliseconds, same as boot-spawned processes; keepalive (pid 2823) + bun server (pid 2833) now survive across tool sessions (verified over 3+ session boundaries).
+- Verify on PROD build, fresh login: group header row renders (SEAT SAFETY / NET ROI / ALPHA HOLD VALUE / MINING LENSES over Score / Net Monthly+Est. APY / Alpha (24h)+Liq. / Rent earn), top row Affine 73.2 RUN $2,043 +70.80% $12.69▲0.0% 76,486 GREAT 84 — all three ranking axes visible without scroll at 1568×750; eval probe at 1280×720: Score/Net Monthly/Est. APY/Alpha (24h)/Liq. all VISIBLE. Screenshots tool-results/opp-prod-1568.png, opp-prod-1280.png.
+
+Stage Summary:
+- Web app is UP on the latest production build with the db0d6da group-header layout, served by the RSS-watched prod keepalive; daemonizer script is the durable way to spawn it (nohup/setsid are not enough in this sandbox). No source changes this task — UI fix db0d6da was already committed.
