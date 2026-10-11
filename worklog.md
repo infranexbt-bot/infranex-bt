@@ -1152,3 +1152,14 @@ Work Log:
 
 Stage Summary:
 - Chat answer: 7-step launch sequence (identity, seed file, dirs/disk, supervisor smoke, first epochs, monitoring, ops discipline) + GPU check table (identity, MIG, thermals, power/clocks, ECC, FP32 bench, disk, network) with red-flag kill criteria
+
+---
+Task ID: no-go-band-explain
+Agent: main (Super Z)
+Task: User asked what NO-GO means
+
+Work Log:
+- Read mine-pick.ts (MinePickBand PRIME/READY/MARGINAL/NO-GO, hard gates) + prior sn116-nogo-explain worklog entry
+
+Stage Summary:
+- Explained: NO-GO = dashboard picker's lowest conviction band; triggered by hard gates (not rentable / diligence DO-NOT-PROVISION / below minimum profit) or conviction <35; distinct from profit math (whale-mean trap); flip conditions documented
