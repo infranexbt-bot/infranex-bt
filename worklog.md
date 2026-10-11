@@ -1116,3 +1116,15 @@ Work Log:
 Stage Summary:
 - Delivered: what Affine SN120 is (synchronous RL post-training subnet, verified rollouts -> hourly training -> hourly chain weights), 8-step miner procedure, and live epoch status
 - Key honest caveat surfaced: current public mining.json stream is payable=false (verification phase); user must confirm payable=true / payable stream before burning paid GPU hours; registration burn ~2.5 TAO still applies to hold UID
+
+---
+Task ID: deployments-vs-validator-lab-explain
+Agent: main (Super Z)
+Task: User asked what Deployments does and when to run Validator Lab for Affine
+
+Work Log:
+- Read src/components/views/deployments-view.tsx header + judge-view.tsx, judge/extract.ts, judge/apply.ts, sidebar.tsx labels
+- Confirmed: Deployments = onboarding/ops page (4-step stepper, preflight, registration wizard w/ burn, daemon apply_config, DevOps engine, mock mode); Validator Lab = Section 04 judge view (repo+chain profile extraction, archetype badges, slider simulation, p90 gate card, apply_config bridge, 6h cache)
+
+Stage Summary:
+- Explained both views and gave the SN120 timing doctrine: run Validator Lab NOW (free, pre-burn, while stream is payable=false), gate green -> register/activate, re-run after client upgrades and after the payable flip
