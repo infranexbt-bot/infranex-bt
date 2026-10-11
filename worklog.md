@@ -1083,3 +1083,18 @@ Work Log:
 
 Stage Summary:
 - Verdict delivered: SN120 Affine is the best rented-GPU subnet (only positive-EV + high-earn-chance option); SN32 ItsAI best low-budget but currently break-even; SN35 high-variance speculative; whale-mean traps listed; TEE/bare-metal subnets impossible on rentals. Diligence/conviction needs scan workers re-run to be meaningful again (follow-up).
+
+---
+Task ID: affine-burn-audit
+Agent: main (Super Z)
+Task: User audit of SN120 Affine profitability card: is the registration TAO burn included, how much is it, and is the expected earnings net of burn?
+
+Work Log:
+- Read profitability.ts: includeRegistrationBurn=true default; burn is AMORTIZED over amortizeBurnMonths=3 and folded into the "Other operating (incl. reg burn)" line: otherOpexMonthlyUsd ($25) + burnUsd/3.
+- Decomposed the card's −$274.6: $25 base opex + $249.6/mo burn amortization → burnUsd $748.8 → ≈2.55 TAO at page-load TAO price ✓ matches live chain burn (2.5646 TAO an hour ago).
+- Live burn NOW: 2.5307 TAO (≈$739 at TAO $291.96) — drifts per block with registration demand (3.086 this morning → 2.56 → 2.53).
+- Honest month-1 cash view (amortization is accounting, not cash): month-1 net ≈ 846 − 739 + 250 ≈ $355 (still > $300 target); months 2-3 cash ≈ $1,096/mo (amortization is non-cash); month 4+ ≈ $1,121/mo. Burn is upfront, in TAO, non-refundable; break-even on burn ≈ 26 days of net at full earnings, longer with the 1-3wk bond ramp.
+- Card cross-check: rent $3,400 = 2×H100 at engine rate $1,700/mo each (miner-score.ts GPU_TIERS.h100); rewarded 244/256 miners (95.3%) backs the revenue realism; revenue still swings with alpha/TAO prices.
+
+Stage Summary:
+- Confirmed burn IS included but amortized over 3 months; delivered month-1 cash-corrected view (~$355 net, above the $300 floor) with the drift/non-refundable caveats. No code changes.
