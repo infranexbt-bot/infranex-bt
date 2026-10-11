@@ -1098,3 +1098,21 @@ Work Log:
 
 Stage Summary:
 - Confirmed burn IS included but amortized over 3 months; delivered month-1 cash-corrected view (~$355 net, above the $300 floor) with the drift/non-refundable caveats. No code changes.
+
+---
+Task ID: affine-live-miner-guide
+Agent: main (Super Z)
+Task: User asked what Affine subnet is, step-by-step procedure after starting a provider GPU miner, and to pull real-time miner work
+
+Work Log:
+- Located prior context: SN120 Affine was ranked best rented-GPU subnet in Profitable Engine (GREAT 71, EV +$797/mo, 95.3% earn chance, burn ~2.53 TAO at TAO ~$291.96)
+- Fetched AffineFoundation/affine GitHub README + docs: MINER_QUICKSTART, LIVE_SUBNET, ARCHITECTURE, MATH_MINER_BOOTSTRAP, CONTINUOUS_STATISTICAL_REWARD_BRIDGE
+- Pulled live signed guide https://affine.io/llms.txt (updated 2026-10-11) — full protocol: Qwen2.5-Math-7B-Instruct, affine_math env (7,496 MATH tasks, 750 held out), 8 rollouts/batch (4 correct + 4 wrong), 9 batches max/UID/epoch, nonces 0-999, 2048 token cap, temp 0.8, H200/SM90 FP32 eager (torch 2.14.0, transformers 5.14.1, toploc 0.1.6)
+- Pulled live discovery https://affine.io/mining.json twice (18:40 and 18:56 UTC): status mining, accepting_submissions TRUE, epoch 147 (nonpayable-live-reward-math-v1--1791743817-147), 20-min window 18:40:43-19:00:43 UTC (00:10-00:30 IST Oct 12), netuid 120 Finney, checkpoint 2f7f3901..., source f5287f57... (matches pinned client)
+- CRITICAL FINDING: manifest payable=false, chain_weight_submission=false, chain_writer_enabled=false; bucket "affine-verification-mock-20260930" — current public stream is the NONPAYABLE verification service (post-recovery rehearsal); nonpayable epochs never become payout eligible. Payable service = global /public/current.json per LIVE_SUBNET.md
+- Pulled history.json (signed): 11 finalized epochs in payload, all nonpayable stream; rhythm from guide: epochs ~hourly (125-131 <1h, 132 60m20s w/ 512 tasks/2048 pairs/4096 rollouts from 190 identities, 133 56m10s), epoch 88 collection 400 batches/175 identities in 20 min
+- Artifacts saved: scripts/affine_llms.txt, affine_mining_now.json, affine_history.json, affine_*.md
+
+Stage Summary:
+- Delivered: what Affine SN120 is (synchronous RL post-training subnet, verified rollouts -> hourly training -> hourly chain weights), 8-step miner procedure, and live epoch status
+- Key honest caveat surfaced: current public mining.json stream is payable=false (verification phase); user must confirm payable=true / payable stream before burning paid GPU hours; registration burn ~2.5 TAO still applies to hold UID
