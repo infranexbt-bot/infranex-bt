@@ -1128,3 +1128,15 @@ Work Log:
 
 Stage Summary:
 - Explained both views and gave the SN120 timing doctrine: run Validator Lab NOW (free, pre-burn, while stream is payable=false), gate green -> register/activate, re-run after client upgrades and after the payable flip
+
+---
+Task ID: rental-install-coverage-explain
+Agent: main (Super Z)
+Task: User asked whether the Infranex app installs all requirements on rented GPUs
+
+Work Log:
+- Read real-setup.ts (SSH install runner, fire-and-forget, mirrorStepOutput, wallet gate), installer.ts (8-step plan: compatibility/apt/runtime/clone/deps/infra/wallet-gate/launch), daemon-setup.ts (systemd or watchdog launcher), providers (runpod/vast/mock adapters, ephemeral ed25519 SSH)
+- Checked DB: SubnetOverride netuid=120 exists (recommendedGpu "2× H100 80 GB or 2× RTX PRO 6000 96 GB", minVramGb 80)
+
+Stage Summary:
+- Answer: yes for the standard pipeline (auto install plan over SSH after provisioning) with two deliberate human gates (wallet files never touched; launch needs approval click); manual gates for k8s; DO-NOT-PROVISION for TEE/bare-metal-only; Affine-specific manual items: signed-source supervisor entrypoint, Ed25519 activation, runtime pin verification
