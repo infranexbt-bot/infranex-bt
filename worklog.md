@@ -1069,3 +1069,17 @@ Work Log:
 
 Stage Summary:
 - App restored after second sandbox reset; full recovery is now a repeatable 6-step chain (db:push → seed-users → clear stale snapshots → build → daemonize-prod.py → reseed+merge playbook), all scripts committed. Watch item: boot races can leave db:push un-run — if src ENOENT appears in dev.log at boot, expect a stale DB and run the chain.
+
+---
+Task ID: rented-gpu-verdict
+Agent: main (Super Z)
+Task: User: "which is the best subnet to GPU mine on rented GPU — research, advise, provide the list."
+
+Work Log:
+- Ground truth was degraded post-reset (97/105 overrides chain-identity-only) — re-ran sync-overrides-standalone.ts twice: 105/105 scraped, 0 errors (raw.githubusercontent, no API quota). SN120=2×H100/2×PRO6000, SN32/SN123=RTX 4090, SN79=A100 80GB, SN35=H200.
+- Re-ran committed rental-1mo-analysis.ts (4090/5090 consumer bucket, 16 candidates) — SN9 iota headline NET +$2,649 but 0.8% earn chance (WHALE-MEAN+KNIFE-FIGHT); SN32 ItsAI 93.8% earn chance but NET -$74 (break-even at TAO $294); rest AVOID.
+- Wrote scripts/rented-gpu-verdict.ts (conviction ranking; caught my own mergeOpportunities signature bug — overrides go in slot 3) and scripts/rented-gpu-detail.ts (targeted rent-earn detail). Conviction column unusable post-reset (diligence stages wiped → NO-GO 30 cap) — rent-earn verdicts (live chain facts) are the reliable signal.
+- Results: SN120 Affine = only GREAT band (71) with 95.3% earn chance, EV +$797/mo net-of-rent, median net $812/mo after 2×H100 rent, liq 75,753 TAO, burn 3.09 TAO. SN35 = OK 49, EV +$1,305 but 20% earn chance, liq 362 TAO, NO playbook research → speculative. SN32 EV -$72, SN123 -$76, SN79 -$631 (all ~94-96% earn chance but cashflow-negative at current prices). Everything else ≤$59 EV with 0.4-7% earn chances = whale-mean traps.
+
+Stage Summary:
+- Verdict delivered: SN120 Affine is the best rented-GPU subnet (only positive-EV + high-earn-chance option); SN32 ItsAI best low-budget but currently break-even; SN35 high-variance speculative; whale-mean traps listed; TEE/bare-metal subnets impossible on rentals. Diligence/conviction needs scan workers re-run to be meaningful again (follow-up).
