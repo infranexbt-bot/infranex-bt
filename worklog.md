@@ -1140,3 +1140,15 @@ Work Log:
 
 Stage Summary:
 - Answer: yes for the standard pipeline (auto install plan over SSH after provisioning) with two deliberate human gates (wallet files never touched; launch needs approval click); manual gates for k8s; DO-NOT-PROVISION for TEE/bare-metal-only; Affine-specific manual items: signed-source supervisor entrypoint, Ed25519 activation, runtime pin verification
+
+---
+Task ID: miner-post-install-gpu-checks
+Agent: main (Super Z)
+Task: User asked what to do after requirements are installed (as Affine miner) and what to check on the GPU
+
+Work Log:
+- No new research needed; compiled from pulled Affine docs (llms.txt, quickstart, bootstrap) + app's devops monitoring (GPU_HEALTH thermal 91C drill, daemon TEMP/UTIL telemetry)
+- Delivered launch sequence + GPU verification checklist (SM90/MIG/driver, FP32 throttle reasons, ECC/row remap, thermals, disk for dual checkpoints, network to R2)
+
+Stage Summary:
+- Chat answer: 7-step launch sequence (identity, seed file, dirs/disk, supervisor smoke, first epochs, monitoring, ops discipline) + GPU check table (identity, MIG, thermals, power/clocks, ECC, FP32 bench, disk, network) with red-flag kill criteria
