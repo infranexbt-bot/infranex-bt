@@ -1055,3 +1055,17 @@ Work Log:
 
 Stage Summary:
 - Miner Playbook data restored from the committed research batches; recovery script saved for future resets. Follow-up if DB resets again: run reseed-overrides-from-chain.ts then merge-playbook.ts (order matters — gate first). GitHub metadata on the 97 recreated override rows is chain-identity-only until a real scrape (POST /api/subnets/sync-all) enriches them — playbook page itself is unaffected (self-contained research content).
+
+---
+Task ID: app-load-prod-2
+Agent: main (Super Z)
+Task: User: "load the web app" (second reset recovery) — sandbox had rebooted; dev server 500ing, prod gone, DB rolled back to a stale September volume.
+
+Work Log:
+- Boot damage this time was worse than the previous reset: dev.log showed ENOENT scandir '/home/z/my-project/src/app' (volume-attach race at boot — src present now, git clean); db/custom.db was a STALE Sep-13 volume (667KB, 21 tables, no SubnetPlaybook) and boot's db:push never completed (start.sh set -e aborted in the race); AppUser=0 (users gone), ChainSnapshot=6 stale Sep rows.
+- Recovery chain: kill dev tree → bun run db:push (schema synced, +SubnetPlaybook etc.) → bun scripts/seed-users.ts (5 AppUser rows, codes preserved) → DELETE stale ChainSnapshot rows (force live fetches; workers are off in prod keepalive) → bun run build exit 0 → daemonize-prod.py (double-fork, survives session reaper) → login 200.
+- Playbook reseed (documented order): fresh /api/network fetch (129 subnets, block 9,261,376) → reseed-overrides-from-chain.ts (created 97, kept 8, 105/105 gate) → merge-playbook.ts (105 rows, 97/7/1).
+- Verify: login page 200; Miner Playbook header "105 subnets · 97 repo-verified / 7 derived / 1 thin", SN1 detail renders (playbook-recovered.png); Dashboard live "block 9,261,376 · 129 subnets" + RUNNER-UPS scored; /api/network eval 129 subnets block 9261376.
+
+Stage Summary:
+- App restored after second sandbox reset; full recovery is now a repeatable 6-step chain (db:push → seed-users → clear stale snapshots → build → daemonize-prod.py → reseed+merge playbook), all scripts committed. Watch item: boot races can leave db:push un-run — if src ENOENT appears in dev.log at boot, expect a stale DB and run the chain.
