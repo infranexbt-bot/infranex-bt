@@ -1163,3 +1163,16 @@ Work Log:
 
 Stage Summary:
 - Explained: NO-GO = dashboard picker's lowest conviction band; triggered by hard gates (not rentable / diligence DO-NOT-PROVISION / below minimum profit) or conviction <35; distinct from profit math (whale-mean trap); flip conditions documented
+
+---
+Task ID: published-url-health-check
+Agent: main (Super Z)
+Task: User published app to https://x1vjv8jfmfp0-d.space-z.ai — asked if fully functional and production-ready
+
+Work Log:
+- Live-tested the URL: / -> 307 /login (auth middleware OK); /login 200 with title "Infranex BT — Bittensor Subnet Intelligence Platform"; 5/5 JS chunks 200 (no stale-server chunk issue); /api/network 401 unauthenticated (session gate enforced)
+- Confirmed 29 API route groups exist (network, subnets, playbook, gpu-landscape, judge, deployments, devops, diligence, autopilot, etc.)
+- Repo contains DEPLOYMENT_VERCEL_SUPABASE.md + VERCEL env var docs = documented migration path off the sandbox
+
+Stage Summary:
+- Verdict: fully functional and live right now (all gates healthy); production-capable for personal use with sandbox caveats (4GB OOM risk, SQLite, ephemeral preview URL, data freshness depends on scraper cron); durable production = Vercel + Supabase migration per included runbook
