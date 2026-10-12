@@ -1225,3 +1225,18 @@ Work Log:
 Stage Summary:
 - Playbook + auth fully restored; user's existing browser cookie should work on refresh (stateless token, same APP_SESSION_SECRET, AppUser rows now exist)
 - DB-rebuild recovery runbook now proven: prisma db push -> merge-playbook.ts -> restore-users.ts (mirror: infranex-users.local.json)
+
+---
+Task ID: playbook-names-fix
+Agent: main (Super Z)
+Task: User asked that subnet names be displayed in Miner Playbook
+
+Work Log:
+- Found SubnetOverride.name NULL for all 105 rows (github worker never sets name) -> API fell back to "SN{netuid}" for every card
+- Chain snapshot has canonical on-chain identity names (120/129 subnets) already parsed in the route
+- NAME-FIX in src/app/api/playbook/route.ts: build liveNames map from snapshot during the existing liveList loop; name = override > chain identity > SN fallback (DATA-AUDIT-1 precedence)
+- Rebuilt standalone + daemonized restart; login 200
+- Verified: /api/playbook 105/105 entries with real names (Carbon, Targon, iota, NOVA, ChipForge, KubeTEE, Herald, 404-GEN...), sort-by-name and search now meaningful
+
+Stage Summary:
+- Miner Playbook shows real subnet names everywhere (list cards, detail header, search, name sort); only playbook route had the pattern — other views source names from chain already

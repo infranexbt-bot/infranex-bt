@@ -36,9 +36,15 @@ export async function GET() {
   const taoUsd = snap?.taoPriceUsd ?? 0;
   const liveList = snap ? (JSON.parse(snap.subnetsJson) as Record<string, unknown>[]) : [];
   const liveByNetuid = new Map<number, LandscapeLive>();
+  // NAME-FIX (2026-10-12) — SubnetOverride.name is null until a curated
+  // sync fills it, which made the playbook render every card as "SN12".
+  // The chain snapshot carries the canonical on-chain identity names —
+  // DATA-AUDIT-1 precedence: override > chain identity > SN fallback.
+  const liveNames = new Map<number, string>();
   for (const s of liveList) {
     const netuid = typeof s.netuid === "number" ? s.netuid : Number(s.netuid);
     if (!Number.isFinite(netuid)) continue;
+    if (typeof s.name === "string" && s.name.trim()) liveNames.set(netuid, s.name.trim());
     liveByNetuid.set(
       netuid,
       buildLive(
@@ -64,7 +70,7 @@ export async function GET() {
       const b = (v: unknown) => v === true;
       return {
         netuid: p.netuid,
-        name: o?.name ?? `SN${p.netuid}`,
+        name: o?.name ?? liveNames.get(p.netuid) ?? `SN${p.netuid}`,
         category: o?.category ?? null,
         gpu: o?.recommendedGpu ?? null,
         minVramGb: o?.minVramGb ?? null,
