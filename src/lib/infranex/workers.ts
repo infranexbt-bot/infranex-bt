@@ -113,15 +113,19 @@ export function startWorkers() {
   }
   workersStarted = true;
 
-  // Run immediately, then on intervals
-  void runChainWorker();
-  void runMarketWorker();
-  void runGithubWorker();
-  void runDevopsWorker();
-  void runUpstreamWorker();
-  void runBenchmarkWorker();
-  void runDigestWorker();
-  void runDeployTickerWorker();
+  // MEMORY-GUARD-4 (2026-10-12) — stagger the boot sweep. Firing all 8
+  // workers concurrently at boot (chain sweep of 128 subnets + ~100 repo
+  // scrapes + devops + benchmarks) spiked RSS to 2.9GB and got the kernel
+  // OOM-killer involved on 4GB hosts. Heaviest passes now trail in on a
+  // delay; interval cadence is unchanged after first fire.
+  void runChainWorker();       // chain sweep — highest value, starts now
+  void runMarketWorker();      // 1 TAO price fetch — trivial
+  void runDeployTickerWorker(); // 5s deploy ticks — cheap
+  setTimeout(() => void runDevopsWorker(), 20_000);     // +20s: trigger/UID/GPU passes
+  setTimeout(() => void runGithubWorker(), 60_000);     // +60s: ~100 repo scrapes (heaviest)
+  setTimeout(() => void runUpstreamWorker(), 90_000);   // +90s: git release/commit watcher
+  setTimeout(() => void runBenchmarkWorker(), 120_000); // +120s: axon-latency harness
+  setTimeout(() => void runDigestWorker(), 150_000);    // +150s: alert digest sweep
 
   workerTimers.push(setInterval(() => void runChainWorker(), INTERVALS.chain));
   workerTimers.push(setInterval(() => void runMarketWorker(), INTERVALS.market));

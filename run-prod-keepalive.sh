@@ -9,7 +9,7 @@ cd /
 export NODE_ENV=production
 export DATABASE_URL="file:$PROJECT_DIR/db/custom.db"
 export INFRANEX_REPO_ROOT="$PROJECT_DIR"
-export INFRANEX_WORKERS=off
+export INFRANEX_WORKERS=on
 export NODE_OPTIONS="--max-old-space-size=2048"
 
 # MEMORY-GUARD-3 (2026-09-29) — swap insurance: the 4GB sandbox kernel-OOM-

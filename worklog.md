@@ -1191,3 +1191,20 @@ Work Log:
 
 Stage Summary:
 - App UP on fresh production standalone with RSS-watched keepalive; public URL https://x1vjv8jfmfp0-d.space-z.ai fully serving; MemAvailable ~3.5GB post-start
+
+---
+Task ID: data-flow-revival
+Agent: main (Super Z)
+Task: User reported "data is not flowing" on the live app
+
+Work Log:
+- Diagnosed: db/custom.db stale since 2026-09-13 (sandbox reset); run-prod-keepalive.sh exported INFRANEX_WORKERS=off so all 8 background workers were disabled; schema drift (Deployment.ownerUserId missing) also failing devops-monitor
+- prisma db push -> schema synced, ownerUserId verified present
+- MEMORY-GUARD-4: staggered boot sweep in src/lib/infranex/workers.ts (chain/market/ticker immediate; devops +20s; github +60s; upstream +90s; benchmarks +120s; digest +150s) to prevent the 2.9GB OOM storm
+- bun run build (exit 0), flipped INFRANEX_WORKERS=on, relaunched via scripts/daemonize-prod.py
+- Verified: chain-scanner 129 subnets live every 2min (TAO $281.67, block 9.27M); github-analyzer completed 105 repos/375s, 72 subnets with scraped GPU requirements; devops-monitor passing; all 8 workers cycling; RSS stable 380-430MB; public URL 200
+
+Stage Summary:
+- Data flowing end-to-end; root causes were (1) workers env-flag off + <6GB RAM default-off, (2) stale DB schema, (3) month-old data after sandbox reset
+- Boot sweep now staggered MEMORY-GUARD-4 in workers.ts; keepalive exports INFRANEX_WORKERS=on
+- UidSnapshot/GpuHost/SubnetRequirements tables legitimately empty (populate from user deployments/hosts, not scrapes)
