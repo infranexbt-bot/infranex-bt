@@ -1176,3 +1176,18 @@ Work Log:
 
 Stage Summary:
 - Verdict: fully functional and live right now (all gates healthy); production-capable for personal use with sandbox caveats (4GB OOM risk, SQLite, ephemeral preview URL, data freshness depends on scraper cron); durable production = Vercel + Supabase migration per included runbook
+
+---
+Task ID: load-web-app-prod-revival
+Agent: main (Super Z)
+Task: User asked to load the web app
+
+Work Log:
+- Found sandbox freshly reset: dev server (next dev, booted 16:06) holding :3000, .next/standalone MISSING — user was being served slow dev mode (3.4s, 1.2GB RSS)
+- Killed dev tree (1569/1570/1587/1861) → port free, MemAvailable 2.3→3.6GB
+- bun run build exit 0 (standalone restored)
+- Started via scripts/daemonize-prod.py (double-fork, re-parents to tini — survives session reaper); login 200 on attempt 1, chunk 41c776e0fd90826a.js → 200
+- Public URL verified: /login 200, / 307→/login, /api/network 401 gate, public chunk 200
+
+Stage Summary:
+- App UP on fresh production standalone with RSS-watched keepalive; public URL https://x1vjv8jfmfp0-d.space-z.ai fully serving; MemAvailable ~3.5GB post-start
