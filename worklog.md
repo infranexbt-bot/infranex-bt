@@ -1257,3 +1257,17 @@ Stage Summary:
 - Honest verdict: no free-lunch 5090 entry today; SN10 Pareton is the flagship 5090 play (skill-gated), SN53/SN64 are real but mispriced by scrapers, SN9/SN3 headline yields are whale-inflated + FULL
 - Rig guidance delivered in chat (single 5090 vs 4x Pareton config, sm_120/CUDA 12.8+/torch 2.7+ stack caveat, power math)
 - Filed known issue: scraped minVramGb aggregation misleads the cost engine for multi-GPU-menu subnets (SN53 180GB, SN64 141GB)
+
+---
+Task ID: sn35-nogo-explain-2
+Agent: main (Super Z)
+Task: User asked why SN35 shows $5,878/mo net profit but NO-GO — should they mine?
+
+Work Log:
+- Pulled full computeMinePick(SN35): band NO-GO conviction 30; profit engine gross $8,555 net $5,881; new-entrant EV $1,176/mo; month-1 earn chance 11%
+- Root cause: whale-mean trap — 5 miners, only 1 rewarded, top-10% incentive share = 100%, so per-earner mean (5.06 TAO/d) is one whale UID collecting everything
+- 2 hard diligence fails: s7 competition (brutal concentration) + s10 liquidity (356 tau depth, 42% exit slippage); plus s4 unclassified workload, s11 no trust signals, no chain identity/GitHub — subnet literally unnamed
+- Hardware req "H200 141GB" is a revenue-based estimate, not verified — even the -$2,500 GPU rental line is a guess
+
+Stage Summary:
+- Verdict delivered: DO NOT MINE — the $5,878 is mathematically real but earned by 1 whale UID; flip conditions = verified repo/identity, deconcentrated reward distribution, deeper alpha liquidity
