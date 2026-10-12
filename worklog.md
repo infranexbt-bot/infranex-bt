@@ -1291,3 +1291,20 @@ Stage Summary:
 - Real chances: SN61 RedTeam (CPU, picker PRIME, new-entrant EV ~$574/mo), SN5 Hone (most meritocratic, avg $1,291/mo), SN83/SN50/SN79/SN101 (CPU ~$312-806/mo), SN120 Affine (GPU H100-class, avg $4,396/mo, gated)
 - Open-seat subnets are lottery tryouts (earn $0 unless beating the single incumbent)
 - Script persisted: bun --smol scripts/earn-chances.ts (re-runnable)
+
+---
+Task ID: best-cpu-miner
+Agent: main (Super Z)
+Task: User asked "best CPU miner to earn"
+
+Work Log:
+- Enumerated 90 CPU-class emitting subnets; filtered meritocratic set (20+ rewarded miners, top10 <= 75%): 14 qualify
+- Pull chain identity descriptions + burn costs + immunity for each
+- Cross-checked picker verdicts: SN61 RedTeam remains the ONLY PRIME (conv 68, net $1,061/mo avg, bond ramp 7.9 weeks)
+- Merit CPU ranking by avg-miner $: SN61 ~$2,206 > SN67 Harnyx ~$1,299 > SN5 Hone ~$1,291 (top10 just 11%) > SN83 ~$809 > SN78 Umi ~$814 > SN105 Beam ~$621 > SN50 Synth ~$480 > SN101 Tag101 ~$372 > SN33 ReadyAI ~$368 > SN79 MVTRX ~$309
+- Burns: SN61 0.135 TAO (48h immunity), SN101 0.046, SN83 0.100, SN105 0.022, SN5 0.958
+- SN61 caveats from diligence: FULL (displacement entry), workload = software engineering agents, bond ramp ~7.9 weeks to full rewards
+
+Stage Summary:
+- Recommendation: SN61 RedTeam primary (new-entrant EV ~$574/mo after ramp); SN101 Tag101 + SN83 CliqueAI as cheap add-ons (~$80 total burn); SN5 Hone high-meritocracy alternative but $270 burn
+- All merit CPU subnets FULL — entry = displace weakest UID; burns at risk are small ($6-38 each)
