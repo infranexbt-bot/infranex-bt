@@ -1208,3 +1208,20 @@ Stage Summary:
 - Data flowing end-to-end; root causes were (1) workers env-flag off + <6GB RAM default-off, (2) stale DB schema, (3) month-old data after sandbox reset
 - Boot sweep now staggered MEMORY-GUARD-4 in workers.ts; keepalive exports INFRANEX_WORKERS=on
 - UidSnapshot/GpuHost/SubnetRequirements tables legitimately empty (populate from user deployments/hosts, not scrapes)
+
+---
+Task ID: playbook-load-fix
+Agent: main (Super Z)
+Task: User reported "Failed to load the playbook. Refresh to retry." after data-flow revival
+
+Work Log:
+- Found SubnetPlaybook table created EMPTY by db push (Sept-13 DB predates the playbook feature); 105 research batch outputs survived in scripts/playbook/batch-{1..6}-output.json
+- Re-seeded via bun --smol scripts/merge-playbook.ts -> 105 rows (97 repo-verified, 7 derived, 1 thin)
+- Discovered bigger break: AppUser table also empty -> fail-closed auth gate (auth-admin.ts) 503s EVERY gated API even with valid cookie; login DB-only so nobody could sign in
+- Patched scripts/restore-users.ts MIRROR path /tmp/my-project -> /home/z/my-project; ran it -> 5 users restored (admin/analyst01/ops01/ops02/viewer01) with original codes re-hashed scrypt + AES-GCM codeEnc, mirror re-synced
+- E2E proof: POST /api/auth/login admin -> 200 ok; GET /api/playbook -> 200, 105 entries, top SN116 $45k/day per-earner; swept network/gpu-landscape/gpu-offers/economics/workers/triggers/wallets all 200
+- /api/subnets 404 is by design (per-netuid routes only)
+
+Stage Summary:
+- Playbook + auth fully restored; user's existing browser cookie should work on refresh (stateless token, same APP_SESSION_SECRET, AppUser rows now exist)
+- DB-rebuild recovery runbook now proven: prisma db push -> merge-playbook.ts -> restore-users.ts (mirror: infranex-users.local.json)

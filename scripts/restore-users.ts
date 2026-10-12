@@ -11,7 +11,7 @@ import { PrismaClient } from "@prisma/client";
 import { hashCode, generateAccessCode } from "../src/lib/auth-users";
 import { encryptSecret } from "../src/lib/devops/crypto";
 
-const MIRROR = "/tmp/my-project/infranex-users.local.json";
+const MIRROR = "/home/z/my-project/infranex-users.local.json";
 const db = new PrismaClient();
 
 interface MirrorUser {
