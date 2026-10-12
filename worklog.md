@@ -1308,3 +1308,22 @@ Work Log:
 Stage Summary:
 - Recommendation: SN61 RedTeam primary (new-entrant EV ~$574/mo after ramp); SN101 Tag101 + SN83 CliqueAI as cheap add-ons (~$80 total burn); SN5 Hone high-meritocracy alternative but $270 burn
 - All merit CPU subnets FULL — entry = displace weakest UID; burns at risk are small ($6-38 each)
+
+---
+Task ID: english-pdf-report
+Agent: main (Super Z)
+Task: User asked to "provide this in english" - deliver the earning-chances + CPU miner analysis as an English PDF report
+
+Work Log:
+- Loaded pdf skill; read full chain: SKILL.md, configs/fonts.md, briefs/report.md (1704 lines), typesetting/{cover,palette,charts,overflow,pagination,typography,fill-engine,cover-backgrounds,geometry}.md
+- palette.cascade --seed 42 --mode minimal (warm olive-gold family) in reportlab + css formats
+- Built 2 charts (scripts/report_charts.py): CPU contenders horizontal bar + tier donut (124 subnets); fixed legend cutoff via fig.legend loc='outside center right'; DejaVu Sans (NotoSansSC variable font not loadable by matplotlib)
+- Cover: Template 01 HUD (scripts/report_assets/cover.html), cascade CSS vars, 8px gold anchor line; passed poster_validate.py + cover_validate.js after removing nested accent span (false-positive overlap); rendered via html2poster.js --width 794px
+- Body: scripts/generate_report_pdf.py - ReportLab, FreeSerif family + install_font_fallback, TocDocTemplate + multiBuild clickable TOC, 8 chapters, 9 tables (all Paragraph cells, proportional widths, repeatRows=1), callout stat rows, quote block, code block, CondPageBreak orphan prevention
+- Fixed: TOC page numbers now body-relative (footer arabic = doc.page-1, TOC page = roman i); page-size normalize threshold 2pt -> 0.1pt to kill pdf_qa page-size error
+- QA: meta.brand ok, font.check 0 issues, toc.check pass on final, pages.clean no blanks, pdf_qa WARN-only (cover left-anchored by design; callout boxes are symmetric nested tables - false positives)
+
+Stage Summary:
+- Deliverables: download/Bittensor_Earning_Chances_Report_Oct2026.pdf (12 pages, 325 KB) + download/Bittensor_Report_Cover.html (cover source)
+- Report: exec summary w/ 4 stat callouts, methodology + 4-factor scoring, tier map + donut, SN61 deep dive, 12-row CPU ranking + bar chart, whale-lottery traps + SN35 case study, action plan (hardware/budget/phases/revenue), monitoring
+- Scripts persisted: scripts/report_charts.py, scripts/generate_report_pdf.py (edit + re-run to regenerate)
