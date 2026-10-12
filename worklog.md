@@ -1271,3 +1271,23 @@ Work Log:
 
 Stage Summary:
 - Verdict delivered: DO NOT MINE — the $5,878 is mathematically real but earned by 1 whale UID; flip conditions = verified repo/identity, deconcentrated reward distribution, deeper alpha liquidity
+
+---
+Task ID: earn-chances
+Agent: main (Super Z)
+Task: User asked "which subnets have the chances to earn the rewards?"
+
+Work Log:
+- Built scripts/earn-chances.ts: per-subnet chance score from chain snapshot aggregates (rewardedMiners, top10IncentiveShare, incentiveMedianShare, minerEmissionTaoPerDay, slots, rewardRealizability)
+- Evaluated 124 emitting subnets at block 9268890, TAO $281.68
+- TIER A (open seats + broad rewards): 0 subnets — market fully saturated
+- TIER B (open seats, whale lottery): 10 subnets — SN35/SN16/SN36/SN47/SN70/SN90/SN103/SN108/SN117/SN122; all have 1-4 rewarded miners taking 100% of pool
+- TIER C (full but meritocratic, 200+ miners earn, top10 <66%): 16 subnets — SN5 (top10 11%, 243/256), SN83, SN105, SN120, SN32, SN33, SN50, SN79, SN101, SN61, SN45, SN89...
+- TIER D (whale-dominated/full): 98 subnets
+- SN35 deep check: 5/256 miners, pool 5.2 TAO/d, ONE rewarded miner takes ~all; medianShare 100% — confirms single-winner subnet, $8.5k/mo headline is one incumbent's take; NO-GO justified
+
+Stage Summary:
+- Answer: zero "just join and earn" subnets exist; earning = displacement game
+- Real chances: SN61 RedTeam (CPU, picker PRIME, new-entrant EV ~$574/mo), SN5 Hone (most meritocratic, avg $1,291/mo), SN83/SN50/SN79/SN101 (CPU ~$312-806/mo), SN120 Affine (GPU H100-class, avg $4,396/mo, gated)
+- Open-seat subnets are lottery tryouts (earn $0 unless beating the single incumbent)
+- Script persisted: bun --smol scripts/earn-chances.ts (re-runnable)
