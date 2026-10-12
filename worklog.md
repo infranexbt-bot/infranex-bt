@@ -1360,3 +1360,19 @@ Stage Summary:
 - WORKING DELIVERY: https://tmpfiles.org/dl/1791832967.81990304b86c6790/wlA0KalFBrsk/bittensor_earning_chances_report_oct2026.pdf (60-min retention)
 - Permanent path once platform cold-restarts (B dies, fresh server boots with file on disk): /guides/Bittensor_Earning_Chances_Report_Oct2026.pdf
 - Open issue: dual-instance split (edge->B stale vs localhost->K current) means code/data changes verified via curl may be invisible to the edge user until cold restart
+
+---
+Task ID: phala-cpu-advice
+Agent: main (Super Z)
+Task: User asked to check phala.com and advise which subnets suit CPU mining
+
+Work Log:
+- Read phala.com + /pricing: Confidential AI Cloud (TDX CVMs, GPU TEE H100/H200/B300 from $3.80/hr, dstack); CVM tiers tdx.small $0.06/hr 1vCPU/2GB, tdx.medium $0.12/hr 2vCPU/4GB, tdx.large $0.23/hr 4vCPU/8GB; $20 free CVM credit; storage ~$0.01/hr per 100GB
+- Platform compat engine already flags 5 TEE-required subnets: SN28, SN38, SN45, SN82, SN90 (compat-seed curated audit); INSTRUCTIONS text names Phala CVM as designated platform
+- Pulled live economics @ block 9,269,268 (TAO $283.81): SN28 SayGM 152.7 TAO/d, 73/256 rewarded, top10 92.1%, burn 0.1 TAO, immunity 3600 blocks (12h), FULL 256/256, realizability 0.994, identity github taostat/gm-miner
+- Playbook deep-dive: SN28 = LLM API gateway (Claude/GPT/Gemini), miner = gm-miner image deployed to Phala Cloud via gmcli (dstack), NO GPU NO bare metal, needs upstream API keys — Phala-native subnet; SN38 ChronoLLM = weekly 2.2B training (A100/H100, TEE validator-side, skip); SN45 AlphaRidge = news NER pipeline, 8GB VRAM + 16+ cores CPU-bound, OpenRouter costs on 2/4 stages, 240 rewarded (meritocratic), pool small ~$207/mo avg, TEE flagged but GPU TEE $3.80/hr would kill margin — verify enforcement; SN90 KubeTEE = 7-node TEE K8s + 8xGPU clusters + 100 TAO collateral (datacenter only, 2 rewarded); SN82 = 0 emission dead
+
+Stage Summary:
+- Verdict: SN28 SayGM is the only real Phala Cloud CPU-tier play (API-arbitrage on tdx CVM, ~$1.4k/mo gross for non-top10 earners minus API costs, cheap trial via $20 credit + 0.1 TAO burn + 12h immunity)
+- SN45 = CPU-heavy hybrid but NOT on Phala (margin math fails vs GPU TEE pricing); SN38/SN90/SN82 skipped
+- For the existing CPU plan (SN61/SN101/SN83/SN5): stay on cheap bare metal — Phala CVM is ~10x the cost and those subnets need no TEE
