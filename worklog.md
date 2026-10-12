@@ -1240,3 +1240,20 @@ Work Log:
 
 Stage Summary:
 - Miner Playbook shows real subnet names everywhere (list cards, detail header, search, name sort); only playbook route had the pattern — other views source names from chain already
+
+---
+Task ID: rtx5090-rig-and-subnets
+Agent: main (Super Z)
+Task: User wants to build an RTX 5090 rig + find subnets where a 5090 can mine
+
+Work Log:
+- Built scripts/rtx5090-fit.ts: scores all 128 subnets against a 5090 profile (32GB, consumer tier, sm_120) using mergeOpportunities requirement data + live economics
+- Results: 2 explicit-5090 (SN10 Pareton MARGINAL net ~$543/mo; SN74 Gittensor AVOID), 10 consumer-4090-class (SN9 iota PROFITABLE $2.5k/mo headline but whale-inflated rewardedRatio 0.01; SN3 Teutonic PROFITABLE $1.5k/mo), 87 datacenter-only, 18 CPU-only, 1 explicit 5090 ban
+- Found 2 scraper artifacts hiding real 5090 paths: SN53 engy minVramGb=180 (aggregate of multi-GPU menu; real req "2x 4090/5090 or 1x L40S"), SN64 Chutes minVramGb=141/"8x H200" (official CHUTES_GPU_CATALOG includes RTX 5090) — app cost models overprice these; economics better in reality
+- Universal blocker: every 5090-fit subnet is registration-FULL (256/256); entry = displace weakest UID
+- Verified Pareton mechanics: example campaign literally targets Qwen3.8-27B-FP8 on four RTX 5090s, 262K ctx (subnet-jobs-seed.ts)
+
+Stage Summary:
+- Honest verdict: no free-lunch 5090 entry today; SN10 Pareton is the flagship 5090 play (skill-gated), SN53/SN64 are real but mispriced by scrapers, SN9/SN3 headline yields are whale-inflated + FULL
+- Rig guidance delivered in chat (single 5090 vs 4x Pareton config, sm_120/CUDA 12.8+/torch 2.7+ stack caveat, power math)
+- Filed known issue: scraped minVramGb aggregation misleads the cost engine for multi-GPU-menu subnets (SN53 180GB, SN64 141GB)
