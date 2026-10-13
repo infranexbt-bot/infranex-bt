@@ -1376,3 +1376,21 @@ Stage Summary:
 - Verdict: SN28 SayGM is the only real Phala Cloud CPU-tier play (API-arbitrage on tdx CVM, ~$1.4k/mo gross for non-top10 earners minus API costs, cheap trial via $20 credit + 0.1 TAO burn + 12h immunity)
 - SN45 = CPU-heavy hybrid but NOT on Phala (margin math fails vs GPU TEE pricing); SN38/SN90/SN82 skipped
 - For the existing CPU plan (SN61/SN101/SN83/SN5): stay on cheap bare metal — Phala CVM is ~10x the cost and those subnets need no TEE
+
+---
+Task ID: app-load-and-db-revival
+Agent: main (Super Z)
+Task: User asked to "load the web app"
+
+Work Log:
+- Sandbox had recycled overnight: server.log gone, .next/standalone WIPED (only .next/dev remained), dev server had been running until ~06:10 Oct 13
+- DB damage found: SubnetPlaybook 0 (was 105), SubnetOverride 5, SubnetRequirements 0; AppUser 5 intact; fresh ChainSnapshots present
+- Rebuilt standalone (bun run build, NODE_OPTIONS max-old-space 2048, ~4min) + daemonize-prod.py; Ready in 315ms; login 200, / 307, api fail-closed 401
+- Restore ritual executed: fetched /api/network -> tool-results/net-live.json; reseed-overrides-from-chain.ts (created=85, kept=20, gate 105/105); merge-playbook.ts (105 rows: 97 repo-verified, 7 derived, 1 thin); dataset pass updated 105 overrides
+- Verified: /api/playbook 105/105 entries all real names (Carbon, Targon, iota, KubeTEE...); Bittensor PDF serves 200 via /guides/ from fresh build; 3.3GB mem available
+- NOTE SubnetRequirements still 0 (github-scraper worker repopulates over time; requirements dialog has fallbacks)
+
+Stage Summary:
+- Platform fully restored and running in production standalone mode behind keepalive daemon
+- Root cause of data loss: overnight dev-server session + sandbox recycle wiped standalone build; playbook/override tables emptied (cause TBD - possibly dev-flow db push with drift)
+- Deliverable URL: https://x1vjv8jfmfp0-d.space-z.ai
