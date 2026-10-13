@@ -1692,3 +1692,19 @@ Work Log:
 Stage Summary:
 - CONFIRMED: exact subnet GitHub repo is cloned and its own requirements.txt/pyproject/uv workspace installed on the rented GPU, Docker path when repo ships Dockerfile — real commands over SSH, not canned
 - To run end-to-end: add RunPod or Vast API key in GPU Catalog, then deploy (real spend)
+---
+Task ID: hashcat-req-support
+Agent: main (Super Z)
+Task: Support "Install Hashcat (>= v6.2.5)" subnet tool requirement in the deployment pipeline
+
+Work Log:
+- Gap confirmed: hashcat existed nowhere in profiler/installer (not in APT_HINTS, no step) — SN35-class cracking subnets document it (chain identity for SN35 scrubbed, no override row)
+- subnet-requirements.ts: + hashcatRequired/hashcatMinVersion profile fields, + exported parseHashcatRequirement() (handles "Recommended hashcat version >= v6.2.5", "hashcat >= 6.2.5", "(>= …)", "vX or higher", "X.Y.Z+", bare mention w/o floor; takes max version; case-insensitive); note pushed into profile
+- installer.ts: step 2b "Install Hashcat (>= vX)" gate=auto — apt install hashcat ocl-icd-libopencl1 → semver gate via sort -V (hard-fail if distro older, e.g. "hashcat 6.2.4 installed but subnet requires >= 6.2.5") → OpenCL backend probe (NVIDIA/CUDA OK else non-fatal warn); failRemediation: source-build hint (github.com/hashcat/hashcat)
+- Cache: stale-shape invalidation — profiles missing hashcatRequired key rebuild on next pull (old 3 rows auto-refreshed)
+- Tests: scripts/test-hashcat-parser.ts (11 cases ALL PASS), scripts/test-hashcat-plan.ts (10 plan-shape cases ALL PASS), shell gate simulation 5/5 (incl. 6.10.0 > 6.2.5 numeric edge)
+- Live: SN5 refresh → hashcatRequired:false (honest — Hone needs none); build+deploy OK; committed 1b2e238 pushed
+
+Stage Summary:
+- Any subnet whose repo docs demand hashcat now gets it auto-installed on the GPU pod with a version gate; floor enforced honestly (older distro package fails the step with source-build remediation)
+- To activate for a specific subnet: link its repo (SubnetOverride.githubUrl or chain identity) — detection is evidence-based from the repo's own docs, never invented
