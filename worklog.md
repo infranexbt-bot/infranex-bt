@@ -1430,3 +1430,23 @@ Stage Summary:
 - SN82 opportunity card now honest: Work type "Debate & persuasion", hardware "CPU VPS" under a "Typical hardware" tooltip (no fabricated H200), GPU cost line $50/mo instead of $2,500/mo, compat no longer flags TEE
 - Blast radius zero: changed-set exactly {SN82}; net monthly re-modeled ~$40.7k paper (still flagged speculative per SN82 research: illiquid alpha, anonymous owner, deleted repo)
 - Known platform caveat: edge-visible instance may need platform cold restart before browsers fetch the new client bundle (dual-instance issue from app-load-and-db-restore)
+
+---
+Task ID: sn32-research
+Agent: main (Super Z)
+Task: User asked to research SN32 (what it is, earnings chances)
+
+Work Log:
+- Live @ block 9,272,678 (TAO $284.07): SN32 "ItsAI" = decentralized AI-text detection; emission 15.42 TAO/d total, miner share 7.69 TAO/d across 239/256 rewarded (93.4%), median share 1.027 (flat), top10 only 12.8%; burn 0.052 TAO, immunity 7200 blocks (24h), 256/256 FULL (entry = displace weakest), ramp ~5.4wk
+- Identity: github.com/It-s-AI/llm-detection (live repo); README: ITSAI TECHNOLOGIES FZCO (Dubai, Jan 2025), revenue-generating product (its-ai.org 45k visits/mo Apr 2026, +25% MoM, API/extension/SDK/Zapier), #1 MGTD benchmark 92% ROC-AUC, 98.3% RAID, enterprise pilots UAE schools; explicit token-not-equity disclaimer
+- Mechanics (docs/mining.md + incentive.md): miners serve DeBERTa-large models (sergak0/sn32 HF weights) behind axon; min RTX A4000 16GB VRAM, inference-only; validators query Pile human texts vs 30+ LLM-generated (Ollama, LLM-arena top) 1:1 with random params + augmentations (misspellings, adjective removal) vs hash-precalc cheating; reward = mean(F1, FP_score, AP); testnet SN87 (validator uid 52) for free dry-run
+- Alpha economics (CoinGecko + app): $0.744, ATH $1.79 Jun-2025 (-59%), ATL $0.006 Apr-2026 (+124x since), 30d +7.1% / 14d -12% / 7d -8.6%; vol $3.1k/d (thin); pool 6,745 TAO vs 2.58M alpha; daily per-miner sale 12.3 alpha = negligible slippage, monthly dumps move price
+- App P&L: gross $262/mo per miner vs RTX 4090 $260 + infra $40 → net -$83/mo, verdict AVOID, score 51.4 rank 22; rent-earn engine: rentable, band OK (63), earnChance 93.4%, entry "displace"; on 16GB-class rent (~$150/mo app tier) net ≈ +$84/mo paper
+- Note: scraper models RTX 4090 24GB but repo minimum is A4000 16GB — conservative, UI labels it repo-documented
+- No local emission history (ChainSnapshot wiped in recycle, 1 day data); CoinGecko price history used as trend proxy
+- Work saved: tool-results/sn32-{readme,mining,incentive}.md, sn32-gecko2.json, scripts/sn32-{research-dump,trend,rent}.ts
+
+Stage Summary:
+- Verdict: SN32 = legit mature team, knife-edge economics. Flat reward curve → every miner earns ≈$274/mo paper; profitability = gross minus GPU+infra. AVOID on a $260/mo 4090 (app already correct); thin positive margin (+$84-144/mo) only on cheap 16-24GB rented GPU; testnet SN87 free trial exists
+- Risks: alpha -59% from ATH with -12% 14d and $3k/d volume; tiny emission (15.4 TAO/d) stake-driven with no upside without staking growth; 24h immunity = slot easily lost once taken; accuracy bar = 30+ LLMs + augmentations, shipped DeBERTa is baseline
+- Positioning vs SN82: SN32 = boring/real/marginal vs SN82's pumped/illiquid/anonymous — not comparable to SN61-class CPU plays
