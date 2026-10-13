@@ -114,6 +114,32 @@ export function buildInstallPlan(input: InstallPlanInput): InstallStep[] {
     ],
   });
 
+  // 2b — HASHCAT: system tool the subnet's docs require (cracking-class
+  //      subnets, e.g. "Recommended hashcat version >= v6.2.5"). apt on
+  //      Ubuntu 22.04 ships hashcat 6.2.5/6.2.6 which satisfies the common
+  //      floor; the gate below HARD-FAILS when the distro version is older
+  //      so the plan never silently mines with a tool the validator rejects.
+  //      OpenCL backend probe is a warning (NVIDIA driver on GPU pods
+  //      provides CUDA OpenCL; pocl covers CPU-only subnets).
+  if (profile.hashcatRequired) {
+    const min = profile.hashcatMinVersion;
+    const versionGate = min
+      ? `v=$(hashcat --version 2>/dev/null | grep -oE '[0-9]+\\.[0-9]+\\.[0-9]+' | head -1); [ -n "$v" ] || { echo 'hashcat binary not found after install'; exit 1; }; lowest=$(printf '%s\\n' '${min}' "$v" | sort -V | head -1); [ "$lowest" = '${min}' ] || { echo "hashcat $v installed but subnet requires >= ${min}"; exit 1; }; echo "hashcat $v >= ${min} OK"`
+      : `v=$(hashcat --version 2>/dev/null | grep -oE '[0-9]+\\.[0-9]+\\.[0-9]+' | head -1); [ -n "$v" ] || { echo 'hashcat binary not found after install'; exit 1; }; echo "hashcat $v installed"`;
+    push({
+      title: min ? `Install Hashcat (>= v${min})` : "Install Hashcat",
+      description: min
+        ? `Subnet docs require hashcat >= v${min}. Installs hashcat + OpenCL runtime via apt, then verifies the installed version against the floor.`
+        : "Subnet docs use hashcat (no version floor documented). Installs hashcat + OpenCL runtime via apt.",
+      gate: "auto",
+      commands: [
+        "export DEBIAN_FRONTEND=noninteractive; apt-get update -qq && apt-get install -y -qq hashcat ocl-icd-libopencl1",
+        versionGate,
+        "hashcat -I 2>/dev/null | grep -qiE 'nvidia|cuda' && echo 'OpenCL backend: NVIDIA/CUDA OK' || echo 'warn: no NVIDIA/CUDA OpenCL backend visible — GPU cracking needs the NVIDIA driver runtime; CPU-only backends (pocl) work but are slow'",
+      ],
+    });
+  }
+
   // 3 — Runtime: cluster subnets skip host runtimes entirely (the miner lives
   //      in the cluster). Docker path installs Docker + NVIDIA toolkit; venv
   //      path creates a Python virtual environment (version-checked when the
@@ -598,6 +624,7 @@ export async function runInstallStep(
 
 export function failRemediation(step: InstallStep, code: number): string {
   if (step.title.startsWith("Install OS")) return "apt failed — check the distro sources and network on the host, then retry.";
+  if (step.title.startsWith("Install Hashcat")) return step.title.includes("(>") || /v\d/.test(step.title) ? "Ubuntu's apt hashcat can lag the subnet's version floor — build from source: git clone https://github.com/hashcat/hashcat && make -j$(nproc) && make install, or retry to pick up a newer distro version." : "hashcat apt install failed — check apt sources/network, then retry.";
   if (step.title.startsWith("Install Docker")) return code === 127 ? "curl/network unavailable on the host — install docker-ce + nvidia-container-toolkit manually, then retry." : "Docker/runtime install failed — inspect the output (repo keys, apt sources), then retry.";
   if (step.title.startsWith("Build the subnet")) return "docker build failed — the log shows the failing Dockerfile layer (deps, base image pull). Fix and retry.";
   if (step.title.startsWith("Create Python")) return code === 1 ? "Python version mismatch — install the required python3.x (deadsnakes PPA) or edit the plan." : "python3-venv missing — the OS-packages step installs it; retry.";

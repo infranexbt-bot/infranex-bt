@@ -53,6 +53,16 @@ export interface SubnetRequirementsProfile {
   packageManager: "pip" | "uv"; // uv workspace repos install via `uv sync`
 
   /**
+   * HASHCAT — system-level tool requirement parsed from the subnet's own
+   * docs (README install blocks), e.g. SN35-class cracking subnets that
+   * document "Recommended hashcat version >= v6.2.5". When required, the
+   * installer adds a dedicated apt step with a semver-ish version gate
+   * (hashcatMinVersion null = docs mention hashcat but pin no floor).
+   */
+  hashcatRequired: boolean;
+  hashcatMinVersion: string | null;
+
+  /**
    * INFRA-STACK: service-level infrastructure the subnet documents beyond a
    * pip stack (Kubernetes/k3s, Postgres, Redis, Gepetto, RAM-per-GPU sizing).
    * When present with kubernetes-class orchestration, the generic venv plan
@@ -292,6 +302,48 @@ function parseBittensorStack(pip: string[]): string[] {
   );
 }
 
+// --- Hashcat (system tool requirement) --------------------------------------
+
+const VERSION_RE = /\d+\.\d+\.\d+/;
+
+/**
+ * Parse the repo text for a hashcat tool requirement. Handles the shapes
+ * subnets actually write:
+ *   "Recommended hashcat version >= v6.2.5"   → min 6.2.5
+ *   "hashcat >= 6.2.5" / "hashcat (>= 6.2.5)" → min 6.2.5
+ *   "hashcat v6.2.5 or higher" / "requires hashcat 6.2.6+"
+ *   "install hashcat" (no version)            → required, no floor
+ * A comparison operator near the mention pins the floor; a bare version
+ * mention is treated as the floor too (subnets don't advertise old versions).
+ * Exports for unit tests.
+ */
+export function parseHashcatRequirement(text: string | null | undefined): {
+  required: boolean;
+  minVersion: string | null;
+} {
+  if (!text) return { required: false, minVersion: null };
+  if (!/hashcat/i.test(text)) return { required: false, minVersion: null };
+  const versions: string[] = [];
+  // "hashcat ... <op> v?X.Y.Z" within the same sentence-ish window
+  for (const m of text.matchAll(
+    /hashcat[^.\n]{0,80}?(?:>=|>=|≥|version\s*(?:>=|>=|≥)?|v)\s*v?(\d+\.\d+\.\d+)/gi
+  )) {
+    versions.push(m[1]);
+  }
+  // any hashcat mention with a bare version in the same line ("hashcat 6.2.6+")
+  for (const line of text.split(/\n|(?<=\.)\s/)) {
+    if (!/hashcat/i.test(line)) continue;
+    const v = line.match(VERSION_RE);
+    if (v) versions.push(v[0]);
+  }
+  const max = versions.sort((a, b) => {
+    const [a1, a2, a3] = a.split(".").map(Number);
+    const [b1, b2, b3] = b.split(".").map(Number);
+    return a1 - b1 || a2 - b2 || a3 - b3;
+  })[versions.length - 1];
+  return { required: true, minVersion: max ?? null };
+}
+
 // --- Profile assembly -------------------------------------------------------
 
 function minerCommandTemplate(profile: {
@@ -336,7 +388,12 @@ export async function pullSubnetRequirements(
       const rescrapedAfterCache =
         ovr?.requirementsScrapedAt != null &&
         ovr.requirementsScrapedAt.getTime() > row.fetchedAt.getTime() + 1_000;
-      if (!repoChanged && !rescrapedAfterCache) {
+      // STRUCTURAL — cached profiles from before a profiler upgrade may lack
+      // newer fields (e.g. hashcatRequired). Missing key = stale shape, rebuild.
+      const staleShape = !("hashcatRequired" in cachedProfile);
+      if (staleShape) {
+        // fall through to a fresh buildProfile below
+      } else if (!repoChanged && !rescrapedAfterCache) {
         return { profile: cachedProfile, cached: true };
       }
     }
@@ -511,6 +568,14 @@ async function buildProfile(netuid: number): Promise<SubnetRequirementsProfile> 
   const cudaMinVersion = combinedText ? parseCudaVersion(combinedText) : null;
   const osPackages = combinedText ? parseAptPackages(combinedText) : [];
   const bittensorStack = parseBittensorStack(pipPackages);
+  const hashcat = parseHashcatRequirement(combinedText);
+  if (hashcat.required) {
+    notes.push(
+      hashcat.minVersion
+        ? `Repo docs require the hashcat tool (>= v${hashcat.minVersion}) — the install plan adds a dedicated install step with a version gate.`
+        : "Repo docs mention the hashcat tool — the install plan installs it via apt (no version floor documented)."
+    );
+  }
 
   // Dockerfile base image: multi-stage builds → the LAST concrete FROM is
   // the runtime base. Skip `scratch` and ${VAR} indirection (unresolvable
@@ -631,6 +696,8 @@ async function buildProfile(netuid: number): Promise<SubnetRequirementsProfile> 
     dockerRequired: Boolean(dockerImage),
     bittensorStack,
     packageManager,
+    hashcatRequired: hashcat.required,
+    hashcatMinVersion: hashcat.minVersion,
     infraStack: scraped?.infra ?? null,
     repoUrl: routedUrl,
     repoBranch: repoInfo?.branch ?? "main",
