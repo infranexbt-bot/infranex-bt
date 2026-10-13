@@ -46,7 +46,6 @@ const NAV_GROUPS: { label: string; items: { key: ViewKey; label: string; icon: t
   {
     label: "Wealth Engines",
     items: [
-      { key: "wealth", label: "Wealth Command", icon: LayoutDashboard, hint: "00" },
       { key: "invest", label: "Invest Engine", icon: Brain, hint: "00c" },
       { key: "earn", label: "Earn Engine", icon: DollarSign, hint: "00b" },
       { key: "capture", label: "Capture Desk", icon: Crosshair, hint: "00d" },

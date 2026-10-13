@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
-import { WealthView } from "@/components/views/wealth-view";
 import { InvestView } from "@/components/views/invest-view";
 import { DashboardView } from "@/components/views/dashboard-view";
 import { EarnView } from "@/components/views/earn-view";
@@ -33,7 +32,6 @@ const VIEW_META: Record<
   ViewKey,
   { title: string; eyebrow: string }
 > = {
-  wealth: { title: "Wealth Command", eyebrow: "Section · 00 · One system, three engines" },
   invest: { title: "Invest Engine", eyebrow: "Section · 00c · Engine 01 · AI investing" },
   dashboard: { title: "Network Intelligence", eyebrow: "Section · 01 · Dashboard" },
   earn: { title: "Earn Engine", eyebrow: "Section · 01c · Engine 02 · Cashflow" },
@@ -59,7 +57,7 @@ const VIEW_META: Record<
 };
 
 export default function Home() {
-  const [view, setView] = useState<ViewKey>("wealth");
+  const [view, setView] = useState<ViewKey>("dashboard");
   const [selected, setSelected] = useState<Opportunity | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -87,7 +85,6 @@ export default function Home() {
       title={meta.title}
       eyebrow={meta.eyebrow}
     >
-      {view === "wealth" && <WealthView onNavigate={setView} />}
       {view === "invest" && <InvestView />}
       {view === "earn" && <EarnView />}
       {view === "capture" && <CaptureView />}

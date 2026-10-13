@@ -1537,3 +1537,22 @@ Stage Summary:
 - Data fully restored: users, SN82 curated row, 106 overrides; engine books empty for operator (as left after phase2-3 cleanup)
 - Note: /api/funding cold-cache first call may 502 on HL rate limit; retry/stale-serve covers
 - Pending: SN32 (ItsAI) deep-dive; Phase 4 unification polish
+---
+Task ID: remove-wealth-command
+Agent: main (Super Z)
+Task: Remove Wealth Command page per user request ("i dont think its useful now, remove the wealth command page")
+
+Work Log:
+- Removed "wealth" from ViewKey union (src/lib/infranex/types.ts)
+- Removed WealthView import, VIEW_META entry, render line; default view changed wealth -> dashboard (src/app/page.tsx)
+- Removed Wealth Command item from sidebar "Wealth Engines" group (kept Invest/Earn/Capture) (src/components/layout/sidebar.tsx)
+- Deleted src/components/views/wealth-view.tsx
+- Kept use-wealth.ts hooks (earn-view imports them) and use-invest.ts "wealth-overview" invalidate (harmless no-op)
+- tsc clean -> bun run build (29.9s) -> keepalive respawned server after pkill (ready 343ms)
+- Verified via curl: login 200, network/theses/yields/trades 200
+- Browser-verified (agent-browser): sidebar starts at Invest Engine 00c / Earn Engine 00b / Capture Desk 00d; no Wealth Command entry; default landing = Network Intelligence dashboard; SN82 shows "Compelle" (override intact)
+
+Stage Summary:
+- Wealth Command fully removed; Invest/Earn/Capture engines remain reachable under "Wealth Engines" group
+- App lands on Network Intelligence dashboard by default
+- Phase 4 unification work now moot (no wealth hub to unify)
