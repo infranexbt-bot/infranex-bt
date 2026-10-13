@@ -901,3 +901,121 @@ model IncomeEntry {
   @@unique([month, source, label])
   @@index([month])
 }
+
+// ---------------------------------------------------------------------------
+// WEALTH-3 — Engine 01 · INVEST. High-conviction AI × Crypto investing book:
+// written theses with AI-generated research briefs, a live-priced watchlist,
+// portfolio holdings for allocation math, and deliberately asymmetric bets
+// (capped downside, fat right tail). All rows are operator bookkeeping and
+// judgment records — the platform never places orders or moves funds.
+// ---------------------------------------------------------------------------
+model InvestmentThesis {
+  id            String    @id @default(cuid())
+  asset         String // e.g. "TAO", "BTC", "SN82-ALPHA"
+  direction     String    @default("LONG") // LONG | SHORT
+  conviction    String    @default("MEDIUM") // HIGH | MEDIUM | LOW
+  timeframe     String    @default("6-12 months")
+  // "active" | "monitoring" | "won" | "lost" | "closed"
+  status        String    @default("active")
+  entryPrice    Float?
+  targetPrice   Float?
+  stopPrice     Float?
+  thesis        String    @default("") // the operator's core argument
+  catalystsJson String    @default("[]") // JSON array of strings
+  risksJson     String    @default("[]") // JSON array of strings
+  aiBrief       String? // latest AI-generated research brief (stored text)
+  aiBriefAt     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([status, updatedAt])
+}
+
+model WatchlistItem {
+  id         String   @id @default(cuid())
+  symbol     String   @unique // canonical upper symbol, e.g. "TAO"
+  name       String   @default("")
+  priceAtAdd Float?
+  alertAbove Float?
+  alertBelow Float?
+  notes      String   @default("")
+  createdAt  DateTime @default(now())
+}
+
+model PortfolioHolding {
+  id         String   @id @default(cuid())
+  symbol     String   @unique // canonical upper symbol, e.g. "TAO"
+  quantity   Float
+  avgCostUsd Float // per-unit average cost in USD
+  venue      String   @default("") // wallet / exchange label
+  notes      String   @default("")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model AsymmetricBet {
+  id              String   @id @default(cuid())
+  name            String
+  asset           String
+  vehicle         String   @default("Spot") // Spot | Perp | Option | LP | Pre-launch
+  capitalUsd      Float
+  upsideMultiple  Float    @default(3) // target multiple, e.g. 5 = 5x
+  downsidePercent Float    @default(100) // max loss as % of the position (100 = total loss)
+  winProbability  Float    @default(30) // operator estimate, 0-100
+  // "open" | "won" | "lost" | "closed"
+  status          String   @default("open")
+  realizedUsd     Float? // filled when the bet settles
+  notes           String   @default("")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([status])
+}
+
+// ---------------------------------------------------------------------------
+// WEALTH-4 — Engine 03 · CAPTURE completion: a tactical trade journal with
+// R-multiple analytics, a Hyperliquid funding-rate scanner (public info API,
+// no key), and an AlphaChaser signal inbox the AI scan populates. Signals and
+// journal rows are decision records only — nothing here executes trades.
+// ---------------------------------------------------------------------------
+model TradeSetup {
+  id        String    @id @default(cuid())
+  pair      String // e.g. "TAO-USDT", "BTC", "SN82-ALPHA"
+  direction String    @default("LONG") // LONG | SHORT
+  entry     Float
+  stop      Float
+  target    Float
+  sizeUsd   Float?
+  leverage  Float     @default(1)
+  timeframe String    @default("")
+  // "planned" | "active" | "won" | "lost" | "cancelled"
+  status    String    @default("planned")
+  resultR   Float? // realized R multiple when closed
+  pnlUsd    Float?
+  notes     String    @default("")
+  openedAt  DateTime  @default(now())
+  closedAt  DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([status, openedAt])
+}
+
+model BotSignal {
+  id         String   @id @default(cuid())
+  botName    String   @default("AlphaChaser")
+  pair       String
+  signal     String // LONG | SHORT | NEUTRAL
+  entry      Float?
+  stop       Float?
+  target     Float?
+  confidence Float? // 0-100
+  timeframe  String   @default("")
+  rationale  String   @default("")
+  // "new" | "taken" | "expired"
+  status     String   @default("new")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([status, createdAt])
+}

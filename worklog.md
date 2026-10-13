@@ -1490,3 +1490,29 @@ Stage Summary:
 - New models: YieldPosition, IncomeEntry (DB pushed)
 - Free data only (DeFiLlama public API, no keys)
 - Next phases: 2 = INVEST engine (theses/watchlist/allocation/asymmetric), 3 = CAPTURE completion (trade journal/funding scanner/AlphaChaser slot), 4 = unification polish
+
+---
+Task ID: wealth-phase2-3
+Agent: main (Super Z)
+Task: Implement Phase 2 (Engine 01 INVEST) + Phase 3 (Engine 03 CAPTURE completion) of the Three Engines plan
+
+Work Log:
+- Schema: added 6 models — InvestmentThesis (aiBrief/aiBriefAt), WatchlistItem (symbol @unique, alertAbove/Below), PortfolioHolding (avgCostUsd, merge-on-add), AsymmetricBet (EV+Kelly inputs), TradeSetup (R discipline: entry/stop/target/resultR), BotSignal (AlphaChaser inbox) — db push + generate; od-verified IncomeEntry @@unique was display artifact only, file intact
+- Price pipeline: src/lib/infranex/prices.ts — Binance /ticker/24hr batch primary (batch order not guaranteed, map by symbol), per-symbol retry on batch 400, CoinGecko fallback with curated id map (TAO->bittensor etc.), 5-min cache, stale-serve 24h flagged; route /api/prices
+- Funding: src/lib/infranex/funding.ts — Hyperliquid POST /info metaAndAssetCtxs (234 assets), annualized funding = 1h*24*365, carrySide (funding>0 shorts collect), 10-min cache stale-serve; route /api/funding (limit/minOi/side/sort + extremes). First call hit HL 429; retry OK — stale-serve covers
+- INVEST APIs: /api/theses CRUD (auto entry-price snapshot on create, GET joins live price + toTarget/toStop %), /api/theses/ai-brief (z-ai SDK, ops-agent pattern: system prompt on assistant role, thinking disabled; brief persisted, only provided numbers rule), /api/watchlist (upsert 422s if symbol unresolvable; alertStatus computed on read), /api/holdings (merge + re-average cost; weights over priced only), /api/bets (EV = cap*(pG-qL), Kelly f*=(pG-qL)/(LG) capped [0,1])
+- CAPTURE APIs: /api/trades CRUD + stats (winRate, expectancyR=avgR, best/worst, per-pair breakdown, plannedR server-side), /api/bot-signals CRUD, /api/bot-signals/scan (AlphaChaser: digest = top-14 funding + live prices + journal edge; LLM returns strict JSON 0-3 setups; server validates pair-in-digest, entry within 3% of mark, R:R >= 1.5, levels on correct side; rejects reported)
+- Hooks: use-invest.ts (theses/watchlist/holdings/bets + generateBrief), use-capture.ts (trades/funding/signals + scan + fundingToTradeInput prefill)
+- Views: invest-view.tsx (Theses cards w/ live numbers + AI brief dialog w/ optional question, Watchlist w/ alert badges, Allocation w/ weight bars + P&L, Asymmetric w/ EV/Kelly columns + Won/Lost) and capture-view.tsx (Trade Journal w/ per-pair edge chips + exit-price close form computing R, Funding Scanner w/ carry filters + Setup->journal prefill, AlphaChaser scan panel + signal inbox w/ Taken/Expire)
+- Wiring: ViewKey += invest|capture; VIEW_META 00c/00d; sidebar Wealth Engines group 4 entries; wealth-view INVEST card flipped live (portfolio value + active theses KPI, "Open Invest engine"), CAPTURE card retargeted to capture desk w/ 4/4 live items
+- Deploy: tsc clean -> bun run build (29s compile) -> killed old server -> daemonize-prod.py -> verified
+- Browser-verified (agent-browser): login -> Wealth Command (INVEST card live) -> Invest Engine (thesis card w/ entry $273.40 auto-snapshot, target +46.3%, catalyst/risk chips) -> Allocation ($137 value, +9.36% P&L on 0.5 TAO @ 250) -> Capture Desk -> Funding Scanner (RSR -669% longs collect, 234 assets) -> AlphaChaser (3 signals from scan, all validated)
+- AI verified live: thesis AI brief (structured SNAPSHOT/BULL/BEAR/WATCH/RISK/VERDICT using only provided numbers) + AlphaChaser scan (3 setups: BLUR/W/RSR longs on extreme negative funding, all R:R>=1.5, entries within 3% of mark)
+- Cleaned up all test rows (thesis/watch/holding/bet/trade/3 signals) -> books empty for operator; regression: network 200, income 200, yields 200, 106 overrides, guides PDF 200
+
+Stage Summary:
+- Phase 2+3 complete: all three engines now live and reachable from Wealth Command cards
+- New models: InvestmentThesis, WatchlistItem, PortfolioHolding, AsymmetricBet, TradeSetup, BotSignal (DB pushed)
+- Key-free data: Binance + CoinGecko (prices), Hyperliquid (funding); AI: z-ai-web-dev-sdk (briefs + scans), injectable completion pattern
+- Ethos preserved: bookkeeping/judgment records only, nothing places orders; AI outputs validated server-side before persisting
+- Phase 4 (unification polish: net-wealth strip across engines, engine KPI consolidation) remains

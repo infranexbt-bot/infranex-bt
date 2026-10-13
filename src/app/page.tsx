@@ -3,8 +3,10 @@
 import { useState } from "react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { WealthView } from "@/components/views/wealth-view";
+import { InvestView } from "@/components/views/invest-view";
 import { DashboardView } from "@/components/views/dashboard-view";
 import { EarnView } from "@/components/views/earn-view";
+import { CaptureView } from "@/components/views/capture-view";
 import { FitView } from "@/components/views/fit-view";
 import { OpportunitiesView } from "@/components/views/opportunities-view";
 import { SubnetsView } from "@/components/views/subnets-view";
@@ -32,8 +34,10 @@ const VIEW_META: Record<
   { title: string; eyebrow: string }
 > = {
   wealth: { title: "Wealth Command", eyebrow: "Section · 00 · One system, three engines" },
+  invest: { title: "Invest Engine", eyebrow: "Section · 00c · Engine 01 · AI investing" },
   dashboard: { title: "Network Intelligence", eyebrow: "Section · 01 · Dashboard" },
   earn: { title: "Earn Engine", eyebrow: "Section · 01c · Engine 02 · Cashflow" },
+  capture: { title: "Capture Desk", eyebrow: "Section · 00d · Engine 03 · Tactical" },
   fit: { title: "Miner Fit", eyebrow: "Section · 01b · Personal advisor" },
   opportunities: { title: "Opportunities", eyebrow: "Section · 02 · Scoring" },
   subnets: { title: "Subnets", eyebrow: "Section · 03 · Chain explorer" },
@@ -84,7 +88,9 @@ export default function Home() {
       eyebrow={meta.eyebrow}
     >
       {view === "wealth" && <WealthView onNavigate={setView} />}
+      {view === "invest" && <InvestView />}
       {view === "earn" && <EarnView />}
+      {view === "capture" && <CaptureView />}
       {view === "dashboard" && (
         <DashboardView
           onSelectOpportunity={handleSelect}

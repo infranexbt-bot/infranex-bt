@@ -15,6 +15,7 @@ import { useProfitabilityConfig } from "@/hooks/use-profitability";
 import { useSubnetOverrides } from "@/hooks/use-subnet-overrides";
 import { useStakePortfolio } from "@/hooks/use-stake-portfolio";
 import { useIncomeSummary } from "@/hooks/use-wealth";
+import { useHoldings, useTheses } from "@/hooks/use-invest";
 import { cn } from "@/lib/utils";
 import {
   LineChart,
@@ -49,6 +50,8 @@ export function WealthView({ onNavigate }: { onNavigate: (v: ViewKey) => void })
   const { data: overrides } = useSubnetOverrides();
   const { data: portfolio } = useStakePortfolio(120_000);
   const { data: income } = useIncomeSummary();
+  const { data: holdings } = useHoldings();
+  const { data: theses } = useTheses();
 
   const topOpp = useMemo(() => {
     const opps = mergeOpportunities(snap, profConfig, overrides) ?? [];
@@ -76,12 +79,29 @@ export function WealthView({ onNavigate }: { onNavigate: (v: ViewKey) => void })
       description: "Identify high-conviction investments positioned to benefit from the growth of AI.",
       icon: LineChart,
       items: [
-        { label: "AI investment opportunities", live: false },
-        { label: "Crypto x AI", live: false },
-        { label: "Portfolio allocation", live: false },
-        { label: "Asymmetric opportunities", live: false },
+        { label: "Theses with AI briefs", live: true },
+        { label: "Crypto x AI watchlist", live: true },
+        { label: "Portfolio allocation", live: true },
+        { label: "Asymmetric opportunities", live: true },
       ],
-      cta: "Phase 2 · in build",
+      kpi: (
+        <div className="flex gap-5">
+          <div>
+            <p className="text-eyebrow text-muted-foreground">Portfolio value</p>
+            <p className="mono text-xl font-bold tabular">
+              {holdings ? usd(holdings.totals.valueUsd, 2) : "—"}
+            </p>
+          </div>
+          <div>
+            <p className="text-eyebrow text-muted-foreground">Active theses</p>
+            <p className="mono text-xl font-bold tabular text-success">
+              {theses ? String(theses.counts.active) : "—"}
+            </p>
+          </div>
+        </div>
+      ),
+      target: "invest",
+      cta: "Open Invest engine",
     },
     {
       id: "earn",
@@ -123,10 +143,10 @@ export function WealthView({ onNavigate }: { onNavigate: (v: ViewKey) => void })
       description: "Capitalize on shorter-term opportunities with systematic, repeatable strategies.",
       icon: ArrowUpRight,
       items: [
-        { label: "AlphaChaser Bot", live: false },
+        { label: "AlphaChaser Bot", live: true },
         { label: "AI & subnet opportunities", live: true },
-        { label: "Perp trade setups", live: false },
-        { label: "Tactical entries & exits", live: false },
+        { label: "Perp trade setups", live: true },
+        { label: "Funding-rate scanner", live: true },
       ],
       kpi: (
         <div className="flex gap-5">
@@ -144,8 +164,8 @@ export function WealthView({ onNavigate }: { onNavigate: (v: ViewKey) => void })
           </div>
         </div>
       ),
-      target: "opportunities",
-      cta: "Open Capture engine",
+      target: "capture",
+      cta: "Open Capture desk",
     },
   ];
 
