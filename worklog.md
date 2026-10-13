@@ -1662,3 +1662,17 @@ Stage Summary:
 - Every subnet card + requirements dialog now carries subnetalpha's official-links menu + owner-registered description, sourced live from chain with README/website enrichment (66 twitter, 43 discord invites, 109 websites of 120 chain-registered)
 - SubnetOverride identity fields re-aligned to chain (108 rows) — stale pre-dTAO repos/descriptions gone
 - Regeneration path documented: probe-identity.ts → enrich-social-links.ts → gen-links-seed.py → rebuild; no runtime fetches added
+---
+Task ID: playbook-reseed-fix
+Agent: main (Super Z)
+Task: Fix "Miner Playbook page not pulling data"
+
+Work Log:
+- Root cause: /api/playbook returned totalSubnets:0 — SubnetPlaybook table empty after sandbox recycle (restore sequence: db push + restore-users + sn82-override + net-live.json reseed never re-seeded playbook rows)
+- Source data intact: scripts/playbook/batch-{1..6}-output.json survived recycle (105 entries, 18+18+18+17+17+17)
+- Fix: bun --smol scripts/merge-playbook.ts → 105 rows upserted (repo-verified=97 derived=7 thin=1), validation passed (coverage vs SubnetOverride, required fields, confidence enum)
+- Verified /api/playbook: 105 entries, all with whatItDoes + live yields, meta block 9276173 TAO $276.05
+- Browser-verified Miner Playbook view: header "105 subnets", confidence badges, card list (Carbon $40,333/d, Targon $12,774/d ...), Targon detail panel with repo/site/taostats links + per-earner metrics; screenshot tool-results/playbook-fixed-verified.png
+
+Stage Summary:
+- RESTORE SEQUENCE addition for future recycles: after reseed-overrides-from-chain.ts, run `bun --smol scripts/merge-playbook.ts` to restore SubnetPlaybook (data lives in scripts/playbook/batch-*-output.json, DB table is NOT durable)
