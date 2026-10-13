@@ -1450,3 +1450,21 @@ Stage Summary:
 - Verdict: SN32 = legit mature team, knife-edge economics. Flat reward curve → every miner earns ≈$274/mo paper; profitability = gross minus GPU+infra. AVOID on a $260/mo 4090 (app already correct); thin positive margin (+$84-144/mo) only on cheap 16-24GB rented GPU; testnet SN87 free trial exists
 - Risks: alpha -59% from ATH with -12% 14d and $3k/d volume; tiny emission (15.4 TAO/d) stake-driven with no upside without staking growth; 24h immunity = slot easily lost once taken; accuracy bar = 30+ LLMs + augmentations, shipped DeBERTa is baseline
 - Positioning vs SN82: SN32 = boring/real/marginal vs SN82's pumped/illiquid/anonymous — not comparable to SN61-class CPU plays
+
+---
+Task ID: sandbox-restore-1013b
+Agent: main
+Task: Load the web app after second sandbox recycle
+
+Work Log:
+- Found sandbox recycled again: .next/standalone wiped, dev server auto-started on :3000, DB rolled back (0 curated overrides/playbooks)
+- DB file intact (475KB); source code fixes survived (compat-seed.ts SN82 cpu-only, miner-score.ts debate rule, sn82-compelle-override.ts)
+- Rebuilt production: bun run build with NODE_OPTIONS 2048MB (~4min), OK
+- Killed dev server (PIDs 1566/1568/1584), started scripts/daemonize-prod.py; keepalive respawned standalone server.js (bun --smol)
+- Re-ran idempotent scripts/sn82-compelle-override.ts to restore curated SN82 row lost in DB rollback
+- Verified: login 200, /api/network live (block 9,273,655, TAO $278.32, 129 subnets), SN82 override restored (Compelle / Debate & persuasion / None CPU-only), 13 overrides total, guides PDF 200
+
+Stage Summary:
+- App fully operational on prod standalone build with keepalive
+- All COMPELLE-FIX layers intact: keyword rule + compat-seed + curated DB row
+- Pending: SN32 research (chain identity found: name "ItsAI", registeredAt 2515294, description null)
