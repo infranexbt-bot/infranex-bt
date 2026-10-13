@@ -85,3 +85,6 @@ scripts/judge-audit/tarball-inputs.json
 # Live SN89 testnet miner sandbox (venv + repo clone + keys)
 bt-miner/
 .chain-metadata-test.json
+
+# CI workflows excluded from git (push token lacks workflow scope) - kept locally only
+.github/workflows/
