@@ -1575,3 +1575,19 @@ Work Log:
 Stage Summary:
 - All Three Engines UI fully removed; app back to pure Bittensor mining platform (22 views, Intelligence -> Operations -> Platform journey)
 - Backend engine APIs + tables retained silently; optional future cleanup if user wants
+---
+Task ID: remove-opp-score-card
+Agent: main (Super Z)
+Task: Remove "Decision · mine vs stake, in numbers" (TAO Opportunity Score) card from dashboard (user request)
+
+Work Log:
+- Located card: OpportunityScoreCard component in dashboard-view.tsx (lines 808-1158) + exclusive helpers (CAPITAL_KEY, formatINR, riskBadgeClass, scoreColor, ScoreRing, clampScore, StrategyRow at 499-681)
+- Wrote scripts/remove-opp-score-card.py (marker-anchored deletion): render block, helper block, component, orphaned imports (react hooks line, Pickaxe/Landmark/ShieldQuestion/Armchair icons, Input ui, opportunity-score import, formatBurnTao)
+- dashboard-view.tsx: 1158 -> 615 lines; zero residual references; shared SubnetChooser + TrustLoopCard untouched
+- Kept: src/lib/infranex/opportunity-score.ts lib (pure functions, possibly referenced elsewhere); useProfitabilityConfig/useSubnetOverrides imports (main DashboardView uses them)
+- tsc clean -> build 30.6s -> keepalive respawn (ready 336ms)
+- Verified: login 200, /api/network 200; browser check: 0 matches for "TAO Opportunity Score/Staking capital/mine vs stake/seat quality/Recommended strategy" on dashboard
+
+Stage Summary:
+- Dashboard now flows: SubnetChooser (Choose your subnet) -> TrustLoopCard -> Metrics; mine-vs-stake verdict card fully gone
+- Removal script persisted at scripts/remove-opp-score-card.py for recycle recovery reference
