@@ -1394,3 +1394,21 @@ Stage Summary:
 - Platform fully restored and running in production standalone mode behind keepalive daemon
 - Root cause of data loss: overnight dev-server session + sandbox recycle wiped standalone build; playbook/override tables emptied (cause TBD - possibly dev-flow db push with drift)
 - Deliverable URL: https://x1vjv8jfmfp0-d.space-z.ai
+
+---
+Task ID: sn82-research
+Agent: main (Super Z)
+Task: User asked what SN82 is, can it run on rented GPU, chances of earnings
+
+Work Log:
+- Fresh snapshot (block 9,272,447): SN82 emits 342.7 TAO/d miner-side, 61/61 miners rewarded, top10 share 11.5%, median 1.0 (perfect equality), 61/64 UIDs (3 open seats), burn 8.39 TAO (~$2,370), immunity 65535 blocks (~9d), alpha +135% 24h / +1203% 7d
+- Identity: SN82 = "Compelle" (adversarial-persuasion AI debate subnet; miners commit written debate strategies on-chain, validator pairs them in Pro/Con LLM debates via Chutes, Elo-weights). Registered Sep 26 2026; emissions switched ON between Oct 12 and Oct 13 (yesterday's 0-emission reading was pre-launch)
+- Scraped repo (Sep 10): compelle/compelle-validator — validator needs modest CPU/NO GPU; miner repo does NOT exist publicly; validator repo now 404/private; on-chain identityGithub REMOVED (was present at scrape time)
+- Compat-seed "tee-required" flag for SN82 = FALSE POSITIVE (shell `sudo tee` command matched, not TEE hardware)
+- backprop.finance holders: owner 19.77% of alpha (avg buy 0.0000 = free), top-10 ~51%; price 0.05806 tau ($16.42); FDV $344M vs market cap $2.27M; liquidity 2.27k tau; volume 13.87 tau/DAY (5 txns); backprop warns "Insufficient information... exercise caution"
+- Paper per-miner earnings 5.62 tau/d (~$1.6k/d) but daily subnet volume 13.87 tau = exit math is fantasy at displayed price
+
+Stage Summary:
+- SN82 Compelle: zero-GPU (even CPU box overkill - strategy commitment is wallet txns), earnings mechanically broad (all miners paid equally) but alpha is illiquid at pumped price on 2.5-week-old anonymous subnet with scrubbed identity + deleted repo
+- Verdict: lottery-ticket economics (8.39 TAO burn = ticket price), NOT comparable to SN61-style EV; treat as speculative micro-position max, watch 1-2 weeks for liquidity/identity/repo before any real commitment
+- Corrected: SN82 not a TEE subnet (compat-seed false positive documented)
