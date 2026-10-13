@@ -1556,3 +1556,22 @@ Stage Summary:
 - Wealth Command fully removed; Invest/Earn/Capture engines remain reachable under "Wealth Engines" group
 - App lands on Network Intelligence dashboard by default
 - Phase 4 unification work now moot (no wealth hub to unify)
+---
+Task ID: remove-engines-ui
+Agent: main (Super Z)
+Task: Remove Invest Engine, Earn Engine, Capture Desk pages completely (user request)
+
+Work Log:
+- types.ts: removed "invest"/"earn"/"capture" from ViewKey union
+- page.tsx: removed InvestView/EarnView/CaptureView imports, 3 VIEW_META entries, 3 render lines
+- sidebar.tsx: removed entire "Wealth Engines" nav group + unused lucide icons (Brain, DollarSign, Crosshair); NAV_GROUPS now starts at Intelligence/Dashboard
+- Deleted 6 files: invest-view.tsx, earn-view.tsx, capture-view.tsx, use-invest.ts, use-capture.ts, use-wealth.ts
+- Kept backend intact (no data loss): API routes theses/watchlist/holdings/bets/trades/bot-signals/funding/yields/yield-positions/income/prices + Prisma models/tables — orphaned but harmless; user can request purge later
+- tsc clean -> bun run build (30.6s) -> keepalive respawn (ready 328ms)
+- Verified: login 200; /api/network 200; /api/yields + /api/theses still 200 (orphaned routes serve fine)
+- Note: /api/opportunities and bare /api/subnets return 404 — pre-existing route shapes (opportunities derive from /api/network; subnets is a [netuid] detail route), NOT caused by this change
+- Browser-verified (agent-browser): sidebar starts at Dashboard 01, zero references to invest/earn/capture/wealth anywhere in rendered UI
+
+Stage Summary:
+- All Three Engines UI fully removed; app back to pure Bittensor mining platform (22 views, Intelligence -> Operations -> Platform journey)
+- Backend engine APIs + tables retained silently; optional future cleanup if user wants

@@ -259,9 +259,6 @@ export interface EmissionShare {
 }
 
 export type ViewKey =
-  | "invest"
-  | "earn"
-  | "capture"
   | "dashboard"
   | "fit"
   | "opportunities"
