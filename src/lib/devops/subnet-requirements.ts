@@ -63,6 +63,17 @@ export interface SubnetRequirementsProfile {
   hashcatMinVersion: string | null;
 
   /**
+   * PM2 — process-manager requirement parsed from the subnet's own docs
+   * (many subnet READMEs: "Install and run pm2 commands to keep your miner
+   * online at all times"). When required, the installer installs Node.js
+   * + pm2 and the venv-path miner LAUNCHES UNDER PM2 (pm2 start + startup
+   * + save) instead of systemd — matching the subnet's documented ops
+   * surface (pm2 logs/list/resurrect). Docker path keeps its restart
+   * policy (already "online at all times") but pm2 is still installed.
+   */
+  pm2Required: boolean;
+
+  /**
    * INFRA-STACK: service-level infrastructure the subnet documents beyond a
    * pip stack (Kubernetes/k3s, Postgres, Redis, Gepetto, RAM-per-GPU sizing).
    * When present with kubernetes-class orchestration, the generic venv plan
@@ -344,6 +355,18 @@ export function parseHashcatRequirement(text: string | null | undefined): {
   return { required: true, minVersion: max ?? null };
 }
 
+/**
+ * Parse the repo text for a PM2 (process manager) requirement. Subnets
+ * document it as "Install and run pm2 commands to keep your miner online at
+ * all times", "pm2 start neurons/miner.py", "npm install -g pm2", etc.
+ * Any pm2 mention counts — version floors are never pinned for pm2.
+ * Exports for unit tests.
+ */
+export function parsePm2Requirement(text: string | null | undefined): boolean {
+  if (!text) return false;
+  return /\bpm2\b/i.test(text);
+}
+
 // --- Profile assembly -------------------------------------------------------
 
 function minerCommandTemplate(profile: {
@@ -389,8 +412,9 @@ export async function pullSubnetRequirements(
         ovr?.requirementsScrapedAt != null &&
         ovr.requirementsScrapedAt.getTime() > row.fetchedAt.getTime() + 1_000;
       // STRUCTURAL — cached profiles from before a profiler upgrade may lack
-      // newer fields (e.g. hashcatRequired). Missing key = stale shape, rebuild.
-      const staleShape = !("hashcatRequired" in cachedProfile);
+      // newer fields (e.g. hashcatRequired / pm2Required). Missing key =
+      // stale shape, rebuild.
+      const staleShape = !("pm2Required" in cachedProfile);
       if (staleShape) {
         // fall through to a fresh buildProfile below
       } else if (!repoChanged && !rescrapedAfterCache) {
@@ -569,11 +593,17 @@ async function buildProfile(netuid: number): Promise<SubnetRequirementsProfile> 
   const osPackages = combinedText ? parseAptPackages(combinedText) : [];
   const bittensorStack = parseBittensorStack(pipPackages);
   const hashcat = parseHashcatRequirement(combinedText);
+  const pm2Required = parsePm2Requirement(combinedText);
   if (hashcat.required) {
     notes.push(
       hashcat.minVersion
         ? `Repo docs require the hashcat tool (>= v${hashcat.minVersion}) — the install plan adds a dedicated install step with a version gate.`
         : "Repo docs mention the hashcat tool — the install plan installs it via apt (no version floor documented)."
+    );
+  }
+  if (pm2Required) {
+    notes.push(
+      "Repo docs use pm2 to keep the miner online — the install plan installs Node.js + pm2 and launches the miner under pm2 (auto-restart + boot resurrection)."
     );
   }
 
@@ -698,6 +728,7 @@ async function buildProfile(netuid: number): Promise<SubnetRequirementsProfile> 
     packageManager,
     hashcatRequired: hashcat.required,
     hashcatMinVersion: hashcat.minVersion,
+    pm2Required,
     infraStack: scraped?.infra ?? null,
     repoUrl: routedUrl,
     repoBranch: repoInfo?.branch ?? "main",

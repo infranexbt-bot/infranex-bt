@@ -29,6 +29,7 @@ function fakeProfile(over: Partial<SubnetRequirementsProfile>): SubnetRequiremen
     packageManager: "pip",
     hashcatRequired: false,
     hashcatMinVersion: null,
+    pm2Required: false,
     infraStack: null,
     repoUrl: "https://github.com/example/test-subnet",
     repoBranch: "main",
@@ -88,6 +89,37 @@ const clean = buildInstallPlan({
   hotkeyName: "h",
 });
 check("C1: no hashcat step when not required", !clean.some((s) => s.title.includes("Hashcat")));
+
+// --- PM2 ---
+// D: pm2Required (venv path) → install step + pm2 launch + pm2 verify
+const pm2Plan = buildInstallPlan({
+  profile: fakeProfile({ pm2Required: true }),
+  walletName: "w",
+  hotkeyName: "h",
+});
+const pm2Step = pm2Plan.find((s) => s.title === "Install PM2 process manager");
+check("D1: PM2 install step present", !!pm2Step);
+check("D2: node bootstrap + npm install -g pm2", (pm2Step?.commands ?? []).join("\n").includes("npm install -g pm2") && (pm2Step?.commands ?? [])[0]?.includes("deb.nodesource.com/setup_20.x"));
+const pm2Launch = pm2Plan.find((s) => s.title === "Launch the miner (pm2 daemon)");
+check("D3: launch switches to pm2 daemon", !!pm2Launch);
+check("D4: pm2 start uses venv python + env sourced", (pm2Launch?.commands[0] ?? "").includes("set -a && . /opt/infranex/sn35/env") && (pm2Launch?.commands[0] ?? "").includes("/venv/bin/python"));
+check("D5: pm2 startup + save for boot resurrection", (pm2Launch?.commands[1] ?? "").includes("pm2 startup") && (pm2Launch?.commands[1] ?? "").includes("pm2 save"));
+check("D6: no systemd launch step alongside pm2", !pm2Plan.some((s) => s.title.startsWith("Launch the miner (systemd")));
+const pm2Verify = pm2Plan.find((s) => s.title === "Verify the miner is live");
+check("D7: verify uses pm2 list/logs", (pm2Verify?.commands[0] ?? "").includes("pm2 list | grep -q") && (pm2Verify?.commands[0] ?? "").includes("pm2 logs"));
+
+// E: pm2 + Dockerfile path → pm2 installed but Docker supervises (launch stays docker)
+const pm2Docker = buildInstallPlan({
+  profile: fakeProfile({ pm2Required: true, dockerfileFound: true, dockerImage: "python:3.10-slim" }),
+  walletName: "w",
+  hotkeyName: "h",
+});
+check("E1: pm2 step marks Docker supervision", !!pm2Docker.find((s) => s.title === "Install PM2 (docs-required, Docker supervises)"));
+check("E2: launch stays Docker", !!pm2Docker.find((s) => s.title === "Launch the miner (Docker container)"));
+check("E3: verify stays docker", (pm2Docker.find((s) => s.title === "Verify the miner is live")?.commands[0] ?? "").includes("docker ps"));
+
+// F: no pm2 anywhere (regression)
+check("F1: no pm2 steps when not required", !clean.some((s) => s.title.includes("PM2") || s.title.includes("pm2")));
 
 console.log(fails === 0 ? "\nALL PASS" : `\n${fails} FAILED`);
 process.exit(fails === 0 ? 0 : 1);

@@ -59,6 +59,7 @@ export function timeoutForCmd(cmd: string): number {
   if (cmd.includes("docker build")) return 1_200_000;
   if (cmd.includes("pip install") || cmd.includes("uv sync")) return 900_000;
   if (cmd.includes("apt-get install") || cmd.includes("get.docker.com")) return 600_000;
+  if (cmd.includes("npm install") || cmd.includes("nodesource") || cmd.includes("pm2 startup")) return 600_000;
   return 120_000;
 }
 
@@ -136,6 +137,28 @@ export function buildInstallPlan(input: InstallPlanInput): InstallStep[] {
         "export DEBIAN_FRONTEND=noninteractive; apt-get update -qq && apt-get install -y -qq hashcat ocl-icd-libopencl1",
         versionGate,
         "hashcat -I 2>/dev/null | grep -qiE 'nvidia|cuda' && echo 'OpenCL backend: NVIDIA/CUDA OK' || echo 'warn: no NVIDIA/CUDA OpenCL backend visible — GPU cracking needs the NVIDIA driver runtime; CPU-only backends (pocl) work but are slow'",
+      ],
+    });
+  }
+
+  // 2c — PM2: process manager the subnet's docs use to keep the miner
+  //      online ("Install and run pm2 commands to keep your miner online at
+  //      all times"). Node.js first (NodeSource 20 when the pod image has
+  //      none), then pm2 globally, then a version echo as proof of life.
+  //      On the Docker path the container's restart policy already
+  //      supervises the miner — pm2 is still installed because the subnet's
+  //      ops surface documents it, and the step says so honestly.
+  if (profile.pm2Required) {
+    push({
+      title: dockerPath ? "Install PM2 (docs-required, Docker supervises)" : "Install PM2 process manager",
+      description: dockerPath
+        ? "Subnet docs use pm2; installing it as documented. The miner itself is supervised by Docker's restart policy (equivalent uptime guarantee)."
+        : "Subnet docs require pm2 to keep the miner online. Installs Node.js (if missing) + pm2 globally; the launch step then runs the miner under pm2 with auto-restart and boot resurrection.",
+      gate: "auto",
+      commands: [
+        "node --version >/dev/null 2>&1 || { curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && apt-get install -y nodejs; }",
+        "npm install -g pm2",
+        "echo \"pm2 $(pm2 --version) ready\"",
       ],
     });
   }
@@ -446,6 +469,23 @@ export function buildInstallPlan(input: InstallPlanInput): InstallStep[] {
     "[Install]",
     "WantedBy=multi-user.target",
   ];
+  if (profile.pm2Required) {
+    // PM2 launch path — matches the subnet's documented ops surface:
+    // pm2 start (auto-restart on crash) + pm2 startup (boot resurrection,
+    // "online at all times") + pm2 save (persist the process list). The
+    // env file is sourced (set -a) so pm2's child inherits the exact same
+    // BT_*/CUDA variables the systemd path would have injected.
+    push({
+      title: "Launch the miner (pm2 daemon)",
+      description: `pm2 start ${profile.entrypoint ?? "neurons/miner.py"} → process "${unit}" with auto-restart, then pm2 startup + pm2 save so the miner resurrects on pod reboot. This starts the real workload.`,
+      gate: "approval",
+      commands: [
+        `set -a && . ${root}/env && set +a; pm2 delete ${unit} 2>/dev/null || true; pm2 start ${pythonBin} --name ${unit} --interpreter none --cwd ${root}/app -- ${profile.entrypoint ?? "neurons/miner.py"} --netuid ${netuid} --subtensor.network finney --wallet.name ${walletName} --wallet.hotkey ${hotkeyName} --axon.port ${profile.ports.axon}`,
+        `pm2 startup systemd -u root --hp /root >/dev/null 2>&1 || pm2 startup >/dev/null 2>&1 || true; pm2 save`,
+        `pm2 list | grep ${unit}`,
+      ],
+    });
+  } else {
   push({
     title: "Launch the miner (systemd service)",
     description: `Creates + starts ${unit}.service — auto-restarts on crash. This starts the real workload.`,
@@ -457,6 +497,7 @@ export function buildInstallPlan(input: InstallPlanInput): InstallStep[] {
       `systemctl daemon-reload && systemctl enable --now ${unit}`,
     ],
     });
+  }
   }
 
   // 9 — Verify
@@ -482,9 +523,13 @@ export function buildInstallPlan(input: InstallPlanInput): InstallStep[] {
         ? [
             `docker ps --filter name=${unit} --format '{{.Names}} | {{.Status}}' | grep -q ${unit} && ss -tlnp | grep ':${profile.ports.axon} ' ; docker logs --tail 5 ${unit} 2>&1 | tail -5`,
           ]
-        : [
-            `systemctl is-active ${unit} && ss -tlnp | grep ':${profile.ports.axon} ' ; tail -n 5 /var/log/infranex-miner-sn${netuid}.log 2>/dev/null`,
-          ],
+        : profile.pm2Required
+          ? [
+              `pm2 list | grep -q ${unit} && ss -tlnp | grep ':${profile.ports.axon} ' ; pm2 logs ${unit} --lines 5 --nostream 2>/dev/null | tail -5`,
+            ]
+          : [
+              `systemctl is-active ${unit} && ss -tlnp | grep ':${profile.ports.axon} ' ; tail -n 5 /var/log/infranex-miner-sn${netuid}.log 2>/dev/null`,
+            ],
     });
   }
 
@@ -625,6 +670,7 @@ export async function runInstallStep(
 export function failRemediation(step: InstallStep, code: number): string {
   if (step.title.startsWith("Install OS")) return "apt failed — check the distro sources and network on the host, then retry.";
   if (step.title.startsWith("Install Hashcat")) return step.title.includes("(>") || /v\d/.test(step.title) ? "Ubuntu's apt hashcat can lag the subnet's version floor — build from source: git clone https://github.com/hashcat/hashcat && make -j$(nproc) && make install, or retry to pick up a newer distro version." : "hashcat apt install failed — check apt sources/network, then retry.";
+  if (step.title.startsWith("Install PM2")) return "pm2 install failed — check Node.js/npm (node --version) and the host's outbound network; you can also install pm2 manually (npm install -g pm2) then retry.";
   if (step.title.startsWith("Install Docker")) return code === 127 ? "curl/network unavailable on the host — install docker-ce + nvidia-container-toolkit manually, then retry." : "Docker/runtime install failed — inspect the output (repo keys, apt sources), then retry.";
   if (step.title.startsWith("Build the subnet")) return "docker build failed — the log shows the failing Dockerfile layer (deps, base image pull). Fix and retry.";
   if (step.title.startsWith("Create Python")) return code === 1 ? "Python version mismatch — install the required python3.x (deadsnakes PPA) or edit the plan." : "python3-venv missing — the OS-packages step installs it; retry.";

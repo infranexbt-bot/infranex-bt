@@ -3,7 +3,7 @@
  * test-hashcat-parser.ts — unit tests for parseHashcatRequirement().
  * Run: bun scripts/test-hashcat-parser.ts
  */
-import { parseHashcatRequirement } from "../src/lib/devops/subnet-requirements";
+import { parseHashcatRequirement, parsePm2Requirement } from "../src/lib/devops/subnet-requirements";
 
 const CASES: Array<{ name: string; text: string; req: boolean; min: string | null }> = [
   {
@@ -37,6 +37,20 @@ for (const c of CASES) {
   console.log(
     `${ok ? "PASS" : "FAIL"}  ${c.name}  → got {required:${got.required}, min:${got.minVersion}} want {required:${c.req}, min:${c.min}}`
   );
+}
+
+// PM2 cases
+const PM2_CASES: Array<{ name: string; text: string; want: boolean }> = [
+  { name: "user-reported line", text: "PM2 Installation\nInstall and run pm2 commands to keep your miner online at all times.", want: true },
+  { name: "pm2 start command", text: "pm2 start neurons/miner.py --name miner", want: true },
+  { name: "npm install -g pm2", text: "npm install -g pm2", want: true },
+  { name: "no pm2", text: "Run under systemd or docker", want: false },
+];
+for (const c of PM2_CASES) {
+  const got = parsePm2Requirement(c.text);
+  const ok = got === c.want;
+  if (!ok) fails++;
+  console.log(`${ok ? "PASS" : "FAIL"}  pm2: ${c.name} → ${got}`);
 }
 console.log(fails === 0 ? "\nALL PASS" : `\n${fails} FAILED`);
 process.exit(fails === 0 ? 0 : 1);
