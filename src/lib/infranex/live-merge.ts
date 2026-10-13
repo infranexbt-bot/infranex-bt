@@ -28,6 +28,7 @@ import {
 } from "./profitability";
 import { getMechanics } from "./mechanics";
 import { curatedGithubUrl } from "./data";
+import { SUBNET_LINKS_SEED } from "./subnet-links-seed";
 import type { SubnetMechanics } from "./mechanics";
 import type {
   LiveNetworkSnapshot,
@@ -137,12 +138,32 @@ export function mergeSubnets(
         (override?.githubUrl as string | null) ??
         live.identityGithub ??
         curatedGithubUrl(live.netuid),
-      website: (override?.website as string | null) ?? null,
+      website:
+        (override?.website as string | null) ??
+        live.identityWebsite ??
+        null,
       burnCostTao: live.burnCostTao ?? null,
       immunityBlocks: live.immunityBlocks ?? null,
       maxUids: live.maxUids ?? null,
       rewardedMiners: live.rewardedMiners ?? null,
+      // SOCIAL-LINKS — subnetalpha-style Website / X / GitHub / Discord row.
+      // Precedence per field: user override → live chain identity
+      // (owner-registered, freshest) → enrichment seed (chain + README/site
+      // scrape snapshot). Twitter has no on-chain field of its own — the
+      // seed's chain-contact/website/README enrichment is the honest source;
+      // missing stays null (never invented).
+      twitterUrl: (override?.twitterUrl as string | null) ?? null,
+      discordUrl: (override?.discordUrl as string | null) ?? live.identityDiscord ?? null,
     };
+
+    // Seed links fill any gaps the fresher sources left blank.
+    const seed = SUBNET_LINKS_SEED[live.netuid];
+    if (!merged.website && seed?.website) {
+      merged.website = seed.website;
+      liveFields.add("website");
+    }
+    if (!merged.twitterUrl && seed?.twitter) merged.twitterUrl = seed.twitter;
+    if (!merged.discordUrl && seed?.discord) merged.discordUrl = seed.discord;
 
     if (override) {
       for (const [key, value] of Object.entries(override)) {

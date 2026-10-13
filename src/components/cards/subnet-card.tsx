@@ -9,6 +9,7 @@ import { Users, Shield, Cpu, TrendingUp, TrendingDown, Settings2, FileText } fro
 import { assessSeatChance } from "@/lib/infranex/miner-score";
 import { SeatChanceBadge } from "@/components/subnets/seat-chance-badge";
 import { CompatBadge } from "@/components/subnets/compat-badge";
+import { SubnetSocialLinks } from "@/components/subnets/subnet-social-links";
 import type { SubnetCompat } from "@/lib/infranex/compat";
 import type { Subnet } from "@/lib/infranex/types";
 
@@ -113,6 +114,17 @@ export function SubnetCard({ subnet: s, score, rank, compat, onSelect, onEdit, o
             >
               {s.description.replace(/^[-=*_\s]+/, "").replace(/\s+/g, " ")}
             </p>
+            {/* SOCIAL-LINKS — subnetalpha-style official links menu */}
+            <SubnetSocialLinks
+              size="sm"
+              className="mt-2"
+              links={{
+                website: s.website,
+                twitterUrl: s.twitterUrl,
+                githubUrl: s.githubUrl,
+                discordUrl: s.discordUrl,
+              }}
+            />
           </div>
           <div className="shrink-0 text-right">
             {rank !== undefined && (

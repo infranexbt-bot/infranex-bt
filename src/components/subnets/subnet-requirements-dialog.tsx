@@ -48,6 +48,7 @@ import { resolveCompat } from "@/lib/infranex/compat";
 import { CompatSection } from "@/components/subnets/compat-section";
 import { WhatMinersDoCard } from "@/components/subnets/what-miners-do-card";
 import { MinersPanel } from "@/components/subnets/subnet-miners-panel";
+import { SubnetSocialLinks } from "@/components/subnets/subnet-social-links";
 import type { Subnet } from "@/lib/infranex/types";
 import type { SubnetRequirementsProfile } from "@/lib/devops/subnet-requirements";
 
@@ -185,6 +186,35 @@ export function SubnetRequirementsDialog({
           <DialogDescription className="text-xs">
             NetUID {subnet.netuid} · {subnet.category} · Pulled from the subnet&apos;s chain identity + GitHub repo
           </DialogDescription>
+          {/* SOCIAL-LINKS + official identity — the subnetalpha-style hero:
+              the four official-link buttons plus the owner-registered
+              description, above every other detail in the dialog. */}
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-0.5">
+            <SubnetSocialLinks
+              size="md"
+              links={{
+                website: subnet.website,
+                twitterUrl: subnet.twitterUrl,
+                githubUrl: subnet.githubUrl,
+                discordUrl: subnet.discordUrl,
+              }}
+            />
+            {subnet.description &&
+              !/^On-chain registered subnet/.test(subnet.description) &&
+              !/^Untracked subnet/.test(subnet.description) && (
+                <p
+                  className="min-w-0 flex-1 basis-full text-xs leading-relaxed text-muted-foreground sm:basis-0"
+                  style={{
+                    display: "-webkit-box",
+                    WebkitBoxOrient: "vertical",
+                    WebkitLineClamp: 2,
+                    overflow: "hidden",
+                  }}
+                >
+                  {subnet.description.replace(/\s+/g, " ")}
+                </p>
+              )}
+          </div>
           {state.phase === "loaded" && (
             <div className="flex flex-wrap items-center gap-2 pt-1">
               <ProvenanceStrip profile={state.profile} cached={state.cached} />

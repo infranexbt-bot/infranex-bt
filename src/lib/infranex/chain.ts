@@ -263,6 +263,12 @@ export interface LiveSubnetMetrics {
   /** On-chain identity (SubnetIdentitiesV3) when registered. */
   identityGithub: string | null;
   identityDescription: string | null;
+  /** Official website from the on-chain identity (subnet_url field). */
+  identityWebsite: string | null;
+  /** Contact from the on-chain identity (subnet_contact — email or x.com/twitter link). */
+  identityContact: string | null;
+  /** Discord from the on-chain identity (discord field — invite URL or handle). */
+  identityDiscord: string | null;
 }
 
 export interface NeuronMetrics {
@@ -842,16 +848,22 @@ class SnapshotCache {
                 subnetName?: unknown;
                 githubRepo?: unknown;
                 description?: unknown;
+                subnetContact?: unknown;
+                subnetUrl?: unknown;
+                discord?: unknown;
               };
             } | null;
             // Identity fields are Vec<u8> — decode via toUtf8, hex fallback.
+            // An EMPTY Vec<u8> surfaces as the bare hex string "0x" (no
+            // bytes) — normalize it to "" so blank on-chain fields stay
+            // blank instead of leaking a stray "0x" into the UI.
             const idText = (v: unknown): string => {
               if (v == null) return "";
               const codec = v as { toUtf8?: () => string };
               if (typeof codec.toUtf8 === "function") {
                 try {
                   const s = codec.toUtf8().trim();
-                  if (s && !s.startsWith("0x")) return s;
+                  if (s && s !== "0x" && !s.startsWith("0x")) return s;
                 } catch { /* fall through */ }
               }
               const s = typeof v === "string" ? v : String(v);
@@ -865,17 +877,27 @@ class SnapshotCache {
                   return new TextDecoder().decode(bytes).trim();
                 } catch { return ""; }
               }
-              return s.trim();
+              return s === "0x" ? "" : s.trim();
             };
             let idName = "";
             let idGithub = "";
             let idDesc = "";
+            let idContact = "";
+            let idUrl = "";
+            let idDiscord = "";
             if (identityOpt && !identityOpt.isEmpty && identityOpt.unwrap) {
               try {
                 const v = identityOpt.unwrap();
                 idName = idText(v.subnetName);
                 idGithub = idText(v.githubRepo);
                 idDesc = idText(v.description);
+                // SOCIAL-LINKS: the full SubnetIdentitiesV3 struct carries the
+                // same fields subnetalpha.ai surfaces — official site, contact
+                // (email or x.com link) and Discord. Decode best-effort; empty
+                // when the team left a field blank on-chain.
+                idContact = idText(v.subnetContact);
+                idUrl = idText(v.subnetUrl);
+                idDiscord = idText(v.discord);
               } catch {
                 // identity unreadable — leave empty
               }
@@ -939,6 +961,9 @@ class SnapshotCache {
               registeredAt: regBlock || null,
               identityGithub: idGithub || null,
               identityDescription: idDesc || null,
+              identityWebsite: idUrl || null,
+              identityContact: idContact || null,
+              identityDiscord: idDiscord || null,
             });
 
             // Collect this sample window's alpha prices for the ring buffer.

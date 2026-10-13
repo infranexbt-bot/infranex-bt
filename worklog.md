@@ -1642,3 +1642,23 @@ Stage Summary:
 - SubnetAlpha directory imported conservatively; platform identity coverage now 112/112 named overrides
 - SN29 name conflict flagged for future verification
 - SN32 deep-dive: name + purpose + repo now all corroborated; remaining: emissions/staking economics if user wants full write-up
+---
+Task ID: subnet-links-hero
+Agent: main (Super Z)
+Task: Implement subnetalpha.ai subnet-page info — Website/X/GitHub/Discord link menu + official subnet info for all subnets
+
+Work Log:
+- subnetalpha.ai/subnet/hone/ unreachable (IP-challenge blocks datacenter IPs; wayback/jina also blocked) — pivoted to the CANONICAL source: finney chain SubnetIdentitiesV3
+- Reverse-engineered the V3 SCALE struct from raw bytes: subnet_name, github_repo, subnet_contact, subnet_url, discord, description (compact-prefixed Vec<u8> each) + additional = SINGLE (key,value) tuple (no outer count) — probe at scripts/probe-identity.ts, dump at tool-results/subnet-identities.json (120/120 decode OK; coverage: name 119, github 109, url 106, contact 81, discord 67, desc 110; additional holds LOGO url for 101)
+- chain.ts: identity decode now also reads subnetContact/subnetUrl/discord → LiveSubnetMetrics.identityWebsite/identityContact/identityDiscord (live every scan); idText fixed: empty Vec<u8> decoded to literal "0x" → now "" (0 leaks verified in /api/network)
+- scripts/enrich-social-links.ts: merged chain + 112 DB overrides + README scrape (raw.githubusercontent HEAD, no API quota) + WEBSITE scrape (twitter:site meta) → tool-results/subnet-links.json. Twitter 5→66 via homepage meta tags. Key fixes: discord "@handle" ≠ invite (skip honestly), twitter excludes intent/search/status pages, README-website only when domain matches subnet name, github CHAIN-first (override only when chain blank — old override order picked stale pre-dTAO repos, e.g. SN1 text-prompting)
+- scripts/gen-links-seed.py → src/lib/infranex/subnet-links-seed.ts (baked seed, 120 entries, provenance map per field)
+- types.ts Subnet +twitterUrl +discordUrl; live-merge.ts mergeSubnets precedence: override → live chain identity → seed (twitter: seed only — no on-chain field)
+- scripts/align-overrides-to-chain.ts: one-time align of 112 override rows' name/description/githubUrl/website to current chain identity (descriptions were machine-written by old github sync; SN1 now shows chain "The general intelligence platform" not stale README template text) — 108 aligned
+- UI: new src/components/subnets/subnet-social-links.tsx (4-slot square-button menu: Globe/X-svg/Github/Discord-svg; active = filled primary, missing = dimmed inert "not provided" slot — mirrors subnetalpha's 4-slot layout honestly); wired into SubnetCard (sm, under description) + SubnetRequirementsDialog header (md + chain description line, generic placeholders suppressed)
+- Build + deploy OK; browser-verified dark + light: cards render link rows (Apex 4 links, DSperse 3+dimmed, SN0 all dimmed), dialog hero shows buttons + chain description; hrefs verified (SN5 → honedashboard.com, hone-subnet-org/hone-subnet)
+
+Stage Summary:
+- Every subnet card + requirements dialog now carries subnetalpha's official-links menu + owner-registered description, sourced live from chain with README/website enrichment (66 twitter, 43 discord invites, 109 websites of 120 chain-registered)
+- SubnetOverride identity fields re-aligned to chain (108 rows) — stale pre-dTAO repos/descriptions gone
+- Regeneration path documented: probe-identity.ts → enrich-social-links.ts → gen-links-seed.py → rebuild; no runtime fetches added

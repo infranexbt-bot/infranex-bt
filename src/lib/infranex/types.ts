@@ -28,6 +28,10 @@ export interface Subnet {
   recommendedGpu: string;
   githubUrl?: string | null;
   website?: string | null;
+  /** X/Twitter profile — subnetalpha-style social row (chain/README/site-enriched). */
+  twitterUrl?: string | null;
+  /** Discord invite — subnetalpha-style social row. */
+  discordUrl?: string | null;
   // DATA-AUDIT-1: the old `miningRequirements` (fabricated per-category
   // docker images / commands) was removed — requirements now come ONLY from
   // the live repo profiler (SubnetRequirementsProfile / InfraStack).
