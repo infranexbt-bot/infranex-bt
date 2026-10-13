@@ -1516,3 +1516,24 @@ Stage Summary:
 - Key-free data: Binance + CoinGecko (prices), Hyperliquid (funding); AI: z-ai-web-dev-sdk (briefs + scans), injectable completion pattern
 - Ethos preserved: bookkeeping/judgment records only, nothing places orders; AI outputs validated server-side before persisting
 - Phase 4 (unification polish: net-wealth strip across engines, engine KPI consolidation) remains
+---
+Task ID: sandbox-restore-1014
+Agent: main (Super Z)
+Task: Restore web app after third sandbox recycle (user: "load the web app")
+
+Work Log:
+- Found standalone wiped, dev server auto-started on :3000, DB rolled back (all Phase 1-3 tables + AppUser empty)
+- Source survived intact: all Three Engines views (wealth/earn/invest/capture) + 6 Phase 2/3 models + all APIs present
+- prisma db push recreated 8 missing tables (YieldPosition, IncomeEntry, InvestmentThesis, WatchlistItem, PortfolioHolding, AsymmetricBet, TradeSetup, BotSignal)
+- bun scripts/restore-users.ts -> 5 AppUser rows restored from infranex-users.local.json mirror
+- bun scripts/sn82-compelle-override.ts -> curated SN82 Compelle row restored
+- Rebuilt prod standalone (bun run build, NODE_OPTIONS 2048MB) -> killed dev -> daemonize-prod.py (bun --smol, ready 320ms)
+- Verified: login 200; /api/network 200 (block 9,275,725, 129 subnets, TAO $277.13); all engine APIs 200 (yields, income/summary, theses, watchlist, holdings, bets, trades, bot-signals, funding after HL 429 retry)
+- Regenerated tool-results/net-live.json from live API; reseed-overrides-from-chain.ts -> created=97, gate coverage 105/105, total overrides 106 (matches pre-recycle count)
+- sqlite3 CLI unavailable in this sandbox; used python3 sqlite3 module for DB checks
+
+Stage Summary:
+- App fully operational: all three engines (INVEST/EARN/CAPTURE) + Wealth Command live on prod standalone with keepalive
+- Data fully restored: users, SN82 curated row, 106 overrides; engine books empty for operator (as left after phase2-3 cleanup)
+- Note: /api/funding cold-cache first call may 502 on HL rate limit; retry/stale-serve covers
+- Pending: SN32 (ItsAI) deep-dive; Phase 4 unification polish
