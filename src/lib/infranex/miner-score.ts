@@ -279,6 +279,23 @@ interface CategoryRule {
 // Ordered — first match wins. Derived from how subnet teams describe their
 // incentive mechanism (on-chain SubnetIdentitiesV3 descriptions).
 const CATEGORY_RULES: CategoryRule[] = [
+  // COMPELLE-FIX (SN82): adversarial-persuasion debate subnets — miners commit
+  // written debate strategies as on-chain transactions; the VALIDATOR runs the
+  // Pro/Con LLM debates via an LLM API (Chutes) and Elo-weights results, so the
+  // miner box needs NO GPU (not even meaningful CPU). First-match is placed on
+  // top so a future restored description mentioning "LLM debates" still lands
+  // here instead of "Frontier inference". Chain-audited 2026-10-13 (block
+  // ~9.27M): SN82 "Compelle" is the only live subnet matching these words and
+  // its on-chain identity is SCRUBBED (name/description null) — the literal
+  // "compelle" hits the curated SubnetOverride name. Without this rule the
+  // subnet fell into the revenue-based GPU guess (paper per-miner revenue
+  // ≥$1200/mo → "H200 141GB"), fabricating a hardware requirement for a
+  // wallet-txn-only subnet.
+  {
+    keywords: /\b(compelle|debate|persuas\w*|argumen\w*|rhetoric|orator\w*|deliberat\w*)\b/i,
+    category: "Debate & persuasion",
+    tier: GPU_TIERS.cpu,
+  },
   { keywords: /\b(frontier|llm|text.?gen|prompt|language model|chat|assistant|inference)\b/i, category: "Frontier inference", tier: GPU_TIERS.h100 },
   { keywords: /\b(pretrain|pre-train|model training|training network|grpo|rlhf|post.?training)\b/i, category: "Model training", tier: GPU_TIERS.h200 },
   { keywords: /\b(video|image|diffusion|vision|photo|generative media|3d|render)\b/i, category: "Media generation", tier: GPU_TIERS.consumer24 },

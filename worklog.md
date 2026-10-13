@@ -1412,3 +1412,21 @@ Stage Summary:
 - SN82 Compelle: zero-GPU (even CPU box overkill - strategy commitment is wallet txns), earnings mechanically broad (all miners paid equally) but alpha is illiquid at pumped price on 2.5-week-old anonymous subnet with scrubbed identity + deleted repo
 - Verdict: lottery-ticket economics (8.39 TAO burn = ticket price), NOT comparable to SN61-style EV; treat as speculative micro-position max, watch 1-2 weeks for liquidity/identity/repo before any real commitment
 - Corrected: SN82 not a TEE subnet (compat-seed false positive documented)
+
+---
+Task ID: sn82-gpu-est-fix
+Agent: main (Super Z)
+Task: User reported SN82 card showing "GPU (revenue est.) H200 141GB" — check and correct
+
+Work Log:
+- Root cause chain: SN82 had NO SubnetOverride row (chain reseed only creates rows for subnets with on-chain identity) AND its on-chain identity is SCRUBBED (name/description null, repo deleted) → classifySubnetHardware had zero text to match → revenue fallback (paper per-miner ≈$1.6k/day ≥ $1200/mo → H200 tier) rendered as "GPU (revenue est.) H200 141GB"
+- COMPELLE-FIX 1: miner-score.ts CATEGORY_RULES gains first-place rule /\b(compelle|debate|persuas\w*|argumen\w*|rhetoric|orator\w*|deliberat\w*)\b/ → "Debate & persuasion", CPU tier (placed on top so a future restored description mentioning "LLM debates" still lands CPU, not Frontier-inference H100)
+- COMPELLE-FIX 2: scripts/sn82-compelle-override.ts upserts curated SubnetOverride SN82 (name "Compelle", category "Debate & persuasion", minVramGb 0, recommendedGpu "None (CPU-only)", requirementsSource/githubUrl deliberately NULL — repo deleted, no false "repo-documented" claim; idempotent, survives reseeds)
+- COMPELLE-FIX 3: compat-seed SN82 TEE false positive fixed: gen-compat-seed.py gains COMPELLE_FIX_OVERRIDES map (82 → cpu-only/audit with sudo-tee false-positive note); compat-seed.ts SN82 entry hand-patched to match (tool-results/classified.json was wiped in sandbox recycle, so generator regen not yet possible — hand patch mirrors the generator override)
+- Verify: scripts/verify-sn82-fix.ts (17 checks): SN82 = Compelle / Debate & persuasion / CPU VPS / 0GB / classified=true / gpuCost $50/mo / requirementsSource null; compat tier cpu-only; blast radius changed-set = exactly α82; debate rows exactly SN82 all zero-VRAM. Initially 2 script artifacts fixed (old-rules replication missing Bandwidth/DePIN rule; gainedVram check replaced by debate-rows-zero-VRAM invariant since scraped VRAM always beats typical tiers)
+- Rebuilt standalone (bun run build ~4min) + killed PID 2088 → keepalive respawned new build (Ready 313ms); verify 17/17 green against live server; guides PDFs intact (200)
+
+Stage Summary:
+- SN82 opportunity card now honest: Work type "Debate & persuasion", hardware "CPU VPS" under a "Typical hardware" tooltip (no fabricated H200), GPU cost line $50/mo instead of $2,500/mo, compat no longer flags TEE
+- Blast radius zero: changed-set exactly {SN82}; net monthly re-modeled ~$40.7k paper (still flagged speculative per SN82 research: illiquid alpha, anonymous owner, deleted repo)
+- Known platform caveat: edge-visible instance may need platform cold restart before browsers fetch the new client bundle (dual-instance issue from app-load-and-db-restore)

@@ -207,7 +207,8 @@ export const COMPAT_SEED: Record<number, CompatSeedEntry> = {
   },
   81: { tier: "gpu-flexible", source: "inferred", note: "no stated restriction; 4 GPU refs in README -> GPU subnet, providers allowed",
   },
-  82: { tier: "tee-required", source: "readme", note: "TEE/confidential compute mentioned (hardware constraints likely)",
+  82: { tier: "cpu-only", source: "audit", note: "COMPELLE-FIX: zero-GPU debate subnet - miners commit written debate strategies as on-chain txns; validator runs Pro/Con LLM debates via Chutes API. Earlier 'TEE' reading was a false positive (shell sudo tee matched, not TEE hardware). Research-verified 2026-10-13 (block ~9.27M)",
+    evidenceSource: "compelle/compelle-validator README (scraped 2026-10-13, since deleted/privated)"
   },
   83: { tier: "cpu-only", source: "audit", note: "min_compute.yml: gpu.required: False — miners call LLM APIs, no local GPU (leftover template numbers ignored)",
     quote: "gpu: required: False", evidenceSource: "toptensor/CliqueAI min_compute.yml"

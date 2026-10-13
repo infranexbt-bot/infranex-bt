@@ -60,6 +60,18 @@ EVIDENCE = {
     ),
 }
 
+# COMPELLE-FIX: hand-researched tier corrections (applied after TIER_MAP).
+# Keeps the automated audit reproducible while pinning verified corrections.
+COMPELLE_FIX_OVERRIDES = {
+    82: {
+        "tier": "cpu-only",
+        "source": "audit",
+        "note": "COMPELLE-FIX: zero-GPU debate subnet - miners commit written debate strategies as on-chain txns; validator runs Pro/Con LLM debates via Chutes API. Earlier 'TEE' reading was a false positive (shell sudo tee matched, not TEE hardware). Research-verified 2026-10-13 (block ~9.27M)",
+        "quote": None,
+        "evidenceSource": "compelle/compelle-validator README (scraped 2026-10-13, since deleted/privated)",
+    },
+}
+
 rows = json.load(open(CLASSIFIED))
 entries = []
 for r in rows:
@@ -71,6 +83,18 @@ for r in rows:
     note = r["why"]
     repo = r.get("repo")
     quote, ev_src = EVIDENCE.get(n, (None, None))
+    # COMPELLE-FIX: hand-researched corrections applied AFTER the automated
+    # classification. SN82 "Compelle": the automated audit read tier TEE
+    # because the README's shell `sudo tee` command matched the TEE keyword —
+    # not Intel TDX hardware. Deep research (2026-10-13, block ~9.27M) proved
+    # the miner participates via on-chain strategy commitments only (wallet
+    # txns, zero GPU, zero TEE); the validator runs Pro/Con LLM debates via
+    # the Chutes API on its own side. Repo deleted/privated since scrape.
+    if n in COMPELLE_FIX_OVERRIDES:
+        o = COMPELLE_FIX_OVERRIDES[n]
+        tier, source = o["tier"], o["source"]
+        note = o["note"]
+        quote, ev_src = o["quote"], o["evidenceSource"]
     entries.append({
         "netuid": n,
         "tier": tier,
