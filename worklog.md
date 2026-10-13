@@ -1708,3 +1708,22 @@ Work Log:
 Stage Summary:
 - Any subnet whose repo docs demand hashcat now gets it auto-installed on the GPU pod with a version gate; floor enforced honestly (older distro package fails the step with source-build remediation)
 - To activate for a specific subnet: link its repo (SubnetOverride.githubUrl or chain identity) — detection is evidence-based from the repo's own docs, never invented
+---
+Task ID: pm2-req-support
+Agent: main (Super Z)
+Task: Support "PM2 Installation — keep your miner online at all times" subnet requirement
+
+Work Log:
+- Gap: pm2 existed nowhere in the deployment pipeline (only subnet-jobs-seed prose + daemon-bridge restart fallback)
+- subnet-requirements.ts: + pm2Required profile field, + exported parsePm2Requirement() (any \bpm2\b mention in repo docs; version floors never pinned for pm2); note pushed into profile
+- installer.ts: step 2c "Install PM2 process manager" gate=auto — node bootstrap (NodeSource 20 when node missing) → npm install -g pm2 → version echo; docker-path variant titled "Install PM2 (docs-required, Docker supervises)" (honest: restart policy already guarantees uptime)
+- LAUNCH PATH SWITCH: venv path + pm2Required → "Launch the miner (pm2 daemon)" approval-gated step: set -a && . ${root}/env && set +a (env file stays single source) → pm2 start <venv python> --name infranex-sn<uid> --interpreter none --cwd <root>/app -- <entrypoint> --netuid… → pm2 startup systemd -u root + pm2 save (boot resurrection) → pm2 list confirmation; systemd default when docs don't use pm2
+- Verify step: pm2 branch (pm2 list | grep + ss axon + pm2 logs --nostream)
+- timeoutForCmd: npm install/nodesource/pm2 startup → 600s; failRemediation: Install PM2 case
+- Cache: stale-shape invalidation now keyed on pm2Required (old rows auto-rebuild)
+- Tests: parser 4 pm2 cases + plan-shape 11 new cases (D1-D7 pm2 venv, E1-E3 pm2+docker, F1 regression) — 26 total ALL PASS
+- Live: SN5 refresh → pm2Required:false (honest); build+deploy OK; committed 1c673ef pushed
+
+Stage Summary:
+- Subnets whose docs standardize on pm2 now get: pm2 installed AND the miner actually launched under pm2 (start+startup+save = crash auto-restart + reboot resurrection), matching their documented ops surface (pm2 logs/list)
+- Detection remains evidence-based from the subnet repo docs; subnets without pm2 in docs keep systemd
