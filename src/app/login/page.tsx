@@ -66,10 +66,34 @@ function LoginForm() {
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4">
+      {/* Everest backdrop — photo dimmed to dusk so the dark theme carries */}
+      <img
+        aria-hidden
+        src="/login-everest.jpg"
+        alt=""
+        className="pointer-events-none absolute inset-0 h-full w-full object-cover object-[center_38%]"
+      />
+      {/* Flat dusk tint + vertical gradient: dark sky up top (brand legibility),
+          translucent mid-band (the peak stays visible), dark base under the card.
+          Tint follows --background so light theme keeps the photo crisp. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{ backgroundColor: "hsl(var(--background) / 0.45)" }}
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{
+          backgroundImage:
+            "linear-gradient(to bottom, hsl(var(--background) / 0.88) 0%, hsl(var(--background) / 0.30) 34%, hsl(var(--background) / 0.22) 55%, hsl(var(--background) / 0.92) 100%)",
+        }}
+      />
+
       {/* Ambient backdrop — same visual language as the dashboard */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-[0.35]"
+        className="pointer-events-none absolute inset-0 opacity-[0.25]"
         style={{
           backgroundImage:
             "radial-gradient(60rem 40rem at 70% -10%, hsl(var(--primary) / 0.12), transparent 60%), radial-gradient(50rem 35rem at 10% 110%, hsl(var(--primary) / 0.08), transparent 60%)",

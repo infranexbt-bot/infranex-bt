@@ -1591,3 +1591,19 @@ Work Log:
 Stage Summary:
 - Dashboard now flows: SubnetChooser (Choose your subnet) -> TrustLoopCard -> Metrics; mine-vs-stake verdict card fully gone
 - Removal script persisted at scripts/remove-opp-score-card.py for recycle recovery reference
+---
+Task ID: login-everest-bg
+Agent: main (Super Z)
+Task: Use user's uploaded everest.png as the login page background
+
+Work Log:
+- Found fresh upload upload/everest.png (1672x941, Everest peak above clouds, white sky)
+- Converted to public/login-everest.jpg (JPEG q82 progressive, 1.7MB -> 140KB)
+- login/page.tsx: added full-bleed <img> backdrop (object-cover, object-[center_38%] keeps peak framed) + theme-aware flat tint hsl(var(--background)/0.45) + vertical gradient (dark top for brand, translucent mid-band to show the peak, dark base under card); kept ambient radial glows (dimmed 0.35->0.25) + grid
+- First pass used hardcoded #050810/50 tint -> washed gray in light theme; fixed to theme-aware tint so light theme stays crisp, dark keeps dusk mood
+- tsc clean -> build 30.9s -> keepalive respawn; /login-everest.jpg served 200 (144KB)
+- Browser-verified 3 views: desktop dark (peak visible right, dusk mood), desktop light (crisp photo, clean glass card), mobile 390px dark (peak peeks right edge, fully legible)
+
+Stage Summary:
+- Login page now uses the user's Everest photo as background in both themes
+- Asset: public/login-everest.jpg; source upload preserved at upload/everest.png
