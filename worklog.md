@@ -1468,3 +1468,25 @@ Stage Summary:
 - App fully operational on prod standalone build with keepalive
 - All COMPELLE-FIX layers intact: keyword rule + compat-seed + curated DB row
 - Pending: SN32 research (chain identity found: name "ItsAI", registeredAt 2515294, description null)
+
+---
+Task ID: wealth-phase0-1
+Agent: main
+Task: Implement Phase 0 + 1 of the Three Engines plan (Wealth Command shell + Engine 02 EARN)
+
+Work Log:
+- Analyzed user's screenshot ("ONE SYSTEM. THREE ENGINES." wealth framework); produced gap analysis + phased plan (Phases 0-4); user delegated start choice; chose Phase 0+1
+- Schema: added YieldPosition (poolId @unique) + IncomeEntry (@@unique month/source/label) models, db:push
+- APIs: /api/yields (DeFiLlama yields.llama.fi/pools, 30-min module cache, stale-serve on upstream failure, filters stablecoin/minTvl/chain/sort), /api/yield-positions (GET/POST upsert/PATCH/DELETE + audit log), /api/income/summary (GET rollup: mining trailing-30d from EarningsDaily + yield projection + manual entries + 6-mo trend; POST/DELETE manual entries)
+- Hooks: src/hooks/use-wealth.ts (useYieldPools/useYieldPositions/useIncomeSummary + track/update/delete mutations)
+- Views: wealth-view.tsx (net wealth strip from stake-portfolio + three engine cards with live KPIs: EARN monthly cashflow/blended APY, CAPTURE best subnet SN82 score/APY via mergeOpportunities; live/planned checklist per blueprint) + earn-view.tsx (3 tabs: Yield board, My Positions, Income dashboard with trend bars + manual entry form)
+- Wiring: ViewKey += wealth|earn; page.tsx default view = wealth; sidebar new "Wealth Engines" group (Wealth Command 00, Earn Engine 00b)
+- Bug fixed mid-build: DeFiLlama /pools field is "pool" not "id" (browser POST 400'd on undefined poolId); fixed + rebuilt
+- Deploy: 2 prod rebuilds, keepalive revivals; browser-verified via agent-browser: login -> Wealth Command (TAO $271.69, block 9,273,980 live) -> Earn Engine -> Track $25k axis SUSDX 16.49% -> Positions totals correct ($343.54/mo) -> Income tab shows $343.54 recurring cashflow with source breakdown + trend -> mobile 390px OK
+- Cleaned up test position; guides PDF still 200; SN82 override intact
+
+Stage Summary:
+- Phase 0+1 complete: Wealth Command + full EARN engine live in prod
+- New models: YieldPosition, IncomeEntry (DB pushed)
+- Free data only (DeFiLlama public API, no keys)
+- Next phases: 2 = INVEST engine (theses/watchlist/allocation/asymmetric), 3 = CAPTURE completion (trade journal/funding scanner/AlphaChaser slot), 4 = unification polish

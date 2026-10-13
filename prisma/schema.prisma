@@ -852,3 +852,52 @@ model DiligenceApproval {
 
   @@index([netuid, createdAt])
 }
+
+// ---------------------------------------------------------------------------
+// WEALTH-1 — Engine 02 · EARN. The cashflow engine unifies every recurring
+// income source the operator runs: stablecoin / DeFi yield positions (tracked
+// manually from the DeFiLlama-sourced yield board), TAO subnet staking (live
+// via STAKE-PORTFOLIO-1), and miner profits (EarningsDaily rollups).
+// YieldPosition rows are operator-entered observations — the platform holds
+// no DeFi keys and never moves funds (WALLET-ECON-1 ethos extends here).
+// ---------------------------------------------------------------------------
+model YieldPosition {
+  id           String   @id @default(cuid())
+  // Pool identity — matches DeFiLlama pool fields for easy cross-reference.
+  poolId       String   @unique // DeFiLlama pool id — one tracked position per pool
+  protocol     String
+  chain        String
+  symbol       String
+  stablecoin   Boolean  @default(true)
+  // Operator position economics.
+  amountUsd    Float
+  entryApy     Float    // APY at entry, for drift tracking
+  currentApy   Float?   // last seen APY (refreshed when board loads)
+  // "active" | "closed"
+  status       String   @default("active")
+  notes        String   @default("")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([status])
+}
+
+// ---------------------------------------------------------------------------
+// WEALTH-2 — Engine 02 · EARN income ledger. One row per source per month,
+// operator-or-system entered, so the Monthly Income Dashboard can show a
+// real recurring-cashflow number and its trend without re-deriving history
+// from volatile live totals. source: "staking" | "yield" | "mining" | "other"
+// ---------------------------------------------------------------------------
+model IncomeEntry {
+  id         String   @id @default(cuid())
+  month      String   // "YYYY-MM"
+  source     String
+  label      String   @default("")
+  amountUsd  Float
+  // Set by the income rollup when the row is system-generated.
+  auto       Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@unique([month, source, label])
+  @@index([month])
+}

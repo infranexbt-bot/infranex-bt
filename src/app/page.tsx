@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
+import { WealthView } from "@/components/views/wealth-view";
 import { DashboardView } from "@/components/views/dashboard-view";
+import { EarnView } from "@/components/views/earn-view";
 import { FitView } from "@/components/views/fit-view";
 import { OpportunitiesView } from "@/components/views/opportunities-view";
 import { SubnetsView } from "@/components/views/subnets-view";
@@ -29,7 +31,9 @@ const VIEW_META: Record<
   ViewKey,
   { title: string; eyebrow: string }
 > = {
+  wealth: { title: "Wealth Command", eyebrow: "Section · 00 · One system, three engines" },
   dashboard: { title: "Network Intelligence", eyebrow: "Section · 01 · Dashboard" },
+  earn: { title: "Earn Engine", eyebrow: "Section · 01c · Engine 02 · Cashflow" },
   fit: { title: "Miner Fit", eyebrow: "Section · 01b · Personal advisor" },
   opportunities: { title: "Opportunities", eyebrow: "Section · 02 · Scoring" },
   subnets: { title: "Subnets", eyebrow: "Section · 03 · Chain explorer" },
@@ -51,7 +55,7 @@ const VIEW_META: Record<
 };
 
 export default function Home() {
-  const [view, setView] = useState<ViewKey>("dashboard");
+  const [view, setView] = useState<ViewKey>("wealth");
   const [selected, setSelected] = useState<Opportunity | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -79,6 +83,8 @@ export default function Home() {
       title={meta.title}
       eyebrow={meta.eyebrow}
     >
+      {view === "wealth" && <WealthView onNavigate={setView} />}
+      {view === "earn" && <EarnView />}
       {view === "dashboard" && (
         <DashboardView
           onSelectOpportunity={handleSelect}

@@ -27,6 +27,7 @@ import {
   Server,
   UserCheck,
   Target,
+  DollarSign,
 } from "lucide-react";
 import type { ViewKey } from "@/lib/infranex/types";
 
@@ -40,6 +41,13 @@ import type { ViewKey } from "@/lib/infranex/types";
  * Hints renumber sequentially along that journey.
  */
 const NAV_GROUPS: { label: string; items: { key: ViewKey; label: string; icon: typeof LayoutDashboard; hint: string }[] }[] = [
+  {
+    label: "Wealth Engines",
+    items: [
+      { key: "wealth", label: "Wealth Command", icon: LayoutDashboard, hint: "00" },
+      { key: "earn", label: "Earn Engine", icon: DollarSign, hint: "00b" },
+    ],
+  },
   {
     label: "Intelligence",
     items: [
