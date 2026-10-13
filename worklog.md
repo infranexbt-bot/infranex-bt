@@ -1676,3 +1676,19 @@ Work Log:
 
 Stage Summary:
 - RESTORE SEQUENCE addition for future recycles: after reseed-overrides-from-chain.ts, run `bun --smol scripts/merge-playbook.ts` to restore SubnetPlaybook (data lives in scripts/playbook/batch-*-output.json, DB table is NOT durable)
+---
+Task ID: deployments-github-audit
+Agent: main (Super Z)
+Task: Verify Deployments page pulls exact subnet GitHub repos and installs requirements to GPU
+
+Work Log:
+- Traced full pipeline: deployments-view → POST /api/deployments (admin-gated) → engine.ts → real-setup.ts stageAndRunSetup → pullSubnetRequirements (subnet-requirements.ts) → buildInstallPlan (installer.ts) → SSH execution on pod
+- Repo resolution chain verified: SubnetOverride.githubUrl > chain SubnetIdentitiesV3 github > CURATED_MINER_REPOS routing (product-page repos like Chutes → miner repo); parseGithubUrl enforces github.com host + strict charset (AUDIT-SEC-2)
+- Profile pull verified LIVE via /api/devops/subnet-requirements?netuid=5&refresh=1 → SN5 Hone: repo https://github.com/hone-subnet-org/hone-subnet, real pip deps (pydantic>=2.12, numpy, rfc8785, zstandard), py3.10, sources chain+override+github, confidence high
+- Install commands confirmed verbatim: apt-get (repo-hinted pkgs) → docker path (get.docker.com + nvidia-container-toolkit + docker build repo Dockerfile) or venv path (git clone --depth 1 '<repo>' /opt/infranex/sn<uid>/app + pip install -r app/requirements.txt || bittensor; uv sync for uv workspaces) → systemd unit w/ entrypoint --netuid → verify axon port + logs
+- Gates: setup auto-runs; wallet copy = MANUAL gate; miner launch = approval gate (Advance click); failure = retry via Advance
+- Current blockers found: ProviderKey table EMPTY (no RunPod/Vast key → POST fails honestly "connect a provider API key"); Deployment table empty (recycle wipe, no runs since restore)
+
+Stage Summary:
+- CONFIRMED: exact subnet GitHub repo is cloned and its own requirements.txt/pyproject/uv workspace installed on the rented GPU, Docker path when repo ships Dockerfile — real commands over SSH, not canned
+- To run end-to-end: add RunPod or Vast API key in GPU Catalog, then deploy (real spend)
