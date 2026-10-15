@@ -1750,3 +1750,21 @@ Stage Summary:
   3. optional enrichment: bun --smol scripts/sync-overrides-standalone.ts (GitHub scrape, rate-limit bound)
 - JudgeProfile/JudgeRun wiped: Validator Lab profiles rebuild on demand; user run history lost (acceptable)
 - SubnetRequirements rebuilds on demand via profiler
+
+---
+Task ID: emission-leaderboard
+Agent: main (Super Z)
+Task: "make sure Top Subnets by Current Emission Share are shown in the web app"
+
+Work Log:
+- Verified data path: /api/network returns full LiveNetworkSnapshot incl. emissionTaoPerDay / minerEmissionTaoPerDay per subnet + taoPriceUsd (source=live)
+- New component src/components/subnets/emission-leaderboard-panel.tsx: ranks all earning subnets by live TAO/day emission, share % with color bars, USD estimate at live price, miner-pool split (incentive side) + miners count; top-20 collapsed view with "show all N" toggle; aggregate row for the tail; loading/empty state for cold snapshots
+- Wired into SubnetsView (Section 03) right under the header; display names resolved from merged list (chain identity > override > curated)
+- Typecheck: bunx tsc --noEmit clean (exit 0)
+- E2E verified via admin access-code login: /api/network source=live, 129 subnets, 128 earning, SN0 646 TAO/day, SN51 641 (miners 320), matches DB-derived leaderboard
+- Mid-task incidents: dev server was killed by my own pkill during prod-build attempt (platform reaps nohup'd background procs between tool calls; keepalive script gets reaped too — dev via `bun run dev` is the only durable runtime here); /tmp is not writable in this sandbox; GH push failed — PAT now invalid (401 Invalid username or token)
+
+Stage Summary:
+- Feature live: Subnets page now shows "Top Subnets by Current Emission Share" (live, 30s polling)
+- Commit 1f97c32 local on main; PUSH BLOCKED — github PAT invalid, needs a fresh token from user to push
+- run-prod-keepalive.sh + restore-after-recycle.ts committed for future recycles (but nohup'd procs are reaped: after recycle, ask platform boot or restart within a single tool call)
