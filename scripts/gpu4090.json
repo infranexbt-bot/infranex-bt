@@ -1,0 +1,56 @@
+[
+  {
+    "url": "https://vast.ai/pricing/gpu/RTX-4090?srsltid=AU7gw4WUqvfa0qZi1AJtNIaYLE_eH2fAi2UPfyKEUvDSSq_P4clgLow4",
+    "name": "Rent RTX 4090 GPUs on Vast.ai for $0.36/hr",
+    "snippet": "Rent RTX 4090 GPUs on Vast.ai for $0.36/hr . Prices reflect currently available offers and update hourly. © 2026 Vast.ai.",
+    "host_name": "vast.ai",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.reddit.com/r/StableDiffusion/comments/1tsvt9z/renting_a_gpu_for_use_with_a_service_like_a",
+    "name": "Renting a GPU for use with a service like a runpod has",
+    "snippet": "The price for a 4090 was $5 per day for 25. 4090 cost about 0.4$/h to rent on vaat. ai . Now its 1.2$/h on the weekend and during the week ...",
+    "host_name": "www.reddit.com",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://vast.ai/pricing?srsltid=AU7gw4U0m3Ahj6KYLbPc24fHjDdQfhFYrc3EWU2-kqDYNreQFn1HIr9Q",
+    "name": "GPU Pricing — Live Platform Rates",
+    "snippet": "Live GPU pricing on Vast.ai. Rent RTX 4090 Ada Lovelace24GB VRAM from$0.16/hr median $0.51/hr. Rent RTX 4090D Ada Lovelace24GB VRAM from$0.67/hr … median $0.40 ...",
+    "host_name": "vast.ai",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.spheron.network/blog/runpod-vs-vastai-2026",
+    "name": "Runpod vs Vast.ai: Which GPU Cloud Is Cheaper in 2026?",
+    "snippet": "Jul 28, 2026 — RTX 4090 runs about $0.34/hr and. RTX 4090 on Secure Cloud runs about $0.69/hr, ranges from about $0.58/hr up to $9.98/hr depending on GPU type ...",
+    "host_name": "www.spheron.network",
+    "rank": 3,
+    "date": "Jul 28, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.runpod.io/gpu-models/rtx-4090",
+    "name": "RTX 4090 GPU Rental | Specs and Pricing",
+    "snippet": "Rent NVIDIA RTX 4090 GPUs from $0.89/hr . High-end consumer GPU based on Ada Lovelace architecture with 24GB GDDR6X memory and 16,384 CUDA cores for AI workloads ... Read more",
+    "host_name": "www.runpod.io",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://tech-insider.org/runpod-vs-lambda-vs-vast-ai-2026",
+    "name": "RunPod vs Lambda vs Vast.ai: GPU Pricing 2026 - Tech Insider",
+    "snippet": "Aug 17, 2026 — An RTX 4090 that costs $ 0.73-$0.74 an hour on-demand drops to $0.32-$0.44 on spot, a 40-RunPod's Secure Cloud vs Community/marketplace H100 ... Read more",
+    "host_name": "tech-insider.org",
+    "rank": 5,
+    "date": "Aug 17, 2026",
+    "favicon": ""
+  }
+]
