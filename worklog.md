@@ -1768,3 +1768,19 @@ Stage Summary:
 - Feature live: Subnets page now shows "Top Subnets by Current Emission Share" (live, 30s polling)
 - Commit 1f97c32 local on main; PUSH BLOCKED — github PAT invalid, needs a fresh token from user to push
 - run-prod-keepalive.sh + restore-after-recycle.ts committed for future recycles (but nohup'd procs are reaped: after recycle, ask platform boot or restart within a single tool call)
+
+---
+Task ID: emission-leaderboard-hardware
+Agent: main (Super Z)
+Task: "in Subnets page: Top Subnets by Current Emission Share... wanted the hardware requirements details displayed beside the subnets like is it GPU or CPU. What GPU is required"
+
+Work Log:
+- Re-ran sync-overrides-standalone.ts over the restored 111-override universe: scraped=108 errored=3 -> 68 overrides now carry recommendedGpu/minVramGb (convention: "None (CPU-only)" for CPU subnets, e.g. "8x B300" for SN51, "8x H200" for SN64, "RTX 4090" for SN9)
+- Extended EmissionRow + EmissionLeaderboardPanel: new Hardware column (GPU violet badge / CPU cyan badge / "?" honest-unknown) + repo-scraped GPU requirement text (truncated, full text in title tooltip) + min-VRAM hint; table min-width 640->860 with horizontal scroll; footnote updated
+- subnets-view.tsx emissionRows: builds hwClass/gpuReq/minVramGb from merged subnets (override-first); CPU-only regex classifies; strips "None (CPU-only)" from GPU text
+- Coverage top-20: 10 GPU, 3 CPU (SN107/8/15), 7 unknown (incl. SN0 root - no repo; SN82/95/28/116/92/110/114 - README states no explicit GPU req; honest ?)
+- tsc --noEmit exit 0; GET / 200 with auth; committed
+
+Stage Summary:
+- Subnets leaderboard now shows per-subnet Hardware: GPU/CPU badge + required GPU model(s) + min VRAM, sourced from GitHub repo scraping (SubnetOverride.recommendedGpu)
+- Push still blocked (PAT invalid); commit local
