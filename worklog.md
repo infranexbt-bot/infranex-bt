@@ -1727,3 +1727,26 @@ Work Log:
 Stage Summary:
 - Subnets whose docs standardize on pm2 now get: pm2 installed AND the miner actually launched under pm2 (start+startup+save = crash auto-restart + reboot resurrection), matching their documented ops surface (pm2 logs/list)
 - Detection remains evidence-based from the subnet repo docs; subnets without pm2 in docs keep systemd
+
+---
+Task ID: playbook-empty-restore-2
+Agent: main (Super Z)
+Task: "check why Miner Playbook is not displaying the data"
+
+Work Log:
+- Diagnosis: full DB wipe (sandbox recycle) — SubnetPlaybook=0 AND SubnetOverride=0 AND ChainSnapshot=0 (worse than the previous playbook-only wipe); only AppUser/ProfitabilitySettings/AuditLog survived
+- Ran merge-playbook.ts directly -> ABORTED: "SN1 in batches but not in SubnetOverride" (merge now validates playbook netuids against overrides)
+- New restore order established: overrides FIRST, then playbook
+- sync-overrides-standalone.ts alone restored only 8 (curated seeds) — universe needs chain snapshot
+- Wrote scripts/restore-after-recycle.ts: fetchLiveSnapshot() -> ChainSnapshot (same shape as runChainWorker) + base SubnetOverride upsert for curated ∪ chain-identity (no scraping, fast)
+- Result: block=9290635, subnets=129, overrides=111; then merge-playbook.ts -> 105 rows (repo-verified=97, derived=7, thin=1)
+- GET /api/playbook unauth = 401 (auth-gated as designed); DB counts verified
+
+Stage Summary:
+- Miner Playbook restored (105 rows); Subnets/Opportunities curated layer restored (111 overrides + fresh ChainSnapshot)
+- NEW CANONICAL RESTORE SEQUENCE after any sandbox recycle:
+  1. bun --smol scripts/restore-after-recycle.ts   (chain snapshot + base overrides)
+  2. bun --smol scripts/merge-playbook.ts          (105 playbook rows)
+  3. optional enrichment: bun --smol scripts/sync-overrides-standalone.ts (GitHub scrape, rate-limit bound)
+- JudgeProfile/JudgeRun wiped: Validator Lab profiles rebuild on demand; user run history lost (acceptable)
+- SubnetRequirements rebuilds on demand via profiler
