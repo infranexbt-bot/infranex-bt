@@ -14,6 +14,10 @@ import { useProfitabilityConfig } from "@/hooks/use-profitability";
 import { buildProfitRank } from "@/lib/infranex/profit-rank";
 import { ProfitRankPanel } from "@/components/subnets/profit-rank-panel";
 import {
+  EmissionLeaderboardPanel,
+  type EmissionRow,
+} from "@/components/subnets/emission-leaderboard-panel";
+import {
   resolveCompat,
   matchCompatFilter,
   COMPAT_TIER_META,
@@ -42,6 +46,24 @@ export function SubnetsView() {
   const didAutoSync = useRef(false);
 
   const subnets = mergeSubnets(snap, overrides);
+
+  // EMISSION-LEADERBOARD — rows for the "Top Subnets by Current Emission
+  // Share" panel: live per-day emission from the chain snapshot, display
+  // names from the merged list (chain identity > override > curated).
+  const emissionRows = useMemo<EmissionRow[]>(() => {
+    if (!snap?.subnets) return [];
+    const nameByNetuid = new Map<number, string>();
+    for (const m of subnets) {
+      if (m.name) nameByNetuid.set(m.netuid, m.name);
+    }
+    return snap.subnets.map((s) => ({
+      netuid: s.netuid,
+      displayName: nameByNetuid.get(s.netuid) ?? s.name ?? `SN ${s.netuid}`,
+      emissionTaoPerDay: s.emissionTaoPerDay ?? 0,
+      minerEmissionTaoPerDay: s.minerEmissionTaoPerDay ?? 0,
+      minersCount: s.minersCount ?? null,
+    }));
+  }, [snap, subnets]);
 
   // COMPAT-LAYER — resolve each subnet's GPU hosting compatibility
   // (live GitHub scrape > full-audit seed > structural caveats).
@@ -197,6 +219,13 @@ export function SubnetsView() {
           </Button>
         </div>
       </header>
+
+      {/* EMISSION-LEADERBOARD — top subnets by current emission share (live) */}
+      <EmissionLeaderboardPanel
+        rows={emissionRows}
+        taoPriceUsd={snap?.taoPriceUsd}
+        isLoading={isFetching && !snap}
+      />
 
       {/* Data source legend + sync status */}
       <Card className="border-border/60 bg-card/40 backdrop-blur-sm">
