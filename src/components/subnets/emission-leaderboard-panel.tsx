@@ -23,6 +23,11 @@ export interface EmissionRow {
   emissionTaoPerDay: number;
   minerEmissionTaoPerDay: number;
   minersCount: number | null;
+  /** "GPU" | "CPU" | "unknown" — derived from the repo-scraped requirements. */
+  hwClass: "GPU" | "CPU" | "unknown";
+  /** e.g. "8× H200/B200-class node" — null when unknown. */
+  gpuReq: string | null;
+  minVramGb: number | null;
 }
 
 const TOP_N_COLLAPSED = 20;
@@ -36,6 +41,17 @@ function fmt(n: number, digits = 1) {
     minimumFractionDigits: digits,
     maximumFractionDigits: digits,
   });
+}
+
+function hwBadgeClass(hw: EmissionRow["hwClass"]) {
+  switch (hw) {
+    case "GPU":
+      return "border-violet-500/40 bg-violet-500/10 text-violet-300";
+    case "CPU":
+      return "border-cyan-500/40 bg-cyan-500/10 text-cyan-300";
+    default:
+      return "border-border/60 text-muted-foreground";
+  }
 }
 
 export function EmissionLeaderboardPanel({
@@ -97,11 +113,12 @@ export function EmissionLeaderboardPanel({
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[640px] text-left text-xs">
+          <table className="w-full min-w-[860px] text-left text-xs">
             <thead>
               <tr className="border-b border-border/60 text-[10px] uppercase tracking-wide text-muted-foreground">
                 <th className="py-1.5 pr-2 font-medium">#</th>
                 <th className="py-1.5 pr-2 font-medium">Subnet</th>
+                <th className="py-1.5 pr-2 font-medium">Hardware</th>
                 <th className="py-1.5 pr-2 font-medium">Share</th>
                 <th className="py-1.5 pr-2 text-right font-medium">TAO/day</th>
                 <th className="py-1.5 pr-2 text-right font-medium">≈ $/day</th>
@@ -124,6 +141,29 @@ export function EmissionLeaderboardPanel({
                       <span className="ml-1.5 font-medium text-foreground">
                         {r.displayName}
                       </span>
+                    </td>
+                    <td className="py-1.5 pr-2">
+                      <div className="flex items-center gap-1.5">
+                        <Badge
+                          variant="outline"
+                          className={cn("shrink-0 px-1.5 py-0 text-[9px]", hwBadgeClass(r.hwClass))}
+                        >
+                          {r.hwClass === "unknown" ? "?" : r.hwClass}
+                        </Badge>
+                        {r.hwClass === "GPU" && r.gpuReq && (
+                          <span
+                            className="max-w-[220px] truncate text-[11px] text-muted-foreground"
+                            title={`${r.gpuReq}${r.minVramGb ? ` · ≥${r.minVramGb}GB VRAM` : ""}`}
+                          >
+                            {r.gpuReq}
+                            {r.minVramGb ? (
+                              <span className="ml-1 font-mono text-[10px] text-muted-foreground/70">
+                                ≥{r.minVramGb}GB
+                              </span>
+                            ) : null}
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="py-1.5 pr-2">
                       <div className="flex items-center gap-2">
@@ -162,6 +202,7 @@ export function EmissionLeaderboardPanel({
                 <tr className="text-muted-foreground">
                   <td className="py-1.5 pr-2">—</td>
                   <td className="py-1.5 pr-2">({rest.length} smaller subnets)</td>
+                  <td className="py-1.5 pr-2">—</td>
                   <td className="py-1.5 pr-2 font-mono">
                     {((restSum / total) * 100).toFixed(2)}%
                   </td>
@@ -189,7 +230,8 @@ export function EmissionLeaderboardPanel({
           <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
             <Info className="h-3 w-3" />
             Emission = whole-subnet value in TAO/day from live chain shares · Miner pool = the
-            incentive-uid side miners actually compete for (0 = all emission flows validator-side)
+            incentive-uid side miners actually compete for (0 = all emission flows validator-side) ·
+            Hardware = GPU/CPU class + required GPU scraped from each subnet's repo
           </span>
         </div>
       </CardContent>

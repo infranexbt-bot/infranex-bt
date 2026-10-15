@@ -52,17 +52,30 @@ export function SubnetsView() {
   // names from the merged list (chain identity > override > curated).
   const emissionRows = useMemo<EmissionRow[]>(() => {
     if (!snap?.subnets) return [];
-    const nameByNetuid = new Map<number, string>();
+    const byNetuid = new Map<number, { name: string; gpuReq: string | null; minVramGb: number | null }>();
     for (const m of subnets) {
-      if (m.name) nameByNetuid.set(m.netuid, m.name);
+      const rg = typeof m.recommendedGpu === "string" ? m.recommendedGpu.trim() : "";
+      byNetuid.set(m.netuid, {
+        name: m.name,
+        gpuReq: rg && rg.toLowerCase() !== "none" ? rg : null,
+        minVramGb: typeof m.minVramGb === "number" && m.minVramGb > 0 ? m.minVramGb : null,
+      });
     }
-    return snap.subnets.map((s) => ({
-      netuid: s.netuid,
-      displayName: nameByNetuid.get(s.netuid) ?? s.name ?? `SN ${s.netuid}`,
-      emissionTaoPerDay: s.emissionTaoPerDay ?? 0,
-      minerEmissionTaoPerDay: s.minerEmissionTaoPerDay ?? 0,
-      minersCount: s.minersCount ?? null,
-    }));
+    return snap.subnets.map((s) => {
+      const hw = byNetuid.get(s.netuid);
+      const gpuReq = hw?.gpuReq ?? null;
+      const isCpu = !!gpuReq && /cpu[- ]only/i.test(gpuReq);
+      return {
+        netuid: s.netuid,
+        displayName: hw?.name ?? s.name ?? `SN ${s.netuid}`,
+        emissionTaoPerDay: s.emissionTaoPerDay ?? 0,
+        minerEmissionTaoPerDay: s.minerEmissionTaoPerDay ?? 0,
+        minersCount: s.minersCount ?? null,
+        hwClass: isCpu ? "CPU" : gpuReq ? "GPU" : "unknown",
+        gpuReq: isCpu ? null : gpuReq,
+        minVramGb: hw?.minVramGb ?? null,
+      };
+    });
   }, [snap, subnets]);
 
   // COMPAT-LAYER — resolve each subnet's GPU hosting compatibility
