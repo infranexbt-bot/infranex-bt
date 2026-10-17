@@ -1784,3 +1784,22 @@ Work Log:
 Stage Summary:
 - Subnets leaderboard now shows per-subnet Hardware: GPU/CPU badge + required GPU model(s) + min VRAM, sourced from GitHub repo scraping (SubnetOverride.recommendedGpu)
 - Push still blocked (PAT invalid); commit local
+
+---
+Task ID: app-load-restore-4
+Agent: main (Super Z)
+Task: "load the web app" — verify server after 4th sandbox recycle (DB wiped again)
+
+Work Log:
+- Found bun install running at boot; waited for completion; dev server auto-started by platform
+- Login OK (admin), /api/network source=live 129 subnets, TAO $270.5 — chain flow self-recovers via fetchLiveSnapshot
+- DB wipe #4 confirmed: SubnetOverride=0, SubnetPlaybook=0, JudgeProfile=0, SubnetRequirements=0
+- Ran canonical restore: scripts/restore-after-recycle.ts (block 9303239, 129 subnets, 112 overrides) → scripts/merge-playbook.ts (105 rows: 97 repo-verified, 7 derived, 1 thin)
+- Hardware column data was EMPTY after base restore (restore skips GitHub scraping) → ran scripts/rescrape-requirements.ts: 112 attempted, 109 ok, 69 with GPU reqs (SN51=8x B300, SN64=8x H200, SN34=A100 80GB, SN8/SN2=CPU-only), 24 with minVramGb, 3 errors
+- Verified /api/subnet-overrides returns 112 rows / 69 with recommendedGpu; emission-leaderboard Hardware column data path fully populated
+- GET / and /login both 200; commit f3a06da (hardware column) intact in git
+
+Stage Summary:
+- App fully loaded + DB restored (4th time) via documented 2-step sequence + requirements rescrape now a REQUIRED step 3 when hardware data is needed
+- New canonical restore order: restore-after-recycle.ts → merge-playbook.ts → rescrape-requirements.ts (only needed for GPU/hardware enrichment)
+- Hardware column in Top Subnets by Emission Share now shows real GPU data: 69/112 subnets classified
