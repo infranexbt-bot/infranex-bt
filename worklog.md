@@ -1803,3 +1803,23 @@ Stage Summary:
 - App fully loaded + DB restored (4th time) via documented 2-step sequence + requirements rescrape now a REQUIRED step 3 when hardware data is needed
 - New canonical restore order: restore-after-recycle.ts → merge-playbook.ts → rescrape-requirements.ts (only needed for GPU/hardware enrichment)
 - Hardware column in Top Subnets by Emission Share now shows real GPU data: 69/112 subnets classified
+
+---
+Task ID: project-doc-set
+Agent: main (Super Z)
+Task: "Check for PRD, Architecture, rules, Design, memory file and rules md files. Analyse and make sure we have all these files."
+
+Work Log:
+- Audited project: found README.md, docs/architecture/*.md (stale v2 MVP), 2 architecture PDFs, deployment docs, subnet research notes; NO PRD/RULES/DESIGN/MEMORY anywhere
+- Gathered ground truth from code: 19 views, 43 Prisma models, 38 API route groups, fonts = Space Grotesk/Inter/JetBrains Mono (README claimed Fraunces — stale), theme tokens HSL hue-84 lime primary
+- Created PRD.md (vision, 4 personas, FR-1..FR-7 incl. emission leaderboard + hardware column, NFRs, feature→view map, success metrics)
+- Created ARCHITECTURE.md v3.0 (current reality: SPA + workers + 43-model data model grouped, 5 core data flows, scripts runbook table, links to historical docs/)
+- Created RULES.md (product rules incl. English-only + miner-pool honesty, code conventions, UI rules, CRITICAL sandbox ops rules, verification workflow, git/doc rules, data-integrity rules)
+- Created DESIGN.md (dark editorial terminal, real tokens from globals.css/layout.tsx, badge/bar palette from emission-leaderboard-panel, layout/motion/a11y conventions)
+- Created MEMORY.md (environment truths, 4-step restore runbook with expected outputs + known-good numbers, incident history table, feature state, SN51 domain notes)
+- Added Documentation index table to README.md
+- Committed locally (push still blocked pending fresh PAT)
+
+Stage Summary:
+- Complete doc set now at repo root: PRD.md, ARCHITECTURE.md, RULES.md, DESIGN.md, MEMORY.md, all cross-referenced from README
+- All grounded in actual code (19 views / 43 models / 38 API groups / real design tokens), stale historical docs preserved under docs/
