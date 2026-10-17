@@ -6,6 +6,20 @@ A production-ready Next.js dashboard for the Bittensor network — live chain da
 
 ---
 
+## Documentation
+
+| File | Purpose |
+|------|---------|
+| [`PRD.md`](./PRD.md) | Product requirements — vision, personas, functional/non-functional requirements |
+| [`ARCHITECTURE.md`](./ARCHITECTURE.md) | Current architecture — data flows, directory map, data model, runbooks |
+| [`RULES.md`](./RULES.md) | Engineering, product, and operational rules |
+| [`DESIGN.md`](./DESIGN.md) | Design system — tokens, typography, color, component conventions |
+| [`MEMORY.md`](./MEMORY.md) | Project memory — environment truths, restore runbook, incident history |
+| [`worklog.md`](./worklog.md) | Append-only multi-agent work log |
+| `docs/` | Historical architecture docs, setup guides, subnet research notes |
+
+---
+
 ## Overview
 
 Infranex BT gives you a single pane for every Bittensor subnet you track: live scores, miner counts, TAO staked, alpha prices, GPU offers, and a deployment engine that provisions GPU servers and launches miners.
