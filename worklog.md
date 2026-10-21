@@ -1823,3 +1823,16 @@ Work Log:
 Stage Summary:
 - Complete doc set now at repo root: PRD.md, ARCHITECTURE.md, RULES.md, DESIGN.md, MEMORY.md, all cross-referenced from README
 - All grounded in actual code (19 views / 43 models / 38 API groups / real design tokens), stale historical docs preserved under docs/
+
+---
+Task ID: app-load-restore-5
+Agent: main (Super Z)
+Task: "load the web app" — 5th recycle wipe, ran canonical MEMORY.md restore runbook
+
+Work Log:
+- Server auto-up after recycle (307 → login), DB all zeros confirmed
+- Ran documented runbook: restore-after-recycle.ts (block 9330542, 112 overrides) → merge-playbook.ts (105 rows) → rescrape-requirements.ts (108 ok, 68 GPU reqs)
+- Verified: network source=live 129 subnets TAO $272.5, playbook 105, overrides 112/68 GPU, GET / 200
+
+Stage Summary:
+- 5th full restore succeeded in ~8 min using the documented runbook — zero debugging needed; runbook is proven repeatable
