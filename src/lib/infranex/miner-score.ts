@@ -318,9 +318,15 @@ const CATEGORY_RULES: CategoryRule[] = [
   { keywords: /\b(pretrain|pre-train|model training|training network|grpo|rlhf|post.?training)\b/i, category: "Model training", tier: GPU_TIERS.h200 },
   { keywords: /\b(video|image|diffusion|vision|photo|generative media|3d|render)\b/i, category: "Media generation", tier: GPU_TIERS.consumer24 },
   { keywords: /\b(audio|speech|voice|music|sound)\b/i, category: "Audio & speech", tier: GPU_TIERS.consumer24 },
-  { keywords: /\b(scrap|crawl|data collect|data index|social data|sentiment|feed|dataset)\b/i, category: "Data & scraping", tier: GPU_TIERS.cpu, infra: INFRA_SCRAPER_USD },
-  { keywords: /\b(storag|file|archiv|backup)\b/i, category: "Storage", tier: GPU_TIERS.cpu },
-  { keywords: /\b(prediction|market mak|trading|financ|quant|hedge|odds)\b/i, category: "Prediction & markets", tier: GPU_TIERS.cpu },
+  // WORD-STEM-FIX: prefix alternatives like "storag\b", "scrap\b",
+  // "verif\b" were DEAD for their most common forms — \b after a stem can
+  // never match inside "storage", "scraping", "verification" (no word
+  // boundary mid-word), so those subnets fell through to the revenue-based
+  // GPU guess (SN75 Hippius: "Blockchain-backed cloud: storage…" →
+  // "H200 141GB"!). Stems now take \w* so suffixed forms match.
+  { keywords: /\b(scrap\w*|crawl(?:ing)?|data collect\w*|data index|social data|sentiment|feed|dataset\w*)\b/i, category: "Data & scraping", tier: GPU_TIERS.cpu, infra: INFRA_SCRAPER_USD },
+  { keywords: /\b(storag\w*|file|archiv\w*|backup)\b/i, category: "Storage", tier: GPU_TIERS.cpu },
+  { keywords: /\b(prediction|market mak(?:ing|er)?|trading|financ\w*|quant|hedge|odds)\b/i, category: "Prediction & markets", tier: GPU_TIERS.cpu },
   // RIDGES-FIX (SN62): software-engineering agent subnets — miners upload a
   // coding agent (agent.py) that validators run on benchmark tasks; LLM
   // inference is API-based (OpenRouter/Targon/Chutes per the repo README),
@@ -330,8 +336,8 @@ const CATEGORY_RULES: CategoryRule[] = [
   // RIDGES-FIX: \bagents?\b — the old \bagent\b silently missed PLURAL
   // descriptions ("Software Engineering Agents"), dropping such subnets into
   // the revenue-based GPU guess instead of any work-type classification.
-  { keywords: /\b(agents?|orchestrat|routing|logic|swarm|tool use|evm|smart contract|web3 infra)\b/i, category: "Agents & logic", tier: GPU_TIERS.cpu },
-  { keywords: /\b(protein|fold|bio|genom|drug|science|research|simulat)\b/i, category: "Science & simulation", tier: GPU_TIERS.a6000 },
+  { keywords: /\b(agents?|orchestrat\w*|routing|logic|swarm|tool use|evm|smart contract|web3 infra)\b/i, category: "Agents & logic", tier: GPU_TIERS.cpu },
+  { keywords: /\b(protein|fold|bio|genom\w*|drug|science|research|simulat\w*)\b/i, category: "Science & simulation", tier: GPU_TIERS.a6000 },
   // BANDWIDTH-FIX (SN105 Beam): pure-bandwidth / DePIN networks run small node
   // binaries that move bytes — no GPU. The generic Compute sharing rule below
   // handed Beam a $260/mo "RTX 4090 24GB" tier just because its on-chain
@@ -346,7 +352,9 @@ const CATEGORY_RULES: CategoryRule[] = [
     tier: GPU_TIERS.cpu,
   },
   { keywords: /\b(compute|gpu|depin|edge|latency|bandwidth|network shar)\b/i, category: "Compute sharing", tier: GPU_TIERS.consumer24 },
-  { keywords: /\b(moderat|detect|scan|verif|audit|secur|privacy|zero.?know)\b/i, category: "Verification & security", tier: GPU_TIERS.consumer24 },
+  // WORD-STEM-FIX: moderat/verif/secur/privac were dead stems ("security",
+  // "privacy", "verification" never matched — no \b mid-word).
+  { keywords: /\b(moderat\w*|detect\w*|scan\w*|verif\w*|audit\w*|secur\w*|privac\w*|zero.?know\w*)\b/i, category: "Verification & security", tier: GPU_TIERS.consumer24 },
   { keywords: /\b(maps?|geo|weather|energy|robot|drone|iot)\b/i, category: "Real-world data", tier: GPU_TIERS.consumer24 },
 ];
 
@@ -443,10 +451,26 @@ export function classifySubnetHardware(
   const scrapedTier = scraped?.recommendedGpu
     ? (scrapedIsCpuOnly ? GPU_TIERS.cpu : resolveGpuTierFromModel(scraped.recommendedGpu))
     : null;
-  if (!scraped || (!scrapedTier && !scraped.hosting)) return base.profile;
+  // SCRAPED-VRAM-FLOOR (SN26 Perturb): a repo line like "NVIDIA GPU 12+ GB
+  // VRAM (recommended: 24+ GB)" names no model, so resolveGpuTierFromModel
+  // → null and (with no hosting rules) the whole scraped layer was discarded
+  // — again falling into the revenue guess. A VRAM floor from the subnet's
+  // own docs IS a requirement: pick the smallest tier that satisfies it.
+  const scrapedHasVramFloor = !scrapedIsCpuOnly && (scraped?.minVramGb ?? 0) > 0;
+  const floorTier = scrapedHasVramFloor
+    ? (Object.values(GPU_TIERS) as GpuTier[])
+        .filter((t) => t.minVramGb >= (scraped?.minVramGb ?? 0))
+        .sort((a, b) => a.minVramGb - b.minVramGb)[0] ?? null
+    : null;
+  if (!scraped || (!scrapedTier && !scraped.hosting && !floorTier)) return base.profile;
 
   const count = scraped.gpuCount && scraped.gpuCount > 1 ? scraped.gpuCount : 1;
-  const tier = scrapedTier ?? base.profile.tier;
+  const tier = scrapedTier ?? floorTier ?? base.profile.tier;
+  // SCRAPED-VRAM-WINS (SN81 Reliquary): the repo may state a VRAM floor that
+  // differs from the resolved tier's nominal board ("1–2× GPU ≥24 GB each
+  // (H100/H200 reference)" → scraped 24 GB, tier would say 141). The subnet's
+  // own number is ground truth — show it, not the tier's marketing board size.
+  const effectiveVram = scraped.minVramGb && scraped.minVramGb > 0 ? scraped.minVramGb : tier.minVramGb;
   // MECHANICS-1 — hosting-aware cost class: a subnet whose own README rejects
   // container clouds (bareMetalOnly) can only be served from the dedicated
   // market, so the per-GPU unit rent switches to the bare-metal rate.
@@ -463,7 +487,7 @@ export function classifySubnetHardware(
   return {
     ...base.profile,
     tier,
-    minVramGb: tier.minVramGb,
+    minVramGb: effectiveVram,
     recommendedGpu: gpuLabel,
     monthlyCostUsd: unitRent * count + base.infraUsd + controlPlaneUsd,
     isGpuWorkload: tier.minVramGb > 0,

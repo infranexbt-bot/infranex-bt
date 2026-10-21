@@ -49,5 +49,43 @@ check("regression: B300 scrape still GPU", p3.isGpuWorkload === true && /B300/i.
 const p4 = classifySubnetHardware("Compelle", "Adversarial-persuasion debate subnet with LLM debates", { fallbackMonthlyUsd: 20000 });
 check("regression: debate rule still CPU", p4.minVramGb === 0, `gpu=${p4.recommendedGpu}`);
 
+// 5. WORD-STEM-FIX regressions — dead stems must match suffixed forms now
+const p5 = classifySubnetHardware("Hippius", "Blockchain-backed cloud: storage, VMs, and apps with unmatched transparency, trust, and power.", { fallbackMonthlyUsd: 3700 });
+check("stem fix: 'storage' → Storage CPU (SN75)", p5.category === "Storage" && p5.minVramGb === 0, `${p5.category} gpu=${p5.recommendedGpu}`);
+const p6 = classifySubnetHardware("SecNet", "Decentralized privacy and security verification network", {});
+check("stem fix: 'privacy/security/verification' match", p6.category === "Verification & security", p6.category);
+const p7 = classifySubnetHardware("CrawlNet", "Web scraping and data indexing network", {});
+check("stem fix: 'scraping' → Data & scraping CPU", p7.category === "Data & scraping" && p7.minVramGb === 0, `${p7.category} gpu=${p7.recommendedGpu}`);
+const p8 = classifySubnetHardware("SimNet", "Genomics simulation and research", {});
+check("stem fix: 'genomics/simulation' → Science", p8.category === "Science & simulation", p8.category);
+
+// 6. SCRAPED-VRAM-WINS regression (SN81 Reliquary): repo floor 24 GB beats tier's 141
+const p9 = classifySubnetHardware("Reliquary", "Verifiable compute", {
+  scraped: {
+    recommendedGpu: "1–2× NVIDIA GPU ≥24 GB each (H100/H200 reference)",
+    gpuCount: null,
+    minVramGb: 24,
+    hosting: null,
+    requirementsSource: "https://github.com/reliquadotai/reliquary",
+  },
+});
+check("vram-wins: scraped 24 GB kept, not tier 141", p9.minVramGb === 24, `minVramGb=${p9.minVramGb}`);
+
+// 7. SCRAPED-VRAM-FLOOR regression (SN26 Perturb): model-less VRAM floor
+//    must keep the scraped layer alive, not fall into the revenue guess.
+const p10 = classifySubnetHardware("Perturb", "Adversarial robustness subnet", {
+  fallbackMonthlyUsd: 5000, // would have produced "H200 141GB"
+  scraped: {
+    recommendedGpu: "NVIDIA GPU 12+ GB VRAM (recommended: 24+ GB)",
+    gpuCount: null,
+    minVramGb: 12,
+    hosting: null,
+    requirementsSource: "https://github.com/0xsigurd/Perturb",
+  },
+});
+check("vram-floor: no more H200 from revenue", !/h200/i.test(p10.recommendedGpu), `gpu=${p10.recommendedGpu}`);
+check("vram-floor: repo source kept", p10.requirementsSource === "https://github.com/0xsigurd/Perturb");
+check("vram-floor: tier satisfies 12 GB floor", (p10.minVramGb ?? 0) >= 12, `minVramGb=${p10.minVramGb}`);
+
 console.log(failures === 0 ? "\nALL CHECKS PASSED" : `\n${failures} CHECK(S) FAILED`);
 process.exit(failures === 0 ? 0 : 1);
