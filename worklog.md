@@ -1887,3 +1887,19 @@ Work Log:
 
 Stage Summary:
 - Swept all subnets: 3 real bugs fixed (dead stems = classifier-wide, 2 scraped-layer bugs); repo-vs-display disagreements now ZERO; remaining revenue-est rows are honest labeled estimates for subnets with no docs
+---
+Task ID: sn82-playbook-add
+Agent: main (Super Z)
+Task: "in miner playbook i do not fine SN82 Noah, please check and update it in playbook"
+
+Work Log:
+- Root cause: playbook view renders ONLY netuids with a SubnetPlaybook row; rows come from scripts/playbook/batch-{1..6}-*.json via merge-playbook.ts. SN82 was in NO batch (identity changed Compelle→Noah after batches were researched) → row missing → invisible in UI. Coverage check also found 6 other gaps: SN16 Zero Hour, SN30 Endure Network, SN39 deprecated, SN92 REAX, SN95 Actual, SN126 Attelier
+- Re-grounded facts from Vora-Inc/NOAH repo: README + docs/SCORING.md + docs/CONTRIBUTIONS.md (entry 10 NOAH/hotkey, 50% of eligible spendable earnings target, Ark coldkey + designated Ark Validator delegation, labeled deposits else no credit, non-withdrawable ownership transfer, score = credit×streak×slot×gate, pay weight = isqrt(score)×multiplier, multiplier = min((PCI/0.5)^2, 2.0) — 2.0 cap at ≈70.71% cumulative ratio, streak: missed day never rebuilt, advance coverage uncapped, no daemon/axon needed → CPU-only)
+- Created scripts/playbook/batch-7-input.json (exact DB override fields) + batch-7-output.json (full researched entry, confidence=repo-verified, 4 sources incl. SCORING.md)
+- Extended merge-playbook.ts BATCHES 1..6 → 1..7 (SN82 now survives post-recycle restores automatically); ran merge: 106 rows, repo-verified=98 derived=7 thin=1
+- MEMORY.md runbook updated: expected merge output + /api/playbook totalSubnets 105→106
+- New scripts/verify-sn82-playbook.ts: login → GET /api/playbook → 10 checks ALL PASS (name/confidence/CPU floor/vram 0/Ark content/levers/sources); SN82 shows live per-earner $620/d join
+- bunx tsc --noEmit clean
+
+Stage Summary:
+- SN82 Noah now in Miner Playbook (106 entries) as repo-verified financial-contribution entry with honest risk framing (irreversible deposits, concentrated stake, single scoring validator); batch-7 is part of the canonical restore pipeline; 6 other subnets still lack playbook rows (listed for owner decision)

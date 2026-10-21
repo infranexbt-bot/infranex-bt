@@ -1,0 +1,14 @@
+[
+  {
+    "netuid": 82,
+    "name": "Noah",
+    "category": null,
+    "description": "Noah scores registered miners on eligible NOAH earnings and qualifying contributions to the Ark.",
+    "recommendedGpu": "None (CPU-only)",
+    "minVramGb": 0,
+    "gpuCount": null,
+    "hosting": null,
+    "githubUrl": "https://github.com/Vora-Inc/NOAH",
+    "website": null
+  }
+]

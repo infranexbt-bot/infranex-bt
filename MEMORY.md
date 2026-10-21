@@ -12,7 +12,7 @@
 **Infranex BT** — Bittensor Intelligence & Mining Operations Platform.
 Next.js 16 SPA + Prisma + in-process workers. Owner requirement: **English
 only UI**. Current scale: 19 views · 43 Prisma models · 38 API route groups ·
-129 subnets tracked · 105 playbook rows · 112 overrides (69 with GPU data).
+129 subnets tracked · 106 playbook rows · 112 overrides (69 with GPU data).
 
 **Access (sandbox):** `POST /api/auth/login {"userId":"admin","code":"BRJ2-W2GT-WJNF-97VC"}` → cookie.
 Verify app with `GET /` (307 → `/login` unauthed, 200 authed). The app is an
@@ -55,7 +55,7 @@ bun scripts/restore-after-recycle.ts
 
 # 2. Playbook (MUST run after step 1 — validates netuids against overrides)
 bun scripts/merge-playbook.ts
-#    expect: "merged 105 playbook rows | repo-verified=97 derived=7 thin=1"
+#    expect: "merged 106 playbook rows | repo-verified=98 derived=7 thin=1"
 
 # 3. Hardware data (needed by the Emission Leaderboard "Hardware" column)
 bun scripts/rescrape-requirements.ts
@@ -63,7 +63,7 @@ bun scripts/rescrape-requirements.ts
 
 # 4. Verify
 #    login (see §1) → /api/network (source=live, 129 subnets)
-#    → /api/playbook (meta.totalSubnets=105)
+#    → /api/playbook (meta.totalSubnets=106, incl. SN82 Noah batch-7)
 #    → /api/subnet-overrides (112 rows, 69 with recommendedGpu)
 ```
 
