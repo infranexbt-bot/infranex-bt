@@ -1,0 +1,50 @@
+[
+  {
+    "netuid": 82,
+    "whatItDoes": "Noah (built by Vora) is not a compute market - it is a financial-contribution subnet around 'the Ark'. Miners are scored on two on-chain facts: their eligible spendable NOAH earnings and their qualifying contributions to the Ark - ownership transfers of staked NOAH that arrive at the official Ark coldkey, delegated to the designated Ark Validator, and labeled with the miner's identity. The Noah Validator reads finalized chain records, computes a daily score per miner, and publishes weights. There is no model to serve, no queries to answer, and no work product: the 'product' is permanent capital contribution. Contributions transfer ownership and are not withdrawable.",
+    "hardwareRec": "Effectively nothing - CPU-only. No miner daemon or axon needs to be reachable and scoring is purely on-chain, so any cheap CPU VPS (1 vCPU / 1-2 GB RAM) or a laptop can run the Python deposit helper and hold keys. No GPU and no VRAM floor (platform floor: None (CPU-only)). The real cost is capital, not hardware: 10 NOAH entry contribution per hotkey, then an ongoing 50% of eligible spendable earnings contributed to the Ark.",
+    "keyRequirements": [
+      "Register a hotkey on SN82 and make the entry contribution: 10 NOAH per miner hotkey",
+      "Contributions must arrive at the official Ark coldkey delegated to the designated Ark Validator - staking to the validator from your own wallet does NOT count",
+      "Every contribution must identify its miner (stable label) - an unnamed deposit receives no mining credit and is unrecoverable",
+      "Daily obligation: contribute 50% of eligible spendable earnings (newly spendable + earnings that unlock that day; returned registration collateral is not earnings)",
+      "Contributions transfer ownership to the Ark and are not withdrawable - treat every send as permanent",
+      "Use the deposit helper flow (preview -> send -> receipt) and verify against finalized chain records, never mempool state"
+    ],
+    "minerJob": "Run nothing 24/7 - the daily job is treasury management with the noah-miner CLI: preview the fixed deposit (deposit --preview), send the reviewed deposit with a stable label (deposit --label entry), then read its receipt (status). Keep enough liquid NOAH to cover each day's 50% obligation on time, because the streak records whether each day's requirement was met - catching up later never rebuilds a missed day's streak. Advance contributions can pre-cover future days, and surplus first repays shortfalls before becoming uncapped advance coverage. Optionally audit published scores with noah.scoring.audit_published - 'AGREES' means the published score follows from the chain inputs under the checked-in scoring code.",
+    "minerJobProvide": [
+      "Labeled ownership transfers of staked NOAH to the Ark (delegated to the Ark Validator)",
+      "Daily coverage of 50% of eligible spendable earnings, on time",
+      "Streak hygiene: no missed days; outages marked noFault only when genuinely fault-free",
+      "Receipt verification against finalized chain records"
+    ],
+    "top10Strategy": "This is a capital-allocation game, not an engineering one - the top wallets are simply the ones that can afford to contribute the most capital permanently. On-target miners earn roughly a 1.0 contribution multiplier; surplus raises the PCI up to the 2.0 cap, which at the 50% target and harshness 2 needs a cumulative contribution ratio of about 70.71%. Score compounds credit x streak x slot x gate, and pay weight = integer_sqrt(score) x multiplier, so uninterrupted streaks and sustained surplus matter more than one big deposit. Weigh the structural risk before committing: deposits are irreversible, weights are set by a single designated scoring validator, and on-chain stake is heavily concentrated in a handful of wallets - so treat SN82 as speculation on contributed capital's token appreciation, not mining income.",
+    "top10Levers": [
+      "Capital surplus: push the cumulative contribution ratio past ~70.7% to reach the 2.0 multiplier cap",
+      "Unbroken streaks: meet every day's 50% obligation on time - a missed day permanently breaks its streak",
+      "Advance coverage: pre-fund future days so outages never create a miss",
+      "Hold the minimum: if the holding gate closes, score is zero (mainnet profile minimum is currently 0)",
+      "Label every deposit: unnamed or misrouted transfers earn nothing and cannot be recovered"
+    ],
+    "followTopMiners": "taostats.io/subnets/82 for the weight distribution (expect heavy concentration in a few wallets); the Vora-Inc/NOAH repo is the normative spec - README, docs/SCORING.md and docs/CONTRIBUTIONS.md - and deposit notices are published there before you sign anything; run the repo's audit tool against published scores to decompose incumbents' credit/streak/multiplier; subnet announcements in Bittensor discord carry profile changes (target, harshness, cap).",
+    "confidence": "repo-verified",
+    "sources": [
+      {
+        "label": "NOAH README (entry + deposit flow)",
+        "url": "https://github.com/Vora-Inc/NOAH"
+      },
+      {
+        "label": "Scoring spec (formula, multiplier cap, streaks)",
+        "url": "https://github.com/Vora-Inc/NOAH/blob/main/docs/SCORING.md"
+      },
+      {
+        "label": "Contribution rules (Ark coldkey, labels, targets)",
+        "url": "https://github.com/Vora-Inc/NOAH/blob/main/docs/CONTRIBUTIONS.md"
+      },
+      {
+        "label": "On-chain weight distribution",
+        "url": "https://taostats.io/subnets/82"
+      }
+    ]
+  }
+]

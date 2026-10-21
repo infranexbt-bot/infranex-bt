@@ -1,10 +1,15 @@
 #!/usr/bin/env node
 /**
- * merge-playbook.ts — validate the 6 playbook research batch outputs and
+ * merge-playbook.ts — validate the 7 playbook research batch outputs and
  * upsert them into the SubnetPlaybook table.
  *
  * Validation: every batch parses, covers exactly its input netuids, required
  * fields present, list fields are arrays of strings, confidence in enum.
+ *
+ * Batch 7 (added 2026-10-21): SN82 Noah — subnet identity changed
+ * Compelle→Noah after batches 1-6 were researched; SN82 was missing from the
+ * Miner Playbook view entirely. Content is repo-verified from
+ * Vora-Inc/NOAH (README + docs/SCORING.md + docs/CONTRIBUTIONS.md).
  *
  * Run: bun --smol scripts/merge-playbook.ts
  */
@@ -12,7 +17,7 @@ import { PrismaClient } from "@prisma/client";
 import { readFileSync } from "fs";
 
 const db = new PrismaClient();
-const BATCHES = [1, 2, 3, 4, 5, 6];
+const BATCHES = [1, 2, 3, 4, 5, 6, 7];
 const CONF = new Set(["repo-verified", "derived", "thin"]);
 const REQ = ["whatItDoes", "hardwareRec", "minerJob", "top10Strategy", "followTopMiners"];
 const ARR = ["keyRequirements", "minerJobProvide", "top10Levers"];

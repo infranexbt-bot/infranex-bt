@@ -1,0 +1,20 @@
+import { PrismaClient } from "@prisma/client";
+const db = new PrismaClient();
+const main = async () => {
+  const plays = await db.subnetPlaybook.findMany({ orderBy: { netuid: "asc" }, select: { netuid: true, confidence: true, researchedAt: true } });
+  const overrides = await db.subnetOverride.findMany({ orderBy: { netuid: "asc" }, select: { netuid: true, name: true, category: true } });
+  const playIds = new Set(plays.map(p => p.netuid));
+  const oByNetuid = new Map(overrides.map(o => [o.netuid, o]));
+  console.log(`Total playbook rows: ${plays.length}`);
+  console.log(`Total override rows: ${overrides.length}`);
+  console.log(`\n=== Subnets WITH playbook rows ===`);
+  console.log(plays.map(p => p.netuid).join(", "));
+  console.log(`\n=== Overrides WITHOUT a playbook row (missing from Miner Playbook view) ===`);
+  const missing = overrides.filter(o => !playIds.has(o.netuid));
+  for (const o of missing) console.log(`SN${o.netuid}: ${o.name ?? "(no name)"} [${o.category ?? "no category"}]`);
+  console.log(`\n=== SN82 state ===`);
+  const sn82play = await db.subnetPlaybook.findUnique({ where: { netuid: 82 } });
+  console.log("playbook row:", sn82play ? JSON.stringify(sn82play, null, 2) : "MISSING");
+  console.log("override:", JSON.stringify(oByNetuid.get(82), null, 2));
+};
+main().finally(() => db.$disconnect());
