@@ -279,6 +279,24 @@ interface CategoryRule {
 // Ordered — first match wins. Derived from how subnet teams describe their
 // incentive mechanism (on-chain SubnetIdentitiesV3 descriptions).
 const CATEGORY_RULES: CategoryRule[] = [
+  // NOAH-FIX (SN82): netuid 82 changed identity — Compelle (adversarial
+  // persuasion, rule below) was replaced by "Noah & the Ark" (Vora-Inc/NOAH).
+  // The mechanism is FINANCIAL, not computational: miners deposit NOAH alpha
+  // into "the Ark" (entry 10 NOAH + ~50% of eligible earnings — permanent,
+  // no refund) and are scored on earnings + contributions. No inference,
+  // training, or any compute exists anywhere in the incentive design, yet the
+  // chain description ("...eligible NOAH earnings and qualifying contributions
+  // to the Ark") matches no work-type keyword, so the subnet fell through to
+  // the revenue-based GPU guess (paper per-miner revenue ≥$1200/mo →
+  // "H200 141GB") — fabricating a hardware requirement for a
+  // wallet-transaction-only subnet. Chain-audited 2026-10-21 (all 112
+  // overrides): SN82 is the ONLY subnet matching /noah|ark/. First match
+  // wins — keep this rule ABOVE the generic ones.
+  {
+    keywords: /\b(noah|the ark)\b/i,
+    category: "Earnings-contribution (financial)",
+    tier: GPU_TIERS.cpu,
+  },
   // COMPELLE-FIX (SN82): adversarial-persuasion debate subnets — miners commit
   // written debate strategies as on-chain transactions; the VALIDATOR runs the
   // Pro/Con LLM debates via an LLM API (Chutes) and Elo-weights results, so the
@@ -412,8 +430,18 @@ export function classifySubnetHardware(
   // It overrides ONLY what it actually knows — a hosting-only README keeps
   // the work-type GPU tier; a GPU-only README keeps the classifier category.
   const scraped = fallbacks?.scraped;
+  // CPU-GROUND-TRUTH (SN82): an explicit CPU-only verdict from the repo
+  // scrape ("None (CPU-only)", "CPU VPS", or minVramGb=0) IS a tier — it is
+  // the subnet's own docs saying NO GPU. resolveGpuTierFromModel only knows
+  // GPU models, so a CPU-only scrape previously resolved to null, and with
+  // no hosting rules the whole scraped layer was discarded — falling back to
+  // the revenue guess, which fabricated an "H200 141GB" for SN82 Noah (a
+  // wallet-txn-only subnet). Recognize the CPU verdict first.
+  const scrapedIsCpuOnly =
+    (!!scraped?.recommendedGpu && /^(none|cpu)/i.test(scraped.recommendedGpu.trim())) ||
+    scraped?.minVramGb === 0;
   const scrapedTier = scraped?.recommendedGpu
-    ? resolveGpuTierFromModel(scraped.recommendedGpu)
+    ? (scrapedIsCpuOnly ? GPU_TIERS.cpu : resolveGpuTierFromModel(scraped.recommendedGpu))
     : null;
   if (!scraped || (!scrapedTier && !scraped.hosting)) return base.profile;
 
