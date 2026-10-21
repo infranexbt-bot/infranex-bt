@@ -1836,3 +1836,18 @@ Work Log:
 
 Stage Summary:
 - 5th full restore succeeded in ~8 min using the documented runbook — zero debugging needed; runbook is proven repeatable
+
+---
+Task ID: sn82-noah-research
+Agent: main (Super Z)
+Task: "what is SN82 Noah, research on this and tell me what exactly is this subnet and as a miner what should i do? is this a CPU or GPU work?"
+
+Work Log:
+- Checked DB: SN82 override = Noah (Vora-Inc/NOAH), recommendedGpu="None (CPU-only)", live emission 284.3 TAO/day total / 153.9 miner pool, 65 neurons
+- Flagged naming conflict: sn82-readme.md covers Compelle (previous holder of netuid 82) — stale relative to current chain identity
+- Web research: subnetalpha + bittensor.ai/sn82 + TaoOutsider X analysis (Oct 19) + GitHub Vora-Inc/NOAH README
+- Key findings: financial-contribution subnet ("the Ark"), entry 10 NOAH, 50% earnings contribution target, 2x multiplier, streak rules, no compute work at all; red flags = 97.9% stake concentration in 10 wallets, permanent irreversible deposits, designated-scoring-identity validator, anonymous operator
+- Delivered miner guidance: CPU VPS suffices, treat as speculation not mining, recommended honest work-subnets instead
+
+Stage Summary:
+- SN82 = Noah, CPU-only financial mechanism, not compute mining; DB classification already correct; sn82-readme.md identified as outdated (Compelle era)
