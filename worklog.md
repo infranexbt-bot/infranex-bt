@@ -1903,3 +1903,16 @@ Work Log:
 
 Stage Summary:
 - SN82 Noah now in Miner Playbook (106 entries) as repo-verified financial-contribution entry with honest risk framing (irreversible deposits, concentrated stake, single scoring validator); batch-7 is part of the canonical restore pipeline; 6 other subnets still lack playbook rows (listed for owner decision)
+---
+Task ID: app-load-restore-6
+Agent: main (Super Z)
+Task: "app not loading please check"
+
+Work Log:
+- GET / → 000 (connection refused): dev server process reaped, NOT a sandbox recycle
+- DB survived intact: AppUser=5, ChainSnapshot=1, SubnetPlaybook=106 (SN82 Noah present), SubnetOverride=112 — first process-only failure, no wipe
+- Restarted durably: (setsid nohup bun run dev >/dev/null 2>&1 &) → GET / = 307 in ~12s
+- scripts/verify-app-health.ts (new): login OK, /api/network 129 subnets source=live block=9330998, /api/playbook 106 entries SN82=Noah, /api/subnet-overrides 112 (68 with GPU data), /api/profitability-config 200 — ALL PASS
+
+Stage Summary:
+- App restored without the full runbook — DB intact, only server restart needed. New reusable health-check script verify-app-health.ts added for future diagnosis
