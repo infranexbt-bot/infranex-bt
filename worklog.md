@@ -1851,3 +1851,21 @@ Work Log:
 
 Stage Summary:
 - SN82 = Noah, CPU-only financial mechanism, not compute mining; DB classification already correct; sn82-readme.md identified as outdated (Compelle era)
+
+---
+Task ID: sn82-h100-display-fix
+Agent: main (Super Z)
+Task: "its showing as GPU (revenue est.) H200 141GB, please check and correct it"
+
+Work Log:
+- Traced: opportunity-detail.tsx label "GPU (revenue est.)" ← mergeOpportunities (client-side, live-merge.ts) ← classifySubnetHardware (miner-score.ts)
+- Root cause 1: SN82 identity changed Compelle→Noah; old COMPELLE-FIX keywords no longer match the new description ("NOAH earnings / the Ark") → fell through to estimateGpuTierFromRevenue ($687/day paper → ≥$1200/mo → H200 141GB)
+- Root cause 2: scraped ground truth "None (CPU-only)"/minVramGb=0 didn't resolve via resolveGpuTierFromModel (GPU models only) → with hosting=null the whole scraped layer was discarded
+- Fix 1 (NOAH-FIX): new first CATEGORY_RULES rule /\b(noah|the ark)\b/i → "Earnings-contribution (financial)" + CPU tier; collision-checked against all 112 overrides (SN82 only match)
+- Fix 2 (CPU-GROUND-TRUTH): scraped layer now treats /^(none|cpu)/i recommendedGpu or minVramGb=0 as GPU_TIERS.cpu instead of discarding it
+- Dev server got reaped mid-verification → restarted durably (DB survived, no wipe this time)
+- Verified: bunx tsc clean; scripts/verify-sn82-noah-fix.ts 9/9 PASS (incl. B300 + Compelle regressions); scripts/verify-sn82-e2e.ts replicates browser merge → SN82 = "None (CPU-only)", minVramGb 0, hardwareClassified true, source=Vora-Inc/NOAH repo
+- Committed locally (push still pending fresh PAT)
+
+Stage Summary:
+- SN82 now honestly displayed: CPU-only financial-contribution subnet with repo provenance; generic bug fixed where CPU-only repo scrapes were silently discarded for any subnet
