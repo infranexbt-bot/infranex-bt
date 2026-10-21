@@ -1869,3 +1869,21 @@ Work Log:
 
 Stage Summary:
 - SN82 now honestly displayed: CPU-only financial-contribution subnet with repo provenance; generic bug fixed where CPU-only repo scrapes were silently discarded for any subnet
+
+---
+Task ID: hardware-audit-sweep
+Agent: main (Super Z)
+Task: User accepted offer — "sweep all 112 subnets for other revenue-est. fabrications"
+
+Work Log:
+- Built scripts/sweep-revenue-est.ts: replicates browser merge (network + overrides + profitability-config → mergeOpportunities), flags (A) revenue-est rows (no repo source, unclassified, GPU shown) and (B) repo-vs-display disagreements
+- Initial sweep: 127 subnets, 41 revenue-est rows, 2 hard disagreements (SN81 Reliquary, SN26 Perturb); SN75 anomaly ($8/mo row but H200) exposed deeper bugs
+- BUG 1 (systemic, WORD-STEM-FIX): CATEGORY_RULES prefix stems with trailing \b were dead for suffixed forms — \b(storag)\b can never match "storage" (no word boundary mid-word). Dead stems: storag, scrap, archiv, moderat, detect, verif, secur, privac, zero.?know, orchestrat, genom, simulat, financ, market mak. SN75 "Blockchain-backed cloud: storage…" fell to revenue guess ($3.7k/mo per-earning → H200 141GB). Fixed with \w* suffixes
+- BUG 2 (SCRAPED-VRAM-WINS, SN81): scraped layer overrode repo's minVramGb=24 with the resolved tier's nominal 141 (H200 reference line). Fix: effectiveVram = scraped.minVramGb > 0 ? scraped : tier
+- BUG 3 (SCRAPED-VRAM-FLOOR, SN26): model-less repo GPU lines ("NVIDIA GPU 12+ GB VRAM") resolved to null → scraped layer discarded → revenue guess. Fix: smallest GPU tier satisfying the floor keeps the layer alive; raw repo string stays as the label
+- Verified: tsc clean; verify-sn82-noah-fix.ts extended to 17 checks ALL PASS (incl. SN75 storage→CPU, SN26 floor, SN81 vram-wins, B300/Compelle regressions); sweep B) disagreements 2→0; verify-sn82-e2e.ts PASS
+- Residual: 38 revenue-est rows have NO repo data and no keyword match (many are Parked/deprecated/Unknown) — UI labels them honestly as "GPU (revenue est.)" with tooltip; listed for owner review
+- Committed locally (push pending fresh PAT)
+
+Stage Summary:
+- Swept all subnets: 3 real bugs fixed (dead stems = classifier-wide, 2 scraped-layer bugs); repo-vs-display disagreements now ZERO; remaining revenue-est rows are honest labeled estimates for subnets with no docs
