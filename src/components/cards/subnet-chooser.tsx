@@ -8,7 +8,8 @@
 // WHICH subnet, CPU or GPU, with the receipts to trust it. Every row
 // combines the three signals the platform computes independently
 // (mine-pick.ts):
-//   Rent earn (rentability × seat reality × new-entrant EV)
+//   Rent earn / Earn pick (rentability × seat reality × new-entrant EV —
+//   label follows the active cost basis via rentEarnLabels)
 //   + Diligence pipeline (14-stage health + verdict gate)
 //   + model confidence → one CONVICTION score, ranked.
 //
@@ -34,7 +35,8 @@ import {
   MINE_PICK_BAND_STYLE,
   type MinePick,
 } from "@/lib/infranex/mine-pick";
-import { RENT_EARN_BAND_STYLE } from "@/lib/infranex/rent-earn";
+import { RENT_EARN_BAND_STYLE, rentEarnLabels } from "@/lib/infranex/rent-earn";
+import { useProfitabilityConfig } from "@/hooks/use-profitability";
 import { cn } from "@/lib/utils";
 import type { Opportunity } from "@/lib/infranex/types";
 
@@ -100,6 +102,10 @@ export function SubnetChooser({
 }) {
   const [hw, setHw] = useState<HardwareFilter>("all");
   const [showAll, setShowAll] = useState(false);
+  // Lens labels follow the active cost basis (rented vs owned) — the Conviction
+  // formula names its largest component, so the words must match the mode.
+  const { data: profConfig } = useProfitabilityConfig();
+  const L = rentEarnLabels(profConfig?.hardwareMode);
 
   const counts = useMemo(
     () => ({
@@ -194,7 +200,7 @@ export function SubnetChooser({
                     "inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md",
                     p.hardware === "CPU" ? "bg-muted text-foreground/80" : "bg-primary/15 text-primary"
                   )}
-                  title={p.hardware === "CPU" ? "CPU-only work — a rented vCPU box qualifies" : "GPU work"}
+                  title={p.hardware === "CPU" ? L.cpuTitle : "GPU work"}
                 >
                   <HwIcon className="h-3.5 w-3.5" />
                 </span>
@@ -215,16 +221,16 @@ export function SubnetChooser({
                 </div>
                 <span
                   className={cn("rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide", bs.bg, bs.color)}
-                  title={`Conviction ${p.conviction}/100 = 40% Rent earn + 35% Diligence pipeline + 25% confidence. ${p.reasons.join(". ")}.`}
+                  title={`Conviction ${p.conviction}/100 = ${L.convictionFormula}. ${p.reasons.join(". ")}.`}
                 >
                   {bs.label}
                 </span>
                 <div className="ml-auto flex flex-wrap items-center gap-x-4 gap-y-1">
-                  <Stat label="Conviction" title="40% Rent earn + 35% Diligence pipeline + 25% model confidence, gated by rentability, diligence fails and the minimum-profit rule">
+                  <Stat label="Conviction" title={L.convictionStatTooltip}>
                     <span className={cn("text-base", convictionColor(p.conviction))}>{p.conviction}</span>
                     <span className="text-[10px] font-normal text-muted-foreground">/100</span>
                   </Stat>
-                  <Stat label="Rent earn" title={`Rentability × seat reality × new-entrant EV. ${p.rent.notes.join(". ") || "—"}`}>
+                  <Stat label={L.statLabel} title={`${L.statTooltip} ${p.rent.notes.join(". ") || "—"}`}>
                     <span className={rs.color}>{p.rent.band}</span>{" "}
                     <span className="text-muted-foreground">{p.rent.score}</span>
                   </Stat>
@@ -286,10 +292,7 @@ export function SubnetChooser({
         )}
 
         <p className="text-[10px] leading-relaxed text-muted-foreground">
-          Conviction = 40% Rent earn (rentability × seat reality × new-entrant EV) + 35% Diligence
-          pipeline (14-stage health, hard-fail gated) + 25% model confidence — so a high number
-          means a rented CPU/GPU rig can run the work, a new seat can realistically earn, and the
-          pipeline found no deal-breaker. Click a row for the full breakdown; Mine opens the deploy flow.
+          {L.convictionFootnote}
         </p>
         </>
         )}

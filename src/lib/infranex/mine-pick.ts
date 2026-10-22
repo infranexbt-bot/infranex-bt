@@ -94,7 +94,7 @@ function gateReasons(pick: {
 }): string[] {
   const { rent, diligence, diligenceHealth, confidencePct, o } = pick;
   const reasons: string[] = [];
-  if (!rent.rentable) reasons.push(rent.rentBlock ?? "Not rentable on a rented rig");
+  if (!rent.rentable) reasons.push(rent.rentBlock ?? "Blocked by the hosting gate");
   if (diligence.verdict === "DO NOT PROVISION")
     reasons.push(
       `${diligence.failCount} diligence stage${diligence.failCount === 1 ? "" : "s"} failed — ${diligence.verdict.toLowerCase()}`

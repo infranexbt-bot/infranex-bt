@@ -225,3 +225,89 @@ export const RENT_EARN_BAND_STYLE: Record<
   POOR: { label: "POOR", color: "text-warning", bg: "bg-warning/10" },
   NO: { label: "NO", color: "text-destructive", bg: "bg-destructive/10" },
 };
+
+// ---------------------------------------------------------------------------
+// MODE-AWARE LABELS — the engine's mechanics are identical in both cost bases
+// (hosting gate × seat reality × new-entrant EV, and the EV already reads the
+// mode-aware ledger net). But the WORDS must follow the active
+// ProfitabilityConfig.hardwareMode: a user who flipped the cost basis to
+// "Owned" should never read "Rented-rig earn picks" or a "Rent earn" column.
+// Every UI surface that renders this lens pulls its strings from here so the
+// two stay in lockstep.
+// ---------------------------------------------------------------------------
+export interface RentEarnLabelSet {
+  /** Summary card heading above the ranked table. */
+  pickCardTitle: string;
+  /** Summary card one-liner. */
+  pickCardSubtitle: string;
+  /** Card icon: cloud = rented fleet, zap = owned electricity. */
+  pickCardIcon: "cloud" | "zap";
+  /** "My GPU" filter option that selects GREAT/OK earn picks. */
+  gpuFilterLabel: string;
+  /** Table column header for the lens score. */
+  columnLabel: string;
+  columnTooltip: string;
+  /** Table "Mining lenses" group header tooltip. */
+  lensesTooltip: string;
+  /** Dashboard picker Stat label + tooltip for the lens. */
+  statLabel: string;
+  statTooltip: string;
+  /** Conviction formula fragment, e.g. "40% Rent earn + 35% … + 25% confidence". */
+  convictionFormula: string;
+  /** Dashboard picker Conviction Stat tooltip. */
+  convictionStatTooltip: string;
+  /** Dashboard picker footnote under the list. */
+  convictionFootnote: string;
+  /** Hardware icon tooltip for CPU-only rows. */
+  cpuTitle: string;
+}
+
+export function rentEarnLabels(
+  hardwareMode: "rent" | "owned" | undefined
+): RentEarnLabelSet {
+  if (hardwareMode === "owned") {
+    return {
+      pickCardTitle: "Owned-rig earn picks",
+      pickCardSubtitle:
+        "— your-rig economics × seat reality × new-entrant EV (Earn picks column) · hosting gates still apply",
+      pickCardIcon: "zap",
+      gpuFilterLabel: "Owned rig picks",
+      columnLabel: "Earn picks",
+      columnTooltip:
+        "EARN PICKS (owned basis) — does a NEW seat have a real chance to earn on hardware you own? Combines the hosting gate (TEE / restricted fleets still apply), % of slots earning, top-10% reward concentration and new-entrant expected net (GPU line = owned electricity).",
+      lensesTooltip:
+        "Mining lenses — Earn picks (your-rig viability on the owned electricity basis) and Your odds (first-month earn odds if you register today).",
+      statLabel: "Earn pick",
+      statTooltip:
+        "Hosting gate × seat reality × new-entrant EV — priced on owned electricity.",
+      convictionFormula:
+        "40% Earn pick + 35% Diligence pipeline + 25% confidence",
+      convictionStatTooltip:
+        "40% Earn pick + 35% Diligence pipeline + 25% model confidence, gated by the hosting gate, diligence fails and the minimum-profit rule",
+      convictionFootnote:
+        "Conviction = 40% Earn pick (hosting gate × seat reality × new-entrant EV, owned electricity basis) + 35% Diligence pipeline (14-stage health, hard-fail gated) + 25% model confidence — so a high number means your own rig can run the work, a new seat can realistically earn, and the pipeline found no deal-breaker. Click a row for the full breakdown; Mine opens the deploy flow.",
+      cpuTitle: "CPU-only work — no GPU needed",
+    };
+  }
+  return {
+    pickCardTitle: "Rented-rig earn picks",
+    pickCardSubtitle:
+      "— rentable work × seat reality × new-entrant EV (Rent earn column)",
+    pickCardIcon: "cloud",
+    gpuFilterLabel: "Rented rig picks",
+    columnLabel: "Rent earn",
+    columnTooltip:
+      "RENT-EARN — can a rented GPU/CPU (Akash/Vast-class) run this, and does a NEW seat have a real chance to earn? Combines rentability gate, % of slots earning, top-10% reward concentration and new-entrant expected net.",
+    lensesTooltip:
+      "Mining lenses — Rent earn (rented-rig viability) and Your odds (first-month earn odds if you register today).",
+    statLabel: "Rent earn",
+    statTooltip: "Rentability × seat reality × new-entrant EV.",
+    convictionFormula:
+      "40% Rent earn + 35% Diligence pipeline + 25% confidence",
+    convictionStatTooltip:
+      "40% Rent earn + 35% Diligence pipeline + 25% model confidence, gated by rentability, diligence fails and the minimum-profit rule",
+    convictionFootnote:
+      "Conviction = 40% Rent earn (rentability × seat reality × new-entrant EV) + 35% Diligence pipeline (14-stage health, hard-fail gated) + 25% model confidence — so a high number means a rented CPU/GPU rig can run the work, a new seat can realistically earn, and the pipeline found no deal-breaker. Click a row for the full breakdown; Mine opens the deploy flow.",
+    cpuTitle: "CPU-only work — a rented vCPU box qualifies",
+  };
+}

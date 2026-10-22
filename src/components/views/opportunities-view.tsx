@@ -21,9 +21,10 @@ import { useSubnetOverrides } from "@/hooks/use-subnet-overrides";
 import {
   computeRentEarnMap,
   RENT_EARN_BAND_STYLE,
+  rentEarnLabels,
 } from "@/lib/infranex/rent-earn";
 import { cn, opportunityBand } from "@/lib/utils";
-import { TrendingUp, LayoutGrid, List, Cpu, Settings2, CloudCog } from "lucide-react";
+import { TrendingUp, LayoutGrid, List, Cpu, Settings2, CloudCog, Zap } from "lucide-react";
 import type { Opportunity } from "@/lib/infranex/types";
 
 interface OpportunitiesViewProps {
@@ -35,8 +36,10 @@ const GPU_FILTER_KEY = "infranex-gpu-filter";
 
 // "What can my rig run?" — subnets whose required VRAM fits the selected GPU.
 // CPU-only shows subnets whose work type needs no GPU at all.
-// "Rented rig picks" = RENT-EARN GREAT/OK — a rented GPU/CPU (Akash/Vast-class)
-// can legally run the work AND a new seat has a real chance to earn.
+// "Rented/Owned rig picks" = RENT-EARN GREAT/OK — a rented GPU/CPU
+// (Akash/Vast-class) or your OWN rig (owned electricity basis) can legally run
+// the work AND a new seat has a real chance to earn. Label follows the active
+// cost basis via rentEarnLabels().
 const GPU_FILTERS: { value: string; label: string; maxVram: number | null }[] = [
   { value: "any", label: "Any hardware", maxVram: null },
   { value: "rented", label: "Rented rig picks", maxVram: null },
@@ -77,6 +80,8 @@ export function OpportunitiesView({ onSelectOpportunity, onStartMining }: Opport
   );
   const target = profConfig?.minNetProfitTargetUsd ?? 300;
   const passCount = opportunities.filter((o) => o.meetsMinimum !== false).length;
+  // Mode-aware lens labels — must never say "Rented" while the cost basis is Owned.
+  const L = rentEarnLabels(profConfig?.hardwareMode);
 
   // Restore the miner's hardware profile across visits. Deferred past the
   // hydration pass so SSR markup stays deterministic.
@@ -190,14 +195,19 @@ export function OpportunitiesView({ onSelectOpportunity, onStartMining }: Opport
         </div>
       )}
 
-      {/* RENT-EARN summary — where a RENTED GPU/CPU actually has a chance */}
+      {/* RENT-EARN summary — where a RENTED or OWNED rig actually has a chance.
+          Heading/icon/subtitle follow the active cost basis (rentEarnLabels). */}
       {rentedPicks.length > 0 && (
         <div className="rounded-lg border border-border/60 bg-card/40 px-4 py-3">
           <div className="flex items-center gap-2 text-xs font-semibold text-foreground/90">
-            <CloudCog className="h-3.5 w-3.5 text-primary" />
-            Rented-rig earn picks
+            {L.pickCardIcon === "zap" ? (
+              <Zap className="h-3.5 w-3.5 text-primary" />
+            ) : (
+              <CloudCog className="h-3.5 w-3.5 text-primary" />
+            )}
+            {L.pickCardTitle}
             <span className="font-normal text-muted-foreground">
-              — rentable work × seat reality × new-entrant EV (Rent earn column)
+              {L.pickCardSubtitle}
             </span>
           </div>
           <div className="mt-2 flex flex-wrap gap-1.5">
@@ -257,7 +267,7 @@ export function OpportunitiesView({ onSelectOpportunity, onStartMining }: Opport
             <SelectContent>
               {GPU_FILTERS.map((g) => (
                 <SelectItem key={g.value} value={g.value} className="text-xs">
-                  {g.label}
+                  {g.value === "rented" ? L.gpuFilterLabel : g.label}
                 </SelectItem>
               ))}
             </SelectContent>
