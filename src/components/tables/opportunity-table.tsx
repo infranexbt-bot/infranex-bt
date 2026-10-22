@@ -25,11 +25,13 @@ import { assessSeatChance } from "@/lib/infranex/miner-score";
 import {
   computeRentEarnMap,
   RENT_EARN_BAND_STYLE,
+  rentEarnLabels,
 } from "@/lib/infranex/rent-earn";
 import { SeatChanceBadge } from "@/components/subnets/seat-chance-badge";
 import { RegisterOddsInline } from "@/components/cards/register-odds";
 import { HostingChips } from "@/components/cards/hosting-requirements";
 import { useOddsTrends } from "@/hooks/use-odds";
+import { useProfitabilityConfig } from "@/hooks/use-profitability";
 import { Swords, AlertTriangle, Ban, DollarSign, ShieldCheck, Coins } from "lucide-react";
 import type { Opportunity } from "@/lib/infranex/types";
 
@@ -128,6 +130,10 @@ export function OpportunityTable({
   const { data: oddsTrends } = useOddsTrends();
   // RENT-EARN — one pass over all rows: rentability gate + seat reality + EV.
   const rentMap = useMemo(() => computeRentEarnMap(opportunities), [opportunities]);
+  // Lens labels follow the active cost basis — "Rent earn" under rented,
+  // "Earn picks" under owned (same engine, same numbers basis as the ledger).
+  const { data: profConfig } = useProfitabilityConfig();
+  const L = rentEarnLabels(profConfig?.hardwareMode);
 
   const filtered = useMemo(() => {
     let r = opportunities;
@@ -236,7 +242,7 @@ export function OpportunityTable({
                 <TableHead
                   colSpan={2}
                   className="h-7 text-center"
-                  title="Mining lenses — Rent earn (rented-rig viability) and Your odds (first-month earn odds if you register today)."
+                  title={L.lensesTooltip}
                 >
                   Mining lenses
                 </TableHead>
@@ -325,9 +331,9 @@ export function OpportunityTable({
                   onSort={handleSort}
                 >
                   <span
-                    title="RENT-EARN — can a rented GPU/CPU (Akash/Vast-class) run this, and does a NEW seat have a real chance to earn? Combines rentability gate, % of slots earning, top-10% reward concentration and new-entrant expected net."
+                    title={L.columnTooltip}
                   >
-                    Rent earn
+                    {L.columnLabel}
                   </span>
                 </SortableTh>
               )}
