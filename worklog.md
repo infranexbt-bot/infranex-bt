@@ -1916,3 +1916,18 @@ Work Log:
 
 Stage Summary:
 - App restored without the full runbook — DB intact, only server restart needed. New reusable health-check script verify-app-health.ts added for future diagnosis
+---
+Task ID: app-load-restore-7
+Agent: main (Super Z)
+Task: "load the web app" (6th DB wipe)
+
+Work Log:
+- Health check: server up (307) but DB wiped (ChainSnapshot=0, Playbook=0, Overrides=0; AppUser=5 re-seeded) — 6th wipe, 7th incident
+- restore-after-recycle.ts: WORK completed both runs but process hung on exit (bun/Prisma $disconnect hang) → 2×120s+600s timeouts with no output; verified completion via DB counts instead of re-running a 3rd time
+- New scripts/dedupe-snapshots.ts: removed duplicate snapshot from the double run (kept id=2, block=9340932)
+- merge-playbook.ts: "merged 106 playbook rows | repo-verified=98 derived=7 thin=1" — first restore where SN82 Noah (batch 7) came back automatically via the canonical pipeline
+- rescrape-requirements.ts: 112 attempted / 109 ok / 69 GPU / 7 hosting / 3 errors — matches MEMORY.md known-good numbers; GitHub access still works post-recycle
+- verify-app-health.ts ALL PASS: 129 subnets source=live block=9341023, playbook 106 (SN82=Noah), 112 overrides (69 GPU), profitability-config 200
+
+Stage Summary:
+- Full restore ~6 min effective work. Two runbook notes learned: (1) restore-after-recycle.ts can hang on process exit after printing "SubnetOverride base rows upserted" — judge completion by DB counts, don't blind-rerun; (2) batch-7 SN82 restore works end-to-end
