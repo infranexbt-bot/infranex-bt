@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { rankMinePicks } from "@/lib/infranex/mine-pick";
 import { SubnetChooser } from "@/components/cards/subnet-chooser";
+import { CostBasisToggle } from "@/components/cards/cost-basis-toggle";
 import { RegisterOddsBlock } from "@/components/cards/register-odds";
 import { MetricCard } from "@/components/cards/metric-card";
 import { DataSourceBanner } from "@/components/cards/data-source-banner";
@@ -108,6 +109,7 @@ export function DashboardView({ onSelectOpportunity, onStartMining, onNavigate }
         picks={minePicks}
         onStartMining={onStartMining}
         onSelectOpportunity={onSelectOpportunity}
+        toolbar={<CostBasisToggle />}
       />
 
 

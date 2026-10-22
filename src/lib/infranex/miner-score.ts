@@ -74,7 +74,15 @@ const FACTOR_DESC: Record<keyof ScoreComponents, string> = {
     "Emission enabled, validator coverage, on-chain identity/GitHub and subnet maturity — operational basics before committing hardware.",
 };
 
-export function deriveFactors(c: ScoreComponents): OpportunityFactor[] {
+/** OWNED-MODE: the net-ROI factor description must say electricity when the
+ *  cost basis is owned hardware, not "GPU rental at market rates". */
+const NET_ROI_DESC_OWNED =
+  "Newcomer-adjusted mid-pack monthly USD (per-registered slot × reward spread) minus owned-hardware electricity + infra — the miner's bottom line, not gross emission.";
+
+export function deriveFactors(
+  c: ScoreComponents,
+  opts?: { hardwareMode?: "rent" | "owned" }
+): OpportunityFactor[] {
   return (Object.keys(c) as (keyof ScoreComponents)[]).map((k) => {
     const raw = c[k];
     const weight = SCORE_WEIGHTS[k];
@@ -84,7 +92,10 @@ export function deriveFactors(c: ScoreComponents): OpportunityFactor[] {
       weight,
       raw,
       impact: raw >= 60 ? "positive" : raw <= 40 ? "negative" : "neutral",
-      description: FACTOR_DESC[k],
+      description:
+        k === "net_roi" && opts?.hardwareMode === "owned"
+          ? NET_ROI_DESC_OWNED
+          : FACTOR_DESC[k],
     };
   });
 }
@@ -1007,7 +1018,13 @@ export function scoreMinersLedger(inputs: {
     demandParts: demand.parts,
   };
 
-  return { components, factors: deriveFactors(components), diag };
+  return {
+    components,
+    factors: deriveFactors(components, {
+      hardwareMode: costs.hardwareMode ?? "rent",
+    }),
+    diag,
+  };
 }
 
 // ---------------------------------------------------------------------------

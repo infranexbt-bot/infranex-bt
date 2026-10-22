@@ -1931,3 +1931,19 @@ Work Log:
 
 Stage Summary:
 - Full restore ~6 min effective work. Two runbook notes learned: (1) restore-after-recycle.ts can hang on process exit after printing "SubnetOverride base rows upserted" — judge completion by DB counts, don't blind-rerun; (2) batch-7 SN82 restore works end-to-end
+---
+Task ID: owned-gpu-cost-mode
+Agent: main (Super Z)
+Task: "ok that's good idea, build the owned GPU cost mode"
+
+Work Log:
+- Discovery: the owned-hardware electricity model ALREADY existed end-to-end (ProfitabilityConfig.hardwareMode rent|owned → live-merge → scoreMinersLedger → electricityMonthlyUsd(powerWatts×gpuCount, $/kWh)); default "rent" + the only toggle was buried in the settings dialog → effectively undiscoverable
+- Built src/components/cards/cost-basis-toggle.tsx: one-click Rented/Owned segmented control, PUTs /api/profitability-config (admin-gated), shows live $/kWh readout, tooltips explain semantics; honest note that owned mode changes COST side only (seat reality + rentability gates still apply)
+- Mounted on 3 surfaces: Dashboard SubnetChooser header (new toolbar prop), Opportunities toolbar, P&L dialog GPU line now mode-aware ("− GPU electricity (owned · $0.12/kWh)" vs "− GPU rental (modeled rate)"); Opportunities subtitle reflects active basis; miner-score deriveFactors gained hardwareMode opt so the net_roi factor description says electricity under owned
+- Bug during edit: typed `);` for `};` in scoreMinersLedger return — caught and fixed immediately (tsc clean)
+- Verified: tsc clean; lint shows only 2 PRE-EXISTING errors (stash-tested); verify-sn82-noah-fix 17/17 + verify-sn82-e2e PASS; scripts/verify-cost-basis.ts pure simulation: RENTED→OWNED flips SN92 REAX NO-GO(20)→PRIME(71) net −$600→+$1,026/mo, Opportunities RUN 6→12 (new GPU RUN: SN64 Chutes $3.8k, SN90 KubeTEE $3.7k, SN95 $2.9k, SN4 Targon $1.3k, SN120 $1.2k), knife-fight rows stay gated (correct — ownership ≠ rewarded seat)
+- Agent-browser E2E: login → toggle renders → Owned click → GPU picks 10→36, SN92 PRIME visible, P&L label + subtitle + kWh readout confirmed, screenshots saved (tool-results/cost-basis-{owned,rented}-dashboard.png) → flipped BACK to Rented (default preserved); dev server reaped twice mid-verification, restarted durably each time
+- DB config state after session: hardwareMode=rent (default) — user flips the toggle themselves
+
+Stage Summary:
+- Owned-GPU cost mode shipped as a first-class one-click switch; engine semantics unchanged (global cost-basis perspective flip). GPU subnets with broad rewards (REAX etc.) now honestly visible to hardware owners; rent-based defaults untouched
