@@ -20,6 +20,7 @@ import { HostingWarningBlock, HostingChips } from "@/components/cards/hosting-re
 import { OfficialMechanicsBlock, MechanicsChips, rampWeeksSourceNote } from "@/components/cards/mechanics-block";
 import { DiligencePanel } from "@/components/opportunities/diligence-panel";
 import { useOddsTrends } from "@/hooks/use-odds";
+import { useProfitabilityConfig } from "@/hooks/use-profitability";
 import type { Opportunity } from "@/lib/infranex/types";
 
 interface OpportunityDetailDialogProps {
@@ -44,6 +45,10 @@ export function OpportunityDetailDialog({
   onOpenChange,
   onProvision,
 }: OpportunityDetailDialogProps) {
+  // OWNED-MODE: the P&L's GPU line label must reflect the active cost basis.
+  // Hook lives above the early return (Rules of Hooks).
+  const { data: profConfig } = useProfitabilityConfig();
+  const owned = profConfig?.hardwareMode === "owned";
   if (!opportunity) return null;
   const o = opportunity;
   const band = opportunityBand(o);
@@ -129,9 +134,17 @@ export function OpportunityDetailDialog({
               </div>
               <div className="flex items-center justify-between pl-4 text-muted-foreground">
                 {/* DATA-AUDIT-1 (H4) — the rate behind this line is a modeled
-                    market estimate, not a live provider quote. */}
-                <span title="Modeled market rate (survey estimate), not a live provider quote">
-                  − GPU rental (modeled rate){prof.gpuRentalUsd === 0 && " (none)"}
+                    market estimate, not a live provider quote. OWNED-MODE: the
+                    line is electricity instead of rent (hardwareMode toggle). */}
+                <span
+                  title={
+                    owned
+                      ? `Owned hardware — power draw × $${(profConfig?.electricityUsdPerKwh ?? 0.12).toFixed(2)}/kWh (Profitability settings)`
+                      : "Modeled market rate (survey estimate), not a live provider quote"
+                  }
+                >
+                  − GPU {owned ? `electricity (owned · $${(profConfig?.electricityUsdPerKwh ?? 0.12).toFixed(2)}/kWh)` : "rental (modeled rate)"}
+                  {prof.gpuRentalUsd === 0 && " (none)"}
                 </span>
                 <span className="tabular">−{formatCurrency(prof.gpuRentalUsd)}</span>
               </div>

@@ -89,10 +89,14 @@ export function SubnetChooser({
   picks,
   onStartMining,
   onSelectOpportunity,
+  toolbar,
 }: {
   picks: MinePick[];
   onStartMining?: (o: Opportunity) => void;
   onSelectOpportunity: (o: Opportunity) => void;
+  /** Optional controls rendered beside the hardware filter — e.g. the
+   *  CostBasisToggle (rented vs owned GPU economics). */
+  toolbar?: React.ReactNode;
 }) {
   const [hw, setHw] = useState<HardwareFilter>("all");
   const [showAll, setShowAll] = useState(false);
@@ -126,8 +130,10 @@ export function SubnetChooser({
             Choose your subnet · CPU or GPU, with conviction
           </CardTitle>
         </div>
-        {picks.length > 0 && (
-        <div className="flex items-center gap-1">
+        <div className="flex flex-wrap items-center gap-2">
+          {toolbar}
+          {picks.length > 0 && (
+          <div className="flex items-center gap-1">
           {(["all", "CPU", "GPU"] as const).map((k) => (
             <button
               key={k}
@@ -149,8 +155,9 @@ export function SubnetChooser({
               <span className="mono tabular text-[10px] opacity-70">{counts[k]}</span>
             </button>
           ))}
+          </div>
+          )}
         </div>
-        )}
       </CardHeader>
       <CardContent className="space-y-2">
         {picks.length === 0 ? (

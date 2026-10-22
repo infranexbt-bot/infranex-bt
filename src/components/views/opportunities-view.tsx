@@ -14,6 +14,7 @@ import {
 import { OpportunityTable } from "@/components/tables/opportunity-table";
 import { OpportunityCard } from "@/components/cards/opportunity-detail";
 import { ProfitabilitySettingsDialog } from "@/components/cards/profitability-settings";
+import { CostBasisToggle } from "@/components/cards/cost-basis-toggle";
 import { useNetwork, mergeOpportunities } from "@/hooks/use-network";
 import { useProfitabilityConfig } from "@/hooks/use-profitability";
 import { useSubnetOverrides } from "@/hooks/use-subnet-overrides";
@@ -139,8 +140,11 @@ export function OpportunitiesView({ onSelectOpportunity, onStartMining }: Opport
             liquidity, slippage) and earning reality.
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
-            Profitability Engine: revenue − GPU − storage − infra − other = net.
-            Minimum entry rule: net &lt;{" "}
+            Profitability Engine: revenue − GPU − storage − infra − other = net
+            {profConfig?.hardwareMode === "owned"
+              ? " · GPU line = owned electricity (owned mode)"
+              : " · GPU line = market rent"}
+            . Minimum entry rule: net &lt;{" "}
             <span className="font-semibold text-foreground/80">
               ${target.toLocaleString()}/mo
             </span>{" "}
@@ -243,6 +247,8 @@ export function OpportunitiesView({ onSelectOpportunity, onStartMining }: Opport
         ))}
 
         <div className="ml-auto flex items-center gap-2">
+          <CostBasisToggle />
+          <span className="h-5 w-px bg-border/60" aria-hidden />
           <Cpu className="h-3.5 w-3.5 text-muted-foreground" />
           <Select value={gpuFilter} onValueChange={applyGpuFilter}>
             <SelectTrigger className="h-8 w-[190px] rounded-full border-border/60 bg-card/30 text-xs">
