@@ -1947,3 +1947,17 @@ Work Log:
 
 Stage Summary:
 - Owned-GPU cost mode shipped as a first-class one-click switch; engine semantics unchanged (global cost-basis perspective flip). GPU subnets with broad rewards (REAX etc.) now honestly visible to hardware owners; rent-based defaults untouched
+---
+Task ID: owned-labels-mode-aware
+Agent: main (Super Z)
+Task: "in Ranked opportunities, Owned GPU i see Rented earn. why that heading is showing in owned GPU"
+
+Work Log:
+- Root cause: rent-earn engine was already mode-aware (EV reads mode-aware ledger net) but ALL lens labels were hardcoded rented — summary card "Rented-rig earn picks" above Ranked opportunities, table column "Rent earn", "My GPU" filter "Rented rig picks", Dashboard stat "Rent earn" + conviction footnote
+- Fix: rentEarnLabels(hardwareMode) in rent-earn.ts as the single source for both label sets; wired into opportunities-view (card icon/title/subtitle + filter option), opportunity-table (column + Mining lenses tooltip — fixes Dashboard table too), subnet-chooser (Conviction tooltip, lens Stat, footnote, CPU icon title); mine-pick fallback reason neutralized
+- Owned wording: "Owned-rig earn picks" / "Earn picks" / "Earn pick", subtitle notes "hosting gates still apply" (semantics unchanged by design — cost side only)
+- Verified: tsc clean; eslint clean (5 touched files); agent-browser E2E both directions — owned shows all Owned strings, rented restores every original string byte-for-byte; screenshot tool-results/owned-labels-opportunities.png
+- Config left at hardwareMode=owned (user's active mode); commit aeb3670 (push pending fresh PAT)
+
+Stage Summary:
+- The rent-earn lens now speaks the user's cost basis everywhere: no surface says "Rented/Rent earn" while Owned is active, and rented mode is byte-identical to before
