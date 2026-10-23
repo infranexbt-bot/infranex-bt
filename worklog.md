@@ -1976,3 +1976,20 @@ Work Log:
 
 Stage Summary:
 - Full restore ~3 min; runbook executed cleanly; added config-state restoration as step 5 of the post-recycle runbook (owned mode preserved)
+---
+Task ID: sn51-lium-provider-research
+Agent: main (Super Z)
+Task: "lets research on SN51 lium... planning to bet on rtx 5090 or RTX PRO 6000 Blackwell Server Edition. does it provide good earnings? also list the GPUs which has good earnings."
+
+Work Log:
+- Platform data: SN51 = lium.io (renamed from Grail); playbook entry repo-verified (Datura-ai/lium-io + docs.lium.io/providers); chain: 256/256 UIDs full, 67 rewarded, top10 take 99.3%, miner emission 335 TAO/d, alpha movingPrice 0.1136 TAO (~$30.7) vs EMA 0.4846, dilution 6.0
+- Found stale Grail-era TEE gate in CURATED_RENT_BLOCKS[51] — REMOVED (Lium needs TDX only on H100/H200/B200/GB200; consumer cards run Sysbox); tsc clean, 17/17 regression PASS, engine now rentable=true
+- Lium economics verified: rental fees = 95% of renter pay, DAILY to coldkey (USDT min $5 w/ 5% fee, or SN51 alpha); emission = idle pay + rented extra, alpha-staked per tempo; Secure tier drops rental = 48h penalty; idle pay needs disk >=1.5x VRAM + price <= soft limit + non-Spot
+- Official 30-day earnings table (lium.io/rent-out-your-gpu, to 2026-10-23, per GPU-month incl idle pay): B300 $5,776 / B200 $4,161 / H200 $3,069 / H100 $1,283 / PRO6000-Server $1,060 (87% rented) / PRO6000-WS $876 / A100 $757 / 5090 $416 (82%) / A6000 $342 / 4090 $320 / L40S $313 / 3090 $135
+- Live marketplace feed (lium.io/api/public/v1/nodes): 37 nodes; PRO6000-Server $1.84/hr, 5090 $1.00-1.60/hr, B300 $6.40-10/hr
+- GPU street prices Oct 2026 (AI-demand squeeze): 5090 $8,599-9,344 (4.5x MSRP, Tom's/bestvaluegpu); PRO6000-Server $16,000-16,595 (1.9x launch, Dell/tech-insider)
+- Payback math: 5090 net ~$385/mo -> 22-24 mo (4.2%/mo); PRO6000-Server net ~$1,025/mo -> 15-16 mo (6.2%/mo) — PRO6000 wins at today's prices
+- Verdicts: platform mining ledger stays NO-GO for SN51 (models emission-per-seat, not marketplace rental; meetsMinimum false, $66/mo) — correct conservatism; the real provider earning is rental+idle, not emission (top10 = 99.3%)
+
+Stage Summary:
+- Delivered full provider-economics answer: PRO 6000 Server better buy than 5090 at Oct-2026 prices; already-owned 5090 = ~$5k/yr; best-ROI used market = 4090/A6000 class; datacenter absolute $ = B300/H200; take rental in USDT not alpha; stale SN51 gate removed so the app no longer falsely marks the marketplace unrentable
