@@ -45,11 +45,11 @@ export const CURATED_RENT_BLOCKS: Record<
       "Miner must run as a Phala Cloud Intel TDX CVM — not a plain rented container",
     source: "curated README audit",
   },
-  51: {
-    reason:
-      "Executor must run inside an Intel TDX confidential VM with attestation (dstacktee) — needs a TEE-capable bare host",
-    source: "curated README audit",
-  },
+  // SN51 removed from curated blocks (2026-10-23): the old entry was
+  // Grail-era ("dstacktee CVM"). SN51 is now lium.io, a GPU rental marketplace
+  // whose whole premise is that anyone can list a node — TDX is only required
+  // for H100/H200/B200/GB200 tiers, consumer RTX cards run plain Sysbox
+  // (playbook sn51 entry, docs.lium.io/providers, Datura-ai/lium-io).
   90: {
     reason:
       "Whole mechanism is TEE-attested Kubernetes clusters (Intel TDX + NVIDIA CC, 8-GPU passthrough, Kata+CoCo)",
