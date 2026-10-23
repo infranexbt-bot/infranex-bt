@@ -1961,3 +1961,18 @@ Work Log:
 
 Stage Summary:
 - The rent-earn lens now speaks the user's cost basis everywhere: no surface says "Rented/Rent earn" while Owned is active, and rented mode is byte-identical to before
+---
+Task ID: app-load-restore-8
+Agent: main (Super Z)
+Task: "load the web app" (7th DB wipe)
+
+Work Log:
+- Health: server UP (307) but DB wiped — ChainSnapshot=0, Playbook=0, Overrides=0 (AppUser=5 re-seeded)
+- restore-after-recycle.ts: clean exit (no exit-hang this time) — block=9345792, 129 subnets, 112 overrides
+- merge-playbook.ts: 106 rows | repo-verified=98 derived=7 thin=1 (SN82 auto-restored via batch-7)
+- rescrape-requirements.ts: 112 / 109 ok / 69 GPU / 7 hosting / 3 errors — exact known-good numbers
+- verify-app-health.ts: ALL PASS (network live block=9345868, playbook 106 SN82=Noah, overrides 112/69 GPU, config 200)
+- NEW post-wipe step: restored user's active cost basis hardwareMode=rent→owned via PUT /api/profitability-config (wipe resets config to default; user was actively working in owned mode)
+
+Stage Summary:
+- Full restore ~3 min; runbook executed cleanly; added config-state restoration as step 5 of the post-recycle runbook (owned mode preserved)
