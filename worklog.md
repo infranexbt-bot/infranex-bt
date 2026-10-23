@@ -1993,3 +1993,23 @@ Work Log:
 
 Stage Summary:
 - Delivered full provider-economics answer: PRO 6000 Server better buy than 5090 at Oct-2026 prices; already-owned 5090 = ~$5k/yr; best-ROI used market = 4090/A6000 class; datacenter absolute $ = B300/H200; take rental in USDT not alpha; stale SN51 gate removed so the app no longer falsely marks the marketplace unrentable
+
+---
+Task ID: sn51-lium-research
+Agent: main (Z.ai)
+Task: SN51 Lium provider-earnings research — is RTX 5090 or RTX PRO 6000 Blackwell Server worth listing; rank GPUs by earnings
+
+Work Log:
+- Verified SN51 identity: playbook/override in DB already named "lium.io" (no Grail rebrand fix needed); bittensor.ai confirms Lium, owner cut 18%, on-chain identity lium.io
+- Pulled provider economics from provider.lium.io + lium.io/rent-out-your-gpu (measured 30 days to 2026-10-23): per-GPU/month totals incl. rental 95% + idle pay + rented extra
+- Pulled live marketplace prices from lium.io/pricing.json (1,778 GPUs listed, 1,642 rented = 92%)
+- Read GPU_MODEL_RATES from Datura-ai/lium-io validator const.py (idle-pool weights: 5090=0.025, PRO 6000 Server=0.025, Workstation=0.027, 4090=0.05, H200=0.56, B300=0.05; 5070 Ti/5080/5060 Ti=0.0 => no idle pay)
+- Hardware capex research: RTX 5090 street Oct 2026 $5,000-9,300 (Tom's >=$5k; gpupoet from $6,911; bestvaluegpu $9,344 new/$6,780 used); PRO 6000 Server MSRP ~$8,500, street inflated (workstation seen $19,999 on Amazon); power: 5090 575W, PRO 6000 Server 400-600W configurable passive
+- Modeled payback: 5090 net ~$425/mo -> ~15 mo at $6.5k; PRO 6000 Server net ~$1,050/mo -> ~8 mo at $8.5k / ~11 mo at $12k
+- Delivered verdict in chat: PRO 6000 Server is the better buy of the two; used 4090 best ROI overall; 5090 only worth listing if already owned
+
+Stage Summary:
+- Verdict: between the two candidates, RTX PRO 6000 Blackwell Server Edition wins (2.35x monthly earnings, shorter payback, 96GB future-proof, 87% utilization, 206 GPUs supply vs 264)
+- Best-earning GPUs on Lium (per GPU/mo): B300 $6,238 > B200 $4,314 > H200 $3,118 > H100 $1,388-1,253 > PRO 6000 Server $1,092 > PRO 6000 Workstation $942 > A100 $778 > 6000 Ada $599 > 5090 $464 > 4090 $339
+- Best ROI (payback): used 4090 ~7mo, 3090 ~7mo (low absolute), PRO 6000 Server 8-11mo, 6000 Ada ~9mo, 5090 new ~15mo
+- No playbook update needed (SN51 entry already current); app DB healthy
