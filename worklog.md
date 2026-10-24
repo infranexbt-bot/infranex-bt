@@ -2013,3 +2013,17 @@ Stage Summary:
 - Best-earning GPUs on Lium (per GPU/mo): B300 $6,238 > B200 $4,314 > H200 $3,118 > H100 $1,388-1,253 > PRO 6000 Server $1,092 > PRO 6000 Workstation $942 > A100 $778 > 6000 Ada $599 > 5090 $464 > 4090 $339
 - Best ROI (payback): used 4090 ~7mo, 3090 ~7mo (low absolute), PRO 6000 Server 8-11mo, 6000 Ada ~9mo, 5090 new ~15mo
 - No playbook update needed (SN51 entry already current); app DB healthy
+
+---
+Task ID: app-load-restore-9
+Agent: main (Z.ai)
+Task: User asked to "load the web app" — server up but playbook/overrides tables wiped (8th DB wipe, 9th incident)
+
+Work Log:
+- Port 3000 already up (307→login 200); health check exposed wipe: playbook 0 entries, overrides 0
+- Ran full 5-step runbook: restore-after-recycle.ts (112 base rows, block 9353456, clean exit) → merge-playbook.ts (106 rows, repo-verified=98, derived=7, thin=1) → rescrape-requirements.ts (needed 2 runs; 1st gave 64 GPU, 2nd gave 69) → verify-app-health.ts all PASS → PUT profitability-config hardwareMode=owned
+- Final state: 129 subnets live block~9353517 · 106 playbook (SN82=Noah) · 112 overrides / 69 GPU / 7 hosting · hardwareMode=owned · SN51 override intact (lium.io, 8x B300)
+
+Stage Summary:
+- Full known-good state restored in ~4 min; new learning: rescrape may need a 2nd run to reach 69 GPU recs (transient GitHub misses)
+- GitHub PAT status not re-checked this round; commit queue (incl. aeb3670) may still need fresh PAT
