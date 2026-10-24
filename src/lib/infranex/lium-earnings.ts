@@ -33,6 +33,19 @@ export interface LiumGpuRow {
   powerWatts: number;
   /** Default capex assumption for the payback calculator (USD). Editable. */
   streetPriceUsd: number;
+  // --- Demand + pricing-strategy fields (fleet & provider tables, 2026-10-23) ---
+  /** Live fleet snapshot (lium.io pricing.json): GPUs listed on the marketplace. */
+  listedCount: number | null;
+  /** Same snapshot: GPUs currently rented. rented/listed = live tightness. */
+  rentedCount: number | null;
+  /** Official trailing-30d average time-rented (%). */
+  avgRentedPct30d: number | null;
+  /** Official trailing-30d average realized rental price (USD/GPU-hour). */
+  avgUsdPerHr: number | null;
+  /** Soft-limit reference price (USD/GPU-hour) — at/below it idle hours keep idle pay. */
+  softLimitUsdPerHr: number | null;
+  /** Observed above-limit ask (USD/GPU-hour; midpoint of the live range, if any). Forfeits idle pay. */
+  marketAskUsdPerHr: number | null;
   vramGb: number;
   /** Where the price assumption comes from. */
   priceNote: string;
@@ -45,6 +58,12 @@ export const LIUM_GPUS: LiumGpuRow[] = [
     gpu: "NVIDIA B300",
     tier: "datacenter",
     monthlyUsd: 6238,
+    listedCount: 265,
+    rentedCount: 209,
+    avgRentedPct30d: 81,
+    avgUsdPerHr: 8.34,
+    softLimitUsdPerHr: 8.0,
+    marketAskUsdPerHr: 8.15,
     idleWeight: 0.05,
     powerWatts: 1400,
     streetPriceUsd: 55000,
@@ -56,6 +75,12 @@ export const LIUM_GPUS: LiumGpuRow[] = [
     gpu: "NVIDIA B200",
     tier: "datacenter",
     monthlyUsd: 4314,
+    listedCount: 101,
+    rentedCount: 91,
+    avgRentedPct30d: 72,
+    avgUsdPerHr: 6.12,
+    softLimitUsdPerHr: 5.6,
+    marketAskUsdPerHr: 5.75,
     idleWeight: null,
     powerWatts: 1000,
     streetPriceUsd: 45000,
@@ -67,6 +92,12 @@ export const LIUM_GPUS: LiumGpuRow[] = [
     gpu: "NVIDIA H200",
     tier: "datacenter",
     monthlyUsd: 3118,
+    listedCount: 170,
+    rentedCount: 149,
+    avgRentedPct30d: 89,
+    avgUsdPerHr: 4.05,
+    softLimitUsdPerHr: 3.65,
+    marketAskUsdPerHr: 4.65,
     idleWeight: 0.56,
     powerWatts: 700,
     streetPriceUsd: 30000,
@@ -78,6 +109,12 @@ export const LIUM_GPUS: LiumGpuRow[] = [
     gpu: "NVIDIA H100",
     tier: "datacenter",
     monthlyUsd: 1388,
+    listedCount: 303,
+    rentedCount: 271,
+    avgRentedPct30d: 72,
+    avgUsdPerHr: 1.92,
+    softLimitUsdPerHr: 1.39,
+    marketAskUsdPerHr: 3.13,
     idleWeight: null,
     powerWatts: 700,
     streetPriceUsd: 22000,
@@ -89,6 +126,12 @@ export const LIUM_GPUS: LiumGpuRow[] = [
     gpu: "RTX PRO 6000 Blackwell Server",
     tier: "pro",
     monthlyUsd: 1092,
+    listedCount: 144,
+    rentedCount: 136,
+    avgRentedPct30d: 87,
+    avgUsdPerHr: 1.43,
+    softLimitUsdPerHr: 1.19,
+    marketAskUsdPerHr: 1.84,
     idleWeight: 0.025,
     powerWatts: 600,
     streetPriceUsd: 8500,
@@ -100,6 +143,12 @@ export const LIUM_GPUS: LiumGpuRow[] = [
     gpu: "RTX PRO 6000 Blackwell Workstation",
     tier: "pro",
     monthlyUsd: 942,
+    listedCount: 18,
+    rentedCount: 18,
+    avgRentedPct30d: 80,
+    avgUsdPerHr: 1.24,
+    softLimitUsdPerHr: 1.19,
+    marketAskUsdPerHr: 1.19,
     idleWeight: 0.027,
     powerWatts: 600,
     streetPriceUsd: 9500,
@@ -111,6 +160,12 @@ export const LIUM_GPUS: LiumGpuRow[] = [
     gpu: "NVIDIA A100",
     tier: "datacenter",
     monthlyUsd: 778,
+    listedCount: 54,
+    rentedCount: 54,
+    avgRentedPct30d: 67,
+    avgUsdPerHr: 1.22,
+    softLimitUsdPerHr: 0.7,
+    marketAskUsdPerHr: 0.7,
     idleWeight: null,
     powerWatts: 400,
     streetPriceUsd: 12000,
@@ -122,6 +177,12 @@ export const LIUM_GPUS: LiumGpuRow[] = [
     gpu: "RTX 6000 Ada",
     tier: "pro",
     monthlyUsd: 599,
+    listedCount: 41,
+    rentedCount: 41,
+    avgRentedPct30d: 80,
+    avgUsdPerHr: 0.78,
+    softLimitUsdPerHr: 0.75,
+    marketAskUsdPerHr: 0.75,
     idleWeight: null,
     powerWatts: 300,
     streetPriceUsd: 6800,
@@ -133,6 +194,12 @@ export const LIUM_GPUS: LiumGpuRow[] = [
     gpu: "RTX 5090",
     tier: "consumer",
     monthlyUsd: 464,
+    listedCount: 264,
+    rentedCount: 260,
+    avgRentedPct30d: 82,
+    avgUsdPerHr: 0.57,
+    softLimitUsdPerHr: 0.4,
+    marketAskUsdPerHr: 1.3,
     idleWeight: 0.025,
     powerWatts: 575,
     streetPriceUsd: 6500,
@@ -144,6 +211,12 @@ export const LIUM_GPUS: LiumGpuRow[] = [
     gpu: "RTX A6000",
     tier: "pro",
     monthlyUsd: 342,
+    listedCount: 77,
+    rentedCount: 76,
+    avgRentedPct30d: 96,
+    avgUsdPerHr: 0.42,
+    softLimitUsdPerHr: 0.42,
+    marketAskUsdPerHr: 0.49,
     idleWeight: null,
     powerWatts: 300,
     streetPriceUsd: 4300,
@@ -155,6 +228,12 @@ export const LIUM_GPUS: LiumGpuRow[] = [
     gpu: "RTX 4090",
     tier: "consumer",
     monthlyUsd: 339,
+    listedCount: 102,
+    rentedCount: 101,
+    avgRentedPct30d: 85,
+    avgUsdPerHr: 0.45,
+    softLimitUsdPerHr: 0.3,
+    marketAskUsdPerHr: 0.7,
     idleWeight: 0.05,
     powerWatts: 450,
     streetPriceUsd: 2200,
@@ -166,6 +245,12 @@ export const LIUM_GPUS: LiumGpuRow[] = [
     gpu: "RTX 3090",
     tier: "consumer",
     monthlyUsd: 135,
+    listedCount: 91,
+    rentedCount: 91,
+    avgRentedPct30d: 81,
+    avgUsdPerHr: 0.19,
+    softLimitUsdPerHr: 0.16,
+    marketAskUsdPerHr: 0.25,
     idleWeight: null,
     powerWatts: 350,
     streetPriceUsd: 800,
@@ -176,6 +261,10 @@ export const LIUM_GPUS: LiumGpuRow[] = [
 ];
 
 export const LIUM_MEASURED_AT = "2026-10-23";
+/** Hours in the lib's billing month (matches electricityMonthlyUsd). */
+export const HOURS_PER_MONTH = 729.6;
+export const LIUM_FLEET_SUMMARY =
+  "Fleet snapshot 2026-10-23 (lium.io pricing.json): 1,778 GPUs listed, 1,642 rented (92.4%).";
 export const LIUM_SOURCE =
   "Trailing-30-day provider earnings measured on lium.io (2026-10-23). Observations, not guarantees.";
 export const LIUM_DOCS = "https://docs.lium.io/providers";
@@ -236,6 +325,58 @@ export function computePayback(i: PaybackInput): PaybackResult {
     net24MoUsd: net * 24 - i.capexUsd,
     neverPays: net <= 0 || i.capexUsd > net * 24,
   };
+}
+
+// --- Pricing strategy: soft-limit vs market-ask -----------------------------
+
+export type PricingStrategy = "soft_limit" | "market_ask";
+
+/**
+ * Monthly revenue for a card under a pricing strategy, scaled by the demand
+ * slider (100 = trailing-30d actuals).
+ *
+ * soft_limit — the measured monthlyUsd, which INCLUDES the idle-pool pay the
+ *   card earned while waiting for renters. Pricing at/below the model's soft
+ *   limit keeps that stream alive (plus the other eligibility conditions).
+ * market_ask — re-price the rented hours at the observed above-limit ask and
+ *   drop idle pay entirely: pricing above the soft limit forfeits it. Rented
+ *   time stays at the official 30d average, scaled by the demand slider.
+ *   Above-limit demand is thinner — treat this as the upside case and stress
+ *   it with the slider. Cards with no observed above-limit ask fall back to
+ *   the soft-limit number (fellBack = true).
+ */
+export function monthlyRevenueAt(
+  g: LiumGpuRow,
+  strategy: PricingStrategy,
+  demandPct: number
+): { usd: number; fellBack: boolean } {
+  if (
+    strategy === "market_ask" &&
+    g.marketAskUsdPerHr != null &&
+    g.avgRentedPct30d != null &&
+    g.marketAskUsdPerHr > (g.softLimitUsdPerHr ?? 0)
+  ) {
+    return {
+      usd:
+        g.marketAskUsdPerHr *
+        HOURS_PER_MONTH *
+        (g.avgRentedPct30d / 100) *
+        (demandPct / 100),
+      fellBack: false,
+    };
+  }
+  return { usd: g.monthlyUsd * (demandPct / 100), fellBack: strategy === "market_ask" };
+}
+
+/**
+ * Derived residual of the measured monthly figure: what "official 30d rented
+ * time × avg realized price" does NOT explain — i.e. idle-pool pay plus small
+ * deltas between Lium's two published tables. An estimate, never a promise.
+ */
+export function idlePayEstimate(g: LiumGpuRow): number | null {
+  if (g.avgUsdPerHr == null || g.avgRentedPct30d == null) return null;
+  const rental = g.avgUsdPerHr * HOURS_PER_MONTH * (g.avgRentedPct30d / 100);
+  return Math.max(0, Math.round(g.monthlyUsd - rental));
 }
 
 // --- Payout comparator ------------------------------------------------------

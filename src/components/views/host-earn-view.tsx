@@ -58,6 +58,7 @@ import { cn } from "@/lib/utils";
 import {
   ALPHA_SCENARIO,
   LIUM_DOCS,
+  LIUM_FLEET_SUMMARY,
   LIUM_GPUS,
   LIUM_MEASURED_AT,
   LIUM_SOURCE,
@@ -67,12 +68,26 @@ import {
   comparePayouts,
   computePayback,
   electricityMonthlyUsd,
+  idlePayEstimate,
+  monthlyRevenueAt,
   type LiumGpuRow,
   type LiumTier,
+  type PricingStrategy,
 } from "@/lib/infranex/lium-earnings";
 
 const usd = (n: number, digits = 0) =>
   `$${n.toLocaleString("en-US", { maximumFractionDigits: digits, minimumFractionDigits: digits })}`;
+
+/** Live fleet tightness badge from rented/listed (lium.io snapshot). */
+const tightness = (rented: number | null, listed: number | null) => {
+  if (rented == null || listed == null || listed === 0) return null;
+  const pct = Math.round((rented / listed) * 100);
+  if (pct >= 97)
+    return { pct, label: "Tight", cls: "border-success/40 bg-success/10 text-success" };
+  if (pct >= 85)
+    return { pct, label: "Solid", cls: "border-primary/40 bg-primary/10 text-primary" };
+  return { pct, label: "Loose", cls: "border-warning/40 bg-warning/10 text-warning" };
+};
 
 const LENS_ROWS: { lens: string; income: string; gate: string; fit: string }[] = [
   {
@@ -113,6 +128,10 @@ const ONBOARDING: { title: string; body: string }[] = [
     title: "5 · Rail strategy",
     body: "While recovering capital take USDT — stability beats fees. After payback, alpha is reasonable with house money; if you hold alpha, trim weekly rather than timing.",
   },
+  {
+    title: "6 · Idle pay is conditional",
+    body: "Idle pay only accrues if the node passes the 15-min validator checks, is priced at or under the model's soft limit, has disk ≥ 1.5× total VRAM, runs 1 or 8 GPUs per node (or GPU splitting on), and has Discord connected. Price above the limit and the idle stream goes to zero — that is exactly the Market-ask trade-off in the calculator.",
+  },
 ];
 
 export function HostEarnView() {
@@ -138,6 +157,7 @@ export function HostEarnView() {
   const gpu = LIUM_GPUS.find((g) => g.gpu === gpuName) ?? LIUM_GPUS[0];
   const [capex, setCapex] = useState<number>(gpu.streetPriceUsd);
   const [demandPct, setDemandPct] = useState(100);
+  const [strategy, setStrategy] = useState<PricingStrategy>("soft_limit");
   const [alphaOverride, setAlphaOverride] = useState<number | null>(null);
   const alphaPrice = alphaOverride ?? liveAlphaPriceUsd;
 
@@ -152,7 +172,14 @@ export function HostEarnView() {
     [tierFilter]
   );
 
-  const revenue = gpu.monthlyUsd * (demandPct / 100);
+  const rev = monthlyRevenueAt(gpu, strategy, demandPct);
+  const revenue = rev.usd;
+  const softRevenue = gpu.monthlyUsd * (demandPct / 100);
+  const marketDelta = revenue - softRevenue;
+  const marketDeltaPct =
+    softRevenue > 0 ? Math.round((marketDelta / softRevenue) * 100) : 0;
+  const idleEst = idlePayEstimate(gpu);
+  const idleEstScaled = idleEst != null ? Math.round((idleEst * demandPct) / 100) : null;
   const pb = computePayback({
     capexUsd: capex,
     monthlyRevenueUsd: revenue,
@@ -181,7 +208,8 @@ export function HostEarnView() {
           The mining engine is honest: GPU mining seats are mostly whale knife-fights behind
           hardware gates. Hosting is the other way a GPU earns on Bittensor — someone pays you
           rent to use it, and idle cards still accrue validator idle-pool pay. Below: measured
-          earnings, exact payback on your electricity rate, and the USDT-vs-alpha payout choice.
+          earnings, live demand per model, exact payback on your electricity rate under two
+          pricing strategies, and the USDT-vs-alpha payout choice.
         </p>
       </header>
 
@@ -270,6 +298,12 @@ export function HostEarnView() {
                 <TableRow>
                   <TableHead>GPU</TableHead>
                   <TableHead>VRAM</TableHead>
+                  <TableHead
+                    className="text-right"
+                    title="Fleet snapshot 2026-10-23: units rented / listed on lium.io right now, plus the official trailing-30d average time-rented."
+                  >
+                    Demand
+                  </TableHead>
                   <TableHead className="text-right">Measured /mo</TableHead>
                   <TableHead className="text-right" title="Validator idle-pool weight — idle cards still accrue pay where a weight exists">
                     Idle wgt
@@ -313,6 +347,33 @@ export function HostEarnView() {
                         </div>
                       </TableCell>
                       <TableCell className="mono tabular text-xs">{g.vramGb} GB</TableCell>
+                      <TableCell className="text-right">
+                        {(() => {
+                          const t = tightness(g.rentedCount, g.listedCount);
+                          if (!t)
+                            return <span className="text-xs text-muted-foreground">—</span>;
+                          return (
+                            <div className="space-y-0.5">
+                              <p className="mono tabular text-xs font-semibold">
+                                {g.rentedCount}/{g.listedCount}
+                              </p>
+                              <div className="flex items-center justify-end gap-1">
+                                <span
+                                  className={cn(
+                                    "rounded-full border px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide",
+                                    t.cls
+                                  )}
+                                >
+                                  {t.label}
+                                </span>
+                                <span className="text-[10px] text-muted-foreground">
+                                  30d {g.avgRentedPct30d ?? "?"}%
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })()}
+                      </TableCell>
                       <TableCell className="mono tabular text-right text-sm font-semibold text-success">
                         {usd(g.monthlyUsd)}
                       </TableCell>
@@ -351,6 +412,10 @@ export function HostEarnView() {
           <p className="mt-3 text-[11px] text-muted-foreground">
             Elec/mo = board watts × 24/7 × {usd(elecRate, 3)}/kWh. Payback column uses each card&apos;s
             default street price — click a row to load it into the calculator with your own capex.
+          </p>
+          <p className="mt-1.5 text-[11px] text-muted-foreground">
+            {LIUM_FLEET_SUMMARY} Demand column = that snapshot&apos;s rented/listed per model, with the
+            official trailing-30d average time-rented. Tight ≥97% · Solid ≥85% · Loose below.
           </p>
         </CardContent>
       </Card>
@@ -416,9 +481,67 @@ export function HostEarnView() {
             </div>
 
             <div className="space-y-1.5">
+              <Label className="text-[11px] text-muted-foreground">Pricing strategy</Label>
+              <div className="flex flex-wrap items-center gap-1.5">
+                {([
+                  { key: "soft_limit" as const, label: "Soft limit · keeps idle pay" },
+                  { key: "market_ask" as const, label: "Market ask · forfeits idle pay" },
+                ]).map((s) => (
+                  <button
+                    key={s.key}
+                    onClick={() => setStrategy(s.key)}
+                    className={cn(
+                      "rounded-full border px-3 py-1.5 text-[11px] font-medium transition-colors",
+                      strategy === s.key
+                        ? "border-primary/40 bg-primary/10 text-primary"
+                        : "border-border/60 bg-card/30 text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+              <p className="text-[10px] leading-relaxed text-muted-foreground">
+                {strategy === "soft_limit"
+                  ? `Price at/below the model's soft limit${
+                      gpu.softLimitUsdPerHr != null
+                        ? ` (~$${gpu.softLimitUsdPerHr.toFixed(2)}/hr)`
+                        : ""
+                    } — idle hours keep earning idle-pool pay. Measured actuals already include it.`
+                  : rev.fellBack
+                    ? "No above-limit ask observed for this model — market mode unavailable, showing soft-limit actuals."
+                    : `Price at the observed ask (~$${
+                        gpu.marketAskUsdPerHr != null ? gpu.marketAskUsdPerHr.toFixed(2) : "?"
+                      }/hr) — more per rented hour, but idle pay is forfeited and above-limit demand is thinner.`}
+              </p>
+              {strategy === "market_ask" && !rev.fellBack && (
+                <p className="text-[11px] leading-relaxed">
+                  vs soft-limit at this demand:{" "}
+                  <span
+                    className={cn(
+                      "mono tabular font-semibold",
+                      marketDelta >= 0 ? "text-success" : "text-destructive"
+                    )}
+                  >
+                    {marketDelta >= 0 ? "+" : ""}
+                    {usd(marketDelta)}/mo ({marketDeltaPct >= 0 ? "+" : ""}
+                    {marketDeltaPct}%)
+                  </span>
+                  {idleEstScaled != null && (
+                    <span className="text-muted-foreground">
+                      {" "}· forfeits ≈{usd(idleEstScaled)}/mo idle pay
+                    </span>
+                  )}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-1.5">
               <div className="flex items-center justify-between">
                 <Label className="text-[11px] text-muted-foreground">Demand assumption</Label>
-                <span className="mono tabular text-xs font-semibold">{demandPct}% of trailing 30d</span>
+                <span className="mono tabular text-xs font-semibold">
+                  {demandPct}% {strategy === "market_ask" ? "of 30d rented time" : "of trailing 30d"}
+                </span>
               </div>
               <Slider
                 value={[demandPct]}
