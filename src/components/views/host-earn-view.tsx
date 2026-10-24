@@ -63,6 +63,8 @@ import { cn } from "@/lib/utils";
 import type { ViewKey } from "@/lib/infranex/types";
 import {
   COMPARE_MEASURED_AT,
+  demandChip,
+  EXCLUDED_PROVIDERS,
   HOST_BASIS_STYLE,
   HOST_PROVIDERS,
   PROVIDER_COMPARE,
@@ -228,10 +230,11 @@ export function HostEarnView({
         <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground">
           The mining engine is honest: GPU mining seats are mostly whale knife-fights behind
           hardware gates. Hosting is the other way a GPU earns — someone pays you rent to use it.
-          Lium is the measured baseline (trailing-30d actuals, idle-pool pay); we researched the
-          other marketplaces that pay for your GPU — Vast.ai, SaladCloud, io.net, RunPod,
-          TensorDock — and priced which one pays most for YOUR card. Below: the cross-provider
-          comparison, per-provider payout rails and requirements, Lium&apos;s measured earnings,
+          Lium is the measured baseline (trailing-30d actuals, idle-pool pay). Only marketplaces
+          where you can self-serve host and see real pay made the board — Vast.ai, SaladCloud and
+          io.net, priced per hour against Lium for YOUR card. RunPod and TensorDock were removed:
+          no verifiable per-card pay for self-serve hosts. Below: the per-hour comparison with
+          demand chips, per-provider payout rails and requirements, Lium&apos;s measured earnings,
           exact payback on your electricity rate, and the USDT-vs-alpha payout choice.
         </p>
       </header>
@@ -247,7 +250,7 @@ export function HostEarnView({
             Same GPU, two different businesses. The engine scores the first one; this page prices the second.
           </CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-3 md:grid-cols-2">
+        <CardContent className="grid grid-cols-1 gap-3 md:grid-cols-2">
           {LENS_ROWS.map((r, i) => (
             <div
               key={r.lens}
@@ -284,14 +287,14 @@ export function HostEarnView({
             Which provider pays the most for your GPU?
           </CardTitle>
           <CardDescription>
-            Six marketplaces that pay you to host, priced per card. Green = best payer for that
-            card. Click a row to load it into the payback calculator. Researched{" "}
-            {COMPARE_MEASURED_AT}.
+            The four marketplaces that pay you to host, priced per card — hourly rate on top,
+            monthly beneath, demand chip where the provider publishes one. Green = best payer.
+            Click a row to load it into the payback calculator. Researched {COMPARE_MEASURED_AT}.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Headline verdicts */}
-          <div className="grid gap-3 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             {PROVIDER_VERDICTS.map((v) => (
               <div key={v.title} className="rounded-xl border border-success/25 bg-success/5 p-3.5">
                 <p className="text-sm font-semibold text-success">{v.title}</p>
@@ -310,7 +313,10 @@ export function HostEarnView({
                     const p = HOST_PROVIDERS.find((x) => x.id === pid)!;
                     return (
                       <TableHead key={pid} className="text-right">
-                        {p.name.replace(" (SN51)", "").replace(" (Community Cloud)", "")}
+                        {p.name.replace(" (SN51)", "")}
+                        <span className="block text-[10px] font-normal text-muted-foreground">
+                          $/hr · /mo
+                        </span>
                       </TableHead>
                     );
                   })}
@@ -346,10 +352,11 @@ export function HostEarnView({
                         if (!r || r.monthlyMid == null)
                           return (
                             <TableCell key={pid} className="text-right">
-                              <span className="text-xs text-muted-foreground">—</span>
+                              <span className="text-xs text-muted-foreground">n/p</span>
                             </TableCell>
                           );
                         const basis = HOST_BASIS_STYLE[r.basis];
+                        const chip = r.demand ? demandChip(r.demand.pct) : null;
                         return (
                           <TableCell key={pid} className="text-right">
                             <div className="flex flex-col items-end gap-0.5">
@@ -360,18 +367,45 @@ export function HostEarnView({
                                 )}
                                 title={r.note}
                               >
-                                {r.monthlyLow != null && r.monthlyHigh != null && r.monthlyLow !== r.monthlyHigh
-                                  ? `${usd(r.monthlyLow)}–${usd(r.monthlyHigh)}`
-                                  : usd(r.monthlyMid)}
+                                {r.hourlyLow != null && r.hourlyHigh != null
+                                  ? r.hourlyLow !== r.hourlyHigh
+                                    ? `$${r.hourlyLow.toFixed(2)}–${r.hourlyHigh.toFixed(2)}/hr`
+                                    : `$${r.hourlyLow.toFixed(2)}/hr`
+                                  : r.hourlyLow != null
+                                    ? `$${r.hourlyLow.toFixed(2)}/hr`
+                                    : "—"}
                               </span>
                               <span
-                                className={cn(
-                                  "rounded-full border px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide",
-                                  basis.cls
-                                )}
-                                title={basis.tip}
+                                className="mono tabular text-[10px] text-muted-foreground"
+                                title="Monthly at the utilization disclosed in the rate's tooltip"
                               >
-                                {basis.label}
+                                {r.monthlyLow != null && r.monthlyHigh != null && r.monthlyLow !== r.monthlyHigh
+                                  ? `${usd(r.monthlyLow)}–${usd(r.monthlyHigh)}/mo`
+                                  : `${usd(r.monthlyMid)}/mo`}
+                              </span>
+                              <span className="flex items-center justify-end gap-1">
+                                {chip && r.demand && (
+                                  <span
+                                    className={cn(
+                                      "rounded-full border px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide",
+                                      chip.cls
+                                    )}
+                                    title={r.demand.note}
+                                  >
+                                    {r.demand.kind === "rented"
+                                      ? `${chip.label} ${r.demand.pct}%`
+                                      : `${r.demand.pct}% occ`}
+                                  </span>
+                                )}
+                                <span
+                                  className={cn(
+                                    "rounded-full border px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide",
+                                    basis.cls
+                                  )}
+                                  title={basis.tip}
+                                >
+                                  {basis.label}
+                                </span>
                               </span>
                             </div>
                           </TableCell>
@@ -382,14 +416,23 @@ export function HostEarnView({
                           if (!row.bestId || row.bestMonthly == null)
                             return <span className="text-xs text-muted-foreground">no data</span>;
                           const p = HOST_PROVIDERS.find((x) => x.id === row.bestId)!;
+                          const best = row.byProvider[row.bestId];
                           return (
                             <div className="flex flex-col items-end gap-0.5">
                               <span className="mono tabular text-sm font-bold text-success">
                                 {usd(row.bestMonthly)}
+                                <span className="text-[10px] font-semibold"> /mo</span>
                               </span>
                               <span className="text-[10px] text-muted-foreground">
-                                {p.name.replace(" (SN51)", "").replace(" (Community Cloud)", "")}
+                                {p.name.replace(" (SN51)", "")}
                                 {row.bestIsEstimate ? " (est.)" : ""}
+                                {best?.hourlyLow != null
+                                  ? ` · $${best.hourlyLow.toFixed(2)}${
+                                      best.hourlyHigh != null && best.hourlyHigh !== best.hourlyLow
+                                        ? `–${best.hourlyHigh.toFixed(2)}`
+                                        : ""
+                                    }/hr`
+                                  : ""}
                               </span>
                             </div>
                           );
@@ -418,10 +461,41 @@ export function HostEarnView({
               </span>
             ))}
             <span className="text-[11px] text-muted-foreground">
-              — measured = realized payouts · published = provider&apos;s own rate card · estimate =
-              our renter-rate conversion (commission not public). RunPod &amp; TensorDock publish no
-              per-card host figures — see their profiles below.
+              — measured = realized payouts · published = live marketplace asks / provider rate
+              card · estimate = our renter-rate conversion (commission not public).
             </span>
+          </div>
+          <p className="text-[11px] leading-relaxed text-muted-foreground">
+            <span className="font-semibold text-foreground">Demand chips:</span> Lium = units
+            rented / listed in the 2026-10-23 fleet snapshot (Tight ≥97% · Solid ≥85% · Loose
+            below) · Salad = share of hours with a container job running (trailing week Oct 16–22).
+            Vast &amp; io.net don&apos;t publish per-card utilization — their /mo figures assume
+            80% / 70% utilization on live or published asks.
+          </p>
+
+          {/* Removed providers — auditable exclusion, not a silent drop */}
+          <div className="rounded-xl border border-border/50 bg-card/20 p-3.5">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              Removed from the board — no verifiable per-card pay for self-serve hosts
+            </p>
+            <div className="mt-2 grid grid-cols-1 gap-2 md:grid-cols-2">
+              {EXCLUDED_PROVIDERS.map((x) => (
+                <div key={x.name} className="flex gap-2 text-[11px] leading-relaxed">
+                  <X className="mt-0.5 h-3 w-3 shrink-0 text-destructive" />
+                  <p>
+                    <a
+                      href={x.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="font-semibold text-foreground underline-offset-2 hover:underline"
+                    >
+                      {x.name}
+                    </a>
+                    <span className="text-muted-foreground"> — {x.reason}</span>
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -431,11 +505,12 @@ export function HostEarnView({
         <CardHeader>
           <CardTitle className="text-lg">Provider profiles — payouts, requirements, trade-offs</CardTitle>
           <CardDescription>
-            What each platform actually requires from you and how you get paid. Entry bar: easy =
-            a gaming PC qualifies · strict = datacenter / application.
+            The four marketplaces left on the board: what each actually requires from you and how
+            you get paid. Entry bar: easy = a gaming PC qualifies · medium = agent + uptime target
+            · strict = datacenter / application.
           </CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
+        <CardContent className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           {HOST_PROVIDERS.map((p) => {
             const entryCls =
               p.entryBar === "easy"
@@ -522,7 +597,7 @@ export function HostEarnView({
             <CardTitle className="text-lg">Lium (SN51) — measured provider earnings per card</CardTitle>
             <CardDescription>{LIUM_SOURCE}</CardDescription>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <Label htmlFor="elec-rate" className="whitespace-nowrap text-[11px] text-muted-foreground">
               Electricity {usd(elecRate, 3)}/kWh
             </Label>
@@ -683,7 +758,7 @@ export function HostEarnView({
       </Card>
 
       {/* Calculator + payout comparator */}
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card className="glass">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
@@ -695,7 +770,7 @@ export function HostEarnView({
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <Label className="text-[11px] text-muted-foreground">GPU</Label>
                 <Select value={gpuName} onValueChange={selectGpu}>
@@ -891,7 +966,7 @@ export function HostEarnView({
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <Label className="text-[11px] text-muted-foreground">Monthly payout (USD)</Label>
                 <div className="flex h-9 items-center rounded-md border border-border/60 bg-card/30 px-3 text-sm font-semibold">
@@ -917,7 +992,7 @@ export function HostEarnView({
               </div>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div className="rounded-xl border border-success/30 bg-success/5 p-4">
                 <p className="flex items-center gap-1.5 text-sm font-semibold text-success">
                   <CircleDollarSign className="h-4 w-4" /> USDT rail
@@ -960,7 +1035,7 @@ export function HostEarnView({
       </div>
 
       {/* Onboarding + honesty */}
-      <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.4fr_1fr]">
         <Card className="glass">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
