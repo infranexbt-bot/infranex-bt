@@ -2143,3 +2143,21 @@ Stage Summary:
 - btcli non-interactive flags verified against bittensor-cli 9.23.2 source — source contract preserved
 - New learning for future sessions: Write/Edit tool output and file writes strip ANSI-SGR-like tokens ([1m]) — verify such content by hex bytes only, never by displayed text
 - Files: src/lib/infranex/lium-bootstrap.ts (new), src/components/views/lium-setup-view.tsx, scripts/check-lium-bootstrap.ts + scripts/hex-verify-bootstrap.ts + scripts/patch-bootstrap-ansi.py (reusable validators)
+
+---
+Task ID: host-earn-multi-provider
+Agent: main (Super Z)
+Task: "now lets work on Host & Earn... research other providers like Vast, Salad etc where we can host GPUs and earn like lium... provide which providers are paying more and where i can get good earnings by hosting my GPU."
+
+Work Log:
+- Web research (5 queries, Oct 2026): Vast.ai host article (May 2026: 5090 $0.30-0.60/GPU-hr, H100/H200 $2.15-4.00+, 4x5090 rig @80% = $700-1400/mo), SaladCloud earning-rates trailing week (Oct 16-22 2026: 4090 avg $0.291/hr top $0.488, 5090 $0.281, 4080 $0.133, 3090 $0.083; weekly payouts, 190+ countries), io.net published renter rates (Jul 2025: 4090 $0.49, A100 80GB $1.49, H100 $1.85-2.20; $IO tokens, 95% uptime priority, DC GPUs 3-5x consumer), RunPod Community Cloud (no public host rate card — profile-only), TensorDock host page (strict datacenter requirements: 1Gbps/static IP/16GB RAM+8vCPU+1TB NVMe per GPU; Stripe payouts; own guidance = 2-3yr payback)
+- Created src/lib/infranex/host-providers.ts: HOST_PROVIDERS (6 profiles: lium/vast/salad/ionet/runpod/tensordock with payout rails, platform take, entry bars, requirements, pros/cons, dataNote honesty strings), per-GPU ProviderGpuEarning rows with EarningsBasis (measured/published/estimate) per cell, PROVIDER_COMPARE (14 GPU keys x 4 numbered providers + bestId/bestMonthly mid-ranking), PROVIDER_VERDICTS (4 headline conclusions), HOST_BASIS_STYLE legend
+- host-earn-view.tsx: new "Which provider pays the most for your GPU?" card (4 verdict tiles + GPU x provider table with per-cell basis badges + best-payer column, row click loads calculator via LIUM_KEY_MAP), "Provider profiles" card (6 cards: payout/take/entry/requirements/pros/cons/dataNote + host-page links), hero retitled "rent your GPUs to whoever pays the most", Lium table retitled "Lium (SN51) — measured provider earnings per card"
+- Verdicts encoded: consumer RTX -> Lium pays most (4090 $339 vs io.net $250est/Salad $212/Vast $163-292); mid-range 4070/4080/3080 -> Salad only market ($60-97/mo); H100 -> Vast range brackets Lium ($1,255-2,335 vs $1,388, Vast mid $1,795 wins); H200 -> Lium $3,118 + 0.56 idle weight beats Vast grouped range; B200/B300/PRO6000 -> Lium only measured source
+- Verify: tsc EXIT 0 (fixed monthlyLow/High null-narrowing), eslint clean, dev server revived twice (sandbox kill pattern), agent-browser e2e: comparison table renders all 14 rows with correct figures (spot-checked 4090/5090/H100/H200/B300 vs lib math), basis badges + legend render, row click loads calculator (4090 select verified), provider cards render with entry badges, desktop 1440 + mobile 390 screenshots, console 0 errors after fresh load (lium-bootstrap console error was Fast-Refresh noise, eslint clean on that file)
+- Screenshots: download/host-earn-providers-{compare,table,cards,mobile,mobile-2,bottom}.png
+
+Stage Summary:
+- Host & Earn now answers "who pays most" across 6 marketplaces with per-cell honesty labels — Lium stays the measured baseline and wins consumer RTX + H200; Vast wins H100 mid; Salad is the only market for mid-range cards; RunPod/TensorDock profiled as opaque/strict
+- Data basis system (measured/published/estimate) keeps the module's honesty contract: every number traceable to its source string in the lib
+- Files: src/lib/infranex/host-providers.ts (new), src/components/views/host-earn-view.tsx
