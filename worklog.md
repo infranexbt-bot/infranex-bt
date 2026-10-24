@@ -2101,3 +2101,24 @@ Stage Summary:
 - tsc --noEmit EXIT 0; dev server healthy; agent-browser e2e verified: demand badges correct on all 12 rows, 4090 market $434 (+28%, idle $60), 5090 market $778 (+68%, idle $123), A100 fallback message correct, slider 50% halves revenue ($389), payout comparator follows strategy revenue
 - Desktop + mobile screenshots in download/host-earn-demand-*.png; console + dev.log clean
 - Key insight surfaced by the tool: H200/B300/A100 are better OFF at soft-limit pricing (big idle pools), while 5090 (+68%) and 4090 (+28%) gain from market-ask pricing because their idle pools are tiny and the market is tight (98-99% rented)
+
+---
+Task ID: lium-setup-guide
+Agent: main (Super Z)
+Task: "now i want complete setup guide from setting up my GPU onboard to lium. I need step by step guide to setting up the GPU to lium, registering, cold key hot key, installing required requirements all this to be included. so plan the provide me the implementations."
+
+Work Log:
+- Researched official sources (fetched 2026-10-25): docs.lium.io/providers/quickstart.md (Path A email/USDT vs Path B hotkey/alpha), docs.lium.io/providers/nodes/quickstart.md (Ubuntu 24.04/HWE kernel 5.19+, nvidia-smi, Docker, Sysbox+NVIDIA toolkit one-liner, mine.sh --register, ports 8080/2200/3+ renting ports, INSUFFICIENT_PORTS), lium.io/rent-out-your-gpu (requirements + payout mechanics), github.com/Datura-ai/lium-io (ports table, idle-pay conditions)
+- Created src/lib/infranex/lium-setup.ts: 7 phases (rail decision → host prep → wallet coldkey/hotkey + SN51 registration → portal setup → node install → pricing/idle-pay eligibility → operate), 28 steps each with why/commands(verbatim)/verify/gotcha/links, path applicability tags (both|usdt|alpha), PAYOUT_PATHS cards, REQUIREMENTS strip, SETUP_LINKS (15 official URLs), localStorage progress helpers (lium-setup-progress-v1)
+- Created src/components/views/lium-setup-view.tsx: interactive stepper with path toggle (Path A shows 22 steps, Path B 28), per-step done checkboxes persisted to localStorage, copyable command blocks (CopyCmd pattern from cpu-guide), "you know it worked when" verify blocks, destructive GOTCHA callouts, progress bar + reset, Secure-node 48h penalty card, cross-link to Host & Earn calculator
+- Registered Section 05e: types.ts ViewKey "lium-setup", page.tsx VIEW_META + render + onNavigate, sidebar.tsx Milestone icon "Setup Guide 05e"
+- host-earn-view.tsx: added onNavigate prop + "Open the full setup guide — GPU to earning node" CTA under the onboarding checklist; description updated to six items
+- Fixed react-hooks/set-state-in-effect lint: hydration effect wraps localStorage reads in async load() (same pattern as cpu-guide usePhaseProgress)
+- Verification: tsc --noEmit EXIT 0; eslint changed files CLEAN; dev server revived (setsid ritual, login 200); agent-browser e2e: login → sidebar "Setup Guide 05e" → hero/progress/rail cards render → Path B toggle shows wallet phase (28 steps) → marked 3 steps (3/28 · 11%, localStorage ["p0-s1","p0-s2","p1-s1"]) → reload + re-navigate restores 3/28 and Path B → Host & Earn CTA navigates to guide → wallet phase renders PATH B badges + btcli commands + gotchas → mobile 390px stacks cleanly with progress restored → console clean (HMR only), dev.log clean
+- Test artifacts cleared after e2e (progress + path localStorage removed); screenshots: download/lium-setup-top.png, lium-setup-wallet.png, lium-setup-penalty.png, lium-setup-mobile3.png
+
+Stage Summary:
+- Setup Guide (Section 05e) live: the full GPU→earning-node path in-app — rail decision, host prep (Ubuntu/driver/Docker/Sysbox), coldkey/hotkey + SN51 registration (btcli subnet register --netuid 51), portal setup (signature login/Central Miner Server/Discord), one-command node install (mine.sh --register), soft-limit pricing + 7-point idle-pay checklist, operations (docker compose pull, payout rhythm)
+- Source contract: every command transcribed verbatim from official docs fetched 2026-10-25; DOCS links win over the page if Lium changes flow
+- Path toggle personalizes: USDT rail hides all wallet steps; alpha rail adds registration-fee + Central-Miner-Server steps
+- Files: src/lib/infranex/lium-setup.ts, src/components/views/lium-setup-view.tsx, page.tsx, sidebar.tsx, types.ts, host-earn-view.tsx

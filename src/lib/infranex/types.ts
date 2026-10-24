@@ -272,6 +272,7 @@ export type ViewKey =
   | "gpu-landscape"
   | "miner-playbook"
   | "host-earn"
+  | "lium-setup"
   | "cpus"
   | "gpus"
   | "miners"
