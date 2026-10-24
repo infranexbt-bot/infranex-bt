@@ -33,7 +33,10 @@ export interface LiumGpuRow {
   powerWatts: number;
   /** Default capex assumption for the payback calculator (USD). Editable. */
   streetPriceUsd: number;
-  // --- Demand + pricing-strategy fields (fleet & provider tables, 2026-10-23) ---
+  // --- Demand + pricing-strategy fields ---
+  //   listedCount/rentedCount/marketAskUsdPerHr: fleet snapshot 2026-10-24
+  //   (lium.io/pricing.json). Earnings, 30d rented%, soft limits: official
+  //   provider tables, trailing 30d to 2026-10-23.
   /** Live fleet snapshot (lium.io pricing.json): GPUs listed on the marketplace. */
   listedCount: number | null;
   /** Same snapshot: GPUs currently rented. rented/listed = live tightness. */
@@ -58,8 +61,8 @@ export const LIUM_GPUS: LiumGpuRow[] = [
     gpu: "NVIDIA B300",
     tier: "datacenter",
     monthlyUsd: 6238,
-    listedCount: 265,
-    rentedCount: 209,
+    listedCount: 273,
+    rentedCount: 242,
     avgRentedPct30d: 81,
     avgUsdPerHr: 8.34,
     softLimitUsdPerHr: 8.0,
@@ -75,8 +78,8 @@ export const LIUM_GPUS: LiumGpuRow[] = [
     gpu: "NVIDIA B200",
     tier: "datacenter",
     monthlyUsd: 4314,
-    listedCount: 101,
-    rentedCount: 91,
+    listedCount: 109,
+    rentedCount: 100,
     avgRentedPct30d: 72,
     avgUsdPerHr: 6.12,
     softLimitUsdPerHr: 5.6,
@@ -93,7 +96,7 @@ export const LIUM_GPUS: LiumGpuRow[] = [
     tier: "datacenter",
     monthlyUsd: 3118,
     listedCount: 170,
-    rentedCount: 149,
+    rentedCount: 153,
     avgRentedPct30d: 89,
     avgUsdPerHr: 4.05,
     softLimitUsdPerHr: 3.65,
@@ -109,8 +112,8 @@ export const LIUM_GPUS: LiumGpuRow[] = [
     gpu: "NVIDIA H100",
     tier: "datacenter",
     monthlyUsd: 1388,
-    listedCount: 303,
-    rentedCount: 271,
+    listedCount: 289,
+    rentedCount: 160,
     avgRentedPct30d: 72,
     avgUsdPerHr: 1.92,
     softLimitUsdPerHr: 1.39,
@@ -126,8 +129,8 @@ export const LIUM_GPUS: LiumGpuRow[] = [
     gpu: "RTX PRO 6000 Blackwell Server",
     tier: "pro",
     monthlyUsd: 1092,
-    listedCount: 144,
-    rentedCount: 136,
+    listedCount: 162,
+    rentedCount: 145,
     avgRentedPct30d: 87,
     avgUsdPerHr: 1.43,
     softLimitUsdPerHr: 1.19,
@@ -136,32 +139,32 @@ export const LIUM_GPUS: LiumGpuRow[] = [
     powerWatts: 600,
     streetPriceUsd: 8500,
     vramGb: 96,
-    priceNote: "research base case $8.5k (alt scenario $12k)",
-    note: "Best new-buy payback (~8 mo @ $8.5k). Passively cooled — needs a proper server chassis.",
+    priceNote: "research base case $8.5k (alt $12k) — Workstation street hit ~$16k Oct 2026, verify your quote",
+    note: "Best new-buy payback at the $8.5k research base (~8 mo). Passively cooled — needs a proper server chassis. Live 2026-10-24: 145/162 rented (90%); asks $1.85–2.09/hr.",
   },
   {
     gpu: "RTX PRO 6000 Blackwell Workstation",
     tier: "pro",
     monthlyUsd: 942,
-    listedCount: 18,
-    rentedCount: 18,
+    listedCount: 20,
+    rentedCount: 19,
     avgRentedPct30d: 80,
     avgUsdPerHr: 1.24,
     softLimitUsdPerHr: 1.19,
-    marketAskUsdPerHr: 1.19,
+    marketAskUsdPerHr: 1.93,
     idleWeight: 0.027,
     powerWatts: 600,
-    streetPriceUsd: 9500,
+    streetPriceUsd: 16000,
     vramGb: 96,
-    priceNote: "assumed street price — edit to your quote",
-    note: "Active cooling — fits a workstation. Slightly lower yield than the Server Edition.",
+    priceNote: "NVIDIA marketplace / Newegg / B&H $15,999–16,000 (Oct 2026, GDDR7 shortage; was $8,565 MSRP Mar 2025) — edit to your quote",
+    note: "Active cooling — fits a workstation. Slightly lower yield than the Server Edition. Live 2026-10-24: 19/20 rented (95%), 1 idle; hosts asking $1.93/hr, above the $1.19 soft limit (forfeits idle pay). New-buy payback ~18 mo at $16k street — hosting a card you already own is the far better play.",
   },
   {
     gpu: "NVIDIA A100",
     tier: "datacenter",
     monthlyUsd: 778,
     listedCount: 54,
-    rentedCount: 54,
+    rentedCount: 46,
     avgRentedPct30d: 67,
     avgUsdPerHr: 1.22,
     softLimitUsdPerHr: 0.7,
@@ -178,7 +181,7 @@ export const LIUM_GPUS: LiumGpuRow[] = [
     tier: "pro",
     monthlyUsd: 599,
     listedCount: 41,
-    rentedCount: 41,
+    rentedCount: 39,
     avgRentedPct30d: 80,
     avgUsdPerHr: 0.78,
     softLimitUsdPerHr: 0.75,
@@ -194,8 +197,8 @@ export const LIUM_GPUS: LiumGpuRow[] = [
     gpu: "RTX 5090",
     tier: "consumer",
     monthlyUsd: 464,
-    listedCount: 264,
-    rentedCount: 260,
+    listedCount: 274,
+    rentedCount: 273,
     avgRentedPct30d: 82,
     avgUsdPerHr: 0.57,
     softLimitUsdPerHr: 0.4,
@@ -211,8 +214,8 @@ export const LIUM_GPUS: LiumGpuRow[] = [
     gpu: "RTX A6000",
     tier: "pro",
     monthlyUsd: 342,
-    listedCount: 77,
-    rentedCount: 76,
+    listedCount: 79,
+    rentedCount: 70,
     avgRentedPct30d: 96,
     avgUsdPerHr: 0.42,
     softLimitUsdPerHr: 0.42,
@@ -228,8 +231,8 @@ export const LIUM_GPUS: LiumGpuRow[] = [
     gpu: "RTX 4090",
     tier: "consumer",
     monthlyUsd: 339,
-    listedCount: 102,
-    rentedCount: 101,
+    listedCount: 103,
+    rentedCount: 103,
     avgRentedPct30d: 85,
     avgUsdPerHr: 0.45,
     softLimitUsdPerHr: 0.3,
@@ -245,8 +248,8 @@ export const LIUM_GPUS: LiumGpuRow[] = [
     gpu: "RTX 3090",
     tier: "consumer",
     monthlyUsd: 135,
-    listedCount: 91,
-    rentedCount: 91,
+    listedCount: 95,
+    rentedCount: 90,
     avgRentedPct30d: 81,
     avgUsdPerHr: 0.19,
     softLimitUsdPerHr: 0.16,
@@ -264,7 +267,7 @@ export const LIUM_MEASURED_AT = "2026-10-23";
 /** Hours in the lib's billing month (matches electricityMonthlyUsd). */
 export const HOURS_PER_MONTH = 729.6;
 export const LIUM_FLEET_SUMMARY =
-  "Fleet snapshot 2026-10-23 (lium.io pricing.json): 1,778 GPUs listed, 1,642 rented (92.4%).";
+  "Fleet snapshot 2026-10-24 (lium.io pricing.json): 1,820 GPUs listed, 1,586 rented (87.1%).";
 export const LIUM_SOURCE =
   "Trailing-30-day provider earnings measured on lium.io (2026-10-23). Observations, not guarantees.";
 export const LIUM_DOCS = "https://docs.lium.io/providers";

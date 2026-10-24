@@ -467,7 +467,7 @@ export function HostEarnView({
           </div>
           <p className="text-[11px] leading-relaxed text-muted-foreground">
             <span className="font-semibold text-foreground">Demand chips:</span> Lium = units
-            rented / listed in the 2026-10-23 fleet snapshot (Tight ≥97% · Solid ≥85% · Loose
+            rented / listed in the 2026-10-24 fleet snapshot (Tight ≥97% · Solid ≥85% · Loose
             below) · Salad = share of hours with a container job running (trailing week Oct 16–22).
             Vast &amp; io.net don&apos;t publish per-card utilization — their /mo figures assume
             80% / 70% utilization on live or published asks.
@@ -637,7 +637,7 @@ export function HostEarnView({
                   <TableHead>VRAM</TableHead>
                   <TableHead
                     className="text-right"
-                    title="Fleet snapshot 2026-10-23: units rented / listed on lium.io right now, plus the official trailing-30d average time-rented."
+                    title="Fleet snapshot 2026-10-24: units rented / listed on lium.io right now, plus the official trailing-30d average time-rented."
                   >
                     Demand
                   </TableHead>
