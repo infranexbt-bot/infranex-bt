@@ -74,6 +74,15 @@ const FACTOR_DESC: Record<keyof ScoreComponents, string> = {
     "Emission enabled, validator coverage, on-chain identity/GitHub and subnet maturity — operational basics before committing hardware.",
 };
 
+/** PROVIDER-MARKETPLACE: subnets whose miners are paid OFF-CHAIN marketplace
+ *  income (SN51 Lium: 95% rental share + idle pay) price their gross from the
+ *  measured provider table, not the emission estimate — the factor text must
+ *  say so, because "mid-pack emission" would misread the top line. */
+const NET_ROI_DESC_PROVIDER_RENT =
+  "Measured provider income (rentals @ 95% share + idle pay, trailing 30d) minus GPU rental + infra — the off-chain income stream the incentive vector cannot see.";
+const NET_ROI_DESC_PROVIDER_OWNED =
+  "Measured provider income (rentals @ 95% share + idle pay, trailing 30d) minus owned-hardware electricity + infra — the off-chain income stream the incentive vector cannot see.";
+
 /** OWNED-MODE: the net-ROI factor description must say electricity when the
  *  cost basis is owned hardware, not "GPU rental at market rates". */
 const NET_ROI_DESC_OWNED =
@@ -81,7 +90,10 @@ const NET_ROI_DESC_OWNED =
 
 export function deriveFactors(
   c: ScoreComponents,
-  opts?: { hardwareMode?: "rent" | "owned" }
+  opts?: {
+    hardwareMode?: "rent" | "owned";
+    revenueBasis?: "emission" | "provider-marketplace";
+  }
 ): OpportunityFactor[] {
   return (Object.keys(c) as (keyof ScoreComponents)[]).map((k) => {
     const raw = c[k];
@@ -93,9 +105,13 @@ export function deriveFactors(
       raw,
       impact: raw >= 60 ? "positive" : raw <= 40 ? "negative" : "neutral",
       description:
-        k === "net_roi" && opts?.hardwareMode === "owned"
-          ? NET_ROI_DESC_OWNED
-          : FACTOR_DESC[k],
+        k === "net_roi" && opts?.revenueBasis === "provider-marketplace"
+          ? opts?.hardwareMode === "owned"
+            ? NET_ROI_DESC_PROVIDER_OWNED
+            : NET_ROI_DESC_PROVIDER_RENT
+          : k === "net_roi" && opts?.hardwareMode === "owned"
+            ? NET_ROI_DESC_OWNED
+            : FACTOR_DESC[k],
     };
   });
 }
@@ -569,6 +585,13 @@ export interface MinerLedgerDiagnostics {
   requirementsSource?: string | null;
   /** "bare-metal" when the subnet's docs reject container clouds. */
   costClass?: "container" | "bare-metal";
+  /** What the gross top line is priced from: "provider-marketplace" =
+   *  measured off-chain provider income (rentals + idle pay, replaces the
+   *  emission estimate — SN51 Lium); "emission" = the generic per-seat
+   *  incentive-vector estimate (every other subnet). */
+  revenueBasis: "emission" | "provider-marketplace";
+  /** Where the measured provider figure comes from (when active). */
+  revenueBasisSource?: string | null;
   /** Effective per-GPU rent actually charged in this ledger (MECHANICS-1). */
   unitRentUsd?: number;
   infraCostMonthlyUsd: number;
@@ -756,6 +779,13 @@ export function scoreMinersLedger(inputs: {
     includeBurnAmortization?: boolean;
     amortizeBurnMonths?: number;
   };
+  /** Measured OFF-CHAIN provider income (e.g. SN51 Lium: 95% of renter
+   *  payments + idle-pool pay — invisible to the incentive vector). When
+   *  present and positive it REPLACES the emission-only gross top line: the
+   *  measured figure already includes idle-pool emission, so adding both
+   *  would double-count. Alpha economics (dTAO/slippage) stay emission-based.
+   *  Source: lium-earnings.ts providerMarketplaceRevenueFor(). */
+  providerRevenue?: { monthlyUsd: number; source: string } | null;
 }): MinerLedger {
   const { live, taoUsd } = inputs;
   const usd = taoUsd || 0;
@@ -804,7 +834,15 @@ export function scoreMinersLedger(inputs: {
       : minerEmissionRealTaoPerDay > 0
         ? perRegisteredDailyTao * 0.6
         : 0;
-  const grossMonthlyUsd = Math.round(expectedDailyTao * 30 * usd);
+  // PROVIDER-MARKETPLACE: measured off-chain income (rentals + idle pay)
+  // replaces the emission estimate when the subnet's miners are paid by a
+  // real marketplace. The measured number subsumes idle-pool emission —
+  // replace, never add. Alpha economics below stay emission-based.
+  const providerRevenueActive =
+    inputs.providerRevenue != null && inputs.providerRevenue.monthlyUsd > 0;
+  const grossMonthlyUsd = providerRevenueActive
+    ? Math.round(inputs.providerRevenue!.monthlyUsd)
+    : Math.round(expectedDailyTao * 30 * usd);
   // Physical α the newcomer actually receives (real TAO ÷ realizable price)
   // — feeds the sell-pressure slippage signal, which must stay in α units.
   const dailyAlpha =
@@ -1005,6 +1043,8 @@ export function scoreMinersLedger(inputs: {
     hosting: hardware.hosting ?? null,
     requirementsSource: hardware.requirementsSource ?? null,
     costClass: hardware.costClass ?? (hardware.hosting?.bareMetalOnly ? "bare-metal" : "container"),
+    revenueBasis: providerRevenueActive ? "provider-marketplace" : "emission",
+    revenueBasisSource: providerRevenueActive ? inputs.providerRevenue!.source : null,
     unitRentUsd: Math.round(unitRent),
     infraCostMonthlyUsd: Math.round(infraCost),
     storageCostMonthlyUsd: Math.round(storageCost),
@@ -1038,6 +1078,7 @@ export function scoreMinersLedger(inputs: {
     components,
     factors: deriveFactors(components, {
       hardwareMode: costs.hardwareMode ?? "rent",
+      revenueBasis: providerRevenueActive ? "provider-marketplace" : "emission",
     }),
     diag,
   };

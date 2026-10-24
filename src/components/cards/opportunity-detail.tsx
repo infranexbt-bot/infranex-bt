@@ -129,7 +129,22 @@ export function OpportunityDetailDialog({
             {/* Waterfall: revenue − cost lines = net */}
             <div className="mt-3 space-y-1 text-sm">
               <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Expected revenue</span>
+                <span
+                  className="text-muted-foreground"
+                  title={
+                    o.revenueBasis === "provider-marketplace"
+                      ? o.revenueBasisSource ??
+                        "Measured off-chain provider income (95% rental share + idle pay) — replaces the emission estimate"
+                      : undefined
+                  }
+                >
+                  Expected revenue
+                  {o.revenueBasis === "provider-marketplace" && (
+                    <span className="ml-1.5 rounded border border-success/30 bg-success/10 px-1 py-px text-[10px] font-medium uppercase tracking-wide text-success">
+                      measured provider income
+                    </span>
+                  )}
+                </span>
                 <span className="tabular font-semibold">{formatCurrency(prof.expectedRevenueUsd)}</span>
               </div>
               <div className="flex items-center justify-between pl-4 text-muted-foreground">

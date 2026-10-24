@@ -132,6 +132,14 @@ export interface Opportunity {
   } | null;
   /** Hosting-aware cost class: bare-metal dedicated vs container rental. */
   costClass?: "container" | "bare-metal" | null;
+  /** What the gross top line is priced from: "provider-marketplace" = the
+   *  measured OFF-CHAIN provider income (95% rental share + idle pay — SN51
+   *  Lium), which replaces the emission estimate; "emission" = the generic
+   *  per-seat incentive-vector estimate. */
+  revenueBasis?: "emission" | "provider-marketplace";
+  /** Source of the measured provider figure (when revenueBasis is
+   *  "provider-marketplace"). */
+  revenueBasisSource?: string | null;
   /** Gross per-EARNING-miner monthly USD (before GPU + infra costs). */
   grossMonthlyUsd?: number;
   /** Net monthly USD after GPU rental + infra — the miner's bottom line. */
