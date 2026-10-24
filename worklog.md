@@ -2122,3 +2122,24 @@ Stage Summary:
 - Source contract: every command transcribed verbatim from official docs fetched 2026-10-25; DOCS links win over the page if Lium changes flow
 - Path toggle personalizes: USDT rail hides all wallet steps; alpha rail adds registration-fee + Central-Miner-Server steps
 - Files: src/lib/infranex/lium-setup.ts, src/components/views/lium-setup-view.tsx, page.tsx, sidebar.tsx, types.ts, host-earn-view.tsx
+
+---
+Task ID: lium-setup-automate
+Agent: main (Super Z)
+Task: "can this be automated?" — asked about the Setup Guide (05e) flow; implement the automation answer in-app.
+
+Work Log:
+- Answer: everything terminal-side automates into idempotent generated bash scripts; identity/money/business steps stay human by design
+- Verified btcli flags from bittensor-cli 9.23.2 wheel source (pip download + unzip): wallet new_coldkey accepts --no-use-password (typer auto-flag from use_password), new_hotkey has no password by default, subnet register accepts -y/--no-prompt/--yes, --wallet.name/--wallet.hotkey/--wallet.path confirmed — no invented commands
+- Created src/lib/infranex/lium-bootstrap.ts: buildHostScript(cfg) (preflight OS/kernel-5.19 guard with sort -V, driver install-or-skip + reboot-continue, Fabric Manager for HGX, Docker via get.docker.com, Sysbox+NVIDIA toolkit one-liner with sysbox-runc skip detection, GPU-in-Sysbox proof, ufw 8080/2200/20000-20100, RAM/disk vs 1.5x-VRAM idle-pay math, Path-B wallet reminder NOT on host, mine.sh install with portal-issued command passthrough (shell-quote escaped, /mine.sh/ validation), human-only next-steps footer) + buildWorkstationScript(cfg) (GPU-host guard with nvidia-smi abort, btcli in ~/.venvs/lium (Ubuntu 24.04 PEP 668), coldkey/hotkey creation with existence checks + --no-use-password option, overview/balance, SN51 registration behind explicit y/N gate, extension import reminders); both idempotent, colors via E="\\033" const
+- lium-setup-view.tsx: new AutomateCard after progress card — path-aware config (driver/HGX/ufw toggles; alpha adds wallet+hotkey names + password-protect toggle + workstation download), portal-command input, download (Blob) + copy + preview (max-h-80 pre), WHAT AUTOMATES vs STAYS MANUAL panels (5 human items: portal identity, funding/burn, Discord, price/tier, running the script itself)
+- E2E: login -> 05e -> card renders (Path A: no wallet fields) -> Path B toggle shows wallet config + workstation button -> preview extracted from live DOM passed bash -n -> driver toggle flips phase 1 to verify-only -> download button click no errors -> mobile 390px stacks cleanly -> console/dev.log clean; localStorage reset after e2e
+- WAR STORY: the Write/Edit toolchain strips SGR tokens ([1m] etc.) from file writes AND from displayed tool output, which masked a quoting bug across 4 patch attempts; resolution was byte-level hex verification (scripts/hex-verify-bootstrap.ts) + python patch constructing codes at runtime (scripts/patch-bootstrap-ansi.py v5: final segment '[0m"' carries the closing bash double-quote)
+- Validation: all 4 config variants (host USDT, host alpha+HGX+portal-cmd with apostrophe escape, ws password, ws no-password+name sanitization) pass bash -n; kernel sort -V guard tested both directions; sanitizer strips non-[a-zA-Z0-9_-]; portal command single-quote escaping correct
+- tsc EXIT 0; eslint changed files clean; screenshots download/lium-automate-{config,mobile}.png
+
+Stage Summary:
+- Setup Guide 05e now answers "can this be automated?" with a working generator: one GPU-host script (both rails) + one Path-B workstation script, both idempotent with human gates at funding/registration, honest boundary card for what stays manual
+- btcli non-interactive flags verified against bittensor-cli 9.23.2 source — source contract preserved
+- New learning for future sessions: Write/Edit tool output and file writes strip ANSI-SGR-like tokens ([1m]) — verify such content by hex bytes only, never by displayed text
+- Files: src/lib/infranex/lium-bootstrap.ts (new), src/components/views/lium-setup-view.tsx, scripts/check-lium-bootstrap.ts + scripts/hex-verify-bootstrap.ts + scripts/patch-bootstrap-ansi.py (reusable validators)
