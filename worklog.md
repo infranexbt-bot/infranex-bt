@@ -2217,3 +2217,21 @@ Stage Summary:
 - ANSWER: the Owned basis never charged provider rent in the math — proven with live data (0 leak rows, exact netΔ identity). What WAS broken around it: SN51 misclassified as CPU work (fixed via curated rule), the scraper's repo ground truth had been wiped (restored 109 rows), toggle failures were silent (now surfaced), and two UI labels still said "rental" in owned mode (now mode-aware). With owned basis on, 26/128 subnet verdicts correctly flip (e.g. Chutes RUN +$4,091/mo on owned 8xH200 electricity).
 - Reusable: scripts/verify-owned-score.ts (basis-parity proof harness), scripts/rescrape-from-snapshot.ts (override restore from live identities + pinned repos).
 - Files: src/lib/infranex/miner-score.ts, src/lib/infranex/diligence.ts, src/components/opportunities/diligence-panel.tsx, src/components/tables/opportunity-table.tsx, src/components/cards/cost-basis-toggle.tsx, scripts/verify-owned-score.ts (new), scripts/rescrape-from-snapshot.ts (new)
+
+---
+Task ID: owned-vs-rented-all-subnets-verify
+Agent: main (Super Z)
+Task: "yes fix that. also fix this to all subnets owned vs rented scoring. make sure owned GPU section does not include provider rental cost. make sure all subnets are updated"
+
+Work Log:
+- Confirmed the prior audit's fixes are ALL in place and intact (no regression): profitability.ts L230 owned→electricity branch, miner-score.ts L833 owned→electricity branch, curated SN51 CATEGORY_RULES entry (GPU marketplace provider node, consumer24 tier), mode-aware labels in opportunity-table/opportunity-detail/opportunities-view/diligence
+- DB check: SubnetOverride 109 rows (69 with GPU reqs) still restored — SN51 8x B300, SN64 8x H200 intact; saved profConfig hardwareMode=owned $0.12/kWh (user's basis)
+- Ran scripts/verify-owned-score.ts on LIVE chain (block 9355937, 129 subnets): 128 scored rows — netΔ==GPU-lineΔ identity failures=0, identical-GPU-line rows=0 → ZERO rental-cost leaks across ALL subnets
+- Live proof rows: SN51 gpu-line $25,600 rent → $704 electricity (net −$25,448 → −$552); SN64 $56,000 → $497 (net −$51,417 → +$4,086, AVOID→RUN score 41.1→67.3); SN04 $25,600 → $704 (net −$22,134 → +$2,762 AVOID→RUN)
+- Board effect: 26/128 subnet verdicts correctly flip under owned basis (SN64 Chutes RUN +$4,086/mo, SN28 SayGM RUN +$1,701/mo, SN92 REAX RUN, SN04 Targon RUN, SN120 Affine WATCH...)
+- E2E browser (admin): Opportunities page renders COST BASIS toggle with Owned active + $0.12/kWh chip; engine caption reads "GPU line = owned electricity (owned mode)"; SN51 row shows category "GPU marketplace (provider node)"; Owned-rig earn picks section present; tsc --noEmit EXIT 0; console clean; screenshot download/owned-all-subnets-final.png
+
+Stage Summary:
+- All-subnets confirmation delivered: the owned basis NEVER charges provider/market GPU rent anywhere in the app — both scoring engines (Miner's Ledger + Profitability Engine) branch to electricity-only for all 128 subnet rows, proven on live chain data with the exact engine the Ranked table runs
+- With owned active, 26 subnets carry corrected RUN/WATCH/AVOID verdicts; SN51 lium sits at net −$552/mo as a MINING seat (correct — its real money is the provider/hosting stream covered by Host & Earn)
+- No code changes needed this pass — the ask was fully satisfied by the already-landed audit; this pass re-verified everything end-to-end and captured fresh evidence
