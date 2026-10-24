@@ -16,6 +16,7 @@
 // owning a GPU does not buy you a rewarded seat.
 // ---------------------------------------------------------------------------
 
+import { useState } from "react";
 import { Cloud, Zap } from "lucide-react";
 import {
   useProfitabilityConfig,
@@ -28,10 +29,25 @@ export function CostBasisToggle({ className }: { className?: string }) {
   const save = useSaveProfitabilityConfig();
   const mode = config?.hardwareMode ?? "rent";
   const pending = save.isPending;
+  // SAVE-FAILURE SURFACING — the PUT is the ONLY thing that moves the whole
+  // platform onto the chosen basis; a silent failure used to leave every
+  // score on the OLD basis with zero feedback (the flip looked like a no-op).
+  const [error, setError] = useState<string | null>(null);
 
   const setMode = (m: "rent" | "owned") => {
     if (!config || pending || m === mode) return;
-    save.mutate({ ...config, hardwareMode: m });
+    setError(null);
+    save.mutate(
+      { ...config, hardwareMode: m },
+      {
+        onError: (e) =>
+          setError(
+            e instanceof Error
+              ? e.message
+              : "Save failed — scores still use the previous basis"
+          ),
+      }
+    );
   };
 
   const chip = (active: boolean) =>
@@ -72,9 +88,17 @@ export function CostBasisToggle({ className }: { className?: string }) {
       >
         <Zap className={cn("h-3 w-3", pending && mode === "owned" && "animate-pulse")} /> Owned
       </button>
-      {mode === "owned" && (
+      {mode === "owned" && !error && (
         <span className="mono text-[10px] text-muted-foreground" title="Electricity price from Profitability settings">
           ${kwh}/kWh
+        </span>
+      )}
+      {error && (
+        <span
+          className="max-w-[200px] text-[10px] leading-tight text-destructive"
+          title={error}
+        >
+          {error}
         </span>
       )}
     </div>

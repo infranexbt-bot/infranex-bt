@@ -325,6 +325,22 @@ const CATEGORY_RULES: CategoryRule[] = [
     category: "Debate & persuasion",
     tier: GPU_TIERS.cpu,
   },
+  // LIUM-FIX (SN51): the on-chain identity "Agent-first GPU cloud. Rent
+  // NVIDIA GPUs via web, CLI, SDK, or API. Providers earn 95% rent" matched
+  // the generic "Agents & logic" rule on the word "Agent-" — pricing a
+  // GPU-provider seat as a $50/mo CPU VPS (and a ~$15/mo "electricity" line
+  // in owned mode) on the subnet that IS a GPU marketplace. A SN51 mining
+  // seat IS a GPU provider node: consumer RTX cards are the documented entry
+  // tier (plain Sysbox isolation; TDX gates only the H100/H200/B200/GB200
+  // tiers — docs.lium.io/providers, audit 2026-10-23/25). Keyword audited
+  // against the live chain 2026-10-25: "lium" appears on SN51 only. First
+  // match wins — keep ABOVE the generic agent/compute rules; a scraped repo
+  // requirement (when present) still wins over this tier.
+  {
+    keywords: /\blium\b|agent-first gpu/i,
+    category: "GPU marketplace (provider node)",
+    tier: GPU_TIERS.consumer24,
+  },
   { keywords: /\b(frontier|llm|text.?gen|prompt|language model|chat|assistant|inference)\b/i, category: "Frontier inference", tier: GPU_TIERS.h100 },
   { keywords: /\b(pretrain|pre-train|model training|training network|grpo|rlhf|post.?training)\b/i, category: "Model training", tier: GPU_TIERS.h200 },
   { keywords: /\b(video|image|diffusion|vision|photo|generative media|3d|render)\b/i, category: "Media generation", tier: GPU_TIERS.consumer24 },

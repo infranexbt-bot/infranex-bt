@@ -134,6 +134,10 @@ export function OpportunityTable({
   // "Earn picks" under owned (same engine, same numbers basis as the ledger).
   const { data: profConfig } = useProfitabilityConfig();
   const L = rentEarnLabels(profConfig?.hardwareMode);
+  // OWNED-MODE: the Net-Monthly tooltip must say what the GPU line actually
+  // charges — electricity on the owned basis, market rent on the rented one
+  // (the NUMBER is already mode-aware via the P&L; keep the WORD honest too).
+  const ownedBasis = profConfig?.hardwareMode === "owned";
 
   const filtered = useMemo(() => {
     let r = opportunities;
@@ -466,9 +470,9 @@ export function OpportunityTable({
                         <span
                           title={
                             prof
-                              ? `Revenue ${formatCurrency(prof.expectedRevenueUsd)} − GPU ${formatCurrency(prof.gpuRentalUsd)} − storage ${formatCurrency(prof.storageUsd)} − infra ${formatCurrency(prof.infrastructureUsd)} − other ${formatCurrency(prof.otherOperatingTotalUsd)} = net ${formatCurrency(prof.netMonthlyUsd)}/mo`
+                              ? `Revenue ${formatCurrency(prof.expectedRevenueUsd)} − ${ownedBasis ? "GPU electricity (owned basis — no market rent charged)" : "GPU rent (market rate)"} ${formatCurrency(prof.gpuRentalUsd)} − storage ${formatCurrency(prof.storageUsd)} − infra ${formatCurrency(prof.infrastructureUsd)} − other ${formatCurrency(prof.otherOperatingTotalUsd)} = net ${formatCurrency(prof.netMonthlyUsd)}/mo`
                               : o.gpuCostMonthlyUsd != null
-                                ? `Gross $${(o.grossMonthlyUsd ?? 0).toLocaleString()} − GPU $${Math.round(o.gpuCostMonthlyUsd).toLocaleString()} − infra $${Math.round(o.infraCostMonthlyUsd ?? 0).toLocaleString()} — what a median-performing miner keeps per month${o.rewardRealizability != null && o.rewardRealizability < 0.9 ? ` · rewards realizable at ${(o.rewardRealizability * 100).toFixed(0)}% of spot (thin pool)` : ""}`
+                                ? `Gross $${(o.grossMonthlyUsd ?? 0).toLocaleString()} − GPU ${ownedBasis ? "electricity" : "rent"} $${Math.round(o.gpuCostMonthlyUsd).toLocaleString()} − infra $${Math.round(o.infraCostMonthlyUsd ?? 0).toLocaleString()} — what a median-performing miner keeps per month${o.rewardRealizability != null && o.rewardRealizability < 0.9 ? ` · rewards realizable at ${(o.rewardRealizability * 100).toFixed(0)}% of spot (thin pool)` : ""}`
                                 : "Per-earning-miner monthly revenue"
                           }
                           className={cn(
