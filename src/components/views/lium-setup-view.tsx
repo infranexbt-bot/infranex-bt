@@ -25,12 +25,17 @@ import {
   CheckCircle2,
   Circle,
   Copy,
+  Download,
   ExternalLink,
   ListChecks,
+  Lock,
+  MonitorSmartphone,
   RotateCcw,
   ShieldAlert,
   Sparkles,
+  Terminal,
   Wallet,
+  Zap,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -41,8 +46,17 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import type { ViewKey } from "@/lib/infranex/types";
 import { cn } from "@/lib/utils";
+import {
+  buildHostScript,
+  buildWorkstationScript,
+  HOST_FILENAME,
+  sanitizeName,
+  WORKSTATION_FILENAME,
+} from "@/lib/infranex/lium-bootstrap";
 import {
   LIUM_SETUP_MEASURED_AT,
   PAYOUT_PATHS,
@@ -103,6 +117,294 @@ function DocLink({ label, href }: { label: string; href: string }) {
       {label}
       <ExternalLink className="h-3 w-3" aria-hidden="true" />
     </a>
+  );
+}
+
+// --- Automation: config + generated bootstrap scripts --------------------------
+
+function downloadText(filename: string, text: string) {
+  const blob = new Blob([text], { type: "text/x-shellscript" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function CopyScriptButton({ text, label }: { text: string; label: string }) {
+  const [copied, setCopied] = useState(false);
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1600);
+    } catch {
+      /* clipboard unavailable */
+    }
+  };
+  return (
+    <Button variant="outline" size="sm" className="gap-1.5" onClick={copy}>
+      {copied ? (
+        <Check className="h-3.5 w-3.5 text-success" aria-hidden="true" />
+      ) : (
+        <Copy className="h-3.5 w-3.5" aria-hidden="true" />
+      )}
+      {copied ? "Copied" : label}
+    </Button>
+  );
+}
+
+function ScriptToggle({
+  label,
+  hint,
+  checked,
+  onChange,
+}: {
+  label: string;
+  hint?: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) {
+  return (
+    <div className="flex items-start justify-between gap-3 rounded-xl border border-border/50 bg-card/30 px-3 py-2.5">
+      <div className="min-w-0">
+        <p className="text-xs font-semibold leading-snug">{label}</p>
+        {hint && <p className="mt-0.5 text-[10px] leading-relaxed text-muted-foreground">{hint}</p>}
+      </div>
+      <Switch checked={checked} onCheckedChange={onChange} aria-label={label} />
+    </div>
+  );
+}
+
+const AUTOMATES: string[] = [
+  "OS, kernel, driver, Docker and Sysbox — each checked, installed only if missing, safe to re-run after the driver reboot",
+  "The GPU-inside-Sysbox proof (the exact check validators run) and mixed-GPU-model detection",
+  "Firewall ports (8080, 2200, renting range) and the RAM/disk vs idle-pay bar math",
+  "btcli in an isolated venv, coldkey/hotkey creation, and the SN51 register command with its live-fee gate",
+  "The mine.sh node install — or the portal-issued command you paste in",
+];
+
+const STAYS_MANUAL: { title: string; why: string }[] = [
+  {
+    title: "Your portal identity",
+    why: "Signup / signature login proves you are you — a script can't be you. Takes a minute at provider.lium.io.",
+  },
+  {
+    title: "Funding and the registration burn",
+    why: "Real TAO leaves your wallet. The workstation script stops and asks before registering.",
+  },
+  {
+    title: "Discord connect",
+    why: "The identity link that unlocks idle pay — one click in Profile, by design.",
+  },
+  {
+    title: "Price and tier choices",
+    why: "Business decisions (soft limit vs market ask, Secure vs Spot). The numbers live in Host & Earn.",
+  },
+  {
+    title: "Running the script itself",
+    why: "A browser tab cannot reach into your GPU box. Download the file, then:  bash lium-gpu-host-setup.sh",
+  },
+];
+
+function AutomateCard({ path }: { path: PayoutPath }) {
+  const [walletName, setWalletName] = useState("lium-provider");
+  const [hotkeyName, setHotkeyName] = useState("gpu-node-1");
+  const [protectColdkey, setProtectColdkey] = useState(true);
+  const [driverInstalled, setDriverInstalled] = useState(false);
+  const [hgxBoard, setHgxBoard] = useState(false);
+  const [openUfw, setOpenUfw] = useState(true);
+  const [portalCmd, setPortalCmd] = useState("");
+  const [showScript, setShowScript] = useState(false);
+
+  const hostScript = useMemo(
+    () =>
+      buildHostScript({
+        path,
+        driverInstalled,
+        hgxBoard,
+        openUfw,
+        portalCommand: portalCmd,
+      }),
+    [path, driverInstalled, hgxBoard, openUfw, portalCmd]
+  );
+
+  const workstationScript = useMemo(
+    () =>
+      buildWorkstationScript({
+        walletName: sanitizeName(walletName, "lium-provider"),
+        hotkeyName: sanitizeName(hotkeyName, "gpu-node-1"),
+        protectColdkey,
+      }),
+    [walletName, hotkeyName, protectColdkey]
+  );
+
+  return (
+    <Card className="glass border-primary/25">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <Zap className="h-4 w-4 text-primary" />
+          Yes — the terminal steps are one script
+        </CardTitle>
+        <CardDescription>
+          Everything terminal-side is automatable. Configure once, download, run on the machine —
+          the script detects what is already done, installs what isn&apos;t, and stops where a
+          human judgment is required. Money and identity steps keep an explicit y/N gate.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Config */}
+        <div className="grid gap-3 lg:grid-cols-2">
+          <div className="space-y-2">
+            <ScriptToggle
+              label="NVIDIA driver already installed"
+              hint="Off = the script installs nvidia-driver-570 and pauses for a reboot"
+              checked={driverInstalled}
+              onChange={setDriverInstalled}
+            />
+            <ScriptToggle
+              label="HGX board (H100/H200 SXM)"
+              hint="Enables NVIDIA Fabric Manager before listing"
+              checked={hgxBoard}
+              onChange={setHgxBoard}
+            />
+            <ScriptToggle
+              label="Open ufw ports"
+              hint="8080, 2200, renting range 20000-20100. Cloud security groups stay manual."
+              checked={openUfw}
+              onChange={setOpenUfw}
+            />
+          </div>
+          <div className="space-y-2">
+            {path === "alpha" ? (
+              <>
+                <ScriptToggle
+                  label="Password-protect the coldkey"
+                  hint="On = btcli prompts for a password. Off adds --no-use-password for unattended runs."
+                  checked={protectColdkey}
+                  onChange={setProtectColdkey}
+                />
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-eyebrow text-muted-foreground/70" htmlFor="bs-wallet">
+                      Wallet name
+                    </label>
+                    <Input
+                      id="bs-wallet"
+                      value={walletName}
+                      onChange={(e) => setWalletName(e.target.value)}
+                      className="mono mt-1 h-8 text-xs"
+                      spellCheck={false}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-eyebrow text-muted-foreground/70" htmlFor="bs-hotkey">
+                      Hotkey name
+                    </label>
+                    <Input
+                      id="bs-hotkey"
+                      value={hotkeyName}
+                      onChange={(e) => setHotkeyName(e.target.value)}
+                      className="mono mt-1 h-8 text-xs"
+                      spellCheck={false}
+                    />
+                  </div>
+                </div>
+                <p className="text-[10px] leading-relaxed text-muted-foreground">
+                  The wallet script runs on your <span className="font-semibold text-foreground">workstation</span> —
+                  coldkeys never live on the renter-reachable GPU host. It refuses to run where
+                  nvidia-smi exists.
+                </p>
+              </>
+            ) : (
+              <div className="rounded-xl border border-border/50 bg-card/30 px-3 py-2.5 text-[11px] leading-relaxed text-muted-foreground">
+                Path A needs no wallet work — no btcli, no keys, no registration fee. The host
+                script covers the whole automated path; portal signup pays USDT.
+              </div>
+            )}
+            <div>
+              <label className="text-eyebrow text-muted-foreground/70" htmlFor="bs-portal">
+                Portal-issued install command (optional)
+              </label>
+              <Input
+                id="bs-portal"
+                value={portalCmd}
+                onChange={(e) => setPortalCmd(e.target.value)}
+                placeholder="curl -fsSL https://lium.io/mine.sh | bash -s -- --register"
+                className="mono mt-1 h-8 text-xs"
+                spellCheck={false}
+              />
+              <p className="mt-0.5 text-[10px] text-muted-foreground">
+                Paste the exact command from the portal&apos;s Add Node dialog — it encodes your
+                account. Left empty, the docs&apos; generic command is used.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="flex flex-wrap items-center gap-2">
+          <Button size="sm" className="gap-1.5" onClick={() => downloadText(HOST_FILENAME, hostScript)}>
+            <Download className="h-3.5 w-3.5" aria-hidden="true" />
+            Download {HOST_FILENAME}
+          </Button>
+          <CopyScriptButton text={hostScript} label="Copy host script" />
+          {path === "alpha" && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5"
+              onClick={() => downloadText(WORKSTATION_FILENAME, workstationScript)}
+            >
+              <MonitorSmartphone className="h-3.5 w-3.5" aria-hidden="true" />
+              Download {WORKSTATION_FILENAME}
+            </Button>
+          )}
+          <Button variant="ghost" size="sm" onClick={() => setShowScript((s) => !s)}>
+            {showScript ? "Hide preview" : "Preview script"}
+          </Button>
+        </div>
+
+        {/* Preview */}
+        {showScript && (
+          <pre className="mono max-h-80 overflow-auto rounded-xl border border-border/50 bg-muted/30 p-3 text-[10.5px] leading-relaxed text-foreground/85">
+            {path === "alpha" ? workstationScript : hostScript}
+          </pre>
+        )}
+
+        {/* Boundary: what automation covers vs what stays human */}
+        <div className="grid gap-3 md:grid-cols-2">
+          <div className="rounded-xl border border-success/20 bg-success/5 p-3">
+            <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-success">
+              <Terminal className="h-3 w-3" aria-hidden="true" />
+              What the scripts automate
+            </p>
+            <ul className="mt-1.5 space-y-1">
+              {AUTOMATES.map((x) => (
+                <li key={x} className="flex items-start gap-1.5 text-[11px] leading-relaxed text-muted-foreground">
+                  <Check className="mt-0.5 h-3 w-3 shrink-0 text-success" aria-hidden="true" />
+                  {x}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="rounded-xl border border-warning/25 bg-warning/5 p-3">
+            <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-warning">
+              <Lock className="h-3 w-3" aria-hidden="true" />
+              What stays manual — on purpose
+            </p>
+            <ul className="mt-1.5 space-y-1">
+              {STAYS_MANUAL.map((x) => (
+                <li key={x.title} className="text-[11px] leading-relaxed text-muted-foreground">
+                  <span className="font-semibold text-foreground/85">{x.title}</span> — {x.why}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -379,6 +681,9 @@ export function LiumSetupView({ onNavigate }: { onNavigate?: (v: ViewKey) => voi
           </Button>
         </CardContent>
       </Card>
+
+      {/* Automation — generated bootstrap scripts */}
+      <AutomateCard path={path} />
 
       {/* Rail decision */}
       <div className="grid gap-4 md:grid-cols-2">
