@@ -2027,3 +2027,24 @@ Work Log:
 Stage Summary:
 - Full known-good state restored in ~4 min; new learning: rescrape may need a 2nd run to reach 69 GPU recs (transient GitHub misses)
 - GitHub PAT status not re-checked this round; commit queue (incl. aeb3670) may still need fresh PAT
+
+---
+Task ID: own-gpu-nogo-census
+Agent: main (Super Z)
+Task: User saw ALL owned GPU subnets NO-GO in Dashboard subnet chooser; asked if app is correct and how to actually earn. Investigated with full data reproduction.
+
+Work Log:
+- Read mine-pick.ts + rent-earn.ts verdict paths; confirmed hard gates (rentable/DO-NOT-PROVISION/meetsMinimum)
+- Logged in via curl, fetched /api/network + /api/subnet-overrides + /api/profitability-config (mode=owned)
+- Wrote scripts/analyze-own-gpu-nogo.ts + scripts/drill-rows.ts running the EXACT browser engine (mergeOpportunities + rankMinePicks) on live data (block 9,353,869, tao=$249.56)
+- Census of 85 GPU-class rows: 50 below $300/mo minimum-profit rule (excluded from picker), 5 hosting-gate blocked (SN4/SN28/SN64/SN90/SN108), 30 ranked = 1 PRIME (SN92 REAX conv 67, EV $292/mo, 58% month-1) + 29 NO-GO (diligence fails: knife fights, top10~100%, thin pools)
+- KEY FINDING 1: bare-metal gate lift (parked item) would change NOTHING - all 5 gated rows are also knife fights (SN64: 7% earned, top10=100%); gate fix is dead, correctly parked forever
+- KEY FINDING 2: SN51 NO-GO (net=-$596, meetsMin=false) is a lens blind spot, not truth: raw chain HAS minerEm=342.5 TAO/day (=$85k/day, #1 subnet) but engine prices newcomer at per-registered x median share (2.3%) = $230/mo gross minus 8x B300 electricity; SN51's real provider income (rental fees + idle pay, USDT) never appears in chain emissions. Chain tail math (0.7% incentive / ~43 tail slots) = ~$414/mo per tail seat, matches measured Lium research (5090 $464/mo, 4090 $339/mo, PRO6000 $1,092/mo)
+- KEY FINDING 3: CPU is where individuals earn: SN82 Noah PRIME 86 (EV $14,551/mo, 96% month-1 odds, 16 free seats, CPU-only), SN5 Hone PRIME 77 (EV $862/mo, 66%), SN83 CliqueAI PRIME 73 (EV $292/mo, 66%)
+
+Stage Summary:
+- App verdict logic is CORRECT for the compete-as-miner lens; NO-GO census verified against live chain data
+- Real GPU earning path = SN51 provider (rent out cards) - invisible to the engine because rental-fee income is off-emission; Direction A (Host & Earn module) is the fix
+- SN92 REAX is the only GPU mining GO (needs 80GB+ VRAM - PRO 6000 96GB qualifies on VRAM, thin verified data)
+- Recommended to user: Noah/Hone CPU mining, SN51 provider for owned GPUs, REAX only with 96GB card, or stake
+- Scripts kept: scripts/analyze-own-gpu-nogo.ts, scripts/drill-rows.ts (reusable census tools)
