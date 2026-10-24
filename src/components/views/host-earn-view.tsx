@@ -14,6 +14,7 @@
 
 import { useMemo, useState } from "react";
 import {
+  ArrowRight,
   Banknote,
   Calculator,
   CircleDollarSign,
@@ -55,6 +56,7 @@ import {
 import { useProfitabilityConfig } from "@/hooks/use-profitability";
 import { useNetwork } from "@/hooks/use-network";
 import { cn } from "@/lib/utils";
+import type { ViewKey } from "@/lib/infranex/types";
 import {
   ALPHA_SCENARIO,
   LIUM_DOCS,
@@ -134,7 +136,11 @@ const ONBOARDING: { title: string; body: string }[] = [
   },
 ];
 
-export function HostEarnView() {
+export function HostEarnView({
+  onNavigate,
+}: {
+  onNavigate?: (v: ViewKey) => void;
+}) {
   const { data: profConfig } = useProfitabilityConfig();
   const { data: snap } = useNetwork();
 
@@ -705,7 +711,10 @@ export function HostEarnView() {
               <ShieldCheck className="h-4 w-4 text-primary" />
               Onboarding checklist
             </CardTitle>
-            <CardDescription>Five things that decide your real payout.</CardDescription>
+            <CardDescription>
+              Six things that decide your real payout. The full install path — host prep, wallet,
+              SN51 registration, node install — lives in the Setup Guide.
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {ONBOARDING.map((s) => (
@@ -714,6 +723,15 @@ export function HostEarnView() {
                 <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{s.body}</p>
               </div>
             ))}
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full gap-1.5"
+              onClick={() => onNavigate?.("lium-setup")}
+            >
+              Open the full setup guide — GPU to earning node
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Button>
           </CardContent>
         </Card>
         <Card className="glass">

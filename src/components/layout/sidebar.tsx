@@ -28,6 +28,7 @@ import {
   UserCheck,
   Target,
   Banknote,
+  Milestone,
 } from "lucide-react";
 import type { ViewKey } from "@/lib/infranex/types";
 
@@ -53,6 +54,7 @@ const NAV_GROUPS: { label: string; items: { key: ViewKey; label: string; icon: t
       { key: "gpu-landscape", label: "GPU Landscape", icon: Layers, hint: "05b" },
       { key: "miner-playbook", label: "Miner Playbook", icon: Target, hint: "05c" },
       { key: "host-earn", label: "Host & Earn", icon: Banknote, hint: "05d" },
+      { key: "lium-setup", label: "Setup Guide", icon: Milestone, hint: "05e" },
     ],
   },
   {
