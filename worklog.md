@@ -2069,3 +2069,20 @@ Stage Summary:
 - Teaser converts the user's "all GPU NO-GO" confusion into a one-click path to the provider economics
 - Data honesty preserved: measured 30d actuals stamped with date, editable price/demand assumptions, explicit "observations not guarantees" footer
 - Files: src/lib/infranex/lium-earnings.ts, src/components/views/host-earn-view.tsx, page.tsx, sidebar.tsx, dashboard-view.tsx, types.ts
+
+---
+Task ID: lium-demand-volume
+Agent: main (Super Z)
+Task: "does hosting GPU in lium has guarantee earnings? research on which GPU has high volumes and list down the top 5 GPUs which are more in demand"
+
+Work Log:
+- Re-fetched lium.io/pricing.json (live fleet feed, generated 2026-10-23): 1,778 GPUs listed, 1,642 rented (92.4%), 136 idle
+- Re-fetched lium.io/rent-out-your-gpu 30-day provider table (matches sn51-lium-research measurements)
+- Cross-checked idle-pay eligibility rules (docs + provider page): Discord connected, price <= soft limit, disk >= 1.5x VRAM, 1-or-8 GPUs per node or GPU splitting, pass 15-min validation, Secure node dropping rental = 48h penalty, Spot nodes excluded
+- Confirmed Host & Earn module (lium-earnings.ts) already carries the same measured table — no data update needed (same 2026-10-23 snapshot)
+
+Stage Summary:
+- Verdict: NO formal guarantee; but rented income is deterministic (95% of listed $/hr, daily USDT) and idle pay gives a conditional partial floor; fleet utilization 92.4% shows demand > supply
+- Top 5 by rented volume: H100 271/303 (89%, $1,283/mo) > 5090 260/264 (98.5%, $416/mo) > B300 209/265 (79%, $5,776/mo) > H200 149/170 (88%, $3,069/mo) > PRO6000-Server 136/144 (94%, $1,060/mo)
+- Tightest markets (0-2% idle): L40S 70/70, 3090 91/91, A100-SXM 54/54, 6000 Ada 41/41, 4090 101/102, A6000 76/77
+- User's two candidates both top-5: 5090 #2 volume/98.5% tight; PRO6000-Server #5/94% tight, earns 2.6x per card
