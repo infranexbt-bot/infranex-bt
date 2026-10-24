@@ -2086,3 +2086,18 @@ Stage Summary:
 - Top 5 by rented volume: H100 271/303 (89%, $1,283/mo) > 5090 260/264 (98.5%, $416/mo) > B300 209/265 (79%, $5,776/mo) > H200 149/170 (88%, $3,069/mo) > PRO6000-Server 136/144 (94%, $1,060/mo)
 - Tightest markets (0-2% idle): L40S 70/70, 3090 91/91, A100-SXM 54/54, 6000 Ada 41/41, 4090 101/102, A6000 76/77
 - User's two candidates both top-5: 5090 #2 volume/98.5% tight; PRO6000-Server #5/94% tight, earns 2.6x per card
+
+---
+Task ID: host-earn-demand-strategy
+Agent: main (Super Z)
+Task: "yes go ahead" — add demand/tightness column + above-soft-limit pricing stress-test to the Host & Earn module
+
+Work Log:
+- lium-earnings.ts: added 6 fields per GPU (listedCount, rentedCount, avgRentedPct30d, avgUsdPerHr, softLimitUsdPerHr, marketAskUsdPerHr from the 2026-10-23 fleet snapshot + official provider table); HOURS_PER_MONTH=729.6; LIUM_FLEET_SUMMARY constant
+- New math: monthlyRevenueAt(gpu, strategy, demandPct) — soft_limit = measured monthlyUsd (includes idle pay); market_ask = observed ask × 729.6h × 30d rented% × demand slider, idle pay = 0; falls back when no above-limit ask exists (fellBack flag). idlePayEstimate() derives the idle component as a residual
+- host-earn-view.tsx: Demand column (rented/listed + Tight ≥97% / Solid ≥85% / Loose badge + 30d avg), fleet-summary footnote, Pricing-strategy pill toggle in the calculator (soft limit vs market ask) with per-strategy description, delta line ("+$314/mo (+68%) · forfeits ≈$123/mo idle pay" for 5090), slider caption adapts, onboarding item 6 "Idle pay is conditional", hero copy updated
+
+Stage Summary:
+- tsc --noEmit EXIT 0; dev server healthy; agent-browser e2e verified: demand badges correct on all 12 rows, 4090 market $434 (+28%, idle $60), 5090 market $778 (+68%, idle $123), A100 fallback message correct, slider 50% halves revenue ($389), payout comparator follows strategy revenue
+- Desktop + mobile screenshots in download/host-earn-demand-*.png; console + dev.log clean
+- Key insight surfaced by the tool: H200/B300/A100 are better OFF at soft-limit pricing (big idle pools), while 5090 (+68%) and 4090 (+28%) gain from market-ask pricing because their idle pools are tiny and the market is tight (98-99% rented)
