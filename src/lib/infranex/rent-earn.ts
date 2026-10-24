@@ -20,29 +20,48 @@ import type { Opportunity } from "./types";
 //      P(earn a seat) × median earner's share × the Ledger's net figure.
 //
 // Output: a 0–100 RENT-EARN score + GREAT/OK/POOR/NO band, rendered as the
-// "Rent earn" column and the "Rented-friendly" filter on Opportunities.
+// "Rent earn" column (rented basis) / "Earn picks" column (owned basis) and
+// the rig-picks filter on Opportunities. MODE-AWARE — see computeRentEarn:
+// on the owned basis the gate asks "can the rig YOU OWN run this?" and every
+// user-facing string drops rent-source language.
 // ---------------------------------------------------------------------------
+
+/** Cost basis for the lens — rented = "can a rented container/vCPU box run
+ *  this?", owned = "can the rig the user OWNS run this?". Gates and strings
+ *  follow the active ProfitabilityConfig.hardwareMode. */
+export type CostBasisMode = "rent" | "owned";
 
 /** Curated rent restrictions from the all-subnet README audit
  *  (worklog subnet-hosting-audit-1, verbatim evidence). Used as fallback
- *  when the live scraper has no hosting flags for the subnet yet. */
+ *  when the live scraper has no hosting flags for the subnet yet.
+ *  `ownedReason` (optional) re-words the same evidence for the owned basis —
+ *  it drops the rented-side "container clouds excluded" clause and states
+ *  what an OWNED rig must satisfy instead. All curated entries encode
+ *  TEE-class capability gates (TDX / NVIDIA CC / attested K8s), so they bind
+ *  in BOTH cost bases — only the wording differs. */
 export const CURATED_RENT_BLOCKS: Record<
   number,
-  { reason: string; source: string }
+  { reason: string; source: string; ownedReason?: string }
 > = {
   64: {
     reason:
       "Bare metal + Intel TDX + static 1:1 IPs required (chutes-miner README) — container clouds (RunPod/Vast/Akash) explicitly excluded",
+    ownedReason:
+      "Bare metal + Intel TDX + static 1:1 IPs required (chutes-miner README) — only a TDX-capable owned rig with static networking qualifies",
     source: "curated README audit",
   },
   4: {
     reason:
       "NVIDIA Confidential Compute (TEE) required per the repo's Current Implementation — rented containers have no CC mode",
+    ownedReason:
+      "NVIDIA Confidential Compute (TEE) required per the repo's Current Implementation — your owned GPU must support CC mode",
     source: "curated README audit",
   },
   28: {
     reason:
       "Miner must run as a Phala Cloud Intel TDX CVM — not a plain rented container",
+    ownedReason:
+      "Miner must run as an Intel TDX CVM (Phala) — your owned rig must support Intel TDX",
     source: "curated README audit",
   },
   // SN51 removed from curated blocks (2026-10-23): the old entry was
@@ -60,9 +79,12 @@ export const CURATED_RENT_BLOCKS: Record<
 export type RentEarnBand = "GREAT" | "OK" | "POOR" | "NO";
 
 export interface RentEarnVerdict {
-  /** Can a rented GPU/CPU from our catalog class (container/vCPU) run this? */
+  /** Can the rig run this? rented basis: a container/vCPU box from the
+   *  rented catalog (Akash/Vast/RunPod-class). owned basis: the user's own
+   *  machine — bare-metal/VM requirements are satisfied by definition, so
+   *  only TEE-class capability gates (Intel TDX / NVIDIA CC) still bind. */
   rentable: boolean;
-  /** Human-readable reason when not rentable. */
+  /** Human-readable reason when the hosting gate blocks (mode-aware wording). */
   rentBlock: string | null;
   /** "scraped README" | "curated README audit" | null */
   rentBlockSource: string | null;
@@ -99,11 +121,23 @@ function isCpuWork(o: Opportunity): boolean {
 
 /** Compute the RENT-EARN verdict for one opportunity row. Pure — safe on
  *  client and server; takes the plain Opportunity shape so it works on any
- *  merged row (LiveOpportunity or curated fallback). */
-export function computeRentEarn(o: Opportunity): RentEarnVerdict {
+ *  merged row (LiveOpportunity or curated fallback).
+ *
+ *  MODE-AWARE (`mode`, default "rent"): the hosting gate answers a different
+ *  question per cost basis —
+ *    rented: "can a container/vCPU box from Akash/Vast/RunPod-class run this?"
+ *    owned:  "can the rig the user OWNS run this?" — an owned machine IS bare
+ *      metal, so a bare-metal/VM-only requirement cannot block it (it becomes
+ *      a positive note); only TEE-class hardware capability (Intel TDX /
+ *      NVIDIA CC) still gates. All gate/blocked copy follows the basis: the
+ *      owned lens never shows "Rentable on Akash/Vast…" rent-source language. */
+export function computeRentEarn(
+  o: Opportunity,
+  mode: CostBasisMode = "rent"
+): RentEarnVerdict {
   const notes: string[] = [];
 
-  // --- 1. Rentability gate -------------------------------------------------
+  // --- 1. Hosting gate -----------------------------------------------------
   // Scraped hosting flags win; curated audit fills the gap; CPU work on a
   // rented vCPU box is always container-class.
   let rentable = true;
@@ -111,18 +145,36 @@ export function computeRentEarn(o: Opportunity): RentEarnVerdict {
   let rentBlockSource: string | null = null;
   const hosting = o.hosting ?? null;
   if (hosting && (hosting.bareMetalOnly || hosting.teeRequired)) {
-    rentable = false;
-    rentBlockSource = o.requirementsSource ? "scraped README" : "curated README audit";
-    rentBlock = hosting.bareMetalOnly
-      ? "Bare metal/VM required by the subnet's own docs — container clouds excluded"
-      : "TEE/confidential hosting required — outside the rented catalog (Akash/Vast/RunPod)";
+    // OWNED: bare-metal/VM-only is satisfied by the machine you own — only a
+    // TEE-class capability requirement (TDX / NVIDIA CC) can still block.
+    const gated = mode === "owned" ? hosting.teeRequired : true;
+    if (gated) {
+      rentable = false;
+      rentBlockSource = o.requirementsSource ? "scraped README" : "curated README audit";
+      rentBlock =
+        mode === "owned"
+          ? "TEE/confidential compute required — your rig must support Intel TDX / NVIDIA CC mode (most consumer rigs can't)"
+          : hosting.bareMetalOnly
+            ? "Bare metal/VM required by the subnet's own docs — container clouds excluded"
+            : "TEE/confidential hosting required — outside the rented catalog (Akash/Vast/RunPod)";
+    } else {
+      notes.push(
+        "Bare-metal/VM fleet required — your owned rig qualifies where rented containers don't"
+      );
+    }
   } else if (CURATED_RENT_BLOCKS[o.netuid]) {
+    const curated = CURATED_RENT_BLOCKS[o.netuid];
     rentable = false;
-    rentBlock = CURATED_RENT_BLOCKS[o.netuid].reason;
-    rentBlockSource = CURATED_RENT_BLOCKS[o.netuid].source;
+    rentBlock =
+      mode === "owned" ? (curated.ownedReason ?? curated.reason) : curated.reason;
+    rentBlockSource = curated.source;
   }
   if (rentable && isCpuWork(o)) {
-    notes.push("CPU-class work — any rented vCPU box qualifies");
+    notes.push(
+      mode === "owned"
+        ? "CPU-class work — no GPU needed"
+        : "CPU-class work — any rented vCPU box qualifies"
+    );
   }
 
   // --- 2. Seat reality ------------------------------------------------------
@@ -188,7 +240,10 @@ export function computeRentEarn(o: Opportunity): RentEarnVerdict {
   const band: RentEarnBand =
     !rentable ? "NO" : score >= 65 ? "GREAT" : score >= 45 ? "OK" : score >= 25 ? "POOR" : "NO";
 
-  if (!rentable) notes.unshift(rentBlock ?? "Not rentable");
+  if (!rentable)
+    notes.unshift(
+      rentBlock ?? (mode === "owned" ? "Blocked by the hosting gate" : "Not rentable")
+    );
 
   return {
     rentable,
@@ -207,12 +262,14 @@ export function computeRentEarn(o: Opportunity): RentEarnVerdict {
 }
 
 /** Score a full list and return a Map keyed by row id — one pass for the
- *  whole Opportunities table (used for the Rent earn column + sort). */
+ *  whole Opportunities table (used for the Rent earn / Earn picks column
+ *  + sort). `mode` follows the active cost basis — see computeRentEarn. */
 export function computeRentEarnMap(
-  rows: Opportunity[]
+  rows: Opportunity[],
+  mode: CostBasisMode = "rent"
 ): Map<string, RentEarnVerdict> {
   const m = new Map<string, RentEarnVerdict>();
-  for (const r of rows) m.set(r.id, computeRentEarn(r));
+  for (const r of rows) m.set(r.id, computeRentEarn(r, mode));
   return m;
 }
 
@@ -263,7 +320,7 @@ export interface RentEarnLabelSet {
 }
 
 export function rentEarnLabels(
-  hardwareMode: "rent" | "owned" | undefined
+  hardwareMode: CostBasisMode | undefined
 ): RentEarnLabelSet {
   if (hardwareMode === "owned") {
     return {

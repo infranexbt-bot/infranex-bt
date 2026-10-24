@@ -128,8 +128,7 @@ export function OpportunityTable({
   // Winner-stability trends for ALL subnets in ONE request — TanStack Query
   // dedupes every table/card mount onto a single cache entry.
   const { data: oddsTrends } = useOddsTrends();
-  // RENT-EARN — one pass over all rows: rentability gate + seat reality + EV.
-  const rentMap = useMemo(() => computeRentEarnMap(opportunities), [opportunities]);
+  // RENT-EARN — one pass over all rows: hosting gate + seat reality + EV.
   // Lens labels follow the active cost basis — "Rent earn" under rented,
   // "Earn picks" under owned (same engine, same numbers basis as the ledger).
   const { data: profConfig } = useProfitabilityConfig();
@@ -138,6 +137,13 @@ export function OpportunityTable({
   // charges — electricity on the owned basis, market rent on the rented one
   // (the NUMBER is already mode-aware via the P&L; keep the WORD honest too).
   const ownedBasis = profConfig?.hardwareMode === "owned";
+  // The verdicts themselves are mode-aware too — the gate asks "can a rented
+  // container run this?" vs "can YOUR OWNED rig run this?" and the blocked
+  // copy never shows rent-source language on the owned basis.
+  const rentMap = useMemo(
+    () => computeRentEarnMap(opportunities, ownedBasis ? "owned" : "rent"),
+    [opportunities, ownedBasis]
+  );
 
   const filtered = useMemo(() => {
     let r = opportunities;
@@ -544,7 +550,10 @@ export function OpportunityTable({
                       if (!rent) return <TableCell className="text-xs text-muted-foreground">—</TableCell>;
                       const st = RENT_EARN_BAND_STYLE[rent.band];
                       const tip = [
-                        rent.rentBlock ?? "Rentable on Akash/Vast-class GPU/CPU",
+                        rent.rentBlock ??
+                          (ownedBasis
+                            ? "Runs on your owned rig — hosting gates (TEE-class restrictions) still apply"
+                            : "Rentable on Akash/Vast-class GPU/CPU"),
                         rent.earnChancePct != null
                           ? `${rent.earnChancePct}% of slots earned last epoch`
                           : null,
@@ -578,7 +587,10 @@ export function OpportunityTable({
                                 <AlertTriangle className="h-3 w-3 text-warning" aria-label="whale-mean $ figures" />
                               )}
                               {!rent.rentable && (
-                                <Ban className="h-3 w-3 text-destructive" aria-label="not rentable" />
+                                <Ban
+                                  className="h-3 w-3 text-destructive"
+                                  aria-label={ownedBasis ? "blocked by hosting gate" : "not rentable"}
+                                />
                               )}
                             </div>
                             <span className="text-[10px] leading-tight text-muted-foreground">

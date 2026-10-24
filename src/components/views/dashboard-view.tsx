@@ -42,8 +42,12 @@ export function DashboardView({ onSelectOpportunity, onStartMining, onNavigate }
   const top = liveOpps.slice(0, 8);
   // MINE-PICK — the "Choose your subnet" picker LEADS the dashboard (first
   // card, above the TAO Opportunity Score): every net-positive subnet ranked
-  // by rent earn × diligence × confidence.
-  const minePicks = rankMinePicks(liveOpps);
+  // by rent earn × diligence × confidence. Mode-aware — on the owned basis
+  // the hosting gate + reasons read owned-rig language (no rent sources).
+  const minePicks = rankMinePicks(
+    liveOpps,
+    profConfig?.hardwareMode === "owned" ? "owned" : "rent"
+  );
   // HOST-EARN teaser — when GPU mining seats are overwhelmingly NO-GO (≥80%),
   // surface the provider path (SN51 hosting income never enters the mining
   // lens). Text adapts: all-NO-GO vs mostly-NO-GO (one GPU pick can be live).

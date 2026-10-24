@@ -2257,3 +2257,22 @@ Stage Summary:
 - SN51 lium.io no longer says AVOID on ANY cost basis: the Ranked board now scores the subnet's REAL income stream (measured provider income $49,904/mo gross for the 8xB300 seat) → +$49,078/mo owned / +$24,183/mo rented, score 68.1, RUN, rank #05 on the owned board
 - Generic mechanism: any future subnet that pays miners off-chain marketplace income can be registered in PROVIDER_MARKETPLACE_REVENUE with a measured source; emission-only subnets keep their conservative top line
 - The user's actual plan (host 1x RTX PRO 6000 Blackwell WS) remains the Host & Earn view's measured $942/mo (~+$840/mo after electricity) — consistent story across both views now
+
+---
+Task ID: owned-earn-picks-mode-aware
+Agent: main (Z.ai)
+Task: "in Ranked opportunities: for owned GPU Earn picks is showing as rentable on akash/vast. why is it showing for owned GPU ? please check and rectify"
+
+Work Log:
+- Root cause: rent-earn engine (computeRentEarn/computeRentEarnMap) computed verdicts, gate strings and notes WITHOUT knowing the cost basis; opportunity-table.tsx:547 hardcoded the rented fallback "Rentable on Akash/Vast-class GPU/CPU" as the Earn picks tooltip first line, and rented-container gate logic (bareMetalOnly/teeRequired -> forced NO band) leaked into owned mode.
+- rent-earn.ts: added CostBasisMode type ("rent" | "owned"); computeRentEarn(o, mode) + computeRentEarnMap(rows, mode). OWNED semantics: an owned rig IS bare metal, so scraped bareMetalOnly no longer gates (becomes positive note "your owned rig qualifies where rented containers don't"); only TEE-class capability gates (Intel TDX / NVIDIA CC) still gate, with owned copy. CURATED_RENT_BLOCKS gained optional ownedReason per entry (SN64/SN4/SN28/SN90) dropping the "container clouds excluded" rented-side clause. All gate/blocked/notes copy is mode-aware; owned lens has zero rent-source language.
+- mine-pick.ts: computeMinePick(o, mode) + rankMinePicks(rows, mode) threaded through (dashboard picker agrees with the table by construction).
+- opportunity-table.tsx: hooks reordered (profConfig -> ownedBasis -> rentMap); rentMap passes mode; tooltip fallback now mode-aware ("Runs on your owned rig — hosting gates (TEE-class restrictions) still apply" under owned); Ban icon aria-label mode-aware.
+- opportunities-view.tsx: rentMap passes mode; renamed rentedPicks -> earnPicks (honest naming under owned).
+- dashboard-view.tsx: rankMinePicks(liveOpps, mode) — picker gate/reasons read owned language on the owned basis.
+
+Stage Summary:
+- tsc --noEmit EXIT 0; browser console clean; no page errors.
+- E2E (agent-browser, live app, Owned basis): 128/128 Earn-picks tooltips scanned -> 122 owned default copy, 6 TEE-gated owned copy (scraped teeRequired wins, incl. SN64), 1 bare-metal positive note, 0 occurrences of "Rentable on Akash". Pick card "Owned-rig earn picks" + column header "Earn picks" + dashboard formula "40% Earn pick..." all correct; SN82 Noah GREAT 98 EV ~$14,362/mo now surfaces under owned (was bare-metal-blocked).
+- Regression (Rented basis): 121 rentable "Rentable on Akash/Vast-class GPU/CPU" + 2 bare-metal blocked + 5 TEE "outside the rented catalog" = 128; column "Rent earn", card "Rented-rig earn picks" intact. Rented mode byte-identical behavior preserved via default mode="rent" (all diagnostic scripts unaffected).
+- Screenshot: download/owned-earn-picks-fixed.png
