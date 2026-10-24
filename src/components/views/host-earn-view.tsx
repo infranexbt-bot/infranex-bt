@@ -15,14 +15,18 @@
 import { useMemo, useState } from "react";
 import {
   ArrowRight,
+  ArrowUpRight,
+  Award,
   Banknote,
   Calculator,
+  Check,
   CircleDollarSign,
   Coins,
   ExternalLink,
   Info,
   Server,
   ShieldCheck,
+  X,
   Zap,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -58,6 +62,14 @@ import { useNetwork } from "@/hooks/use-network";
 import { cn } from "@/lib/utils";
 import type { ViewKey } from "@/lib/infranex/types";
 import {
+  COMPARE_MEASURED_AT,
+  HOST_BASIS_STYLE,
+  HOST_PROVIDERS,
+  PROVIDER_COMPARE,
+  PROVIDER_VERDICTS,
+  type HostProviderId,
+} from "@/lib/infranex/host-providers";
+import {
   ALPHA_SCENARIO,
   LIUM_DOCS,
   LIUM_FLEET_SUMMARY,
@@ -90,6 +102,9 @@ const tightness = (rented: number | null, listed: number | null) => {
     return { pct, label: "Solid", cls: "border-primary/40 bg-primary/10 text-primary" };
   return { pct, label: "Loose", cls: "border-warning/40 bg-warning/10 text-warning" };
 };
+
+/** Column order for the cross-provider comparison table. */
+const COMPARE_PROVIDERS: HostProviderId[] = ["lium", "vast", "salad", "ionet"];
 
 const LENS_ROWS: { lens: string; income: string; gate: string; fit: string }[] = [
   {
@@ -204,18 +219,20 @@ export function HostEarnView({
         <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-card/50 px-3 py-1 backdrop-blur">
           <Server className="h-3.5 w-3.5 text-primary" />
           <span className="text-eyebrow text-muted-foreground">
-            Provider path · SN51 lium.io · measured {LIUM_MEASURED_AT}
+            Provider path · Lium (SN51) vs Vast · Salad · io.net · researched {COMPARE_MEASURED_AT}
           </span>
         </div>
         <h1 className="text-display mt-2 text-3xl font-bold leading-tight md:text-4xl">
-          Host &amp; Earn — rent your GPUs out instead of fighting for seats
+          Host &amp; Earn — rent your GPUs to whoever pays the most
         </h1>
         <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground">
           The mining engine is honest: GPU mining seats are mostly whale knife-fights behind
-          hardware gates. Hosting is the other way a GPU earns on Bittensor — someone pays you
-          rent to use it, and idle cards still accrue validator idle-pool pay. Below: measured
-          earnings, live demand per model, exact payback on your electricity rate under two
-          pricing strategies, and the USDT-vs-alpha payout choice.
+          hardware gates. Hosting is the other way a GPU earns — someone pays you rent to use it.
+          Lium is the measured baseline (trailing-30d actuals, idle-pool pay); we researched the
+          other marketplaces that pay for your GPU — Vast.ai, SaladCloud, io.net, RunPod,
+          TensorDock — and priced which one pays most for YOUR card. Below: the cross-provider
+          comparison, per-provider payout rails and requirements, Lium&apos;s measured earnings,
+          exact payback on your electricity rate, and the USDT-vs-alpha payout choice.
         </p>
       </header>
 
@@ -259,11 +276,250 @@ export function HostEarnView({
         </CardContent>
       </Card>
 
+      {/* Cross-provider comparison — who pays most for YOUR card */}
+      <Card className="glass">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Award className="h-4 w-4 text-primary" />
+            Which provider pays the most for your GPU?
+          </CardTitle>
+          <CardDescription>
+            Six marketplaces that pay you to host, priced per card. Green = best payer for that
+            card. Click a row to load it into the payback calculator. Researched{" "}
+            {COMPARE_MEASURED_AT}.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Headline verdicts */}
+          <div className="grid gap-3 md:grid-cols-2">
+            {PROVIDER_VERDICTS.map((v) => (
+              <div key={v.title} className="rounded-xl border border-success/25 bg-success/5 p-3.5">
+                <p className="text-sm font-semibold text-success">{v.title}</p>
+                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{v.body}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Comparison table */}
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>GPU</TableHead>
+                  {COMPARE_PROVIDERS.map((pid) => {
+                    const p = HOST_PROVIDERS.find((x) => x.id === pid)!;
+                    return (
+                      <TableHead key={pid} className="text-right">
+                        {p.name.replace(" (SN51)", "").replace(" (Community Cloud)", "")}
+                      </TableHead>
+                    );
+                  })}
+                  <TableHead className="text-right">Best payer</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {PROVIDER_COMPARE.map((row) => {
+                  const liumName = LIUM_GPUS.find(
+                    (g) =>
+                      g.gpu ===
+                      ({ "5090": "RTX 5090", "4090": "RTX 4090", "3090": "RTX 3090", a100: "NVIDIA A100", h100: "NVIDIA H100", h200: "NVIDIA H200", b200: "NVIDIA B200", b300: "NVIDIA B300", pro6000s: "RTX PRO 6000 Blackwell Server" } as Record<string, string>)[
+                        row.matchKey
+                      ]
+                  )?.gpu;
+                  return (
+                    <TableRow
+                      key={row.matchKey}
+                      onClick={() => liumName && selectGpu(liumName)}
+                      className={cn(liumName && "cursor-pointer")}
+                    >
+                      <TableCell>
+                        <span className="text-sm font-semibold">{row.display}</span>
+                        {row.vramGb != null && (
+                          <span className="mono tabular ml-2 text-[10px] text-muted-foreground">
+                            {row.vramGb}GB
+                          </span>
+                        )}
+                      </TableCell>
+                      {COMPARE_PROVIDERS.map((pid) => {
+                        const r = row.byProvider[pid];
+                        const isBest = row.bestId === pid;
+                        if (!r || r.monthlyMid == null)
+                          return (
+                            <TableCell key={pid} className="text-right">
+                              <span className="text-xs text-muted-foreground">—</span>
+                            </TableCell>
+                          );
+                        const basis = HOST_BASIS_STYLE[r.basis];
+                        return (
+                          <TableCell key={pid} className="text-right">
+                            <div className="flex flex-col items-end gap-0.5">
+                              <span
+                                className={cn(
+                                  "mono tabular text-sm font-semibold",
+                                  isBest && "text-success"
+                                )}
+                                title={r.note}
+                              >
+                                {r.monthlyLow != null && r.monthlyHigh != null && r.monthlyLow !== r.monthlyHigh
+                                  ? `${usd(r.monthlyLow)}–${usd(r.monthlyHigh)}`
+                                  : usd(r.monthlyMid)}
+                              </span>
+                              <span
+                                className={cn(
+                                  "rounded-full border px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide",
+                                  basis.cls
+                                )}
+                                title={basis.tip}
+                              >
+                                {basis.label}
+                              </span>
+                            </div>
+                          </TableCell>
+                        );
+                      })}
+                      <TableCell className="text-right">
+                        {(() => {
+                          if (!row.bestId || row.bestMonthly == null)
+                            return <span className="text-xs text-muted-foreground">no data</span>;
+                          const p = HOST_PROVIDERS.find((x) => x.id === row.bestId)!;
+                          return (
+                            <div className="flex flex-col items-end gap-0.5">
+                              <span className="mono tabular text-sm font-bold text-success">
+                                {usd(row.bestMonthly)}
+                              </span>
+                              <span className="text-[10px] text-muted-foreground">
+                                {p.name.replace(" (SN51)", "").replace(" (Community Cloud)", "")}
+                                {row.bestIsEstimate ? " (est.)" : ""}
+                              </span>
+                            </div>
+                          );
+                        })()}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Basis legend */}
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-[11px] text-muted-foreground">Data basis:</span>
+            {(["measured", "published", "estimate"] as const).map((b) => (
+              <span
+                key={b}
+                className={cn(
+                  "rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
+                  HOST_BASIS_STYLE[b].cls
+                )}
+                title={HOST_BASIS_STYLE[b].tip}
+              >
+                {HOST_BASIS_STYLE[b].label}
+              </span>
+            ))}
+            <span className="text-[11px] text-muted-foreground">
+              — measured = realized payouts · published = provider&apos;s own rate card · estimate =
+              our renter-rate conversion (commission not public). RunPod &amp; TensorDock publish no
+              per-card host figures — see their profiles below.
+            </span>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Provider profiles */}
+      <Card className="glass">
+        <CardHeader>
+          <CardTitle className="text-lg">Provider profiles — payouts, requirements, trade-offs</CardTitle>
+          <CardDescription>
+            What each platform actually requires from you and how you get paid. Entry bar: easy =
+            a gaming PC qualifies · strict = datacenter / application.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
+          {HOST_PROVIDERS.map((p) => {
+            const entryCls =
+              p.entryBar === "easy"
+                ? "border-success/40 bg-success/10 text-success"
+                : p.entryBar === "medium"
+                  ? "border-warning/40 bg-warning/10 text-warning"
+                  : "border-destructive/40 bg-destructive/10 text-destructive";
+            return (
+              <div key={p.id} className="flex flex-col rounded-xl border border-border/50 bg-card/30 p-4">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <p className="text-sm font-bold">{p.name}</p>
+                    <p className="mt-0.5 text-[11px] text-muted-foreground">{p.tagline}</p>
+                  </div>
+                  <span
+                    className={cn(
+                      "whitespace-nowrap rounded-full border px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide",
+                      entryCls
+                    )}
+                  >
+                    {p.entryBar} entry
+                  </span>
+                </div>
+
+                <dl className="mt-3 space-y-1.5 text-[11px] leading-relaxed">
+                  <div>
+                    <dt className="text-muted-foreground">Payout</dt>
+                    <dd className="font-medium">{p.payoutRail}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-muted-foreground">Take / min</dt>
+                    <dd className="font-medium">{p.platformTake} · min {p.payoutMin}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-muted-foreground">Entry</dt>
+                    <dd className="font-medium">{p.entryNote}</dd>
+                  </div>
+                </dl>
+
+                <ul className="mt-3 space-y-1 text-[11px] leading-relaxed">
+                  {p.requirements.slice(0, 3).map((r) => (
+                    <li key={r} className="flex gap-1.5">
+                      <Check className="mt-0.5 h-3 w-3 shrink-0 text-primary" />
+                      <span>{r}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <div className="mt-3 space-y-1.5 text-[11px] leading-relaxed">
+                  {p.pros.slice(0, 2).map((pro) => (
+                    <p key={pro} className="flex gap-1.5 text-success">
+                      <Check className="mt-0.5 h-3 w-3 shrink-0" />
+                      <span>{pro}</span>
+                    </p>
+                  ))}
+                  {p.cons.slice(0, 2).map((con) => (
+                    <p key={con} className="flex gap-1.5 text-muted-foreground">
+                      <X className="mt-0.5 h-3 w-3 shrink-0 text-destructive" />
+                      <span>{con}</span>
+                    </p>
+                  ))}
+                </div>
+
+                <p className="mt-3 border-t border-border/40 pt-2 text-[10px] leading-relaxed text-muted-foreground">
+                  {p.dataNote}
+                </p>
+
+                <Button asChild variant="outline" size="sm" className="mt-3 gap-1.5 self-start">
+                  <a href={p.hostUrl} target="_blank" rel="noreferrer">
+                    {p.id === "lium" ? "Provider docs" : "Host page"}
+                    <ArrowUpRight className="h-3 w-3" />
+                  </a>
+                </Button>
+              </div>
+            );
+          })}
+        </CardContent>
+      </Card>
+
       {/* Measured earnings table */}
       <Card className="glass">
         <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3 space-y-0">
           <div>
-            <CardTitle className="text-lg">Measured provider earnings per card</CardTitle>
+            <CardTitle className="text-lg">Lium (SN51) — measured provider earnings per card</CardTitle>
             <CardDescription>{LIUM_SOURCE}</CardDescription>
           </div>
           <div className="flex items-center gap-3">
