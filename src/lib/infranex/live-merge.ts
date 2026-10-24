@@ -27,6 +27,7 @@ import {
   type ProfitabilityConfig,
 } from "./profitability";
 import { getMechanics } from "./mechanics";
+import { providerMarketplaceRevenueFor } from "./lium-earnings";
 import { curatedGithubUrl } from "./data";
 import { SUBNET_LINKS_SEED } from "./subnet-links-seed";
 import type { SubnetMechanics } from "./mechanics";
@@ -258,12 +259,25 @@ export function mergeOpportunities(
         ? snap.blockNumber - live.registeredAt
         : null;
 
+    // PROVIDER-MARKETPLACE REVENUE: subnets whose miners are ALSO paid
+    // off-chain marketplace income (SN51 Lium: 95% rental share + idle pay
+    // + rented extra, paid daily to the coldkey — invisible to the incentive
+    // vector). The measured trailing-30d figure REPLACES the emission top
+    // line (it already includes idle-pool emission — never added on top).
+    // Every subnet without a measured off-chain stream returns null here and
+    // keeps the generic emission estimate — 127/128 rows are untouched.
+    const providerRevenue = providerMarketplaceRevenueFor(
+      live.netuid,
+      hardware.gpuCount && hardware.gpuCount > 1 ? hardware.gpuCount : 1
+    );
+
     const { components, factors, diag } = scoreMinersLedger({
       live,
       taoUsd: usd,
       hardware,
       liveAgeBlocks,
       mechanics,
+      providerRevenue,
       costs: {
         hardwareMode: config.hardwareMode,
         electricityUsdPerKwh: config.electricityUsdPerKwh,
@@ -353,6 +367,8 @@ export function mergeOpportunities(
       hardwareClassified: diag.hardwareClassified,
       mechanics,
       costClass: diag.costClass ?? null,
+      revenueBasis: diag.revenueBasis,
+      revenueBasisSource: diag.revenueBasisSource ?? null,
       workType: diag.category,
       grossMonthlyUsd: diag.grossMonthlyUsd,
       netMonthlyUsd: profitability.netMonthlyUsd,

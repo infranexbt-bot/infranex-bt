@@ -266,6 +266,55 @@ export const LIUM_GPUS: LiumGpuRow[] = [
 export const LIUM_MEASURED_AT = "2026-10-23";
 /** Hours in the lib's billing month (matches electricityMonthlyUsd). */
 export const HOURS_PER_MONTH = 729.6;
+
+// ---------------------------------------------------------------------------
+// PROVIDER-MARKETPLACE REVENUE — the mining-lens blind spot, fixed at the root.
+//
+// SN51's miner IS a rental provider: the same hotkey that earns chain
+// emission also receives 95% of renter payments + idle-pool pay + rented
+// extra — paid OFF-CHAIN (daily to the coldkey), invisible to the subnet's
+// incentive vector. The generic per-seat emission model priced SN51 revenue
+// at a few hundred $/mo and flagged it AVOID; the measured provider table
+// says an 8xB300 node actually grosses ~$49,900/mo (Lium rewards calculator,
+// trailing 30d). The Miner's Ledger now uses that measured figure as the
+// gross top line for subnets registered here, so RUN/WATCH/AVOID reflects
+// the real income stream. The measured monthlyUsd ALREADY INCLUDES idle-pool
+// emission — the ledger REPLACES (never adds) the emission estimate with it,
+// so nothing is double-counted.
+//
+// Keyed by netuid. Today SN51 is the only Bittensor subnet whose miners are
+// paid off-chain marketplace rental income; add a row here (with a measured
+// source) when another one appears.
+// ---------------------------------------------------------------------------
+export const PROVIDER_MARKETPLACE_REVENUE: Record<
+  number,
+  { gpuKey: string; source: string }
+> = {
+  51: {
+    gpuKey: "NVIDIA B300",
+    source:
+      "Lium rewards calculator, trailing 30d: 95% of renter payments + idle pay + rented extra",
+  },
+};
+
+/** Resolved measured provider revenue for a subnet, scaled to the priced GPU
+ *  count. Returns null for subnets with no measured off-chain income stream
+ *  (everywhere except SN51 today) — the caller keeps its emission top line. */
+export function providerMarketplaceRevenueFor(
+  netuid: number,
+  gpuCount: number
+): { monthlyUsd: number; perGpuUsd: number; source: string } | null {
+  const entry = PROVIDER_MARKETPLACE_REVENUE[netuid];
+  if (!entry) return null;
+  const row = LIUM_GPUS.find((g) => g.gpu === entry.gpuKey);
+  if (!row || !(row.monthlyUsd > 0)) return null;
+  const count = Math.max(1, Math.round(gpuCount || 1));
+  return {
+    perGpuUsd: row.monthlyUsd,
+    monthlyUsd: row.monthlyUsd * count,
+    source: entry.source,
+  };
+}
 export const LIUM_FLEET_SUMMARY =
   "Fleet snapshot 2026-10-24 (lium.io pricing.json): 1,820 GPUs listed, 1,586 rented (87.1%).";
 export const LIUM_SOURCE =

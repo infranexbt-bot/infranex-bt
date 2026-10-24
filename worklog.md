@@ -2235,3 +2235,25 @@ Stage Summary:
 - All-subnets confirmation delivered: the owned basis NEVER charges provider/market GPU rent anywhere in the app — both scoring engines (Miner's Ledger + Profitability Engine) branch to electricity-only for all 128 subnet rows, proven on live chain data with the exact engine the Ranked table runs
 - With owned active, 26 subnets carry corrected RUN/WATCH/AVOID verdicts; SN51 lium sits at net −$552/mo as a MINING seat (correct — its real money is the provider/hosting stream covered by Host & Earn)
 - No code changes needed this pass — the ask was fully satisfied by the already-landed audit; this pass re-verified everything end-to-end and captured fresh evidence
+
+---
+Task ID: lium-provider-revenue-scoring
+Agent: main (Super Z)
+Task: "lium is still showing as avoid" — the cost-side fix (owned=electricity) landed, but SN51 still AVOIDed because the REVENUE side was emission-only. Integrate measured off-chain provider income into the ledger.
+
+Work Log:
+- ROOT CAUSE: SN51's miner IS a rental provider — the hotkey earns chain emission AND the provider receives 95% of renter payments + idle pay + rented extra, paid OFF-CHAIN daily to the coldkey. The incentive vector cannot see this; the generic per-seat emission model priced SN51 gross at ~$500/mo vs the measured ~$49,900/mo for an 8xB300 node (Lium rewards calculator, trailing 30d). Net negative → AVOID, even on the owned basis.
+- lium-earnings.ts: new PROVIDER_MARKETPLACE_REVENUE registry (netuid-keyed; SN51 → NVIDIA B300 measured row) + providerMarketplaceRevenueFor(netuid, gpuCount) resolver that scales measured per-GPU monthly ($6,238) to the priced count (8x → $49,904). Replacement semantics documented: the measured figure ALREADY INCLUDES idle-pool emission → the ledger REPLACES, never adds (no double-count).
+- miner-score.ts: scoreMinersLedger inputs gain providerRevenue {monthlyUsd, source}; when active, grossMonthlyUsd = measured provider income (emission estimate still feeds alpha economics/dailyAlpha/slippage — those stay chain-based); diag gains revenueBasis "emission" | "provider-marketplace" + revenueBasisSource; deriveFactors gains revenueBasis opt with NET_ROI_DESC_PROVIDER_{RENT,OWNED} texts.
+- live-merge.ts: resolves providerMarketplaceRevenueFor(netuid, hardware.gpuCount) per row and passes it to the ledger; row carries revenueBasis/revenueBasisSource. 127/128 subnets return null → untouched emission top line.
+- types.ts Opportunity: revenueBasis/revenueBasisSource optional fields.
+- UI honesty: opportunity-table Net-Monthly tooltip appends "(measured provider income — 95% rental share + idle pay; not emission)" for provider-basis rows; opportunity-detail waterfall badges "MEASURED PROVIDER INCOME" next to Expected revenue with source tooltip.
+- MULTIEDIT WAR LESSON #2: a failed MultiEdit CAN leave earlier edits applied (atomicity not guaranteed in this toolchain) — verify file state by grep after ANY MultiEdit failure; this session duplicated a constants block that way and was caught+fixed by reading the section.
+- Verify: tsc EXIT 0; eslint changed files CLEAN; verify-owned-score.ts on live chain (block 9356096): 128 rows, identity failures=0, identical-GPU-line rows=0 — SN51 net(rent) +$24,183 net(owned) +$49,078, score 68.1, RUN in BOTH bases (net_roi clamps at 97 both sides); SN51 = #1 owned-basis GPU row; all other rows unchanged (SN64 +$4,025 RUN, SN04 +$2,740 RUN, 25 band flips total).
+- E2E (agent-browser, admin): SN51 row rank #05 · 68.1 RUN · "$49,078 ✓ ≥ $300 target"; row tooltip reads "Revenue $49,904 (measured provider income — 95% rental share + idle pay; not emission) − GPU electricity (owned basis — no market rent charged) $704.2 − storage $15 − infra $40 − other $66.4 = net $49,078/mo"; console clean; dev server revived once (sandbox kill pattern, start-dev.sh heap-capped).
+- Screenshots: download/lium-run-verdict.png, download/lium-opportunities-detail.png
+
+Stage Summary:
+- SN51 lium.io no longer says AVOID on ANY cost basis: the Ranked board now scores the subnet's REAL income stream (measured provider income $49,904/mo gross for the 8xB300 seat) → +$49,078/mo owned / +$24,183/mo rented, score 68.1, RUN, rank #05 on the owned board
+- Generic mechanism: any future subnet that pays miners off-chain marketplace income can be registered in PROVIDER_MARKETPLACE_REVENUE with a measured source; emission-only subnets keep their conservative top line
+- The user's actual plan (host 1x RTX PRO 6000 Blackwell WS) remains the Host & Earn view's measured $942/mo (~+$840/mo after electricity) — consistent story across both views now
