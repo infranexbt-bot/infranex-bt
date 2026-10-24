@@ -65,12 +65,16 @@ export function OpportunitiesView({ onSelectOpportunity, onStartMining }: Opport
     () => mergeOpportunities(snap, profConfig, overrides),
     [snap, profConfig, overrides]
   );
-  // RENT-EARN verdicts — one pass over all rows (Rent earn column + filter).
+  // RENT-EARN verdicts — one pass over all rows (Rent earn / Earn picks
+  // column + filter). Mode-aware: on the owned basis the gate asks whether
+  // the user's OWN rig can run the work, and blocked copy drops rent-source
+  // language (no "rentable on Akash/Vast" while pricing your own GPUs).
+  const ownedBasis = profConfig?.hardwareMode === "owned";
   const rentMap = useMemo(
-    () => computeRentEarnMap(opportunities),
-    [opportunities]
+    () => computeRentEarnMap(opportunities, ownedBasis ? "owned" : "rent"),
+    [opportunities, ownedBasis]
   );
-  const rentedPicks = useMemo(
+  const earnPicks = useMemo(
     () =>
       opportunities
         .map((o) => ({ o, rent: rentMap.get(o.id)! }))
@@ -197,7 +201,7 @@ export function OpportunitiesView({ onSelectOpportunity, onStartMining }: Opport
 
       {/* RENT-EARN summary — where a RENTED or OWNED rig actually has a chance.
           Heading/icon/subtitle follow the active cost basis (rentEarnLabels). */}
-      {rentedPicks.length > 0 && (
+      {earnPicks.length > 0 && (
         <div className="rounded-lg border border-border/60 bg-card/40 px-4 py-3">
           <div className="flex items-center gap-2 text-xs font-semibold text-foreground/90">
             {L.pickCardIcon === "zap" ? (
@@ -211,7 +215,7 @@ export function OpportunitiesView({ onSelectOpportunity, onStartMining }: Opport
             </span>
           </div>
           <div className="mt-2 flex flex-wrap gap-1.5">
-            {rentedPicks.slice(0, 8).map(({ o, rent }) => {
+            {earnPicks.slice(0, 8).map(({ o, rent }) => {
               const st = RENT_EARN_BAND_STYLE[rent.band];
               return (
                 <span

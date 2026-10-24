@@ -1,17 +1,24 @@
 import type { Opportunity } from "./types";
-import { computeRentEarn, type RentEarnVerdict, type RentEarnBand } from "./rent-earn";
+import {
+  computeRentEarn,
+  type CostBasisMode,
+  type RentEarnVerdict,
+  type RentEarnBand,
+} from "./rent-earn";
 import { computeDiligence, type DiligenceReport } from "./diligence";
 
 // ---------------------------------------------------------------------------
-// MINE-PICK ENGINE — "which subnet do I actually point a rented CPU/GPU at?"
+// MINE-PICK ENGINE — "which subnet do I actually point my rig at?" (mode-aware:
+// a rented rig on the rented basis, the user's own rig on the owned basis)
 //
 // The Dashboard's TAO Opportunity Score card pits one best mining subnet
 // against staking; this engine widens the lens to EVERY net-positive subnet
 // and combines the three independent signals the platform already computes:
 //
-//   1. RENT EARN (weight 40) — rent-earn.ts: can a rented rig legally run
-//      it (rentability gate) + seat reality (rewarded ratio, whale take)
-//      + new-entrant EV.
+//   1. RENT EARN (weight 40) — rent-earn.ts: can the rig legally run it
+//      (hosting gate — rented-container gate on the rented basis, TEE-class
+//      capability gate on the owned basis) + seat reality (rewarded ratio,
+//      whale take) + new-entrant EV.
 //   2. DILIGENCE PIPELINE (weight 35) — diligence.ts: the 14-stage
 //      due-diligence checklist (activity, registration, hardware proof,
 //      competition, liquidity, cost, downside…). Stages map to a 0–100
@@ -114,9 +121,11 @@ function gateReasons(pick: {
 
 /** Compute the MINE-PICK verdict for one net-positive row. Pure — safe on
  *  client and server; reuses computeRentEarn + computeDiligence so the
- *  Dashboard picker agrees with the Opportunities page by construction. */
-export function computeMinePick(o: Opportunity): MinePick {
-  const rent = computeRentEarn(o);
+ *  Dashboard picker agrees with the Opportunities page by construction.
+ *  `mode` follows the active cost basis (see computeRentEarn) so the picker's
+ *  gate + reasons read owned-rig language when the basis is Owned. */
+export function computeMinePick(o: Opportunity, mode: CostBasisMode = "rent"): MinePick {
+  const rent = computeRentEarn(o, mode);
   const diligence = computeDiligence(o);
   const health = diligenceHealth(diligence);
   const confidencePct = clamp(Math.round((o.confidence ?? 0.5) * 100), 0, 100);
@@ -159,8 +168,9 @@ export function computeMinePick(o: Opportunity): MinePick {
 
 /** Rank every net-positive mining subnet (netuid > 0) by conviction.
  *  Rows below the minimum-profit rule are EXCLUDED — this picker answers
- *  "where do I point a rig", and AVOID rows are not candidates. */
-export function rankMinePicks(rows: Opportunity[]): MinePick[] {
+ *  "where do I point a rig", and AVOID rows are not candidates.
+ *  `mode` follows the active cost basis (rented vs owned) — see computeMinePick. */
+export function rankMinePicks(rows: Opportunity[], mode: CostBasisMode = "rent"): MinePick[] {
   return rows
     .filter((o) => {
       if (o.netuid === 0) return false;
@@ -168,7 +178,7 @@ export function rankMinePicks(rows: Opportunity[]): MinePick[] {
       const net = o.netMonthlyUsd ?? o.estimatedMonthlyRewardUsd ?? 0;
       return net > 0;
     })
-    .map(computeMinePick)
+    .map((o) => computeMinePick(o, mode))
     .sort(
       (a, b) =>
         b.conviction - a.conviction ||
