@@ -419,7 +419,7 @@ const liumRow = (key: string): ProviderGpuEarning | null => {
       ? {
           pct: Math.round((g.rentedCount / g.listedCount) * 100),
           kind: "rented" as const,
-          note: `Lium fleet snapshot 2026-10-23: ${g.rentedCount}/${g.listedCount} units rented${
+          note: `Lium fleet snapshot 2026-10-24: ${g.rentedCount}/${g.listedCount} units rented${
             g.avgRentedPct30d != null ? ` · official 30d average ${g.avgRentedPct30d}% time-rented` : ""
           }`,
         }

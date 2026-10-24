@@ -2180,3 +2180,21 @@ Stage Summary:
 - The board now answers the operator's exact question: ONLY self-serve providers that pay (Lium, Vast, Salad, io.net), priced PER HOUR with measured demand chips where providers publish them — RunPod/TensorDock removed with auditable reasons
 - Bottom line encoded in verdicts: Lium pays most for every card it lists (consumer + datacenter + Blackwell, measured); Salad is the only market that pays for 4070/4080/3080 ($60-97/mo, 94-98% occupancy); Vast's live asks lose to Lium's realized actuals at the median; io.net figures stay ceiling-only estimates
 - Files: src/lib/infranex/host-providers.ts, src/components/views/host-earn-view.tsx
+
+---
+Task ID: lium-avoid-rtx6000-research
+Agent: main (Super Z)
+Task: "in opportunity page our app says to Avoid. Research why it says avoid? i will host RTX PRO 6000 Blackwell Workstation. it says demand 18/19 so can i have good earnings? research shall i host and start rtx 6000?"
+
+Work Log:
+- Traced the AVOID: opportunityBand() in utils.ts returns AVOID when meetsMinimum===false; the profitability engine's minimum entry rule is netMonthlyUsd >= minNetProfitTargetUsd ($300 default). For SN51 the Miner's Ledger prices a MINING seat: chain emission per earning seat (112.46 TAO/day miner emission / 63 rewarded seats = 1.785 TAO/day) vs the 8xB300 rig cost from the repo-scraped hardware requirement (~$50k/mo rent) -> net deeply negative -> AVOID. Also subnet full (256/256, must displace; only 63/256 seats earned). This verdict is correct for MINING SN51 and structurally CANNOT see provider income (95% rental share + idle pay + rented extra, paid off-chain) — exactly why Host & Earn exists.
+- Live research: fetched lium.io/pricing.json (generated 2026-10-24T20:04Z): fleet 1,820 listed / 1,586 rented (87.1%). RTX PRO 6000 Blackwell Workstation: 20 listed / 19 rented (95%, 1 idle), ref/soft-limit $1.19, live asks $1.93. Server Edition: 162/145 (90%), asks $1.85-2.09. Notable: H100 utilization crashed 89%->55% (289 listed after fleet wave); 5090 273/274 (99.6%); 4090 103/103 (100%).
+- Web research: RTX PRO 6000 Blackwell street price EXPLODED — launched Mar 2025 @ $8,565 MSRP, now $16,000 NVIDIA marketplace / $15,999 Newegg + B&H (Thundercompute Oct 23 2026; GDDR7 shortage). Our $9.5k WS assumption was stale. Vast.ai now lists RTX PRO 6000 WS from $1.00/hr (renter asks), Server median $1.64 (Thundercompute aggregation).
+- lium-earnings.ts: refreshed listed/rented counts for all 12 rows from the 2026-10-24 snapshot; WS row: streetPriceUsd 9500->16000 (sourced), marketAskUsdPerHr 1.19->1.93 (market-ask scenario now live: $1.93 x 729.6h x 80% = $1,127/mo, forfeits idle pay), priceNote + note rewritten; Server note + priceNote caution; LIUM_FLEET_SUMMARY -> 2026-10-24; date-split comment (demand snapshot vs earnings basis)
+- host-providers.ts: fleet note date -> 2026-10-24; host-earn-view.tsx: 2 snapshot-date strings -> 2026-10-24
+- Verified: tsc --noEmit EXIT 0
+
+Stage Summary:
+- Answer delivered: AVOID = mining-lens verdict for SN51 (emissions vs 8xB300 rig cost), NOT a hosting verdict; the Host & Earn measured numbers are the hosting truth. WS demand 19/20 = 95% Tight, measured $942/mo (middle half $836-1,050), ~$889/mo net after electricity.
+- Key economics: hosting a card you ALREADY OWN = excellent (~18x electricity revenue multiple); BUYING at the new $16k street = ~18-mo payback (was ~10.7 at the stale $9.5k) — per-dollar a used 4090 (~7 mo) or 5090 (~15 mo) beats it; Server Edition earns $1,092/mo @ 90% demand but needs a server chassis.
+- Files: src/lib/infranex/lium-earnings.ts, src/lib/infranex/host-providers.ts, src/components/views/host-earn-view.tsx
