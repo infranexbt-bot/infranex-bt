@@ -2276,3 +2276,23 @@ Stage Summary:
 - E2E (agent-browser, live app, Owned basis): 128/128 Earn-picks tooltips scanned -> 122 owned default copy, 6 TEE-gated owned copy (scraped teeRequired wins, incl. SN64), 1 bare-metal positive note, 0 occurrences of "Rentable on Akash". Pick card "Owned-rig earn picks" + column header "Earn picks" + dashboard formula "40% Earn pick..." all correct; SN82 Noah GREAT 98 EV ~$14,362/mo now surfaces under owned (was bare-metal-blocked).
 - Regression (Rented basis): 121 rentable "Rentable on Akash/Vast-class GPU/CPU" + 2 bare-metal blocked + 5 TEE "outside the rented catalog" = 128; column "Rent earn", card "Rented-rig earn picks" intact. Rented mode byte-identical behavior preserved via default mode="rent" (all diagnostic scripts unaffected).
 - Screenshot: download/owned-earn-picks-fixed.png
+
+---
+Task ID: miner-playbook-empty-fix
+Agent: main (Z.ai)
+Task: "check why Miner Playbook data is not showing up"
+
+Work Log:
+- Reproduced: GET /api/playbook returned {"meta":{"blockNumber":null,"taoPriceUsd":0,"snapshotAt":null,"totalSubnets":0},"entries":[]}
+- Root cause 1: SubnetPlaybook table had 0 rows (subnetOverride=109 OK) — the merge-playbook.ts seed had never been applied to this DB instance
+- Root cause 2: ChainSnapshot table had 0 rows — boot-time OOM-guard (4GB host < 6GB threshold, MEMORY-GUARD-2) keeps all 8 background workers disabled, so nothing ever writes snapshots
+- Fix 1: ran `bun --smol scripts/merge-playbook.ts` -> merged 106 playbook rows (repo-verified=98, derived=7, thin=1) from existing scripts/playbook/batch-{1..7}-{input,output}.json
+- Fix 2: /api/workers/trigger rejected as unsafe (fires all 8 workers incl. ~100-repo-scrape GitHub storm that OOM-killed this box before); instead wrote scripts/chain-snapshot-once.ts — persists ONE ChainSnapshot; live fetchLiveSnapshot() sweep timed out at 3min, so used fast path: saved /api/network response (136KB, 129 subnets, block 9356320) and persisted it via the script's file-arg mode
+- Verified API: /api/playbook -> 106 entries, meta block 9356320 / TAO $247.91, 0 entries missing live metrics; top cards SN116 Carbon $23,795/d, SN4 Targon $13,324/d, SN9 iota $8,843/d
+- Verified UI E2E (agent-browser): login admin -> Miner Playbook 05c -> header shows "106 subnets · block 9356320 · TAO $247.91", chips 98 repo-verified / 7 derived / 1 thin, cards + detail panels render with live per-earner yields; 0 console errors, 0 page errors
+- Screenshot: download/miner-playbook-fixed.png
+
+Stage Summary:
+- Miner Playbook restored: 106/106 entries with live yield metrics
+- New artifact scripts/chain-snapshot-once.ts — reusable lightweight single-sweep snapshot writer (file-arg fast path or live sweep) for snapshot-driven views on OOM-guarded small hosts
+- NOTE: ChainSnapshot is a one-off row; without workers on, DB-snapshot-driven views show this same snapshot until the script is re-run. /api/network stays fully live (on-demand fetch) — unaffected.
