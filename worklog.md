@@ -2048,3 +2048,24 @@ Stage Summary:
 - SN92 REAX is the only GPU mining GO (needs 80GB+ VRAM - PRO 6000 96GB qualifies on VRAM, thin verified data)
 - Recommended to user: Noah/Hone CPU mining, SN51 provider for owned GPUs, REAX only with 96GB card, or stake
 - Scripts kept: scripts/analyze-own-gpu-nogo.ts, scripts/drill-rows.ts (reusable census tools)
+
+---
+Task ID: host-earn-module-1
+Agent: main (Super Z)
+Task: Build the Host & Earn module (Direction A) — SN51 provider path: measured Lium earnings, payback calculator, USDT-vs-alpha payout comparator.
+
+Work Log:
+- Loaded fullstack-dev + agent-browser skills; explored view registration pattern (ViewKey -> page.tsx VIEW_META/render -> sidebar NAV_GROUPS)
+- Created src/lib/infranex/lium-earnings.ts: 12-GPU measured earnings table (trailing-30d actuals measured 2026-10-23, from sn51-lium-research), idle-pool weights, power draw, editable street prices + exact payback math (electricityMonthlyUsd, computePayback) + payout comparator (comparePayouts: USDT 5% fee/T+2/min-$5 vs alpha no-fee with -30%/+30% scenarios)
+- Created src/components/views/host-earn-view.tsx: hero, mining-lens-vs-hosting-lens explainer card (why picker shows NO-GO and why hosting differs), measured earnings table (electricity-rate input defaulting to profitability config, tier filters, row click loads calculator), payback calculator (GPU select auto-fills capex, demand slider 50-100%), payout comparator (live alpha price from chain snapshot movingPrice x taoPrice), 5-step onboarding checklist, honesty footer
+- Registered "host-earn" view: types.ts ViewKey, page.tsx (Section 05d), sidebar (Banknote icon, Intelligence group)
+- Dashboard teaser: data-aware banner under subnet chooser when >=80% of GPU mining picks are NO-GO (adapts: "Every GPU..." vs "N of M...") linking to the view
+- Fixed float noise on electricity default (round to 3dp)
+- Verification: tsc --noEmit EXIT 0; server died mid-build (known sandbox session kill) -> restarted with setsid ritual; agent-browser e2e: login -> teaser visible ("29 of 30 GPU mining seats are NO-GO") -> Host & Earn nav -> table/calculator/comparator all render; GPU select RTX 5090 auto-set capex 6500; slider 100->95 propagates; math pixel-exact (5090@95%: rev $441, elec $50, net $391/mo, payback 16.6mo, 12mo -$1,815, 24mo +$2,871, USDT $419 net, alpha 15.3/mo); desktop + mobile screenshots verified; console/page errors clean; dev.log clean
+- lint: 2 PRE-EXISTING errors (append-recovery2.js require(), deploy-wizard.tsx setState-in-effect) — NOT from this change, left untouched
+
+Stage Summary:
+- Host & Earn (Section 05d) live: closes the app's biggest blind spot — SN51 provider income (rental fees + idle pay) is now a first-class lens beside the mining engine
+- Teaser converts the user's "all GPU NO-GO" confusion into a one-click path to the provider economics
+- Data honesty preserved: measured 30d actuals stamped with date, editable price/demand assumptions, explicit "observations not guarantees" footer
+- Files: src/lib/infranex/lium-earnings.ts, src/components/views/host-earn-view.tsx, page.tsx, sidebar.tsx, dashboard-view.tsx, types.ts

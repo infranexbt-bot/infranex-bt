@@ -44,6 +44,13 @@ export function DashboardView({ onSelectOpportunity, onStartMining, onNavigate }
   // card, above the TAO Opportunity Score): every net-positive subnet ranked
   // by rent earn × diligence × confidence.
   const minePicks = rankMinePicks(liveOpps);
+  // HOST-EARN teaser — when GPU mining seats are overwhelmingly NO-GO (≥80%),
+  // surface the provider path (SN51 hosting income never enters the mining
+  // lens). Text adapts: all-NO-GO vs mostly-NO-GO (one GPU pick can be live).
+  const gpuPicks = minePicks.filter((p) => p.hardware === "GPU");
+  const gpuNoGoCount = gpuPicks.filter((p) => p.band === "NO-GO").length;
+  const allGpuNoGo = gpuPicks.length > 0 && gpuNoGoCount === gpuPicks.length;
+  const showHostTeaser = gpuPicks.length > 0 && gpuNoGoCount / gpuPicks.length >= 0.8;
 
   // MOCK-PURGE-2 — emission distribution derives from the LIVE chain snapshot
   // and the Workers card reads real engine runs from /api/workers/status.
@@ -111,6 +118,28 @@ export function DashboardView({ onSelectOpportunity, onStartMining, onNavigate }
         onSelectOpportunity={onSelectOpportunity}
         toolbar={<CostBasisToggle />}
       />
+
+      {showHostTeaser && (
+        <button
+          onClick={() => onNavigate("host-earn")}
+          className="group flex w-full items-center gap-3 rounded-xl border border-border/50 bg-card/30 px-4 py-3 text-left transition-colors hover:border-primary/40 hover:bg-card/50"
+        >
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">
+            <Coins className="h-4 w-4" />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-sm font-semibold">
+              {allGpuNoGo
+                ? "Every GPU mining seat is NO-GO — hosting is the other way a GPU earns"
+                : `${gpuNoGoCount} of ${gpuPicks.length} GPU mining seats are NO-GO — hosting is the realistic GPU path`}
+            </span>
+            <span className="block text-xs text-muted-foreground">
+              Rental fees + idle pay on SN51 never show up in the mining lens. Measured $135–$6,238 per card per month → Host &amp; Earn.
+            </span>
+          </span>
+          <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />
+        </button>
+      )}
 
 
       {/* TRUST-LOOP — did the fleet actually earn the projection? */}
