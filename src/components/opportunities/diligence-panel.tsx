@@ -22,6 +22,7 @@ import {
   type DiligenceTrend,
 } from "@/lib/infranex/diligence";
 import type { Opportunity } from "@/lib/infranex/types";
+import { useProfitabilityConfig } from "@/hooks/use-profitability";
 import { cn } from "@/lib/utils";
 import {
   CheckCircle2,
@@ -114,7 +115,14 @@ export function DiligencePanel({
   const [loading, setLoading] = useState(false);
   const [approving, setApproving] = useState(false);
 
-  const report = useMemo(() => computeDiligence(o, trend), [o, trend]);
+  // Stage 12's GPU-line wording follows the active cost basis — the numbers
+  // are already mode-aware (o.profitability is computed on this config).
+  const { data: profConfig } = useProfitabilityConfig();
+  const hardwareMode = profConfig?.hardwareMode;
+  const report = useMemo(
+    () => computeDiligence(o, trend, { hardwareMode }),
+    [o, trend, hardwareMode]
+  );
   const verdictMeta = VERDICT_META[report.verdict];
 
   // Fetch history-derived context + existing approval when expanded.

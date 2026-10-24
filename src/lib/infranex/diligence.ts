@@ -72,7 +72,11 @@ const pct = (v: number | null | undefined, digits = 0) =>
  */
 export function computeDiligence(
   o: Opportunity,
-  trend?: DiligenceTrend | null
+  trend?: DiligenceTrend | null,
+  /** Active cost basis — owned mode charges electricity, not GPU rent, so
+   *  stage 12's wording must follow it (the NUMBERS are already mode-aware:
+   *  o.profitability is computed on the active ProfitabilityConfig). */
+  opts?: { hardwareMode?: "rent" | "owned" }
 ): DiligenceReport {
   const stages: DiligenceStage[] = [];
   const prof = o.profitability;
@@ -308,14 +312,19 @@ export function computeDiligence(
   const revenue = prof?.expectedRevenueUsd ?? 0;
   const costRatio = revenue > 0 ? totalCost / revenue : 1;
   const costStatus: DiligenceStatus = revenue <= 0 ? "warn" : costRatio <= 0.3 ? "pass" : costRatio < 0.6 ? "warn" : "fail";
+  const ownedBasis = opts?.hardwareMode === "owned";
   push(
     12,
     "infra-cost",
     "GPU/CPU cost",
     costStatus,
     totalCost > 0 ? `${fmtUsd(totalCost)}/mo (${pct(costRatio)} of revenue)` : "$0 — local machine path",
-    `GPU rental ${fmtUsd(gpuCost)} + storage/infra ${fmtUsd(infraCost)} monthly. Above ~60% of revenue, the subnet is working for the datacenter, not for you.`,
-    "Profitability engine · live provider offers"
+    ownedBasis
+      ? `GPU electricity (owned hardware basis) ${fmtUsd(gpuCost)} + storage/infra ${fmtUsd(infraCost)} monthly — no market GPU rent is charged. Above ~60% of revenue, the subnet is working for the power company, not for you.`
+      : `GPU rental (market rate) ${fmtUsd(gpuCost)} + storage/infra ${fmtUsd(infraCost)} monthly. Above ~60% of revenue, the subnet is working for the datacenter, not for you.`,
+    ownedBasis
+      ? "Profitability engine · owned electricity model"
+      : "Profitability engine · market rent model"
   );
 
   // 13 — EXPECTED NET RETURN ----------------------------------------------------------------------
