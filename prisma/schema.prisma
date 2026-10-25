@@ -179,6 +179,10 @@ model ProfitabilitySettings {
   otherOpexMonthlyUsd     Float    @default(25)
   hardwareMode            String   @default("rent") // "rent" | "owned"
   electricityUsdPerKwh    Float    @default(0.12)
+  // OWNED-RIG PROFILE — the "can MY GPU run it & earn" inputs. 0/false = not
+  // set (VRAM gate then stays silent; TEE subnets stay gated).
+  rigGpuVramGb            Float    @default(0)
+  rigTeeCapable           Boolean  @default(false)
   includeRegistrationBurn Boolean  @default(true)
   amortizeBurnMonths      Int      @default(3)
   riskAdjustment          Boolean  @default(true)

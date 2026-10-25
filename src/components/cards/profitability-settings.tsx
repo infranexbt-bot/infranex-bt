@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Settings2, Target, Loader2, CheckCircle2 } from "lucide-react";
+import { Settings2, Target, Loader2, CheckCircle2, Cpu } from "lucide-react";
 import {
   useProfitabilityConfig,
   useSaveProfitabilityConfig,
@@ -81,6 +81,25 @@ const NUM_FIELDS: {
     min: 1,
     step: 1,
   },
+];
+
+// OWNED-RIG-1 — quick rig presets. TEE = NVIDIA Confidential Compute
+// (H100/H200/RTX PRO 6000 Blackwell) or Intel TDX — unlocks TEE-gated
+// subnets (SN4 Targon, SN90, SN64, SN28) on the owned basis.
+const RIG_PRESETS: {
+  key: string;
+  label: string;
+  vram: number | null;
+  tee: boolean | null;
+}[] = [
+  { key: "rtx-pro-6000", label: "RTX PRO 6000 Blackwell — 96 GB · TEE ✓", vram: 96, tee: true },
+  { key: "h200", label: "H200 — 141 GB · TEE ✓", vram: 141, tee: true },
+  { key: "h100", label: "H100 — 80 GB · TEE ✓", vram: 80, tee: true },
+  { key: "a100", label: "A100 — 80 GB", vram: 80, tee: false },
+  { key: "l40s", label: "L40S — 48 GB", vram: 48, tee: false },
+  { key: "rtx-5090", label: "RTX 5090 — 32 GB", vram: 32, tee: false },
+  { key: "rtx-4090", label: "RTX 4090 — 24 GB", vram: 24, tee: false },
+  { key: "custom", label: "Custom — set VRAM / TEE manually", vram: null, tee: null },
 ];
 
 export function ProfitabilitySettingsDialog({
@@ -210,6 +229,77 @@ function SettingsForm({
               </SelectContent>
             </Select>
           </div>
+
+          {draft.hardwareMode === "owned" && (
+            <div className="rounded-lg border border-border/60 bg-card/40 p-4">
+              <div className="flex items-center gap-2">
+                <Cpu className="h-4 w-4 text-primary" />
+                <Label className="text-sm font-semibold">My rig profile</Label>
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Scoring answers “can THIS GPU run it &amp; earn” — VRAM gates
+                oversized subnets, TEE unlocks TEE subnets.
+              </p>
+              <div className="mt-3">
+                <Label className="text-xs font-medium">GPU</Label>
+                <Select
+                  value={
+                    RIG_PRESETS.find(
+                      (p) =>
+                        p.vram === draft.rigGpuVramGb && p.tee === draft.rigTeeCapable
+                    )?.key ?? "custom"
+                  }
+                  onValueChange={(k) => {
+                    const p = RIG_PRESETS.find((x) => x.key === k);
+                    if (!p || p.vram == null || p.tee == null) return;
+                    set("rigGpuVramGb", p.vram);
+                    set("rigTeeCapable", p.tee);
+                  }}
+                >
+                  <SelectTrigger className="mt-1 h-8 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {RIG_PRESETS.map((p) => (
+                      <SelectItem key={p.key} value={p.key} className="text-sm">
+                        {p.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                <div>
+                  <Label className="text-xs font-medium">Rig VRAM (GB)</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    step={1}
+                    value={String(draft.rigGpuVramGb)}
+                    onChange={(e) =>
+                      set("rigGpuVramGb", Math.max(0, Number(e.target.value) || 0))
+                    }
+                    className="mt-1 h-8 text-sm"
+                  />
+                  <p className="mt-0.5 text-[10px] text-muted-foreground">
+                    0 = unknown — VRAM gate stays silent
+                  </p>
+                </div>
+                <div className="flex items-end justify-between gap-2 pb-1">
+                  <div>
+                    <p className="text-xs font-medium">TEE capable (CC/TDX)</p>
+                    <p className="text-[10px] text-muted-foreground">
+                      H100 · H200 · RTX PRO 6000 Blackwell
+                    </p>
+                  </div>
+                  <Switch
+                    checked={draft.rigTeeCapable}
+                    onCheckedChange={(v) => set("rigTeeCapable", v)}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
 
           <Separator />
 

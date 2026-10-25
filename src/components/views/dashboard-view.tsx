@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { rankMinePicks, computeMinePickMap } from "@/lib/infranex/mine-pick";
+import { costBasisFromConfig } from "@/lib/infranex/rent-earn";
 import { RunPickCard } from "@/components/cards/run-pick-card";
 import { CostBasisToggle } from "@/components/cards/cost-basis-toggle";
 import { RegisterOddsBlock } from "@/components/cards/register-odds";
@@ -45,20 +46,14 @@ export function DashboardView({ onSelectOpportunity, onStartMining, onNavigate }
   // MINE-PICK — the conviction ranking (the app's ONLY ranking) feeds the
   // "Start here" card: every net-positive subnet by rent earn × diligence ×
   // confidence. Mode-aware — on the owned basis the hosting gate + reasons
-  // read owned-rig language (no rent sources).
-  const minePicks = rankMinePicks(
-    liveOpps,
-    profConfig?.hardwareMode === "owned" ? "owned" : "rent"
-  );
+  // read owned-rig language (no rent sources), the rig profile (VRAM + TEE)
+  // drives the fit gate, and weights shift to 55/25/20 (OWNED-RIG-1).
+  const minePicks = rankMinePicks(liveOpps, costBasisFromConfig(profConfig));
   // VERDICT-UNIFY-1 — the dashboard's RUN/WATCH/AVOID counts come from the
   // SAME conviction engine as the Opportunities tabs. One engine, one answer.
   const pickMapAll = useMemo(
-    () =>
-      computeMinePickMap(
-        liveOpps,
-        profConfig?.hardwareMode === "owned" ? "owned" : "rent"
-      ),
-    [liveOpps, profConfig?.hardwareMode]
+    () => computeMinePickMap(liveOpps, costBasisFromConfig(profConfig)),
+    [liveOpps, profConfig]
   );
   const verdictCounts = useMemo(() => {
     let run = 0;

@@ -28,6 +28,7 @@ import {
 } from "@/lib/infranex/mine-pick";
 import {
   computeRentEarnMap,
+  costBasisFromConfig,
   RENT_EARN_BAND_STYLE,
   rentEarnLabels,
 } from "@/lib/infranex/rent-earn";
@@ -146,16 +147,18 @@ export function OpportunityTable({
   // container run this?" vs "can YOUR OWNED rig run this?" and the blocked
   // copy never shows rent-source language on the owned basis.
   const rentMap = useMemo(
-    () => computeRentEarnMap(opportunities, ownedBasis ? "owned" : "rent"),
-    [opportunities, ownedBasis]
+    () => computeRentEarnMap(opportunities, costBasisFromConfig(profConfig)),
+    [opportunities, profConfig]
   );
 
   // VERDICT-UNIFY-1 — conviction (rent-earn × diligence × confidence, gated)
   // is THE ranking and RUN/WATCH/AVOID the ONLY verdict shown. The Ledger
   // score stays available as a sortable column and inside the detail dialog.
+  // OWNED-RIG-1 — the basis carries the rig profile (VRAM + TEE capability)
+  // so owned-basis verdicts answer "can MY GPU run it & earn".
   const pickMap = useMemo(
-    () => computeMinePickMap(opportunities, ownedBasis ? "owned" : "rent"),
-    [opportunities, ownedBasis]
+    () => computeMinePickMap(opportunities, costBasisFromConfig(profConfig)),
+    [opportunities, profConfig]
   );
 
   const filtered = useMemo(() => {
@@ -309,7 +312,7 @@ export function OpportunityTable({
                   dir={dir}
                   onSort={handleSort}
                 >
-                  <span title="CONVICTION — the one ranking: 40% rent-earn (can a rig run it × seat reality × new-entrant EV) + 35% diligence pipeline + 25% model confidence, gated by the minimum-profit rule. RUN ≥ 50 · WATCH 35–49 · AVOID below or gated.">
+                  <span title={`CONVICTION — the one ranking. ${L.convictionStatTooltip} RUN ≥ 50 · WATCH 35–49 · AVOID below or gated.`}>
                     Conviction
                   </span>
                 </SortableTh>

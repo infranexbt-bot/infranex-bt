@@ -1,9 +1,11 @@
 import type { Opportunity } from "./types";
 import {
   computeRentEarn,
+  type CostBasis,
   type CostBasisMode,
   type RentEarnVerdict,
   type RentEarnBand,
+  resolveCostBasis,
 } from "./rent-earn";
 import { computeDiligence, type DiligenceReport } from "./diligence";
 
@@ -29,6 +31,16 @@ import { computeDiligence, type DiligenceReport } from "./diligence";
 // Output: 0–100 CONVICTION score + ONE verdict (RUN / WATCH / AVOID) per
 // subnet, ranked — the single decision ranking surfaced by the Dashboard's
 // "Start here" card and the Opportunities page's ranked list alike.
+//
+// WEIGHTS ARE MODE-AWARE (OWNED-RIG-1):
+//   rented (40% rent-earn + 35% diligence + 25% confidence) — a rented
+//     operator burns cash hourly, so the due-diligence pipeline anchors the
+//     decision almost as hard as earning reality.
+//   owned (55% earn-pick + 25% diligence + 20% confidence) — the rig is
+//     already bought (sunk cost); what matters is whether a seat pays the
+//     power bill. Diligence keeps its HARD GATE (any fail → DO NOT
+//     PROVISION → capped) but loses a third of its score weight — its
+//     warnings describe docs/uncertainty, not the seat's odds.
 // ---------------------------------------------------------------------------
 
 export type MinePickBand = "PRIME" | "READY" | "MARGINAL" | "NO-GO";
@@ -66,7 +78,9 @@ export interface MinePick {
   diligenceHealth: number;
   /** Model confidence 0–100. */
   confidencePct: number;
-  /** Combined conviction 0–100 = 40% rent-earn + 35% diligence + 25% confidence. */
+  /** Combined conviction 0–100. Mode-aware weights (OWNED-RIG-1): rented =
+   *  40% rent-earn + 35% diligence + 25% confidence · owned = 55% earn-pick
+   *  + 25% diligence + 20% confidence. */
   conviction: number;
   band: MinePickBand;
   /** THE verdict — RUN / WATCH / AVOID (see VERDICT-UNIFY-1 above). */
@@ -148,18 +162,31 @@ function gateReasons(pick: {
 /** Compute the MINE-PICK verdict for one net-positive row. Pure — safe on
  *  client and server; reuses computeRentEarn + computeDiligence so the
  *  Dashboard picker agrees with the Opportunities page by construction.
- *  `mode` follows the active cost basis (see computeRentEarn) so the picker's
- *  gate + reasons read owned-rig language when the basis is Owned. */
-export function computeMinePick(o: Opportunity, mode: CostBasisMode = "rent"): MinePick {
-  const rent = computeRentEarn(o, mode);
+ *  `basis` follows the active cost basis (+ owned-rig profile, OWNED-RIG-1)
+ *  so the picker's gate + reasons read owned-rig language when the basis is
+ *  Owned — and weights shift to 55/25/20 (earn/diligence/confidence). */
+export function computeMinePick(
+  o: Opportunity,
+  basis: CostBasisMode | CostBasis = "rent"
+): MinePick {
+  const b = resolveCostBasis(basis);
+  const owned = b.mode === "owned";
+  const rent = computeRentEarn(o, b);
   const diligence = computeDiligence(o);
   const health = diligenceHealth(diligence);
   const confidencePct = clamp(Math.round((o.confidence ?? 0.5) * 100), 0, 100);
 
-  // Combined conviction — the three signals the operator cross-checks by
-  // eye today, blended once. Rent earn leads because a rig that can't run
-  // the work (or a seat that never earns) invalidates the other two.
-  let conviction = Math.round(rent.score * 0.4 + health * 0.35 + confidencePct * 0.25);
+  // Combined conviction — mode-aware weights (OWNED-RIG-1): on an OWNED rig
+  // the seat's earning reality dominates (55%) and diligence drops to 25%
+  // (still hard-gating); a rented rig keeps the pipeline-heavy 40/35/25.
+  // Rent earn leads either way because a rig that can't run the work (or a
+  // seat that never earns) invalidates the other two.
+  const w = owned
+    ? { earn: 0.55, dilig: 0.25, conf: 0.2 }
+    : { earn: 0.4, dilig: 0.35, conf: 0.25 };
+  let conviction = Math.round(
+    rent.score * w.earn + health * w.dilig + confidencePct * w.conf
+  );
 
   // Hard gates — no band above NO-GO can survive them:
   //   not rentable (rent-earn already forces ≤24), a failed diligence stage
@@ -194,19 +221,24 @@ export function computeMinePick(o: Opportunity, mode: CostBasisMode = "rent"): M
 }
 
 /** One-pass conviction verdicts for EVERY row (the Opportunities table also
- *  scores net-negative rows — their gates force AVOID). Keyed by row id. */
+ *  scores net-negative rows — their gates force AVOID). Keyed by row id.
+ *  `basis` = active cost basis (+ owned-rig profile, OWNED-RIG-1). */
 export function computeMinePickMap(
   rows: Opportunity[],
-  mode: CostBasisMode = "rent"
+  basis: CostBasisMode | CostBasis = "rent"
 ): Map<string, MinePick> {
-  return new Map(rows.map((o) => [o.id, computeMinePick(o, mode)]));
+  return new Map(rows.map((o) => [o.id, computeMinePick(o, basis)]));
 }
 
 /** Rank every net-positive mining subnet (netuid > 0) by conviction.
  *  Rows below the minimum-profit rule are EXCLUDED — this picker answers
  *  "where do I point a rig", and AVOID rows are not candidates.
- *  `mode` follows the active cost basis (rented vs owned) — see computeMinePick. */
-export function rankMinePicks(rows: Opportunity[], mode: CostBasisMode = "rent"): MinePick[] {
+ *  `basis` follows the active cost basis (+ owned-rig profile) — see
+ *  computeMinePick. */
+export function rankMinePicks(
+  rows: Opportunity[],
+  basis: CostBasisMode | CostBasis = "rent"
+): MinePick[] {
   return rows
     .filter((o) => {
       if (o.netuid === 0) return false;
@@ -214,7 +246,7 @@ export function rankMinePicks(rows: Opportunity[], mode: CostBasisMode = "rent")
       const net = o.netMonthlyUsd ?? o.estimatedMonthlyRewardUsd ?? 0;
       return net > 0;
     })
-    .map((o) => computeMinePick(o, mode))
+    .map((o) => computeMinePick(o, basis))
     .sort(
       (a, b) =>
         b.conviction - a.conviction ||

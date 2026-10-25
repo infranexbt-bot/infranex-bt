@@ -31,6 +31,38 @@ import type { Opportunity } from "./types";
  *  follow the active ProfitabilityConfig.hardwareMode. */
 export type CostBasisMode = "rent" | "owned";
 
+/** FULL cost basis — the mode PLUS the owned-rig profile (VRAM + TEE
+ *  capability). A plain "rent"/"owned" string is still accepted everywhere
+ *  (backward compatible) and means "rig profile unknown". (OWNED-RIG-1) */
+export interface CostBasis {
+  mode: CostBasisMode;
+  /** The user's GPU VRAM in GB (owned basis). 0/undefined = not set — the
+   *  VRAM fit gate stays silent. */
+  rigVramGb?: number;
+  /** NVIDIA CC / Intel TDX capable (owned basis). Unlocks TEE-gated
+   *  subnets (SN4 Targon, SN90, SN64, SN28). */
+  rigTeeCapable?: boolean;
+}
+
+/** Resolve a string-or-object basis into the full shape. */
+export function resolveCostBasis(basis: CostBasisMode | CostBasis): CostBasis {
+  return typeof basis === "string" ? { mode: basis } : basis;
+}
+
+/** Build the full basis from the persisted ProfitabilityConfig (hooks pass
+ *  this straight from useProfitabilityConfig). */
+export function costBasisFromConfig(config?: {
+  hardwareMode?: "rent" | "owned";
+  rigGpuVramGb?: number;
+  rigTeeCapable?: boolean;
+} | null): CostBasis {
+  return {
+    mode: config?.hardwareMode === "owned" ? "owned" : "rent",
+    rigVramGb: config?.rigGpuVramGb ?? 0,
+    rigTeeCapable: config?.rigTeeCapable ?? false,
+  };
+}
+
 /** Curated rent restrictions from the all-subnet README audit
  *  (worklog subnet-hosting-audit-1, verbatim evidence). Used as fallback
  *  when the live scraper has no hosting flags for the subnet yet.
@@ -123,18 +155,34 @@ function isCpuWork(o: Opportunity): boolean {
  *  client and server; takes the plain Opportunity shape so it works on any
  *  merged row (LiveOpportunity or curated fallback).
  *
- *  MODE-AWARE (`mode`, default "rent"): the hosting gate answers a different
+ *  MODE-AWARE (`basis`, default "rent") — the gate answers a different
  *  question per cost basis —
  *    rented: "can a container/vCPU box from Akash/Vast/RunPod-class run this?"
  *    owned:  "can the rig the user OWNS run this?" — an owned machine IS bare
  *      metal, so a bare-metal/VM-only requirement cannot block it (it becomes
- *      a positive note); only TEE-class hardware capability (Intel TDX /
- *      NVIDIA CC) still gates. All gate/blocked copy follows the basis: the
- *      owned lens never shows "Rentable on Akash/Vast…" rent-source language. */
+ *      a positive note); a TEE-class requirement (Intel TDX / NVIDIA CC)
+ *      blocks ONLY when the rig profile says the GPU is NOT CC/TDX-capable
+ *      (rigTeeCapable unlocks SN4/SN90/SN64/SN28-class subnets), and a NEW
+ *      rig-fit gate blocks any GPU subnet whose min VRAM exceeds the rig's
+ *      VRAM. All gate/blocked copy follows the basis: the owned lens never
+ *      shows "Rentable on Akash/Vast…" rent-source language. (OWNED-RIG-1)
+ *
+ *  SCORING is mode-aware too (OWNED-RIG-1):
+ *    rented — "can I rent into this seat at all?":
+ *      earn 50 + rentability 20 + EV vs $2,000/mo 20 + distribution 10
+ *    owned — "will a seat on MY rig pay my power bill?" — no rent concept:
+ *      rig-fit 10 + earn chance 55 + EV vs $500/mo 25 + distribution 10
+ *      (earn & EV dominate because the rig is sunk cost; the $500 line is
+ *      one flagship GPU's good net month on owned electricity). */
 export function computeRentEarn(
   o: Opportunity,
-  mode: CostBasisMode = "rent"
+  basis: CostBasisMode | CostBasis = "rent"
 ): RentEarnVerdict {
+  const b = resolveCostBasis(basis);
+  const mode = b.mode;
+  const owned = mode === "owned";
+  const rigTee = owned && b.rigTeeCapable === true;
+  const rigVram = owned ? b.rigVramGb ?? 0 : 0;
   const notes: string[] = [];
 
   // --- 1. Hosting gate -----------------------------------------------------
@@ -145,18 +193,24 @@ export function computeRentEarn(
   let rentBlockSource: string | null = null;
   const hosting = o.hosting ?? null;
   if (hosting && (hosting.bareMetalOnly || hosting.teeRequired)) {
-    // OWNED: bare-metal/VM-only is satisfied by the machine you own — only a
-    // TEE-class capability requirement (TDX / NVIDIA CC) can still block.
-    const gated = mode === "owned" ? hosting.teeRequired : true;
+    // OWNED: bare-metal/VM-only is satisfied by the machine you own. A TEE
+    // requirement blocks ONLY when the rig profile says the GPU lacks
+    // confidential compute (NVIDIA CC / Intel TDX) — a TEE-capable rig
+    // unlocks the subnet. (OWNED-RIG-1)
+    const gated = owned ? hosting.teeRequired && !rigTee : true;
     if (gated) {
       rentable = false;
       rentBlockSource = o.requirementsSource ? "scraped README" : "curated README audit";
       rentBlock =
         mode === "owned"
-          ? "TEE/confidential compute required — your rig must support Intel TDX / NVIDIA CC mode (most consumer rigs can't)"
+          ? "TEE/confidential compute required — your rig profile says the GPU does not support CC/TDX mode"
           : hosting.bareMetalOnly
             ? "Bare metal/VM required by the subnet's own docs — container clouds excluded"
             : "TEE/confidential hosting required — outside the rented catalog (Akash/Vast/RunPod)";
+    } else if (owned && rigTee && hosting.teeRequired) {
+      notes.push(
+        "TEE subnet — your CC/TDX-capable rig qualifies (unlocked by your rig profile)"
+      );
     } else {
       notes.push(
         "Bare-metal/VM fleet required — your owned rig qualifies where rented containers don't"
@@ -164,10 +218,31 @@ export function computeRentEarn(
     }
   } else if (CURATED_RENT_BLOCKS[o.netuid]) {
     const curated = CURATED_RENT_BLOCKS[o.netuid];
+    // ALL curated entries encode TEE-class capability gates (TDX / NVIDIA
+    // CC) — so on the owned basis a TEE-capable rig unlocks them. (OWNED-RIG-1)
+    if (owned && rigTee) {
+      notes.push(
+        `TEE-gated subnet (${curated.ownedReason ?? curated.reason}) — unlocked by your CC/TDX-capable rig`
+      );
+    } else {
+      rentable = false;
+      rentBlock =
+        mode === "owned" ? (curated.ownedReason ?? curated.reason) : curated.reason;
+      rentBlockSource = curated.source;
+    }
+  }
+  // RIG-FIT GATE (owned basis) — a GPU subnet needing more VRAM than the rig
+  // has is not runnable, whatever the $/mo column says. CPU work always fits.
+  if (
+    rentable &&
+    owned &&
+    rigVram > 0 &&
+    !isCpuWork(o) &&
+    (o.minVramGb ?? 0) > rigVram
+  ) {
     rentable = false;
-    rentBlock =
-      mode === "owned" ? (curated.ownedReason ?? curated.reason) : curated.reason;
-    rentBlockSource = curated.source;
+    rentBlockSource = "your rig profile";
+    rentBlock = `Needs ${o.minVramGb}GB+ VRAM — your rig profile has ${rigVram}GB`;
   }
   if (rentable && isCpuWork(o)) {
     notes.push(
@@ -218,23 +293,28 @@ export function computeRentEarn(
     ev = null;
   }
 
-  // --- 4. Score ---------------------------------------------------------------
-  // earn chance (50) — the platform's calibrated computeEarnChance pct
-  //   (already folds top-10 dominance, full-subnet displacement, bond ramp)
+  // --- 4. Score (mode-aware — OWNED-RIG-1) ----------------------------------
+  // earn chance — the platform's calibrated computeEarnChance pct
+  //   (already folds top-10 dominance, full-subnet displacement, bond ramp).
+  //   Owned rigs weight it HIGHER (55 vs 50): with the rig already bought,
+  //   whether a seat actually earns is THE variable that pays the power bill.
   const earnPct = o.earnChance?.pct ?? null;
-  const earnPts = earnPct != null ? clamp(earnPct, 0, 100) * 0.5 : 0;
+  const earnPts = earnPct != null ? clamp(earnPct, 0, 100) * (owned ? 0.55 : 0.5) : 0;
   if (earnPct == null) notes.push("Earn chance unknown — no rewarded-ratio data");
 
-  // rentability (20) — a rig we can't rent can't earn, whatever the sheet says
-  const rentPts = rentable ? 20 : 0;
+  // fit — rented: rentability 20 (a rig we can't rent can't earn, whatever
+  //   the sheet says). owned: rig-fit 10 (VRAM + TEE fit on YOUR hardware).
+  const fitPts = owned ? (rentable ? 10 : 0) : rentable ? 20 : 0;
 
-  // economics (20) — new-entrant EV vs a $2k/mo comfort line
-  const evPts = ev != null ? clamp(ev / 2000, 0, 1) * 20 : 0;
+  // economics — new-entrant EV vs a comfort line: $2,000/mo for a rented
+  //   fleet play; $500/mo on the owned basis (one flagship GPU's good net
+  //   month after electricity — small rigs must be able to score high too).
+  const evPts = ev != null ? clamp(ev / (owned ? 500 : 2000), 0, 1) * (owned ? 25 : 20) : 0;
 
   // distribution honesty (10) — broad rewards beat knife fights
   const distPts = knifeFight ? 0 : whaleMean ? 4 : 10;
 
-  let score = Math.round(earnPts + rentPts + evPts + distPts);
+  let score = Math.round(earnPts + fitPts + evPts + distPts);
   if (!rentable) score = Math.min(score, 24); // forced NO band
 
   const band: RentEarnBand =
@@ -263,13 +343,13 @@ export function computeRentEarn(
 
 /** Score a full list and return a Map keyed by row id — one pass for the
  *  whole Opportunities table (used for the Rent earn / Earn picks column
- *  + sort). `mode` follows the active cost basis — see computeRentEarn. */
+ *  + sort). `basis` follows the active cost basis + rig — see computeRentEarn. */
 export function computeRentEarnMap(
   rows: Opportunity[],
-  mode: CostBasisMode = "rent"
+  basis: CostBasisMode | CostBasis = "rent"
 ): Map<string, RentEarnVerdict> {
   const m = new Map<string, RentEarnVerdict>();
-  for (const r of rows) m.set(r.id, computeRentEarn(r, mode));
+  for (const r of rows) m.set(r.id, computeRentEarn(r, basis));
   return m;
 }
 
@@ -331,18 +411,18 @@ export function rentEarnLabels(
       gpuFilterLabel: "Owned rig picks",
       columnLabel: "Earn picks",
       columnTooltip:
-        "EARN PICKS (owned basis) — does a NEW seat have a real chance to earn on hardware you own? Combines the hosting gate (TEE / restricted fleets still apply), % of slots earning, top-10% reward concentration and new-entrant expected net (GPU line = owned electricity).",
+        "EARN PICKS (owned basis) — does a NEW seat have a real chance to earn on hardware you own? Rig-fit gate (your GPU's VRAM + TEE capability), % of slots earning, top-10% reward concentration and new-entrant expected net priced on your electricity rate.",
       lensesTooltip:
         "Mining lenses — Earn picks (your-rig viability on the owned electricity basis) and Your odds (first-month earn odds if you register today).",
       statLabel: "Earn pick",
       statTooltip:
         "Hosting gate × seat reality × new-entrant EV — priced on owned electricity.",
       convictionFormula:
-        "40% Earn pick + 35% Diligence pipeline + 25% confidence",
+        "55% Earn pick + 25% Diligence pipeline + 20% confidence",
       convictionStatTooltip:
-        "40% Earn pick + 35% Diligence pipeline + 25% model confidence, gated by the hosting gate, diligence fails and the minimum-profit rule",
+        "55% Earn pick (rig fit × seat reality × new-entrant EV on your electricity) + 25% Diligence pipeline + 20% model confidence — gated by the rig-fit gate (VRAM/TEE), diligence fails and the minimum-profit rule. Owned weights favor real earning odds over checklist warnings (OWNED-RIG-1).",
       convictionFootnote:
-        "Conviction = 40% Earn pick (hosting gate × seat reality × new-entrant EV, owned electricity basis) + 35% Diligence pipeline (14-stage health, hard-fail gated) + 25% model confidence — so a high number means your own rig can run the work, a new seat can realistically earn, and the pipeline found no deal-breaker. Click a row for the full breakdown; Mine opens the deploy flow.",
+        "Owned-basis conviction = 55% Earn pick (your rig's fit × seat reality × new-entrant EV, priced on YOUR electricity) + 25% Diligence pipeline (deal-breakers still hard-gate) + 20% model confidence. You own the hardware — the score favors whether a seat pays your power bill over checklist warnings. A TEE-capable rig (NVIDIA CC / Intel TDX) unlocks TEE subnets; VRAM must fit your GPU. Click a row for the full breakdown; Mine opens the deploy flow.",
       cpuTitle: "CPU-only work — no GPU needed",
     };
   }

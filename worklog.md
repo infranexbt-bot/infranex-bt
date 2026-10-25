@@ -2373,3 +2373,29 @@ Work Log:
 
 Stage Summary:
 - VERDICT-UNIFY-1 verified intact and live on 2026-10-25 — no code changes needed; consolidation complete
+
+---
+Task ID: owned-rig-1
+Agent: main (Z.ai)
+Task: User owns a GPU — audit owned-basis scoring for rent-earn residue, rebalance conviction/diligence weights, make the scoring answer "where can MY GPU mine"
+
+Work Log:
+- Audit findings: (a) owned basis still scored rows with rent-marketplace logic (rentability 20pts, EV comfort line $2k — rented-fleet scale); (b) no rig profile — the engine couldn't know the user's VRAM or TEE capability, so TEE subnets stayed blocked even for CC-capable rigs and oversized-VRAM subnets stayed scored; (c) weights 40/35/25 gave diligence 35% — warnings (docs quality) dragged scores almost as hard as earning reality
+- OWNED-RIG-1 implementation:
+  - ProfitabilitySettings + rigGpuVramGb (Float, 0=unknown) + rigTeeCapable (Bool); prisma db push (additive); sanitizeProfitabilityConfig extended
+  - rent-earn.ts: CostBasis {mode, rigVramGb, rigTeeCapable} + resolveCostBasis + costBasisFromConfig (string still accepted — backward compatible); owned gates: bare-metal always passes, TEE blocks ONLY when rigTeeCapable=false (unlocks SN4/SN64/SN90/SN28 with "unlocked by your rig profile" note), NEW rig-fit VRAM gate (minVramGb > rigVram → not runnable, "your rig profile" source); owned score = rig-fit 10 + earn 55 + EV/$500 25 + dist 10 (rent unchanged 50/20/$2k/20/10)
+  - mine-pick.ts: mode-aware weights — owned 55% earn-pick + 25% diligence + 20% confidence; rented keeps 40/35/25; diligence hard gate unchanged
+  - Views pass costBasisFromConfig(profConfig): dashboard, opportunities, opportunity-table; Opportunities header + Conviction tooltip now use L.convictionFormula/L.convictionStatTooltip (mode-aware strings)
+  - profitability-settings.tsx: "My rig profile" block when owned — 8 GPU presets (PRO 6000 96 TEE / H200 / H100 / A100 / L40S / 5090 / 4090 / custom) + manual VRAM + TEE switch
+- Verification: tsc clean; server restarted (setsid pattern — background procs die between tool calls, keep server-dependent steps in ONE call); scripts/verdict-explain.ts --saved + scripts/rig-gate-check.ts:
+  - 96GB+TEE rig: SN4/SN64 rentable=true (TEE unlocked, honest knife-fight notes remain), SN90/51/39 VRAM-gated ("Needs 141/180GB+ — rig has 96GB"), REAX 69/GREAT
+  - 96GB no-TEE: SN4 blocked "rig profile says GPU does not support CC/TDX"
+  - 32GB 5090: REAX blocked "Needs 80GB+ — rig has 32GB"
+  - Live verdicts (owned + PRO 6000 profile): RUN 4 — Noah 89, Hone 81, CliqueAI 74, REAX 70 (was 86/77/73/67); Targon now scored 30 AVOID via knife-fight+EV$25 instead of gate-capped
+- Rig profile persisted via PUT /api/profitability-config (96GB, TEE=true, owned)
+- Browser E2E: dashboard Start-here card renders; Opportunities header shows "55% Earn pick + 25% Diligence pipeline + 20% confidence", "owned-rig electricity basis", tabs All 128 / RUN 4 / WATCH 0 / AVOID 124; 0 errors; screenshots download/owned-rig-dashboard.png, owned-rig-opportunities.png
+
+Stage Summary:
+- Owned-basis scoring is now rig-honest: no rent concept, gates answer "can MY GPU run it" (VRAM fit + TEE), weights favor seat-earning reality (55%) over checklist warnings (diligence 25%, still hard-gating)
+- Preset rig = RTX PRO 6000 96GB TEE persisted — user should set their actual GPU in ⚙️ Profitability settings if it differs
+- Chain truth unchanged: only REAX is an honest GPU mining seat; Targon/Chutes are runnable-but-lottery (EV $25/$206/mo); hosting (SN51) stays the GPU income floor
