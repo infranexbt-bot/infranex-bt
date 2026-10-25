@@ -2399,3 +2399,21 @@ Stage Summary:
 - Owned-basis scoring is now rig-honest: no rent concept, gates answer "can MY GPU run it" (VRAM fit + TEE), weights favor seat-earning reality (55%) over checklist warnings (diligence 25%, still hard-gating)
 - Preset rig = RTX PRO 6000 96GB TEE persisted — user should set their actual GPU in ⚙️ Profitability settings if it differs
 - Chain truth unchanged: only REAX is an honest GPU mining seat; Targon/Chutes are runnable-but-lottery (EV $25/$206/mo); hosting (SN51) stays the GPU income floor
+
+---
+Task ID: chutes-explain-1
+Agent: main (Z.ai)
+Task: User asked why SN64 Chutes shows AVOID in Opportunities while the Profitability engine shows net $3,765/mo PASSED (owned basis, $0.12/kWh)
+
+Work Log:
+- Read worklog tail: confirmed OWNED-RIG-1 already implemented in prior session (owned basis = 55% earn-pick + 25% diligence + 20% confidence, VRAM/TEE rig gates, persisted rig profile PRO 6000 96GB TEE)
+- Re-read mine-pick.ts / rent-earn.ts / profitability.ts / live-merge.ts to trace both engines end-to-end
+- New scripts/chutes-explain.ts — replays the exact client path (login → /api/network + config + overrides → mergeOpportunities → computeProfitabilityReport + computeMinePick with costBasisFromConfig) and dumps every separating number
+- Live SN64 findings: 256/256 slots FULL (displace entry), rewardedRatio 7.00%, top10IncentiveShare 100.0%, rewardMedianShare 0.773, month-1 earn chance 3% (7% × 0.7 whale × 0.7 full-subnet), P&L net $3,764 PASSED but risk factor 0.53 → risk-adjusted $1,771, bear $1,980; new-entrant EV = $3,764 × 7% × 0.773 ≈ $204/mo
+- Conviction walk: rent-earn 22/100 (earn 1.65 + rig-fit 10 + EV 10.2 + distribution 0) → 0.55×22 + 0.25×82 + 0.20×67 = 30 → DO NOT PROVISION cap (diligence stage #7 Competition FAIL: "7% earned, top-10% take 100% — newcomer EV ≈ $0") → NO-GO → AVOID
+- Counterfactual proven: with broad seats (60% rewarded) the SAME P&L yields conviction 77 → RUN — AVOID is 100% seat competition, not economics
+- Fixed dump field names (diligence stage: n/key/label/status/value/detail/source) to name the failing stage
+
+Stage Summary:
+- Not a bug: P&L answers "IF I hold a mid-pack EARNING seat, do revenues beat costs?" (yes, $3,764); conviction answers "what will a NEW entrant on a FULL 256/256 subnet actually win?" (EV $204/mo, 3% month-1) + hard DNP cap 30. Verdict AVOID is correct and evidence-backed; no scoring change made
+- scripts/chutes-explain.ts persisted as the reusable per-subnet explainer (change netuid to audit any row)
