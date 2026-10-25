@@ -8,6 +8,11 @@
 
 export async function register() {
   if (process.env.NEXT_RUNTIME === "nodejs") {
+    // BOOT-RESTORE — rebuild seedable catalog tables (overrides / playbook /
+    // chain snapshot) from scripts/recycle-baseline.json if a sandbox recycle
+    // wiped the DB. Safe no-op when data is present; never throws into boot.
+    const { maybeRunBootRestore } = await import("./lib/infranex/boot-restore");
+    void maybeRunBootRestore();
     const { startWorkers } = await import("./lib/infranex/workers");
     void startWorkers();
   }

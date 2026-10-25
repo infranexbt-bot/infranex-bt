@@ -8,9 +8,14 @@
  *      (fast, no GitHub scraping — enrichment can follow via
  *      sync-overrides-standalone.ts)
  *
- * Run: DATABASE_URL=file:... bun --smol scripts/restore-after-recycle.ts
+ * Run: DATABASE_URL=file:... bun --smol scripts/restore-after-recycle.ts [snapshot.json]
+ *
+ * Optional file arg = a saved /api/network response. Using it skips the slow
+ * live fetchLiveSnapshot() sweep (which can take minutes on 129 subnets) —
+ * the API payload carries the same subnets[] incl. identityGithub.
  */
 import { PrismaClient } from "@prisma/client";
+import { readFileSync } from "fs";
 import { fetchLiveSnapshot } from "../src/lib/infranex/chain";
 import { curatedSubnetSeeds } from "../src/lib/infranex/data";
 
@@ -18,8 +23,15 @@ const db = new PrismaClient();
 
 async function main() {
   // 1) Live chain snapshot → ChainSnapshot
-  console.log("fetching live chain snapshot ...");
-  const snap = await fetchLiveSnapshot();
+  const argFile = process.argv[2];
+  console.log(
+    argFile
+      ? `loading snapshot from file ${argFile} ...`
+      : "fetching live chain snapshot ..."
+  );
+  const snap = argFile
+    ? JSON.parse(readFileSync(argFile, "utf8"))
+    : await fetchLiveSnapshot();
   console.log(
     `block=${snap.blockNumber} subnets=${snap.subnets.length} neurons=${snap.neurons.length} source=${snap.source}`
   );
