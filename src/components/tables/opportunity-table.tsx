@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { cn, formatCurrency, formatPercent, getStatusColor, opportunityBand } from "@/lib/utils";
+import { cn, formatCurrency, formatPercent, getStatusColor } from "@/lib/utils";
 import { ChevronUp, ChevronDown, ChevronsUpDown, Search, MoreHorizontal, Zap } from "lucide-react";
 import {
   Table,
@@ -22,6 +22,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { formatNumber } from "@/lib/utils";
 import { assessSeatChance } from "@/lib/infranex/miner-score";
+import {
+  computeMinePickMap,
+  VERDICT_STYLE,
+} from "@/lib/infranex/mine-pick";
 import {
   computeRentEarnMap,
   RENT_EARN_BAND_STYLE,
@@ -45,6 +49,7 @@ interface OpportunityTableProps {
 
 type SortKey =
   | "rank"
+  | "conviction"
   | "subnetName"
   | "score"
   | "rentEarn"
@@ -122,8 +127,8 @@ export function OpportunityTable({
   className,
   compact = false,
 }: OpportunityTableProps) {
-  const [sortKey, setSortKey] = useState<SortKey>("rank");
-  const [dir, setDir] = useState<"asc" | "desc">("asc");
+  const [sortKey, setSortKey] = useState<SortKey>("conviction");
+  const [dir, setDir] = useState<"asc" | "desc">("desc");
   const [search, setSearch] = useState("");
   // Winner-stability trends for ALL subnets in ONE request — TanStack Query
   // dedupes every table/card mount onto a single cache entry.
@@ -145,6 +150,14 @@ export function OpportunityTable({
     [opportunities, ownedBasis]
   );
 
+  // VERDICT-UNIFY-1 — conviction (rent-earn × diligence × confidence, gated)
+  // is THE ranking and RUN/WATCH/AVOID the ONLY verdict shown. The Ledger
+  // score stays available as a sortable column and inside the detail dialog.
+  const pickMap = useMemo(
+    () => computeMinePickMap(opportunities, ownedBasis ? "owned" : "rent"),
+    [opportunities, ownedBasis]
+  );
+
   const filtered = useMemo(() => {
     let r = opportunities;
     if (search.trim()) {
@@ -160,7 +173,10 @@ export function OpportunityTable({
     const sorted = [...r].sort((a, b) => {
       let av: unknown;
       let bv: unknown;
-      if (sortKey === "rentEarn") {
+      if (sortKey === "conviction") {
+        av = pickMap.get(a.id)?.conviction ?? -1;
+        bv = pickMap.get(b.id)?.conviction ?? -1;
+      } else if (sortKey === "rentEarn") {
         av = rentMap.get(a.id)?.score ?? -1;
         bv = rentMap.get(b.id)?.score ?? -1;
       } else {
@@ -175,7 +191,7 @@ export function OpportunityTable({
         : String(bv).localeCompare(String(av));
     });
     return sorted;
-  }, [opportunities, sortKey, dir, search, rentMap]);
+  }, [opportunities, sortKey, dir, search, rentMap, pickMap]);
 
   const handleSort = (k: SortKey) => {
     if (sortKey === k) {
@@ -287,8 +303,15 @@ export function OpportunityTable({
                 </>
               )}
               {!compact && (
-                <SortableTh k="score" sortKey={sortKey} dir={dir} onSort={handleSort}>
-                  Score
+                <SortableTh
+                  k="conviction"
+                  sortKey={sortKey}
+                  dir={dir}
+                  onSort={handleSort}
+                >
+                  <span title="CONVICTION — the one ranking: 40% rent-earn (can a rig run it × seat reality × new-entrant EV) + 35% diligence pipeline + 25% model confidence, gated by the minimum-profit rule. RUN ≥ 50 · WATCH 35–49 · AVOID below or gated.">
+                    Conviction
+                  </span>
                 </SortableTh>
               )}
               <SortableTh
@@ -411,8 +434,9 @@ export function OpportunityTable({
                 </TableCell>
               </TableRow>
             ) : (
-              filtered.map((o) => {
-                const band = opportunityBand(o);
+              filtered.map((o, rowIdx) => {
+                const pick = pickMap.get(o.id);
+                const vs = pick ? VERDICT_STYLE[pick.verdict] : null;
                 const risk = getStatusColor(o.riskLevel);
                 const prof = o.profitability;
                 return (
@@ -422,7 +446,7 @@ export function OpportunityTable({
                     className={cn(onSelect && "cursor-pointer")}
                   >
                     <TableCell className="mono tabular text-muted-foreground">
-                      {String(o.rank).padStart(2, "0")}
+                      {String(rowIdx + 1).padStart(2, "0")}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
@@ -445,15 +469,24 @@ export function OpportunityTable({
                       <TableCell>
                         <div className="flex flex-col items-start gap-0.5">
                           <div className="flex items-center gap-2">
-                            <span className="tabular font-semibold">
-                              {o.score.toFixed(1)}
-                            </span>
-                            <Badge
-                              variant="outline"
-                              className={cn("text-[10px]", band.bg, band.color)}
+                            <span
+                              className="tabular font-semibold"
+                              title={
+                                pick
+                                  ? `Conviction ${pick.conviction}/100 = ${L.convictionFormula}. Ledger score ${o.score.toFixed(1)}. ${pick.reasons.join(". ") || "No gates hit."}`
+                                  : "Conviction pending"
+                              }
                             >
-                              {band.label}
-                            </Badge>
+                              {pick ? pick.conviction : "—"}
+                            </span>
+                            {vs && (
+                              <Badge
+                                variant="outline"
+                                className={cn("text-[10px] font-semibold", vs.bg, vs.color)}
+                              >
+                                {vs.label}
+                              </Badge>
+                            )}
                           </div>
                           {o.totalSlots != null && (() => {
                             const seat = assessSeatChance({

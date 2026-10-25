@@ -2338,3 +2338,24 @@ Stage Summary:
 - DELIVERED: download/owned-gpu-datacentre-business-plan.pdf (14 pages: Crystal Blue cover + TOC + 12 chapters) + download/owned-gpu-datacentre-cover.html (editable cover source)
 - Economics: Rig A $12,990 capex base net $737/mo payback ~18mo (range 7.5-41); Rig B $27,900 base $1,720/mo; Rig C $39,100 TEE track; break-even elec $0.53/kWh; mining haircut to $30-500/card/mo (concentration evidence: 1-3/256 rewarded, SN51 top-10% take 99.1%)
 - Scripts persist: regenerate via python3 scripts/generate-dc-plan.py
+
+---
+Task ID: verdict-unify-1
+Agent: main (Super Z)
+Task: User confused by two competing decision surfaces — Dashboard "Choose your subnet · CPU or GPU, with conviction" (conviction engine, PRIME/READY/MARGINAL/NO-GO) vs Opportunities "Ranked opportunities" (Ledger score, RUN/WATCH/AVOID). Asked to review, pick the best, and leave ONE simple way to choose a subnet.
+
+Work Log:
+- Reviewed both engines: mine-pick.ts conviction (40% rent-earn + 35% diligence + 25% confidence, gated by hosting gate/diligence DO-NOT-PROVISION/min-profit rule) vs Ledger score band (scoreBand ≥60/≥40) — two rankings, two vocabularies answering the same question
+- VERDICT-UNIFY-1: conviction engine chosen as THE single ranking (only engine weighing rig gate × seat reality × new-entrant EV × diligence × min-profit); vocabulary unified to RUN/WATCH/AVOID everywhere
+- mine-pick.ts: added UnifiedVerdict type, VERDICT_STYLE map, bandToVerdict() (PRIME/READY→RUN, MARGINAL→WATCH, NO-GO→AVOID), verdict field on MinePick, computeMinePickMap() one-pass helper scoring ALL rows
+- opportunity-table.tsx: conviction SortKey added + default sort (desc); score cell now shows conviction + unified verdict badge (Ledger score moved into tooltip); # column shows view position; header renamed "Conviction"
+- opportunities-view.tsx: tabs filter/count by unified verdict; earnPicks chip strip removed (second mini-ranking — rent-earn already 40% of conviction; GPU filter dropdown still covers "what can my rig run"); header rewritten to "ONE ranked list, ONE verdict" with RUN/WATCH/AVOID legend
+- NEW run-pick-card.tsx: dashboard "Start here — the best subnet to run" decision card — #1 pick hero (verdict, conviction, EV, reasons, Mine) + 4 runners-up + link to full ranking
+- dashboard-view.tsx: SubnetChooser → RunPickCard; duplicate "Best subnets by score" top-8 table REMOVED (revenue + emission cards now 2-col grid); 3-pillar card renamed "Subnet verdicts" with counts from computeMinePickMap (matches Opportunities tabs); Avg Score subtitle uses same counts; liveOpps memoized for React Compiler
+- Deleted subnet-chooser.tsx (only consumer was dashboard)
+- Lint clean (2 pre-existing deploy-wizard errors untouched); browser E2E: login → dashboard hero row + verdicts card (RUN 4/WATCH 0/AVOID 124) → Opportunities tabs filter (RUN 4 = 4/4 rows, led by SN82 Noah conviction 86) → row click opens detail dialog; zero console/page/dev.log errors
+
+Stage Summary:
+- App now has exactly ONE subnet decision ranking (conviction) with ONE vocabulary (RUN/WATCH/AVOID) on both Dashboard and Opportunities — no second scoring engine anywhere
+- Notable live result under owned basis: RUN 4 (Noah 86, Hone 77, CliqueAI 73, REAX 67) · SN86 OnSale shows AVOID despite EV ~$2,203 (seat-reality gate) — verdict gates working as designed
+- Screenshots: download/unify-dashboard2.png, unify-opp-run.png, unify-verdicts.png

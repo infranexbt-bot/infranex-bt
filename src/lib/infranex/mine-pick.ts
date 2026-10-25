@@ -26,12 +26,36 @@ import { computeDiligence, type DiligenceReport } from "./diligence";
 //   3. CONFIDENCE (weight 25) — the row's model confidence (Ledger composite
 //      scaled 0–1) — how much verified data backs the projection.
 //
-// Output: 0–100 CONVICTION score + PRIME/READY/MARGINAL/NO-GO band per
-// subnet, ranked, split by CPU vs GPU hardware class — rendered as the
-// "Choose your subnet" picker on the Dashboard.
+// Output: 0–100 CONVICTION score + ONE verdict (RUN / WATCH / AVOID) per
+// subnet, ranked — the single decision ranking surfaced by the Dashboard's
+// "Start here" card and the Opportunities page's ranked list alike.
 // ---------------------------------------------------------------------------
 
 export type MinePickBand = "PRIME" | "READY" | "MARGINAL" | "NO-GO";
+
+// VERDICT-UNIFY-1 — ONE decision vocabulary for the whole app. The picker's
+// PRIME/READY/MARGINAL/NO-GO bands and the Ledger's RUN/WATCH/AVOID used to
+// be two parallel answers to the same question; now every surface speaks
+// RUN / WATCH / AVOID, derived from the conviction engine (the only one that
+// weighs rig gate × seat reality × diligence × confidence × min-profit).
+export type UnifiedVerdict = "RUN" | "WATCH" | "AVOID";
+
+export const VERDICT_STYLE: Record<
+  UnifiedVerdict,
+  { label: UnifiedVerdict; color: string; bg: string }
+> = {
+  RUN: { label: "RUN", color: "text-success", bg: "bg-success/10" },
+  WATCH: { label: "WATCH", color: "text-warning", bg: "bg-warning/10" },
+  AVOID: { label: "AVOID", color: "text-destructive", bg: "bg-destructive/10" },
+};
+
+/** Band → verdict: PRIME/READY earn the rig, MARGINAL is watch-and-read,
+ *  anything gated or below 35 conviction is a no-go. */
+export function bandToVerdict(band: MinePickBand): UnifiedVerdict {
+  if (band === "PRIME" || band === "READY") return "RUN";
+  if (band === "MARGINAL") return "WATCH";
+  return "AVOID";
+}
 
 export interface MinePick {
   /** Net-positive opportunity row (netuid > 0). */
@@ -45,6 +69,8 @@ export interface MinePick {
   /** Combined conviction 0–100 = 40% rent-earn + 35% diligence + 25% confidence. */
   conviction: number;
   band: MinePickBand;
+  /** THE verdict — RUN / WATCH / AVOID (see VERDICT-UNIFY-1 above). */
+  verdict: UnifiedVerdict;
   /** CPU-only work (no VRAM) vs GPU rig. */
   hardware: "CPU" | "GPU";
   /** One-line drivers behind the band. */
@@ -161,9 +187,19 @@ export function computeMinePick(o: Opportunity, mode: CostBasisMode = "rent"): M
     confidencePct,
     conviction: clamp(conviction, 0, 100),
     band,
+    verdict: bandToVerdict(band),
     hardware: isCpuWork(o) ? "CPU" : "GPU",
     reasons: gateReasons({ rent, diligence, diligenceHealth: health, confidencePct, o }),
   };
+}
+
+/** One-pass conviction verdicts for EVERY row (the Opportunities table also
+ *  scores net-negative rows — their gates force AVOID). Keyed by row id. */
+export function computeMinePickMap(
+  rows: Opportunity[],
+  mode: CostBasisMode = "rent"
+): Map<string, MinePick> {
+  return new Map(rows.map((o) => [o.id, computeMinePick(o, mode)]));
 }
 
 /** Rank every net-positive mining subnet (netuid > 0) by conviction.
