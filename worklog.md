@@ -2317,3 +2317,24 @@ Stage Summary:
 - Miner Playbook + Subnets catalog fully restored after 2nd recycle wipe
 - App now SELF-HEALS: any future recycle that wipes the DB is repaired automatically at next server boot from scripts/recycle-baseline.json (no network needed; live chain refresh follows)
 - If enrichment is re-run later, refresh baseline: bun --smol scripts/export-recycle-baseline.ts
+
+---
+Task ID: owned-gpu-datacentre-business-plan
+Agent: main (Z.ai)
+Task: PDF business plan - owned GPU data centre (2x 5090 / 4x 5090 / 2x PRO 6000), dual-stream hosting (Lium+Vast+Salad) + subnet mining, dynamic auto-switch, phased rollout
+
+Work Log:
+- Clarified via AskUserQuestion: PDF form, compare-3-rigs, $0.08-0.15/kWh, dynamic auto-switch, all 3 platforms, both TEE tracks, all 4 must-have modules, phased 3-6mo
+- Loaded pdf skill; read full chain: SKILL.md, fonts.md, report.md (1704 lines), palette.md, cover.md, charts.md, overflow.md, fill-engine.md, pagination.md, typography.md, cover-backgrounds.md, geometry.md
+- Market research (web, Oct 2026): 5090 street $4.6-6.4k (MSRP $1,999), PRO 6000 $16k; Vast 5090 median $0.86/hr; Salad MEASURED $0.281/hr avg (97% job-time); thundercompute cloud rates
+- Live data: Lium nodes API pull caught fleet collapse 85%->7% rented in 48h (1,816->405 GPUs) -> became the plan's core platform-risk evidence; app playbook mining candidates (SN74/94/9/34/4/90 with rewarded/registered concentration)
+- Cover: Template 07 Crystal Blue HTML -> poster_validate + cover_validate PASS -> html2poster.js --width 794px -> cover.pdf
+- Body: scripts/dc_plan_data.py (economics model + prose) + scripts/generate-dc-plan.py (ReportLab, TocDocTemplate+multiBuild, Template 07 fixed body palette, FreeSerif+install_font_fallback, 2 matplotlib charts, CalloutBox stats, 12 chapters)
+- Preflight: code.sanitize, meta.brand, pages.clean(0), font.check(0 issues), toc.check(clean), pdf_qa
+- Bugs fixed during build: import filename dashes; table_ratios used outline-index instead of chapter-number mapping -> ch4 6-col table got 4 widths (overflowed both margins, found visually via pypdfium2 renders); cover page size 595.9 vs 595.3 (normalize tolerance 2pt->0.1pt); TOC page numbers physical->body-relative; scenario table skipped (CH6.table None short-circuit); payback chart crossing labels collided; profit chart added as Fig 6.2
+- Final QA: PASS w/ 2 warnings (exec-summary callout inner cards detected as tables - by design)
+
+Stage Summary:
+- DELIVERED: download/owned-gpu-datacentre-business-plan.pdf (14 pages: Crystal Blue cover + TOC + 12 chapters) + download/owned-gpu-datacentre-cover.html (editable cover source)
+- Economics: Rig A $12,990 capex base net $737/mo payback ~18mo (range 7.5-41); Rig B $27,900 base $1,720/mo; Rig C $39,100 TEE track; break-even elec $0.53/kWh; mining haircut to $30-500/card/mo (concentration evidence: 1-3/256 rewarded, SN51 top-10% take 99.1%)
+- Scripts persist: regenerate via python3 scripts/generate-dc-plan.py
