@@ -19,12 +19,11 @@ import { useNetwork, mergeOpportunities } from "@/hooks/use-network";
 import { useProfitabilityConfig } from "@/hooks/use-profitability";
 import { useSubnetOverrides } from "@/hooks/use-subnet-overrides";
 import {
-  computeRentEarnMap,
-  RENT_EARN_BAND_STYLE,
   rentEarnLabels,
 } from "@/lib/infranex/rent-earn";
-import { cn, opportunityBand } from "@/lib/utils";
-import { TrendingUp, LayoutGrid, List, Cpu, Settings2, CloudCog, Zap } from "lucide-react";
+import { computeMinePickMap } from "@/lib/infranex/mine-pick";
+import { cn } from "@/lib/utils";
+import { TrendingUp, LayoutGrid, List, Cpu, Settings2 } from "lucide-react";
 import type { Opportunity } from "@/lib/infranex/types";
 
 interface OpportunitiesViewProps {
@@ -65,22 +64,14 @@ export function OpportunitiesView({ onSelectOpportunity, onStartMining }: Opport
     () => mergeOpportunities(snap, profConfig, overrides),
     [snap, profConfig, overrides]
   );
-  // RENT-EARN verdicts — one pass over all rows (Rent earn / Earn picks
-  // column + filter). Mode-aware: on the owned basis the gate asks whether
-  // the user's OWN rig can run the work, and blocked copy drops rent-source
-  // language (no "rentable on Akash/Vast" while pricing your own GPUs).
+  // VERDICT-UNIFY-1 — ONE ranking (conviction), ONE vocabulary (RUN / WATCH /
+  // AVOID). The old page scored rows with the Ledger band here and conviction
+  // on the Dashboard — two answers to the same question. Now the conviction
+  // engine (rent-earn × diligence × confidence, gated) is the ONLY verdict.
   const ownedBasis = profConfig?.hardwareMode === "owned";
-  const rentMap = useMemo(
-    () => computeRentEarnMap(opportunities, ownedBasis ? "owned" : "rent"),
+  const pickMap = useMemo(
+    () => computeMinePickMap(opportunities, ownedBasis ? "owned" : "rent"),
     [opportunities, ownedBasis]
-  );
-  const earnPicks = useMemo(
-    () =>
-      opportunities
-        .map((o) => ({ o, rent: rentMap.get(o.id)! }))
-        .filter((r) => r.rent.band === "GREAT" || r.rent.band === "OK")
-        .sort((a, b) => b.rent.score - a.rent.score),
-    [opportunities, rentMap]
   );
   const target = profConfig?.minNetProfitTargetUsd ?? 300;
   const passCount = opportunities.filter((o) => o.meetsMinimum !== false).length;
@@ -112,20 +103,20 @@ export function OpportunitiesView({ onSelectOpportunity, onStartMining }: Opport
     if (gf) {
       if (gf.value === "rented")
         r = r.filter(
-          (o) => rentMap.get(o.id)?.band === "GREAT" || rentMap.get(o.id)?.band === "OK"
+          (o) => pickMap.get(o.id)?.rent.band === "GREAT" || pickMap.get(o.id)?.rent.band === "OK"
         );
       else if (gf.maxVram === 0) r = r.filter((o) => o.minVramGb <= 0);
       else if (gf.maxVram != null) r = r.filter((o) => o.minVramGb <= gf.maxVram!);
     }
-    if (filter !== "all") r = r.filter((o) => opportunityBand(o).label === filter);
+    if (filter !== "all") r = r.filter((o) => pickMap.get(o.id)?.verdict === filter);
     return r;
-  }, [filter, gpuFilter, opportunities, rentMap]);
+  }, [filter, gpuFilter, opportunities, pickMap]);
 
   const tabs: { key: typeof filter; label: string; count: number }[] = [
     { key: "all", label: "All", count: filtered.length },
-    { key: "RUN", label: "RUN", count: filtered.filter((o) => opportunityBand(o).label === "RUN").length },
-    { key: "WATCH", label: "WATCH", count: filtered.filter((o) => opportunityBand(o).label === "WATCH").length },
-    { key: "AVOID", label: "AVOID", count: filtered.filter((o) => opportunityBand(o).label === "AVOID").length },
+    { key: "RUN", label: "RUN", count: filtered.filter((o) => pickMap.get(o.id)?.verdict === "RUN").length },
+    { key: "WATCH", label: "WATCH", count: filtered.filter((o) => pickMap.get(o.id)?.verdict === "WATCH").length },
+    { key: "AVOID", label: "AVOID", count: filtered.filter((o) => pickMap.get(o.id)?.verdict === "AVOID").length },
   ];
 
   return (
@@ -138,29 +129,29 @@ export function OpportunitiesView({ onSelectOpportunity, onStartMining }: Opport
           <h1 className="animate-rise text-display text-3xl font-bold tracking-tight md:text-4xl">
             Opportunities
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {snap?.subnets?.length
-              ? `All ${snap.subnets.length} Finney subnets scored with the Miner's Ledger`
-              : "Finney subnets scored with the Miner's Ledger"}
-            {" "}
-            — per-<span className="text-foreground/80">earning</span>-miner
-            revenue minus GPU + infra cost, seat safety (slot pressure, reward
-            concentration, burn, immunity), alpha economics (24h trend,
-            liquidity, slippage) and earning reality.
+          <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
+            ONE ranked list, ONE verdict. Conviction — 40% rent-earn (can a rig
+            run it × seat reality × new-entrant EV) + 35% diligence pipeline +
+            25% confidence — is the only ranking.{" "}
+            <span className="font-medium text-success">RUN</span> = point your
+            rig here ·{" "}
+            <span className="font-medium text-warning">WATCH</span> = viable,
+            read the warnings ·{" "}
+            <span className="font-medium text-destructive">AVOID</span> = gated
+            or conviction &lt; 35.
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
-            Profitability Engine: revenue − GPU − storage − infra − other = net
-            {profConfig?.hardwareMode === "owned"
-              ? " · GPU line = owned electricity (owned mode)"
-              : " · GPU line = market rent"}
-            . Minimum entry rule: net &lt;{" "}
+            Minimum entry rule: net &lt;{" "}
             <span className="font-semibold text-foreground/80">
               ${target.toLocaleString()}/mo
             </span>{" "}
-            → AVOID ·{" "}
+            → forced AVOID ·{" "}
             <span className={cn("font-semibold", passCount > 0 ? "text-success" : "text-destructive")}>
               {passCount} pass
             </span>
+            {profConfig?.hardwareMode === "owned"
+              ? " · owned-rig electricity basis"
+              : " · market-rent basis"}
           </p>
         </div>
         <div className="flex items-center gap-1 rounded-lg border bg-card/40 p-1">
@@ -199,47 +190,9 @@ export function OpportunitiesView({ onSelectOpportunity, onStartMining }: Opport
         </div>
       )}
 
-      {/* RENT-EARN summary — where a RENTED or OWNED rig actually has a chance.
-          Heading/icon/subtitle follow the active cost basis (rentEarnLabels). */}
-      {earnPicks.length > 0 && (
-        <div className="rounded-lg border border-border/60 bg-card/40 px-4 py-3">
-          <div className="flex items-center gap-2 text-xs font-semibold text-foreground/90">
-            {L.pickCardIcon === "zap" ? (
-              <Zap className="h-3.5 w-3.5 text-primary" />
-            ) : (
-              <CloudCog className="h-3.5 w-3.5 text-primary" />
-            )}
-            {L.pickCardTitle}
-            <span className="font-normal text-muted-foreground">
-              {L.pickCardSubtitle}
-            </span>
-          </div>
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {earnPicks.slice(0, 8).map(({ o, rent }) => {
-              const st = RENT_EARN_BAND_STYLE[rent.band];
-              return (
-                <span
-                  key={o.id}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-background/40 px-2.5 py-1 text-xs"
-                >
-                  <span className="font-medium">SN{o.netuid} {o.subnetName}</span>
-                  <Badge variant="outline" className={cn("text-[10px]", st.bg, st.color)}>
-                    {rent.band} {rent.score}
-                  </Badge>
-                  {rent.expectedNetMonthlyUsd != null && (
-                    <span className="text-[10px] text-muted-foreground">
-                      EV ~${rent.expectedNetMonthlyUsd.toLocaleString()}/mo
-                    </span>
-                  )}
-                  {rent.whaleMean && (
-                    <span className="text-[10px] text-warning" title="Few UIDs earn — $/mo is a whale-mean, not a forecast">⚠</span>
-                  )}
-                </span>
-              );
-            })}
-          </div>
-        </div>
-      )}
+      {/* VERDICT-UNIFY-1 — the earnPicks chip strip is gone: rent-earn is
+          already 40% of conviction, so it was a second mini-ranking. The GPU
+          filter ("Rented/Owned rig picks") still covers "what can MY rig run". */}
 
       <div className="flex flex-wrap items-center gap-2">
         {tabs.map((t) => (
@@ -301,6 +254,10 @@ export function OpportunitiesView({ onSelectOpportunity, onStartMining }: Opport
             <TrendingUp className="h-4 w-4 text-primary" />
             Ranked opportunities
           </CardTitle>
+          <p className="text-xs text-muted-foreground">
+            Ranked by conviction — the same answer everywhere in the app. Click
+            a row for the full breakdown; the ⋯ menu starts the deploy.
+          </p>
         </CardHeader>
         <CardContent>
           {layout === "table" ? (

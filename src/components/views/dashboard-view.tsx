@@ -1,16 +1,16 @@
 "use client";
 
+import { useMemo } from "react";
 import { RefreshCw, Network, TrendingUp, Coins, Activity, ArrowRight, BadgeCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { rankMinePicks } from "@/lib/infranex/mine-pick";
-import { SubnetChooser } from "@/components/cards/subnet-chooser";
+import { rankMinePicks, computeMinePickMap } from "@/lib/infranex/mine-pick";
+import { RunPickCard } from "@/components/cards/run-pick-card";
 import { CostBasisToggle } from "@/components/cards/cost-basis-toggle";
 import { RegisterOddsBlock } from "@/components/cards/register-odds";
 import { MetricCard } from "@/components/cards/metric-card";
 import { DataSourceBanner } from "@/components/cards/data-source-banner";
-import { OpportunityTable } from "@/components/tables/opportunity-table";
 import { EmissionDonut } from "@/components/charts/emission-donut";
 import {
   useNetwork,
@@ -21,7 +21,7 @@ import {
 } from "@/hooks/use-network";
 import { useWorkerStatus } from "@/hooks/use-worker-status";
 import { useEconomics } from "@/hooks/use-platform";
-import { cn, formatNumber, formatCurrency, formatTao, formatRelativeTime, opportunityBand } from "@/lib/utils";
+import { cn, formatNumber, formatCurrency, formatTao, formatRelativeTime } from "@/lib/utils";
 import { useProfitabilityConfig } from "@/hooks/use-profitability";
 import { useSubnetOverrides } from "@/hooks/use-subnet-overrides";
 import { useTrustReport, trustVerdictStyle } from "@/hooks/use-trust";
@@ -38,16 +38,39 @@ export function DashboardView({ onSelectOpportunity, onStartMining, onNavigate }
   const { data: overrides } = useSubnetOverrides();
   const { data: profConfig } = useProfitabilityConfig();
   const m = getLiveDashboardMetrics(snap, profConfig);
-  const liveOpps = mergeOpportunities(snap, profConfig, overrides);
-  const top = liveOpps.slice(0, 8);
-  // MINE-PICK — the "Choose your subnet" picker LEADS the dashboard (first
-  // card, above the TAO Opportunity Score): every net-positive subnet ranked
-  // by rent earn × diligence × confidence. Mode-aware — on the owned basis
-  // the hosting gate + reasons read owned-rig language (no rent sources).
+  const liveOpps = useMemo(
+    () => mergeOpportunities(snap, profConfig, overrides),
+    [snap, profConfig, overrides]
+  );
+  // MINE-PICK — the conviction ranking (the app's ONLY ranking) feeds the
+  // "Start here" card: every net-positive subnet by rent earn × diligence ×
+  // confidence. Mode-aware — on the owned basis the hosting gate + reasons
+  // read owned-rig language (no rent sources).
   const minePicks = rankMinePicks(
     liveOpps,
     profConfig?.hardwareMode === "owned" ? "owned" : "rent"
   );
+  // VERDICT-UNIFY-1 — the dashboard's RUN/WATCH/AVOID counts come from the
+  // SAME conviction engine as the Opportunities tabs. One engine, one answer.
+  const pickMapAll = useMemo(
+    () =>
+      computeMinePickMap(
+        liveOpps,
+        profConfig?.hardwareMode === "owned" ? "owned" : "rent"
+      ),
+    [liveOpps, profConfig?.hardwareMode]
+  );
+  const verdictCounts = useMemo(() => {
+    let run = 0;
+    let watch = 0;
+    let avoid = 0;
+    for (const p of pickMapAll.values()) {
+      if (p.verdict === "RUN") run++;
+      else if (p.verdict === "WATCH") watch++;
+      else avoid++;
+    }
+    return { run, watch, avoid };
+  }, [pickMapAll]);
   // HOST-EARN teaser — when GPU mining seats are overwhelmingly NO-GO (≥80%),
   // surface the provider path (SN51 hosting income never enters the mining
   // lens). Text adapts: all-NO-GO vs mostly-NO-GO (one GPU pick can be live).
@@ -113,13 +136,14 @@ export function DashboardView({ onSelectOpportunity, onStartMining, onNavigate }
         </div>
       </header>
 
-      {/* MINE-PICK FIRST — "Choose your subnet · CPU or GPU, with conviction"
-          leads the dashboard: every net-positive subnet ranked by conviction,
-          CPU/GPU filterable, one click to detail or the deploy flow. */}
-      <SubnetChooser
+      {/* VERDICT-UNIFY-1 — ONE decision card. The old "Choose your subnet"
+          picker and the "Best subnets by score" table were two more rankings;
+          this card + the Opportunities page share the single conviction list. */}
+      <RunPickCard
         picks={minePicks}
         onStartMining={onStartMining}
         onSelectOpportunity={onSelectOpportunity}
+        onNavigate={onNavigate}
         toolbar={<CostBasisToggle />}
       />
 
@@ -188,54 +212,24 @@ export function DashboardView({ onSelectOpportunity, onStartMining, onNavigate }
           value={m.avgScore}
           format="raw"
           icon={<TrendingUp className="h-4 w-4" />}
-          subtitle={`${m.runCount} RUN · ${m.watchCount} WATCH`}
+          subtitle={`${verdictCounts.run} RUN · ${verdictCounts.watch} WATCH`}
           change={m.taoChange24h}
           trend={m.taoChange24h >= 0 ? "up" : "down"}
         />
       </section>
 
-      {/* Top opportunities + revenue */}
-      <section className="grid gap-6 xl:grid-cols-[1.6fr_1fr]">
+      {/* Realized P&L + emission distribution — the decision card above and
+          the Opportunities page carry the ranking, so no duplicate table here. */}
+      <section className="grid gap-6 lg:grid-cols-2">
         <Card className="glass">
-          <CardHeader className="flex flex-row items-end justify-between gap-3 space-y-0">
-            <div>
-              <p className="text-eyebrow text-muted-foreground">
-                Table · ranked · top {top.length}
-              </p>
-              <CardTitle className="text-display mt-2 text-2xl font-bold">
-                Best subnets by score
-              </CardTitle>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onNavigate("opportunities")}
-              className="rounded-lg border-border/60 bg-card/50"
-            >
-              View all
-              <ArrowRight className="ml-2 h-3.5 w-3.5" />
-            </Button>
+          <CardHeader className="pb-2">
+            <p className="text-eyebrow text-muted-foreground">
+              Real P&amp;L · ledger rollups (30d)
+            </p>
+            <CardTitle className="text-display text-xl font-bold">
+              Portfolio revenue
+            </CardTitle>
           </CardHeader>
-          <CardContent>
-            <OpportunityTable
-              opportunities={top}
-              onSelect={onSelectOpportunity}
-              onStartMining={onStartMining}
-              compact
-            />
-          </CardContent>
-        </Card>
-
-        <div className="space-y-6">
-          <Card className="glass">
-            <CardHeader className="pb-2">
-              <p className="text-eyebrow text-muted-foreground">
-                Real P&amp;L · ledger rollups (30d)
-              </p>
-              <CardTitle className="text-display text-xl font-bold">
-                Portfolio revenue
-              </CardTitle>
-            </CardHeader>
             <CardContent>
               {econ?.hasData ? (
                 <div className="space-y-4">
@@ -315,43 +309,42 @@ export function DashboardView({ onSelectOpportunity, onStartMining, onNavigate }
                 </div>
               )}
             </CardContent>
-          </Card>
+        </Card>
 
-          <Card className="glass">
-            <CardHeader className="pb-2">
-              <p className="text-eyebrow text-muted-foreground">
-                Distribution · TAO/block
-              </p>
-              <CardTitle className="text-display text-xl font-bold">
-                Emission by subnet
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {emissionSharesLive.length === 0 ? (
-                <div className="flex h-[200px] items-center justify-center px-4 text-center text-xs text-muted-foreground">
-                  Awaiting the live chain snapshot — the emission distribution
-                  appears once the scanner syncs.
+        <Card className="glass">
+          <CardHeader className="pb-2">
+            <p className="text-eyebrow text-muted-foreground">
+              Distribution · TAO/block
+            </p>
+            <CardTitle className="text-display text-xl font-bold">
+              Emission by subnet
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {emissionSharesLive.length === 0 ? (
+              <div className="flex h-[200px] items-center justify-center px-4 text-center text-xs text-muted-foreground">
+                Awaiting the live chain snapshot — the emission distribution
+                appears once the scanner syncs.
+              </div>
+            ) : (
+              <>
+                <EmissionDonut data={emissionSharesLive} height={200} />
+                <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1.5">
+                  {emissionSharesLive.slice(0, 6).map((e) => (
+                    <div key={e.netuid} className="flex items-center gap-2 text-xs">
+                      <span
+                        className="h-2 w-2 shrink-0 rounded-full ring-2 ring-background"
+                        style={{ backgroundColor: e.color }}
+                      />
+                      <span className="truncate text-muted-foreground">{e.name}</span>
+                      <span className="ml-auto mono tabular font-medium">{e.emission.toFixed(2)}</span>
+                    </div>
+                  ))}
                 </div>
-              ) : (
-                <>
-                  <EmissionDonut data={emissionSharesLive} height={200} />
-                  <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1.5">
-                    {emissionSharesLive.slice(0, 6).map((e) => (
-                      <div key={e.netuid} className="flex items-center gap-2 text-xs">
-                        <span
-                          className="h-2 w-2 shrink-0 rounded-full ring-2 ring-background"
-                          style={{ backgroundColor: e.color }}
-                        />
-                        <span className="truncate text-muted-foreground">{e.name}</span>
-                        <span className="ml-auto mono tabular font-medium">{e.emission.toFixed(2)}</span>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
       </section>
 
       {/* Decision bands + workers */}
@@ -359,17 +352,17 @@ export function DashboardView({ onSelectOpportunity, onStartMining, onNavigate }
         <Card className="glass">
           <CardHeader>
             <p className="text-eyebrow text-muted-foreground">
-              Decision engine
+              Decision engine · conviction
             </p>
             <CardTitle className="text-display text-2xl font-bold">
-              3-pillar verdicts
+              Subnet verdicts
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <DecisionRow
               label="RUN"
-              hint="Score ≥ 75"
-              count={m.runCount}
+              hint="Conviction ≥ 50 · gates passed"
+              count={verdictCounts.run}
               total={liveOpps.length}
               color="text-success"
               bg="bg-success/10 ring-1 ring-success/20"
@@ -377,8 +370,8 @@ export function DashboardView({ onSelectOpportunity, onStartMining, onNavigate }
             />
             <DecisionRow
               label="WATCH"
-              hint="Score 40–74"
-              count={m.watchCount}
+              hint="Conviction 35–49"
+              count={verdictCounts.watch}
               total={liveOpps.length}
               color="text-warning"
               bg="bg-warning/10 ring-1 ring-warning/20"
@@ -386,8 +379,8 @@ export function DashboardView({ onSelectOpportunity, onStartMining, onNavigate }
             />
             <DecisionRow
               label="AVOID"
-              hint="Score < 40"
-              count={m.avoidCount}
+              hint="Gated or conviction < 35"
+              count={verdictCounts.avoid}
               total={liveOpps.length}
               color="text-destructive"
               bg="bg-destructive/10 ring-1 ring-destructive/20"
