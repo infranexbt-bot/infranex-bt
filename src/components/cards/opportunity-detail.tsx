@@ -1,6 +1,6 @@
 "use client";
 
-import { cn, formatCurrency, formatPercent, getStatusColor, opportunityBand } from "@/lib/utils";
+import { cn, formatCurrency, formatPercent, getStatusColor } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -15,6 +15,8 @@ import {
 import { TrendingUp, AlertTriangle, Cpu, Wallet, Calculator } from "lucide-react";
 import { formatNumber } from "@/lib/utils";
 import { assessSeatChance, formatBurnTao } from "@/lib/infranex/miner-score";
+import { computeMinePick, VERDICT_STYLE } from "@/lib/infranex/mine-pick";
+import { costBasisFromConfig } from "@/lib/infranex/rent-earn";
 import { RegisterOddsBlock, RegisterOddsInline } from "@/components/cards/register-odds";
 import { HostingWarningBlock, HostingChips } from "@/components/cards/hosting-requirements";
 import { OfficialMechanicsBlock, MechanicsChips, rampWeeksSourceNote } from "@/components/cards/mechanics-block";
@@ -51,9 +53,49 @@ export function OpportunityDetailDialog({
   const owned = profConfig?.hardwareMode === "owned";
   if (!opportunity) return null;
   const o = opportunity;
-  const band = opportunityBand(o);
   const risk = getStatusColor(o.riskLevel);
   const prof = o.profitability;
+
+  // PNL-RECONCILE-1 — recompute this row's conviction with the SAME pure
+  // engine the Opportunities list and Dashboard use (computeMinePickMap →
+  // computeMinePick), so the dialog's verdict is identical by construction.
+  // Pure function — safe after the early return (not a hook).
+  const pick = computeMinePick(o, costBasisFromConfig(profConfig));
+
+  // VERDICT-UNIFY-1 / PNL-RECONCILE-1 — the dialog's headline badge + score
+  // must speak the ONE conviction vocabulary. Before this change the badge
+  // read the ledger score band (score 67 → "RUN") directly above a
+  // "P&L passed ≠ verdict AVOID" reconciliation — a contradiction in one
+  // view. The ledger composite stays visible in the score's tooltip.
+  const band = VERDICT_STYLE[pick.verdict];
+
+  // The gates / seat facts that explain a non-RUN verdict despite a passed
+  // P&L — ordered hardest-first (hard gate → seat reality → entry).
+  const reconcileGates: string[] = [];
+  if (!pick.rent.rentable && pick.rent.rentBlock)
+    reconcileGates.push(`Hosting/rig gate — ${pick.rent.rentBlock}`);
+  if (pick.diligence.verdict === "DO NOT PROVISION") {
+    const fail = pick.diligence.stages.find((s) => s.status === "fail");
+    reconcileGates.push(
+      `Diligence hard fail — ${
+        fail
+          ? `stage #${fail.n} ${fail.label}: ${fail.value}`
+          : `${pick.diligence.failCount} stage${pick.diligence.failCount === 1 ? "" : "s"} failed`
+      } (verdict capped at 30)`
+    );
+  }
+  if (pick.rent.knifeFight)
+    reconcileGates.push(
+      `Knife-fight seat — only ${pick.rent.earnChancePct ?? "?"}% of slots earned and the top 10% of UIDs take ${pick.rent.top10TakePct ?? "?"}% of all rewards`
+    );
+  else if (pick.rent.whaleMean)
+    reconcileGates.push(
+      `Whale-mean — just ${pick.rent.earnChancePct ?? "?"}% of slots earned; the headline $/mo is a mean over few earners`
+    );
+  if (pick.rent.entry === "displace")
+    reconcileGates.push(
+      "Subnet full — a new seat must displace an incumbent (0 free seats)"
+    );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -86,7 +128,12 @@ export function OpportunityDetailDialog({
           </div>
           <DialogTitle className="text-display text-2xl">
             {o.subnetName}
-            <span className="ml-2 tabular text-primary">{o.score.toFixed(1)}</span>
+            <span
+              className="ml-2 tabular text-primary"
+              title={`Conviction — the decision score (earn pick × seat reality + diligence + confidence, hard-gated). Ledger composite: ${o.score.toFixed(1)}`}
+            >
+              {pick.conviction}
+            </span>
           </DialogTitle>
           <DialogDescription>
             NetUID {o.netuid} · {o.category} · rank #{o.rank} · updated{" "}
@@ -207,6 +254,108 @@ export function OpportunityDetailDialog({
                 )}
               </p>
             </div>
+
+            {/* PNL-RECONCILE-1 — "PASSED but not RUN?" — the P&L prices a
+                mid-pack miner who is ALREADY earning; the verdict prices what
+                a NEW seat can win. When the two disagree, show the seat math
+                and the hard gates right here so the reconciliation is
+                visible, not a support question. Hidden when the P&L itself
+                fails the minimum rule (the red AVOID note above covers it). */}
+            {prof.meetsMinimum && pick.verdict !== "RUN" && (
+              <div
+                className={cn(
+                  "mt-3 rounded-md border px-3 py-2.5",
+                  pick.verdict === "AVOID"
+                    ? "border-destructive/40 bg-destructive/5"
+                    : "border-warning/40 bg-warning/5"
+                )}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-display flex items-center gap-1.5 text-xs font-semibold">
+                    <AlertTriangle
+                      className={cn(
+                        "h-3.5 w-3.5",
+                        pick.verdict === "AVOID" ? "text-destructive" : "text-warning"
+                      )}
+                    />
+                    P&amp;L passed ≠ verdict {pick.verdict}
+                  </p>
+                  <span
+                    className="text-[10px] text-muted-foreground"
+                    title="Conviction = earn pick × seat reality + diligence pipeline + model confidence, gated by hard rules — see the Opportunities ranking"
+                  >
+                    conviction {pick.conviction}/100
+                  </span>
+                </div>
+                <p className="mt-1 text-[11px] leading-snug text-muted-foreground">
+                  This P&amp;L prices a{" "}
+                  <span className="font-medium text-foreground">mid-pack miner who is already earning</span>
+                  . The verdict prices{" "}
+                  <span className="font-medium text-foreground">what a NEW seat can win</span>
+                  {" "}— seat competition and hard gates a cost sheet can&apos;t see.
+                </p>
+
+                {/* Seat reality — the chain facts behind the verdict */}
+                <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1.5 text-[11px] sm:grid-cols-4">
+                  <div>
+                    <p className="text-[9px] uppercase tracking-widest text-muted-foreground">Slots earning</p>
+                    <p className="tabular font-semibold">
+                      {pick.rent.earnChancePct != null ? `${pick.rent.earnChancePct}%` : "—"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[9px] uppercase tracking-widest text-muted-foreground">Top-10% take</p>
+                    <p className="tabular font-semibold">
+                      {pick.rent.top10TakePct != null ? `${pick.rent.top10TakePct}%` : "—"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[9px] uppercase tracking-widest text-muted-foreground">Free seats</p>
+                    <p className="tabular font-semibold">
+                      {o.freeSlots != null ? `${o.freeSlots}/${o.totalSlots ?? "?"}` : "—"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[9px] uppercase tracking-widest text-muted-foreground">Month-1 earn chance</p>
+                    <p className="tabular font-semibold">
+                      {o.earnChance?.pct != null ? `${o.earnChance.pct}%` : "—"}
+                    </p>
+                  </div>
+                </div>
+
+                {/* The EV math — what a new seat can actually expect */}
+                {pick.rent.expectedNetMonthlyUsd != null && (
+                  <p className="mt-2 text-[11px] leading-snug text-muted-foreground">
+                    New-seat EV = {formatCurrency(prof.netMonthlyUsd)} net ×{" "}
+                    {o.rewardedRatio != null ? (o.rewardedRatio * 100).toFixed(1) : "—"}% rewarded ×{" "}
+                    {o.rewardMedianShare != null ? o.rewardMedianShare.toFixed(2) : "—"} median share ≈{" "}
+                    <span
+                      className={cn(
+                        "font-bold",
+                        pick.rent.expectedNetMonthlyUsd >= prof.targetUsd
+                          ? "text-success"
+                          : "text-destructive"
+                      )}
+                    >
+                      {formatCurrency(pick.rent.expectedNetMonthlyUsd)}/mo
+                    </span>{" "}
+                    — the honest expectation for registering today.
+                  </p>
+                )}
+
+                {/* Gates that fired — hardest first */}
+                {reconcileGates.length > 0 && (
+                  <ul className="mt-1.5 space-y-0.5">
+                    {reconcileGates.map((g, i) => (
+                      <li key={i} className="text-[11px] leading-snug text-muted-foreground">
+                        <span className="mr-1 font-bold text-destructive">•</span>
+                        {g}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
 
             {/* Metrics grid */}
             <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 border-t border-border/60 pt-3 text-sm sm:grid-cols-4">
@@ -823,7 +972,11 @@ export function OpportunityDetailDialog({
 
 /** Compact card for grid layouts. */
 export function OpportunityCard({ opportunity: o }: { opportunity: Opportunity }) {
-  const band = opportunityBand(o);
+  // VERDICT-UNIFY-1 / PNL-RECONCILE-1 — same ONE verdict vocabulary as the
+  // table and the dialog: conviction number + conviction verdict badge.
+  const { data: profConfig } = useProfitabilityConfig();
+  const pick = computeMinePick(o, costBasisFromConfig(profConfig));
+  const band = VERDICT_STYLE[pick.verdict];
   const risk = getStatusColor(o.riskLevel);
   const prof = o.profitability;
   // Batch winner-stability trends — one request shared by every card.
@@ -848,8 +1001,11 @@ export function OpportunityCard({ opportunity: o }: { opportunity: Opportunity }
             </p>
           </div>
           <div className="text-right">
-            <p className="tabular text-2xl font-bold text-primary">
-              {o.score.toFixed(1)}
+            <p
+              className="tabular text-2xl font-bold text-primary"
+              title={`Conviction — the decision score, hard-gated. Ledger composite: ${o.score.toFixed(1)}`}
+            >
+              {pick.conviction}
             </p>
             <Badge variant="outline" className={cn("text-[10px]", band.bg, band.color)}>
               {band.label}

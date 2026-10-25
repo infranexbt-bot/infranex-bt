@@ -2417,3 +2417,27 @@ Work Log:
 Stage Summary:
 - Not a bug: P&L answers "IF I hold a mid-pack EARNING seat, do revenues beat costs?" (yes, $3,764); conviction answers "what will a NEW entrant on a FULL 256/256 subnet actually win?" (EV $204/mo, 3% month-1) + hard DNP cap 30. Verdict AVOID is correct and evidence-backed; no scoring change made
 - scripts/chutes-explain.ts persisted as the reusable per-subnet explainer (change netuid to audit any row)
+
+---
+Task ID: pnl-reconcile-1
+Agent: main (Z.ai)
+Task: User said "yes" to adding the "Why AVOID?" reconciliation to the UI — surface the P&L-passed-vs-verdict gap on the Profitability card itself
+
+Work Log:
+- opportunity-detail.tsx — PNL-RECONCILE-1 reconciliation block inside the Profitability card, shown only when P&L meetsMinimum AND conviction verdict ≠ RUN (the P&L-fails case keeps its existing red note; RUN rows show nothing):
+  - Headline "P&L passed ≠ verdict {AVOID|WATCH}" + conviction N/100 (styled destructive/warning per verdict)
+  - One-liner: P&L prices a mid-pack miner ALREADY earning; verdict prices what a NEW seat can win
+  - Seat-facts grid: slots earning % · top-10% take · free seats (x/y) · month-1 earn chance
+  - EV math line: "New-seat EV = $net × rewarded% × median share ≈ $E/mo"
+  - Gates list hardest-first: hosting/rig gate → diligence hard fail (named stage #n label: value, "verdict capped at 30") → knife-fight/whale-mean → full-subnet displace
+  - Dialog computes pick = computeMinePick(o, costBasisFromConfig(profConfig)) — identical engine as Opportunities/Dashboard, so verdicts agree by construction
+- Consistency fix found during E2E: dialog header badge used opportunityBand(o) (ledger score band → "RUN" for Chutes score 67) directly above the AVOID reconciliation — contradiction in one view. Fixed to ONE conviction vocabulary:
+  - Dialog badge → VERDICT_STYLE[pick.verdict]; title number → pick.conviction (tooltip keeps ledger composite)
+  - OpportunityCard (grid view, same file) unified the same way (conviction number + verdict badge; added useProfitabilityConfig hook)
+  - opportunityBand import removed (unused)
+- Verification: bunx tsc --noEmit clean; browser E2E — Chutes dialog: "Chutes 30" + AVOID badge + block with 7% / 100% / 0/256 / 3% + EV $203/mo + 3 gates (a11y snapshot showed 2 listitems empty but DOM eval confirmed full text — a11y-tree lossiness, not a bug); Noah dialog: "Noah 89" + RUN badge + block correctly absent; 0 page errors; screenshot download/pnl-reconcile-chutes.png
+
+Stage Summary:
+- The profitability-vs-verdict reconciliation is now IN the UI: any PASSED-but-not-RUN row explains itself (seat math + hard gates + EV math) at the exact spot the confusion arises
+- Dialog + grid card now speak ONE verdict vocabulary (conviction), completing VERDICT-UNIFY-1 inside the detail surfaces
+- scripts/chutes-explain.ts remains the per-subnet deep-dive replay harness
