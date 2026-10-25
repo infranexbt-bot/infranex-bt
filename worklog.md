@@ -2296,3 +2296,24 @@ Stage Summary:
 - Miner Playbook restored: 106/106 entries with live yield metrics
 - New artifact scripts/chain-snapshot-once.ts — reusable lightweight single-sweep snapshot writer (file-arg fast path or live sweep) for snapshot-driven views on OOM-guarded small hosts
 - NOTE: ChainSnapshot is a one-off row; without workers on, DB-snapshot-driven views show this same snapshot until the script is re-run. /api/network stays fully live (on-demand fetch) — unaffected.
+
+---
+Task ID: recycle-db-wipe-selfheal
+Agent: main (Z.ai)
+Task: "check why miner playbook is not showing the data" (2nd occurrence)
+
+Work Log:
+- Root cause: sandbox recycled between sessions — /tmp cleared, db/custom.db recreated EMPTY (db:push --accept-data-loss at boot). SubnetOverride 112->0, SubnetPlaybook 106->0, ChainSnapshot->0. AppUser (5 rows) survived (seeded at db push).
+- Restored via existing scripts/restore-after-recycle.ts (extended with optional file-arg fast path: saved /api/network payload carries identityGithub — skips the slow live sweep): 112 override base rows + ChainSnapshot block 9358822
+- Re-ran scripts/merge-playbook.ts -> 106 playbook rows (98 repo-verified / 7 derived / 1 thin)
+- Enrichment re-scrape: POST /api/subnets/sync-all?force=true -> 109/112 scraped (errors only SN39/95/126 "No README"), final: 107 descriptions, 69 recommendedGpu, 7 hostingRequirements
+- DURABILITY (so recycles self-heal): new src/lib/infranex/boot-restore.ts — instrumentation.register() now calls maybeRunBootRestore(): if overrides/playbook/snapshot tables empty -> rebuilds from scripts/recycle-baseline.json (repo-committed export), then schedules a single delayed (25s) live chain refresh. Never throws into boot; idempotent (process flag); chunked createMany (40/批 SQLite param limit)
+- New scripts/export-recycle-baseline.ts — re-run after future restores/enrichment to refresh the baseline (current: 0.53MB, overrides+playbook+snapshot)
+- Test: scripts/test-boot-restore.ts against scratch DB (prisma db push fresh) -> before 0/0/0, after 112/106/1, second call skipped; fixed 2 bugs found: blockNumber non-null typing, baseline snapshot carried non-column capturedAt (now explicit field pick, source forced "baseline")
+- tsc --noEmit clean; server restarted -> boot log "[boot-restore] DB healthy (overrides=112 playbook=106 snapshots=1) — nothing to do"
+- Verified: /api/playbook 200, 106 entries, block 9358822, TAO 249.3; UI E2E Miner Playbook 05c renders (screenshot download/miner-playbook-restored.png); note download/ dir was also lost in recycle -> recreated
+
+Stage Summary:
+- Miner Playbook + Subnets catalog fully restored after 2nd recycle wipe
+- App now SELF-HEALS: any future recycle that wipes the DB is repaired automatically at next server boot from scripts/recycle-baseline.json (no network needed; live chain refresh follows)
+- If enrichment is re-run later, refresh baseline: bun --smol scripts/export-recycle-baseline.ts
