@@ -2359,3 +2359,17 @@ Stage Summary:
 - App now has exactly ONE subnet decision ranking (conviction) with ONE vocabulary (RUN/WATCH/AVOID) on both Dashboard and Opportunities — no second scoring engine anywhere
 - Notable live result under owned basis: RUN 4 (Noah 86, Hone 77, CliqueAI 73, REAX 67) · SN86 OnSale shows AVOID despite EV ~$2,203 (seat-reality gate) — verdict gates working as designed
 - Screenshots: download/unify-dashboard2.png, unify-opp-run.png, unify-verdicts.png
+
+---
+Task ID: verdict-unify-1-verify
+Agent: main (Z.ai)
+Task: User asked "is that done" — re-verify VERDICT-UNIFY-1 consolidation still intact after sandbox time
+
+Work Log:
+- Worklog confirms verdict-unify-1 was fully implemented in prior session (one conviction ranking, one RUN/WATCH/AVOID vocabulary; subnet-chooser.tsx deleted; RunPickCard replaces "Choose your subnet" on dashboard; Opportunities tabs unified)
+- Fresh checks: subnet-chooser.tsx glob -> absent; dev server 200; login via /api/auth/login {userId, code}; /api/network live (129 subnets, block 9359903, TAO $247.25)
+- Browser E2E: dashboard "Start here — the best subnet to run" card renders hero + runners-up with unified badges (RUN x4, AVOID host teaser fired: 34/35 GPU seats NO-GO); Opportunities shows "ONE ranked list, ONE verdict" + tabs All 128 / RUN 4 / WATCH 0 / AVOID 124; conviction column leads rows (86/77/73/67 RUN); 0 console errors, 0 page errors
+- Screenshot: download/unify-verified-2026-10-25.png
+
+Stage Summary:
+- VERDICT-UNIFY-1 verified intact and live on 2026-10-25 — no code changes needed; consolidation complete
