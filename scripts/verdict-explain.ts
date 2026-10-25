@@ -1,12 +1,14 @@
 // VERDICT-EXPLAIN — replay the app's EXACT client-side scoring (live-merge →
-// mine-pick conviction) against the live /api/network snapshot, then dump:
+// mine-pick conviction) against a SAVED /api/network snapshot (/tmp/net.json
+// + /tmp/pc.json + /tmp/ovr.json), then dump:
 //   1. verdict counts
 //   2. every RUN pick with full factor breakdown
 //   3. every GPU row: verdict, conviction, and the blocking reason
 //   4. blocker histogram for GPU rows
-// Run: bun --smol scripts/verdict-explain.ts
+// Run: bun --smol scripts/verdict-explain.ts [--live]  (live = hit the API)
 
 const BASE = "http://127.0.0.1:3000";
+const LIVE = process.argv.includes("--live");
 
 async function api<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(BASE + path, { ...init, headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) } });
@@ -15,18 +17,24 @@ async function api<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 async function main() {
-  // login (cookie)
-  const login = await fetch(BASE + "/api/auth/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId: "admin", code: "BRJ2-W2GT-WJNF-97VC" }),
-  });
-  if (!login.ok) throw new Error("login failed");
-  const cookie = (login.headers.getSetCookie?.() ?? []).map((c) => c.split(";")[0]).join("; ");
-
-  const snap = await api<any>("/api/network", { headers: { cookie } });
-  const profConfig = await api<any>("/api/profitability-config", { headers: { cookie } });
-  const ovrJson = await api<any>("/api/subnet-overrides", { headers: { cookie } });
+  let snap: any, profConfig: any, ovrJson: any;
+  if (LIVE) {
+    const login = await fetch(BASE + "/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: "admin", code: "BRJ2-W2GT-WJNF-97VC" }),
+    });
+    if (!login.ok) throw new Error("login failed");
+    const cookie = (login.headers.getSetCookie?.() ?? []).map((c) => c.split(";")[0]).join("; ");
+    snap = await api<any>("/api/network", { headers: { cookie } });
+    profConfig = await api<any>("/api/profitability-config", { headers: { cookie } });
+    ovrJson = await api<any>("/api/subnet-overrides", { headers: { cookie } });
+  } else {
+    const fs = await import("fs");
+    snap = JSON.parse(fs.readFileSync("/tmp/net.json", "utf8"));
+    profConfig = JSON.parse(fs.readFileSync("/tmp/pc.json", "utf8"));
+    ovrJson = JSON.parse(fs.readFileSync("/tmp/ovr.json", "utf8"));
+  }
 
   const overrides = new Map<number, Record<string, unknown>>();
   for (const o of ovrJson.overrides as any[]) {
@@ -47,10 +55,17 @@ async function main() {
 
   const { mergeOpportunities } = await import("../src/lib/infranex/live-merge");
   const { computeMinePick } = await import("../src/lib/infranex/mine-pick");
+  const { costBasisFromConfig } = await import("../src/lib/infranex/rent-earn");
 
   const opps = mergeOpportunities(snap, profConfig, overrides);
-  const mode = profConfig?.hardwareMode === "owned" ? "owned" as const : "rent" as const;
-  const picks = opps.map((o) => computeMinePick(o, mode));
+  // OWNED-RIG-1 — simulate the user's owned rig (RTX PRO 6000 96GB, TEE-capable)
+  const basis = {
+    ...costBasisFromConfig(profConfig),
+    mode: "owned" as const,
+    rigVramGb: 96,
+    rigTeeCapable: true,
+  };
+  const picks = opps.map((o) => computeMinePick(o, basis));
 
   const count = { RUN: 0, WATCH: 0, AVOID: 0 } as Record<string, number>;
   for (const p of picks) count[p.verdict]++;
@@ -59,7 +74,7 @@ async function main() {
     o.minVramGb <= 0 || (o.workType ?? "").toLowerCase().includes("cpu") || /cpu/i.test(o.recommendedGpu ?? "") ? "CPU" : "GPU";
 
   console.log("=== SNAPSHOT ===");
-  console.log(`block ${snap.blockNumber} · TAO $${snap.taoPriceUsd} · rows scored: ${picks.length} · basis: ${mode}`);
+  console.log(`block ${snap.blockNumber} · TAO $${snap.taoPriceUsd} · rows scored: ${picks.length} · basis: owned + rig 96GB TEE (weights 55/25/20)`);
   console.log(`verdicts: RUN ${count.RUN} · WATCH ${count.WATCH} · AVOID ${count.AVOID}\n`);
 
   console.log("=== ALL RUN/WATCH PICKS (full factor breakdown) ===");

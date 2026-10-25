@@ -19,6 +19,7 @@ import { useNetwork, mergeOpportunities } from "@/hooks/use-network";
 import { useProfitabilityConfig } from "@/hooks/use-profitability";
 import { useSubnetOverrides } from "@/hooks/use-subnet-overrides";
 import {
+  costBasisFromConfig,
   rentEarnLabels,
 } from "@/lib/infranex/rent-earn";
 import { computeMinePickMap } from "@/lib/infranex/mine-pick";
@@ -68,10 +69,12 @@ export function OpportunitiesView({ onSelectOpportunity, onStartMining }: Opport
   // AVOID). The old page scored rows with the Ledger band here and conviction
   // on the Dashboard — two answers to the same question. Now the conviction
   // engine (rent-earn × diligence × confidence, gated) is the ONLY verdict.
+  // OWNED-RIG-1 — the basis carries the rig profile (VRAM + TEE) so the
+  // verdict answers "can MY GPU run it & earn" on the owned basis.
   const ownedBasis = profConfig?.hardwareMode === "owned";
   const pickMap = useMemo(
-    () => computeMinePickMap(opportunities, ownedBasis ? "owned" : "rent"),
-    [opportunities, ownedBasis]
+    () => computeMinePickMap(opportunities, costBasisFromConfig(profConfig)),
+    [opportunities, profConfig]
   );
   const target = profConfig?.minNetProfitTargetUsd ?? 300;
   const passCount = opportunities.filter((o) => o.meetsMinimum !== false).length;
@@ -130,9 +133,9 @@ export function OpportunitiesView({ onSelectOpportunity, onStartMining }: Opport
             Opportunities
           </h1>
           <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
-            ONE ranked list, ONE verdict. Conviction — 40% rent-earn (can a rig
-            run it × seat reality × new-entrant EV) + 35% diligence pipeline +
-            25% confidence — is the only ranking.{" "}
+            ONE ranked list, ONE verdict. Conviction —{" "}
+            {L.convictionFormula} — is the only
+            ranking.{" "}
             <span className="font-medium text-success">RUN</span> = point your
             rig here ·{" "}
             <span className="font-medium text-warning">WATCH</span> = viable,

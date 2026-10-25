@@ -39,6 +39,15 @@ export interface ProfitabilityConfig {
   hardwareMode: "rent" | "owned";
   /** Electricity price for owned hardware ($/kWh). */
   electricityUsdPerKwh: number;
+  /** OWNED-RIG PROFILE — your GPU's VRAM in GB (0 = not set). Drives the
+   *  owned-basis rig-fit gate: a subnet needing more VRAM than the rig has
+   *  is not runnable, whatever the $/mo says. */
+  rigGpuVramGb: number;
+  /** OWNED-RIG PROFILE — does the rig support confidential compute
+   *  (NVIDIA CC on H100/H200/RTX PRO 6000 Blackwell, or Intel TDX)?
+   *  Unlocks TEE-gated subnets (SN4 Targon, SN90, SN64, SN28) on the owned
+   *  basis. */
+  rigTeeCapable: boolean;
   /** Count the registration burn as an upfront cost (amortized). */
   includeRegistrationBurn: boolean;
   /** Months over which the registration burn is amortized. */
@@ -54,6 +63,8 @@ export const DEFAULT_PROFITABILITY_CONFIG: ProfitabilityConfig = {
   otherOpexMonthlyUsd: 25,
   hardwareMode: "rent",
   electricityUsdPerKwh: 0.12,
+  rigGpuVramGb: 0,
+  rigTeeCapable: false,
   includeRegistrationBurn: true,
   amortizeBurnMonths: 3,
   riskAdjustment: true,
@@ -77,6 +88,9 @@ export function sanitizeProfitabilityConfig(raw: unknown): ProfitabilityConfig {
     otherOpexMonthlyUsd: num(r.otherOpexMonthlyUsd, d.otherOpexMonthlyUsd, 0, 100_000),
     hardwareMode: r.hardwareMode === "owned" ? "owned" : "rent",
     electricityUsdPerKwh: num(r.electricityUsdPerKwh, d.electricityUsdPerKwh, 0, 10),
+    rigGpuVramGb: num(r.rigGpuVramGb, d.rigGpuVramGb, 0, 4096),
+    rigTeeCapable:
+      typeof r.rigTeeCapable === "boolean" ? r.rigTeeCapable : d.rigTeeCapable,
     includeRegistrationBurn:
       typeof r.includeRegistrationBurn === "boolean"
         ? r.includeRegistrationBurn
