@@ -2684,3 +2684,18 @@ Stage Summary:
 - SHIPPED: Opportunity Score is now the app's core ranking — every subnet scored /100 from net 30/miners 20/hardware 20/entry 15/data 15, hard-gated (hardware mismatch, unverified payout, negative net never overridden), evidence dialog on every score
 - User's 5 improvements map: #1 compat engine → hardwareFit component (existing resolveCompat + gpuCount gate); #2 net-earnings → netContribution component (profitability P&L); #3 mining-vs-hosting → existing rent-earn/host-providers lenses (conviction column); #4 miner performance → minerPerformance component + Monitoring view; #5 controlled deployment → existing Deployments wizard (approval-gated)
 - Reusable: scripts/opportunity-score-verify.ts re-runs invariants on live data any time
+
+---
+Task ID: app-load-restore-8
+Agent: main (Super Z)
+Task: "load the app" (routine revival)
+
+Work Log:
+- GET / -> 000: server process reaped (no sandbox recycle); MemAvailable 3.5GB healthy
+- Restarted durably: (setsid nohup bun run dev >/dev/null 2>&1 &) -> GET / = 307, /login = 200 in ~12s
+- boot-restore: DB healthy (overrides=112 playbook=106 snapshots=2) — no wipe
+- verify-app-health.ts ALL PASS: login OK, 129 subnets source=live block=9369237, playbook 106 SN82=Noah, 112 overrides (69 GPU), profitability-config 200
+- Includes the Opportunity Score build (opportunity-score-1): core ranking live in Opportunities view
+
+Stage Summary:
+- App UP with all data flowing; login code unchanged (BRJ2-W2GT-WJNF-97VC); /guides/Infranex-BT-Investor-Brief.pdf public link also live again
