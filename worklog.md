@@ -2552,3 +2552,19 @@ Stage Summary:
 - User's "no GPU RUN" was 90% a data-loss bug (settings wipe hiding REAX), 10% genuine economics (other GPU subnets fail concentration/VRAM/min-profit gates on merit)
 - Opportunities now: 4 RUN (Noah $13,637, Hone $885, REAX $445 GPU, CliqueAI $351) — page refresh shows corrected owned-basis verdicts
 - Settings singleton now survives recycles via 3-layer fix; scripts persisted: opp-gpu-diagnose.ts, opp-gpu-diagnose2.ts, restore-profile.ts
+
+---
+Task ID: top10-research-1
+Agent: main (Z.ai)
+Task: User asked why GPU subnets pay only top-10, whether top miners have high-end GPUs, what they do, how to compete/earn, and what the app can do
+
+Work Log:
+- scripts/top10-why.ts — pulled all 82 concentrated subnets (rewarded<40% or top10>=50%) merged with playbook top10Strategy/top10Levers (repo-verified 2026-10-25)
+- scripts/entry-chances.ts — entry viability table for every <=96GB GPU subnet: rewarded%, top10%, seats, EV, month-1 earn chance, concentration band
+- Web research confirmed: Chutes miners = compute provisioning + cold-start optimization; Targon = auction-based confidential cloud (H200 nodes, TDX/TEE); academic paper (arxiv 2507.02951) confirms reward concentration is structural (Gini/HHI near Bitcoin-pool levels on many subnets)
+
+Stage Summary:
+- Concentration is 4 distinct designs: (1) WTA/king-of-hill scoring (Teutonic, 404-GEN, Ingot, Perturb rank1=75%), (2) real-revenue marketplaces where top10 = biggest fleets (Chutes 8xH200, Targon 8-GPU TEE, engy, lium), (3) throughput+uptime races (iota, NOVA, Quasar, Affine), (4) TEE/compliance gates with hand-review (KubeTEE 7-node clusters, Chutes sek8s)
+- Top-10 hardware: institutional on marketplaces (8x H200/H100 fleets, TDX bare metal); on research subnets they own 4-8x H100 training rigs or NOTHING (validator-side compute; skill is the moat)
+- Entry math: buying bigger GPUs does NOT buy share (rewards track served traffic/completed rounds/skill, not VRAM); realistic paths: (a) broad-reward subnets (REAX 93% rew, ReadyAI/ItsAI 93-95% but sub-$150 EV), (b) compliance-subnet entry with exact-fit hardware (Affine 393 free seats, 2x PRO 6000 = manifest-exact), (c) CPU skill subnets (Noah $13.6k/mo), (d) host-first (Twin-Hopper) since hosting pays > mining EV
+- App proposals: concentration chip (BROAD/MIXED/SKEWED/WHALE), competitive-moat drawer surfacing playbook top10 intel, broadening-alerts via snapshot ring buffer, odds-mode sort
