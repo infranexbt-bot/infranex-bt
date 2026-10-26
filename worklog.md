@@ -2441,3 +2441,21 @@ Stage Summary:
 - The profitability-vs-verdict reconciliation is now IN the UI: any PASSED-but-not-RUN row explains itself (seat math + hard gates + EV math) at the exact spot the confusion arises
 - Dialog + grid card now speak ONE verdict vocabulary (conviction), completing VERDICT-UNIFY-1 inside the detail surfaces
 - scripts/chutes-explain.ts remains the per-subnet deep-dive replay harness
+
+---
+Task ID: load-app-20261026
+Agent: main (Z.ai)
+Task: User asked "load the web app" (continuation after PNL-RECONCILE-1 was completed and verified in the prior session)
+
+Work Log:
+- Confirmed PNL-RECONCILE-1 ("Why AVOID?" reconciliation block on the Profitability card in opportunity-detail.tsx) was already fully implemented + E2E-verified last session — no code changes needed
+- Server already alive: /login 200, MemAvailable 2.4GB (no OOM pressure)
+- Auth smoke test: POST /api/auth/login (admin) -> 200 + session cookie; /api/network -> 129 subnets; page routes / /opportunities /dashboard /mining all 307 -> /login (auth-gate as designed)
+- FOUND ISSUE: GET /api/profitability-config auto-created a default row (hardwareMode rent, rigGpuVramGb 0, rigTeeCapable false) — the ProfitabilitySettings row from owned-rig-1 had been lost (updatedAt timestamp matched the first GET of this session)
+- Restored rig profile via PUT /api/profitability-config: hardwareMode owned, 96GB VRAM, rigTeeCapable true, $0.12/kWh, $300 min target (matches owned-rig-1 persisted values); SubnetOverride rows intact (112)
+- Verified canonical external host https://x1vjv8jfmfp0-d.space-z.ai/login -> 200 (preview- variant 404s for this sandbox per prior session finding)
+
+Stage Summary:
+- App is loaded and healthy: server, auth, chain data (129 subnets), overrides, owned rig profile all live
+- Rig profile loss root cause: ProfitabilitySettings row vanished across sandbox incidents; GET route's create-default-on-first-read masked it. Consider a startup assertion or seed script if it recurs
+- Login code for manual access: BRJ2-W2GT-WJNF-97VC
