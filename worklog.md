@@ -2459,3 +2459,19 @@ Stage Summary:
 - App is loaded and healthy: server, auth, chain data (129 subnets), overrides, owned rig profile all live
 - Rig profile loss root cause: ProfitabilitySettings row vanished across sandbox incidents; GET route's create-default-on-first-read masked it. Consider a startup assertion or seed script if it recurs
 - Login code for manual access: BRJ2-W2GT-WJNF-97VC
+
+---
+Task ID: chutes-chances-1
+Agent: main (Z.ai)
+Task: User pasted screenshot of Chutes (SN64) P&L-passed-but-AVOID card, asked for honest review: why AVOID despite $3,944/mo profit, what real chance a new entrant has to earn
+
+Work Log:
+- Server already up (200); ran scripts/chutes-explain.ts for fresh live replay of the exact client path
+- Live SN64 numbers: 256/256 full (entry=displace, ~17h immunity window), rewardedRatio 7.00%, top10IncentiveShare 100.0%, medianShare 0.795, earnChance 3%, P&L net $3,963/mo PASSED (risk-adj $1,868), conviction 30 AVOID, new-seat EV $221-227/mo
+- New scripts/top-picks.ts — ranks all subnets for the persisted rig (owned, 96GB, TEE): Noah SN82 conviction 90 RUN (96% rewarded, top10 12%, EV $14,010), Hone 80 ($819), REAX 75 ($457), CliqueAI 73 ($322) vs Chutes 30 ($227) — broad-seat vs knife-fight contrast is the whole story
+- Answered in chat: P&L prices a mid-pack EARNING seat, conviction prices a NEW seat; cliff distribution (93% earn nothing, top-10 take 100%) is why the same P&L would score 77/RUN with broad seats
+
+Stage Summary:
+- Feedback delivered: chances are real but small (~3% month-1, EV $227/mo); performing (running the miner) is achievable on the user's rig but performing ≠ earning on Chutes — earning requires top-10 fleet-scale quality (8x H200-class ops)
+- Recommended path: same rig on Noah/Hone/REAX/CliqueAI where 91-96% of miners earned and rewards are broad
+- scripts/top-picks.ts persisted as the reusable "what should I run instead" ranker
