@@ -1,0 +1,1425 @@
+{
+  "generatedAt": "2026-10-26T15:48:15.494Z",
+  "isLive": null,
+  "fetchedAt": "2026-10-26T15:46:30.632Z",
+  "chainMetaBlock": null,
+  "taoPriceUsd": 254.205,
+  "subnetCount": 128,
+  "census": {
+    "OPEN_FIELD": 1,
+    "FIGHTABLE": 18,
+    "KNIFE_FIGHT": 5,
+    "DONT_ENTER": 104,
+    "UNKNOWN": 0
+  },
+  "verdictTally": {
+    "RUN": 3,
+    "WATCH": 0,
+    "AVOID": 125
+  },
+  "costBasis": {
+    "mode": "owned",
+    "rigVramGb": 96,
+    "rigTeeCapable": true
+  },
+  "topPicksByConviction": [
+    {
+      "netuid": 5,
+      "id": "opp-live-5",
+      "name": "Numinous",
+      "symbol": "α5",
+      "category": "Model training",
+      "workType": "Model training",
+      "minVramGb": 0,
+      "recommendedGpu": "None (CPU-only)",
+      "earnChance": {
+        "level": "high",
+        "pct": 66
+      },
+      "rewardedRatio": 0.938,
+      "top10IncentiveShare": 0.122,
+      "rewardMedianShare": 1.017,
+      "freeSlots": 0,
+      "totalSlots": 256,
+      "rampWeeks": 5.4,
+      "estimatedMonthlyRewardUsd": 1085,
+      "netMonthlyUsd": 924,
+      "meetsMinimum": true,
+      "confidence": 0.73,
+      "conviction": 81,
+      "band": "PRIME",
+      "verdict": "RUN",
+      "hardware": "CPU",
+      "diligenceHealth": 86,
+      "confidencePct": 73,
+      "rent": {
+        "rentable": true,
+        "entry": "displace",
+        "expectedNetMonthlyUsd": 881,
+        "expectedGrossMonthlyUsd": null,
+        "knifeFight": false,
+        "whaleMean": false,
+        "powerCostUsd": null
+      },
+      "reasons": [
+        "4 diligence warnings — read them before the burn",
+        "New-entrant EV ≈ $881/mo net",
+        "66% month-1 earn chance"
+      ]
+    },
+    {
+      "netuid": 83,
+      "id": "opp-live-83",
+      "name": "Cathedral",
+      "symbol": "α83",
+      "category": "Unclassified workload",
+      "workType": "Unclassified workload",
+      "minVramGb": 24,
+      "recommendedGpu": "1× CUDA GPU ≥24 GB VRAM (tested A10G g5.2xlarge; validator quickstart)",
+      "earnChance": {
+        "level": "high",
+        "pct": 67
+      },
+      "rewardedRatio": 0.957,
+      "top10IncentiveShare": 0.262,
+      "rewardMedianShare": 0.854,
+      "freeSlots": 0,
+      "totalSlots": 256,
+      "rampWeeks": 5.3,
+      "estimatedMonthlyRewardUsd": 549,
+      "netMonthlyUsd": 409,
+      "meetsMinimum": true,
+      "confidence": 0.7,
+      "conviction": 75,
+      "band": "PRIME",
+      "verdict": "RUN",
+      "hardware": "GPU",
+      "diligenceHealth": 82,
+      "confidencePct": 70,
+      "rent": {
+        "rentable": true,
+        "entry": "displace",
+        "expectedNetMonthlyUsd": 334,
+        "expectedGrossMonthlyUsd": null,
+        "knifeFight": false,
+        "whaleMean": false,
+        "powerCostUsd": null
+      },
+      "reasons": [
+        "5 diligence warnings — read them before the burn",
+        "New-entrant EV ≈ $334/mo net",
+        "67% month-1 earn chance"
+      ]
+    },
+    {
+      "netuid": 92,
+      "id": "opp-live-92",
+      "name": "Beam",
+      "symbol": "α92",
+      "category": "Frontier inference",
+      "workType": "Frontier inference",
+      "minVramGb": 80,
+      "recommendedGpu": "H100 80GB",
+      "earnChance": {
+        "level": "high",
+        "pct": 61
+      },
+      "rewardedRatio": 0.93,
+      "top10IncentiveShare": 0.599,
+      "rewardMedianShare": 0.495,
+      "freeSlots": 0,
+      "totalSlots": 256,
+      "rampWeeks": 5.4,
+      "estimatedMonthlyRewardUsd": 1023,
+      "netMonthlyUsd": 714,
+      "meetsMinimum": true,
+      "confidence": 0.65,
+      "conviction": 71,
+      "band": "PRIME",
+      "verdict": "RUN",
+      "hardware": "GPU",
+      "diligenceHealth": 79,
+      "confidencePct": 65,
+      "rent": {
+        "rentable": true,
+        "entry": "displace",
+        "expectedNetMonthlyUsd": 329,
+        "expectedGrossMonthlyUsd": null,
+        "knifeFight": false,
+        "whaleMean": false,
+        "powerCostUsd": null
+      },
+      "reasons": [
+        "6 diligence warnings — read them before the burn",
+        "New-entrant EV ≈ $329/mo net",
+        "61% month-1 earn chance"
+      ]
+    },
+    {
+      "netuid": 64,
+      "id": "opp-live-64",
+      "name": "Leadpoet",
+      "symbol": "α64",
+      "category": "Compute sharing",
+      "workType": "Compute sharing",
+      "minVramGb": 24,
+      "recommendedGpu": "RTX 4090 24GB",
+      "earnChance": {
+        "level": "low",
+        "pct": 3
+      },
+      "rewardedRatio": 0.07,
+      "top10IncentiveShare": 1,
+      "rewardMedianShare": 0.904,
+      "freeSlots": 0,
+      "totalSlots": 256,
+      "rampWeeks": 1,
+      "estimatedMonthlyRewardUsd": 5340,
+      "netMonthlyUsd": 5208,
+      "meetsMinimum": true,
+      "confidence": 0.68,
+      "conviction": 30,
+      "band": "NO-GO",
+      "verdict": "AVOID",
+      "hardware": "GPU",
+      "diligenceHealth": 86,
+      "confidencePct": 68,
+      "rent": {
+        "rentable": true,
+        "entry": "displace",
+        "expectedNetMonthlyUsd": 330,
+        "expectedGrossMonthlyUsd": null,
+        "knifeFight": true,
+        "whaleMean": true,
+        "powerCostUsd": null
+      },
+      "reasons": [
+        "1 diligence stage failed — do not provision",
+        "Knife-fight seat — top UIDs take nearly all rewards",
+        "New-entrant EV ≈ $330/mo net",
+        "3% month-1 earn chance"
+      ]
+    },
+    {
+      "netuid": 90,
+      "id": "opp-live-90",
+      "name": "ConnitoAI",
+      "symbol": "α90",
+      "category": "Unclassified workload",
+      "workType": "Unclassified workload",
+      "minVramGb": 40,
+      "recommendedGpu": "A100/H100 class 40 GB+ (A6000 48 GB works)",
+      "earnChance": {
+        "level": "low",
+        "pct": 1
+      },
+      "rewardedRatio": 0.016,
+      "top10IncentiveShare": 1,
+      "rewardMedianShare": 1.2,
+      "freeSlots": 129,
+      "totalSlots": 256,
+      "rampWeeks": 11.9,
+      "estimatedMonthlyRewardUsd": 5106,
+      "netMonthlyUsd": 4953,
+      "meetsMinimum": true,
+      "confidence": 0.65,
+      "conviction": 30,
+      "band": "NO-GO",
+      "verdict": "AVOID",
+      "hardware": "GPU",
+      "diligenceHealth": 79,
+      "confidencePct": 65,
+      "rent": {
+        "rentable": true,
+        "entry": "free-slot",
+        "expectedNetMonthlyUsd": 95,
+        "expectedGrossMonthlyUsd": null,
+        "knifeFight": true,
+        "whaleMean": true,
+        "powerCostUsd": null
+      },
+      "reasons": [
+        "1 diligence stage failed — do not provision",
+        "Knife-fight seat — top UIDs take nearly all rewards",
+        "Free seats open right now",
+        "New-entrant EV ≈ $95/mo net",
+        "1% month-1 earn chance"
+      ]
+    },
+    {
+      "netuid": 53,
+      "id": "opp-live-53",
+      "name": "Attune",
+      "symbol": "α53",
+      "category": "Frontier inference",
+      "workType": "Frontier inference",
+      "minVramGb": 80,
+      "recommendedGpu": "H100 80GB",
+      "earnChance": {
+        "level": "low",
+        "pct": 6
+      },
+      "rewardedRatio": 0.141,
+      "top10IncentiveShare": 0.994,
+      "rewardMedianShare": 0.481,
+      "freeSlots": 0,
+      "totalSlots": 256,
+      "rampWeeks": 13.2,
+      "estimatedMonthlyRewardUsd": 1353,
+      "netMonthlyUsd": 1200,
+      "meetsMinimum": true,
+      "confidence": 0.59,
+      "conviction": 30,
+      "band": "NO-GO",
+      "verdict": "AVOID",
+      "hardware": "GPU",
+      "diligenceHealth": 71,
+      "confidencePct": 59,
+      "rent": {
+        "rentable": true,
+        "entry": "displace",
+        "expectedNetMonthlyUsd": 81,
+        "expectedGrossMonthlyUsd": null,
+        "knifeFight": false,
+        "whaleMean": true,
+        "powerCostUsd": null
+      },
+      "reasons": [
+        "1 diligence stage failed — do not provision",
+        "Whale-mean economics — few seats earn",
+        "New-entrant EV ≈ $81/mo net",
+        "6% month-1 earn chance"
+      ]
+    },
+    {
+      "netuid": 124,
+      "id": "opp-live-124",
+      "name": "Swarm",
+      "symbol": "α124",
+      "category": "Agents & logic",
+      "workType": "Agents & logic",
+      "minVramGb": 0,
+      "recommendedGpu": "CPU VPS",
+      "earnChance": {
+        "level": "low",
+        "pct": 4
+      },
+      "rewardedRatio": 0.098,
+      "top10IncentiveShare": 1,
+      "rewardMedianShare": 0.883,
+      "freeSlots": 0,
+      "totalSlots": 256,
+      "rampWeeks": 13.4,
+      "estimatedMonthlyRewardUsd": 714,
+      "netMonthlyUsd": 577,
+      "meetsMinimum": true,
+      "confidence": 0.57,
+      "conviction": 30,
+      "band": "NO-GO",
+      "verdict": "AVOID",
+      "hardware": "CPU",
+      "diligenceHealth": 75,
+      "confidencePct": 57,
+      "rent": {
+        "rentable": true,
+        "entry": "displace",
+        "expectedNetMonthlyUsd": 50,
+        "expectedGrossMonthlyUsd": null,
+        "knifeFight": true,
+        "whaleMean": true,
+        "powerCostUsd": null
+      },
+      "reasons": [
+        "1 diligence stage failed — do not provision",
+        "Knife-fight seat — top UIDs take nearly all rewards",
+        "New-entrant EV ≈ $50/mo net",
+        "4% month-1 earn chance"
+      ]
+    },
+    {
+      "netuid": 107,
+      "id": "opp-live-107",
+      "name": "Swarm",
+      "symbol": "α107",
+      "category": "Agents & logic",
+      "workType": "Agents & logic",
+      "minVramGb": 0,
+      "recommendedGpu": "None (CPU-only)",
+      "earnChance": {
+        "level": "low",
+        "pct": 8
+      },
+      "rewardedRatio": 0.2,
+      "top10IncentiveShare": 0.941,
+      "rewardMedianShare": 0.198,
+      "freeSlots": 0,
+      "totalSlots": 100,
+      "rampWeeks": 12.8,
+      "estimatedMonthlyRewardUsd": 1343,
+      "netMonthlyUsd": 1164,
+      "meetsMinimum": true,
+      "confidence": 0.62,
+      "conviction": 30,
+      "band": "NO-GO",
+      "verdict": "AVOID",
+      "hardware": "CPU",
+      "diligenceHealth": 75,
+      "confidencePct": 62,
+      "rent": {
+        "rentable": true,
+        "entry": "displace",
+        "expectedNetMonthlyUsd": 46,
+        "expectedGrossMonthlyUsd": null,
+        "knifeFight": false,
+        "whaleMean": false,
+        "powerCostUsd": null
+      },
+      "reasons": [
+        "1 diligence stage failed — do not provision",
+        "New-entrant EV ≈ $46/mo net",
+        "8% month-1 earn chance"
+      ]
+    },
+    {
+      "netuid": 62,
+      "id": "opp-live-62",
+      "name": "NOVA",
+      "symbol": "α62",
+      "category": "Software engineering agents",
+      "workType": "Software engineering agents",
+      "minVramGb": 48,
+      "recommendedGpu": "2× GPUs with >48 GB VRAM each (Boltz-2 inference)",
+      "earnChance": {
+        "level": "low",
+        "pct": 7
+      },
+      "rewardedRatio": 0.172,
+      "top10IncentiveShare": 0.914,
+      "rewardMedianShare": 0.702,
+      "freeSlots": 0,
+      "totalSlots": 256,
+      "rampWeeks": 13,
+      "estimatedMonthlyRewardUsd": 524,
+      "netMonthlyUsd": 379,
+      "meetsMinimum": true,
+      "confidence": 0.59,
+      "conviction": 30,
+      "band": "NO-GO",
+      "verdict": "AVOID",
+      "hardware": "GPU",
+      "diligenceHealth": 79,
+      "confidencePct": 59,
+      "rent": {
+        "rentable": true,
+        "entry": "displace",
+        "expectedNetMonthlyUsd": 46,
+        "expectedGrossMonthlyUsd": null,
+        "knifeFight": false,
+        "whaleMean": false,
+        "powerCostUsd": null
+      },
+      "reasons": [
+        "1 diligence stage failed — do not provision",
+        "New-entrant EV ≈ $46/mo net",
+        "7% month-1 earn chance"
+      ]
+    },
+    {
+      "netuid": 68,
+      "id": "opp-live-68",
+      "name": "Ormas",
+      "symbol": "α68",
+      "category": "Science & simulation",
+      "workType": "Science & simulation",
+      "minVramGb": 48,
+      "recommendedGpu": "RTX A6000 48GB",
+      "earnChance": {
+        "level": "low",
+        "pct": 1
+      },
+      "rewardedRatio": 0.016,
+      "top10IncentiveShare": 1,
+      "rewardMedianShare": 1,
+      "freeSlots": 0,
+      "totalSlots": 64,
+      "rampWeeks": 13.9,
+      "estimatedMonthlyRewardUsd": 2974,
+      "netMonthlyUsd": 2839,
+      "meetsMinimum": true,
+      "confidence": 0.62,
+      "conviction": 30,
+      "band": "NO-GO",
+      "verdict": "AVOID",
+      "hardware": "GPU",
+      "diligenceHealth": 75,
+      "confidencePct": 62,
+      "rent": {
+        "rentable": true,
+        "entry": "displace",
+        "expectedNetMonthlyUsd": 45,
+        "expectedGrossMonthlyUsd": null,
+        "knifeFight": true,
+        "whaleMean": true,
+        "powerCostUsd": null
+      },
+      "reasons": [
+        "1 diligence stage failed — do not provision",
+        "Knife-fight seat — top UIDs take nearly all rewards",
+        "New-entrant EV ≈ $45/mo net",
+        "1% month-1 earn chance"
+      ]
+    },
+    {
+      "netuid": 4,
+      "id": "opp-live-4",
+      "name": "Hone",
+      "symbol": "α4",
+      "category": "Compute sharing",
+      "workType": "Compute sharing",
+      "minVramGb": 0,
+      "recommendedGpu": "None (CPU-only)",
+      "earnChance": {
+        "level": "none",
+        "pct": 0
+      },
+      "rewardedRatio": 0.012,
+      "top10IncentiveShare": 1,
+      "rewardMedianShare": 0.751,
+      "freeSlots": 0,
+      "totalSlots": 256,
+      "rampWeeks": 13.9,
+      "estimatedMonthlyRewardUsd": 3672,
+      "netMonthlyUsd": 3577,
+      "meetsMinimum": true,
+      "confidence": 0.64,
+      "conviction": 30,
+      "band": "NO-GO",
+      "verdict": "AVOID",
+      "hardware": "CPU",
+      "diligenceHealth": 79,
+      "confidencePct": 64,
+      "rent": {
+        "rentable": true,
+        "entry": "displace",
+        "expectedNetMonthlyUsd": 32,
+        "expectedGrossMonthlyUsd": null,
+        "knifeFight": true,
+        "whaleMean": true,
+        "powerCostUsd": null
+      },
+      "reasons": [
+        "1 diligence stage failed — do not provision",
+        "Knife-fight seat — top UIDs take nearly all rewards",
+        "New-entrant EV ≈ $32/mo net",
+        "0% month-1 earn chance"
+      ]
+    },
+    {
+      "netuid": 51,
+      "id": "opp-live-51",
+      "name": "NIOME",
+      "symbol": "α51",
+      "category": "GPU marketplace (provider node)",
+      "workType": "GPU marketplace (provider node)",
+      "minVramGb": 24,
+      "recommendedGpu": "RTX 4090 24GB",
+      "earnChance": {
+        "level": "low",
+        "pct": 9
+      },
+      "rewardedRatio": 0.23,
+      "top10IncentiveShare": 0.995,
+      "rewardMedianShare": 0.02,
+      "freeSlots": 0,
+      "totalSlots": 256,
+      "rampWeeks": 12.6,
+      "estimatedMonthlyRewardUsd": 6238,
+      "netMonthlyUsd": 6064,
+      "meetsMinimum": true,
+      "confidence": 0.66,
+      "conviction": 30,
+      "band": "NO-GO",
+      "verdict": "AVOID",
+      "hardware": "GPU",
+      "diligenceHealth": 75,
+      "confidencePct": 66,
+      "rent": {
+        "rentable": true,
+        "entry": "displace",
+        "expectedNetMonthlyUsd": 28,
+        "expectedGrossMonthlyUsd": null,
+        "knifeFight": false,
+        "whaleMean": false,
+        "powerCostUsd": null
+      },
+      "reasons": [
+        "1 diligence stage failed — do not provision",
+        "New-entrant EV ≈ $28/mo net",
+        "9% month-1 earn chance"
+      ]
+    }
+  ],
+  "winOddsTop": [
+    {
+      "netuid": 82,
+      "name": "Bitcast",
+      "tier": "OPEN_FIELD",
+      "oddsPct": 96,
+      "rewardedPct": 95.5,
+      "top10Pct": 11.700000000000001,
+      "displacement": false,
+      "minVramGb": 141,
+      "why": [
+        "only 96% of slots earned last epoch",
+        "needs ≥ 141 GB VRAM"
+      ],
+      "netMonthly": 13557
+    },
+    {
+      "netuid": 79,
+      "name": "KubeTEE",
+      "tier": "FIGHTABLE",
+      "oddsPct": 68,
+      "rewardedPct": 97.3,
+      "top10Pct": 18.2,
+      "displacement": true,
+      "minVramGb": 141,
+      "why": [
+        "only 97% of slots earned last epoch",
+        "subnet full — you must displace an incumbent",
+        "needs ≥ 141 GB VRAM"
+      ],
+      "netMonthly": 127
+    },
+    {
+      "netuid": 33,
+      "name": "Epago",
+      "tier": "FIGHTABLE",
+      "oddsPct": 67,
+      "rewardedPct": 96.1,
+      "top10Pct": 14.2,
+      "displacement": true,
+      "minVramGb": 48,
+      "why": [
+        "only 96% of slots earned last epoch",
+        "subnet full — you must displace an incumbent",
+        "needs ≥ 48 GB VRAM"
+      ],
+      "netMonthly": 151
+    },
+    {
+      "netuid": 83,
+      "name": "Cathedral",
+      "tier": "FIGHTABLE",
+      "oddsPct": 67,
+      "rewardedPct": 95.7,
+      "top10Pct": 26.200000000000003,
+      "displacement": true,
+      "minVramGb": 24,
+      "why": [
+        "only 96% of slots earned last epoch",
+        "subnet full — you must displace an incumbent",
+        "needs ≥ 24 GB VRAM"
+      ],
+      "netMonthly": 334
+    },
+    {
+      "netuid": 101,
+      "name": "Ditto",
+      "tier": "FIGHTABLE",
+      "oddsPct": 66,
+      "rewardedPct": 94.5,
+      "top10Pct": 14.6,
+      "displacement": true,
+      "minVramGb": 80,
+      "why": [
+        "only 95% of slots earned last epoch",
+        "subnet full — you must displace an incumbent",
+        "needs ≥ 80 GB VRAM"
+      ],
+      "netMonthly": 261
+    },
+    {
+      "netuid": 5,
+      "name": "Numinous",
+      "tier": "FIGHTABLE",
+      "oddsPct": 66,
+      "rewardedPct": 93.8,
+      "top10Pct": 12.2,
+      "displacement": true,
+      "minVramGb": 0,
+      "why": [
+        "only 94% of slots earned last epoch",
+        "subnet full — you must displace an incumbent"
+      ],
+      "netMonthly": 881
+    },
+    {
+      "netuid": 50,
+      "name": "Yanez",
+      "tier": "FIGHTABLE",
+      "oddsPct": 66,
+      "rewardedPct": 93.8,
+      "top10Pct": 47.8,
+      "displacement": true,
+      "minVramGb": 0,
+      "why": [
+        "only 94% of slots earned last epoch",
+        "subnet full — you must displace an incumbent"
+      ],
+      "netMonthly": 29
+    },
+    {
+      "netuid": 32,
+      "name": "BitMind",
+      "tier": "FIGHTABLE",
+      "oddsPct": 65,
+      "rewardedPct": 93.4,
+      "top10Pct": 12.1,
+      "displacement": true,
+      "minVramGb": 80,
+      "why": [
+        "only 93% of slots earned last epoch",
+        "subnet full — you must displace an incumbent",
+        "needs ≥ 80 GB VRAM"
+      ],
+      "netMonthly": 92
+    },
+    {
+      "netuid": 22,
+      "name": "Trishool",
+      "tier": "FIGHTABLE",
+      "oddsPct": 62,
+      "rewardedPct": 89.1,
+      "top10Pct": 41.3,
+      "displacement": true,
+      "minVramGb": 48,
+      "why": [
+        "only 89% of slots earned last epoch",
+        "subnet full — you must displace an incumbent",
+        "needs ≥ 48 GB VRAM"
+      ],
+      "netMonthly": 41
+    },
+    {
+      "netuid": 105,
+      "name": "CookingTAO",
+      "tier": "FIGHTABLE",
+      "oddsPct": 62,
+      "rewardedPct": 89.1,
+      "top10Pct": 42.199999999999996,
+      "displacement": true,
+      "minVramGb": 0,
+      "why": [
+        "only 89% of slots earned last epoch",
+        "median earner gets 34% of the average payout",
+        "subnet full — you must displace an incumbent"
+      ],
+      "netMonthly": 11
+    },
+    {
+      "netuid": 123,
+      "name": "MANTIS",
+      "tier": "FIGHTABLE",
+      "oddsPct": 61,
+      "rewardedPct": 98,
+      "top10Pct": 67.60000000000001,
+      "displacement": true,
+      "minVramGb": 0,
+      "why": [
+        "only 98% of slots earned last epoch",
+        "top-10% of UIDs take 68% of the pot",
+        "median earner gets 38% of the average payout",
+        "subnet full — you must displace an incumbent"
+      ],
+      "netMonthly": 6
+    },
+    {
+      "netuid": 92,
+      "name": "Beam",
+      "tier": "FIGHTABLE",
+      "oddsPct": 61,
+      "rewardedPct": 93,
+      "top10Pct": 59.9,
+      "displacement": true,
+      "minVramGb": 80,
+      "why": [
+        "only 93% of slots earned last epoch",
+        "top-10% of UIDs take 60% of the pot",
+        "median earner gets 50% of the average payout",
+        "subnet full — you must displace an incumbent",
+        "needs ≥ 80 GB VRAM"
+      ],
+      "netMonthly": 329
+    },
+    {
+      "netuid": 45,
+      "name": "Nepher Robotics",
+      "tier": "FIGHTABLE",
+      "oddsPct": 59,
+      "rewardedPct": 94.1,
+      "top10Pct": 67.5,
+      "displacement": true,
+      "minVramGb": 80,
+      "why": [
+        "only 94% of slots earned last epoch",
+        "top-10% of UIDs take 68% of the pot",
+        "median earner gets 39% of the average payout",
+        "subnet full — you must displace an incumbent",
+        "needs ≥ 80 GB VRAM"
+      ],
+      "netMonthly": -49
+    },
+    {
+      "netuid": 13,
+      "name": "Cacheon",
+      "tier": "FIGHTABLE",
+      "oddsPct": 44,
+      "rewardedPct": 91.4,
+      "top10Pct": 74.4,
+      "displacement": true,
+      "minVramGb": 180,
+      "why": [
+        "only 91% of slots earned last epoch",
+        "top-10% of UIDs take 74% of the pot",
+        "median earner gets 34% of the average payout",
+        "subnet full — you must displace an incumbent",
+        "~9 wk bond ramp before full weight",
+        "needs ≥ 180 GB VRAM"
+      ],
+      "netMonthly": -44
+    },
+    {
+      "netuid": 41,
+      "name": "AlphaRidge.ai",
+      "tier": "FIGHTABLE",
+      "oddsPct": 43,
+      "rewardedPct": 62.1,
+      "top10Pct": 48.199999999999996,
+      "displacement": true,
+      "minVramGb": 0,
+      "why": [
+        "only 62% of slots earned last epoch",
+        "median earner gets 22% of the average payout",
+        "subnet full — you must displace an incumbent"
+      ],
+      "netMonthly": 10
+    },
+    {
+      "netuid": 78,
+      "name": "InfiniteQuant",
+      "tier": "FIGHTABLE",
+      "oddsPct": 25,
+      "rewardedPct": 51.2,
+      "top10Pct": 72.89999999999999,
+      "displacement": true,
+      "minVramGb": 80,
+      "why": [
+        "only 51% of slots earned last epoch",
+        "top-10% of UIDs take 73% of the pot",
+        "median earner gets 31% of the average payout",
+        "subnet full — you must displace an incumbent",
+        "~11 wk bond ramp before full weight",
+        "needs ≥ 80 GB VRAM"
+      ],
+      "netMonthly": -17
+    },
+    {
+      "netuid": 61,
+      "name": "Harnyx",
+      "tier": "FIGHTABLE",
+      "oddsPct": 25,
+      "rewardedPct": 50.4,
+      "top10Pct": 70.7,
+      "displacement": true,
+      "minVramGb": 0,
+      "why": [
+        "only 50% of slots earned last epoch",
+        "top-10% of UIDs take 71% of the pot",
+        "median earner gets 41% of the average payout",
+        "subnet full — you must displace an incumbent",
+        "~11 wk bond ramp before full weight"
+      ],
+      "netMonthly": 53
+    },
+    {
+      "netuid": 67,
+      "name": "Hippius",
+      "tier": "FIGHTABLE",
+      "oddsPct": 25,
+      "rewardedPct": 48.8,
+      "top10Pct": 63.6,
+      "displacement": true,
+      "minVramGb": 0,
+      "why": [
+        "only 49% of slots earned last epoch",
+        "top-10% of UIDs take 64% of the pot",
+        "median earner gets 48% of the average payout",
+        "subnet full — you must displace an incumbent",
+        "~8 wk bond ramp before full weight"
+      ],
+      "netMonthly": 26
+    },
+    {
+      "netuid": 28,
+      "name": "hoτfloaτ",
+      "tier": "FIGHTABLE",
+      "oddsPct": 20,
+      "rewardedPct": 43.4,
+      "top10Pct": 77,
+      "displacement": true,
+      "minVramGb": 180,
+      "why": [
+        "only 43% of slots earned last epoch",
+        "top-10% of UIDs take 77% of the pot",
+        "median earner gets 39% of the average payout",
+        "subnet full — you must displace an incumbent",
+        "~11 wk bond ramp before full weight",
+        "needs ≥ 180 GB VRAM"
+      ],
+      "netMonthly": 194
+    },
+    {
+      "netuid": 54,
+      "name": "Bitsec.ai",
+      "tier": "KNIFE_FIGHT",
+      "oddsPct": 27,
+      "rewardedPct": 61.3,
+      "top10Pct": 86,
+      "displacement": true,
+      "minVramGb": 24,
+      "why": [
+        "only 61% of slots earned last epoch",
+        "top-10% of UIDs take 86% of the pot",
+        "median earner gets 4% of the average payout",
+        "subnet full — you must displace an incumbent",
+        "~10 wk bond ramp before full weight",
+        "needs ≥ 24 GB VRAM"
+      ],
+      "netMonthly": -2
+    },
+    {
+      "netuid": 120,
+      "name": "Affine",
+      "tier": "KNIFE_FIGHT",
+      "oddsPct": 15,
+      "rewardedPct": 23.400000000000002,
+      "top10Pct": 80.10000000000001,
+      "displacement": false,
+      "minVramGb": 141,
+      "why": [
+        "only 23% of slots earned last epoch",
+        "top-10% of UIDs take 80% of the pot",
+        "~11 wk bond ramp before full weight",
+        "needs ≥ 141 GB VRAM"
+      ],
+      "netMonthly": 94
+    },
+    {
+      "netuid": 81,
+      "name": "REAX",
+      "tier": "KNIFE_FIGHT",
+      "oddsPct": 9,
+      "rewardedPct": 20.7,
+      "top10Pct": 90.8,
+      "displacement": true,
+      "minVramGb": 141,
+      "why": [
+        "only 21% of slots earned last epoch",
+        "top-10% of UIDs take 91% of the pot",
+        "subnet full — you must displace an incumbent",
+        "~13 wk bond ramp before full weight",
+        "needs ≥ 141 GB VRAM"
+      ],
+      "netMonthly": 9
+    },
+    {
+      "netuid": 107,
+      "name": "Swarm",
+      "tier": "KNIFE_FIGHT",
+      "oddsPct": 8,
+      "rewardedPct": 20,
+      "top10Pct": 94.1,
+      "displacement": true,
+      "minVramGb": 0,
+      "why": [
+        "only 20% of slots earned last epoch",
+        "top-10% of UIDs take 94% of the pot",
+        "median earner gets 20% of the average payout",
+        "subnet full — you must displace an incumbent",
+        "~13 wk bond ramp before full weight"
+      ],
+      "netMonthly": 46
+    },
+    {
+      "netuid": 62,
+      "name": "NOVA",
+      "tier": "KNIFE_FIGHT",
+      "oddsPct": 7,
+      "rewardedPct": 17.2,
+      "top10Pct": 91.4,
+      "displacement": true,
+      "minVramGb": 48,
+      "why": [
+        "only 17% of slots earned last epoch",
+        "top-10% of UIDs take 91% of the pot",
+        "subnet full — you must displace an incumbent",
+        "~13 wk bond ramp before full weight",
+        "needs ≥ 48 GB VRAM"
+      ],
+      "netMonthly": 46
+    }
+  ],
+  "spot": {
+    "noah82": {
+      "netuid": 82,
+      "id": "opp-live-82",
+      "name": "Bitcast",
+      "symbol": "α82",
+      "category": "Unclassified workload",
+      "workType": "Unclassified workload",
+      "minVramGb": 141,
+      "recommendedGpu": "H200 141GB",
+      "earnChance": {
+        "level": "high",
+        "pct": 96
+      },
+      "rewardedRatio": 0.955,
+      "top10IncentiveShare": 0.117,
+      "rewardMedianShare": 1.045,
+      "freeSlots": 16,
+      "totalSlots": 82,
+      "rampWeeks": 3.3,
+      "estimatedMonthlyRewardUsd": 14602,
+      "netMonthlyUsd": 13585,
+      "meetsMinimum": true,
+      "confidence": 0.74,
+      "conviction": 24,
+      "band": "NO-GO",
+      "verdict": "AVOID",
+      "hardware": "GPU",
+      "diligenceHealth": 79,
+      "confidencePct": 74,
+      "rent": {
+        "rentable": false,
+        "entry": "free-slot",
+        "expectedNetMonthlyUsd": 13557,
+        "expectedGrossMonthlyUsd": null,
+        "knifeFight": false,
+        "whaleMean": false,
+        "powerCostUsd": null
+      },
+      "reasons": [
+        "Needs 141GB+ VRAM — your rig profile has 96GB",
+        "6 diligence warnings — read them before the burn",
+        "Free seats open right now",
+        "New-entrant EV ≈ $13,557/mo net",
+        "96% month-1 earn chance"
+      ]
+    },
+    "hone5": {
+      "netuid": 5,
+      "id": "opp-live-5",
+      "name": "Numinous",
+      "symbol": "α5",
+      "category": "Model training",
+      "workType": "Model training",
+      "minVramGb": 0,
+      "recommendedGpu": "None (CPU-only)",
+      "earnChance": {
+        "level": "high",
+        "pct": 66
+      },
+      "rewardedRatio": 0.938,
+      "top10IncentiveShare": 0.122,
+      "rewardMedianShare": 1.017,
+      "freeSlots": 0,
+      "totalSlots": 256,
+      "rampWeeks": 5.4,
+      "estimatedMonthlyRewardUsd": 1085,
+      "netMonthlyUsd": 924,
+      "meetsMinimum": true,
+      "confidence": 0.73,
+      "conviction": 81,
+      "band": "PRIME",
+      "verdict": "RUN",
+      "hardware": "CPU",
+      "diligenceHealth": 86,
+      "confidencePct": 73,
+      "rent": {
+        "rentable": true,
+        "entry": "displace",
+        "expectedNetMonthlyUsd": 881,
+        "expectedGrossMonthlyUsd": null,
+        "knifeFight": false,
+        "whaleMean": false,
+        "powerCostUsd": null
+      },
+      "reasons": [
+        "4 diligence warnings — read them before the burn",
+        "New-entrant EV ≈ $881/mo net",
+        "66% month-1 earn chance"
+      ]
+    },
+    "cliqueai83": {
+      "netuid": 83,
+      "id": "opp-live-83",
+      "name": "Cathedral",
+      "symbol": "α83",
+      "category": "Unclassified workload",
+      "workType": "Unclassified workload",
+      "minVramGb": 24,
+      "recommendedGpu": "1× CUDA GPU ≥24 GB VRAM (tested A10G g5.2xlarge; validator quickstart)",
+      "earnChance": {
+        "level": "high",
+        "pct": 67
+      },
+      "rewardedRatio": 0.957,
+      "top10IncentiveShare": 0.262,
+      "rewardMedianShare": 0.854,
+      "freeSlots": 0,
+      "totalSlots": 256,
+      "rampWeeks": 5.3,
+      "estimatedMonthlyRewardUsd": 549,
+      "netMonthlyUsd": 409,
+      "meetsMinimum": true,
+      "confidence": 0.7,
+      "conviction": 75,
+      "band": "PRIME",
+      "verdict": "RUN",
+      "hardware": "GPU",
+      "diligenceHealth": 82,
+      "confidencePct": 70,
+      "rent": {
+        "rentable": true,
+        "entry": "displace",
+        "expectedNetMonthlyUsd": 334,
+        "expectedGrossMonthlyUsd": null,
+        "knifeFight": false,
+        "whaleMean": false,
+        "powerCostUsd": null
+      },
+      "reasons": [
+        "5 diligence warnings — read them before the burn",
+        "New-entrant EV ≈ $334/mo net",
+        "67% month-1 earn chance"
+      ]
+    },
+    "reax92": {
+      "netuid": 92,
+      "id": "opp-live-92",
+      "name": "Beam",
+      "symbol": "α92",
+      "category": "Frontier inference",
+      "workType": "Frontier inference",
+      "minVramGb": 80,
+      "recommendedGpu": "H100 80GB",
+      "earnChance": {
+        "level": "high",
+        "pct": 61
+      },
+      "rewardedRatio": 0.93,
+      "top10IncentiveShare": 0.599,
+      "rewardMedianShare": 0.495,
+      "freeSlots": 0,
+      "totalSlots": 256,
+      "rampWeeks": 5.4,
+      "estimatedMonthlyRewardUsd": 1023,
+      "netMonthlyUsd": 714,
+      "meetsMinimum": true,
+      "confidence": 0.65,
+      "conviction": 71,
+      "band": "PRIME",
+      "verdict": "RUN",
+      "hardware": "GPU",
+      "diligenceHealth": 79,
+      "confidencePct": 65,
+      "rent": {
+        "rentable": true,
+        "entry": "displace",
+        "expectedNetMonthlyUsd": 329,
+        "expectedGrossMonthlyUsd": null,
+        "knifeFight": false,
+        "whaleMean": false,
+        "powerCostUsd": null
+      },
+      "reasons": [
+        "6 diligence warnings — read them before the burn",
+        "New-entrant EV ≈ $329/mo net",
+        "61% month-1 earn chance"
+      ]
+    },
+    "chutes64": {
+      "netuid": 64,
+      "id": "opp-live-64",
+      "name": "Leadpoet",
+      "symbol": "α64",
+      "category": "Compute sharing",
+      "workType": "Compute sharing",
+      "minVramGb": 24,
+      "recommendedGpu": "RTX 4090 24GB",
+      "earnChance": {
+        "level": "low",
+        "pct": 3
+      },
+      "rewardedRatio": 0.07,
+      "top10IncentiveShare": 1,
+      "rewardMedianShare": 0.904,
+      "freeSlots": 0,
+      "totalSlots": 256,
+      "rampWeeks": 1,
+      "estimatedMonthlyRewardUsd": 5340,
+      "netMonthlyUsd": 5208,
+      "meetsMinimum": true,
+      "confidence": 0.68,
+      "conviction": 30,
+      "band": "NO-GO",
+      "verdict": "AVOID",
+      "hardware": "GPU",
+      "diligenceHealth": 86,
+      "confidencePct": 68,
+      "rent": {
+        "rentable": true,
+        "entry": "displace",
+        "expectedNetMonthlyUsd": 330,
+        "expectedGrossMonthlyUsd": null,
+        "knifeFight": true,
+        "whaleMean": true,
+        "powerCostUsd": null
+      },
+      "reasons": [
+        "1 diligence stage failed — do not provision",
+        "Knife-fight seat — top UIDs take nearly all rewards",
+        "New-entrant EV ≈ $330/mo net",
+        "3% month-1 earn chance"
+      ]
+    },
+    "iota9": {
+      "netuid": 9,
+      "id": "opp-live-9",
+      "name": "Pareton",
+      "symbol": "α9",
+      "category": "Unclassified workload",
+      "workType": "Unclassified workload",
+      "minVramGb": 24,
+      "recommendedGpu": "RTX 5090",
+      "earnChance": {
+        "level": "none",
+        "pct": 0
+      },
+      "rewardedRatio": 0.008,
+      "top10IncentiveShare": 1,
+      "rewardMedianShare": 1.2,
+      "freeSlots": 0,
+      "totalSlots": 256,
+      "rampWeeks": 14,
+      "estimatedMonthlyRewardUsd": 2507,
+      "netMonthlyUsd": 2375,
+      "meetsMinimum": true,
+      "confidence": 0.62,
+      "conviction": 30,
+      "band": "NO-GO",
+      "verdict": "AVOID",
+      "hardware": "GPU",
+      "diligenceHealth": 79,
+      "confidencePct": 62,
+      "rent": {
+        "rentable": true,
+        "entry": "displace",
+        "expectedNetMonthlyUsd": 23,
+        "expectedGrossMonthlyUsd": null,
+        "knifeFight": true,
+        "whaleMean": true,
+        "powerCostUsd": null
+      },
+      "reasons": [
+        "1 diligence stage failed — do not provision",
+        "Knife-fight seat — top UIDs take nearly all rewards",
+        "New-entrant EV ≈ $23/mo net",
+        "0% month-1 earn chance"
+      ]
+    },
+    "sn30": {
+      "netuid": 30,
+      "id": "opp-live-30",
+      "name": "ItsAI",
+      "symbol": "α30",
+      "category": "Unclassified workload",
+      "workType": "Unclassified workload",
+      "minVramGb": 24,
+      "recommendedGpu": "RTX 4090",
+      "earnChance": {
+        "level": "high",
+        "pct": 60
+      },
+      "rewardedRatio": 0.844,
+      "top10IncentiveShare": 0.986,
+      "rewardMedianShare": 0.022,
+      "freeSlots": 32,
+      "totalSlots": 96,
+      "rampWeeks": 6.9,
+      "estimatedMonthlyRewardUsd": 34,
+      "netMonthlyUsd": -183,
+      "meetsMinimum": false,
+      "confidence": 0.45,
+      "conviction": 20,
+      "band": "NO-GO",
+      "verdict": "AVOID",
+      "hardware": "GPU",
+      "diligenceHealth": 50,
+      "confidencePct": 45,
+      "rent": {
+        "rentable": true,
+        "entry": "free-slot",
+        "expectedNetMonthlyUsd": -3,
+        "expectedGrossMonthlyUsd": null,
+        "knifeFight": false,
+        "whaleMean": false,
+        "powerCostUsd": null
+      },
+      "reasons": [
+        "5 diligence stages failed — do not provision",
+        "Free seats open right now",
+        "New-entrant EV ≈ $-3/mo net",
+        "60% month-1 earn chance"
+      ]
+    },
+    "nova": {
+      "netuid": 27,
+      "id": "opp-live-27",
+      "name": "SayGM",
+      "symbol": "α27",
+      "category": "Unclassified workload",
+      "workType": "Unclassified workload",
+      "minVramGb": 141,
+      "recommendedGpu": "H200 141GB",
+      "earnChance": {
+        "level": "none",
+        "pct": 0
+      },
+      "rewardedRatio": 0.004,
+      "top10IncentiveShare": 1,
+      "rewardMedianShare": 1,
+      "freeSlots": 0,
+      "totalSlots": 256,
+      "rampWeeks": 14,
+      "estimatedMonthlyRewardUsd": 221,
+      "netMonthlyUsd": 68,
+      "meetsMinimum": false,
+      "confidence": 0.51,
+      "conviction": 20,
+      "band": "NO-GO",
+      "verdict": "AVOID",
+      "hardware": "GPU",
+      "diligenceHealth": 57,
+      "confidencePct": 51,
+      "rent": {
+        "rentable": false,
+        "entry": "displace",
+        "expectedNetMonthlyUsd": 0,
+        "expectedGrossMonthlyUsd": null,
+        "knifeFight": true,
+        "whaleMean": true,
+        "powerCostUsd": null
+      },
+      "reasons": [
+        "Needs 141GB+ VRAM — your rig profile has 96GB",
+        "1 diligence stage failed — do not provision",
+        "Knife-fight seat — top UIDs take nearly all rewards",
+        "New-entrant EV ≈ $0/mo net",
+        "0% month-1 earn chance"
+      ]
+    },
+    "actual": {
+      "netuid": 18,
+      "id": "opp-live-18",
+      "name": "blockmachine",
+      "symbol": "α18",
+      "category": "Real-world data",
+      "workType": "Real-world data",
+      "minVramGb": 24,
+      "recommendedGpu": "RTX 4090 24GB",
+      "earnChance": {
+        "level": "low",
+        "pct": 4
+      },
+      "rewardedRatio": 0.093,
+      "top10IncentiveShare": 1,
+      "rewardMedianShare": 0.063,
+      "freeSlots": 0,
+      "totalSlots": 257,
+      "rampWeeks": 13.4,
+      "estimatedMonthlyRewardUsd": 33,
+      "netMonthlyUsd": -184,
+      "meetsMinimum": false,
+      "confidence": 0.39,
+      "conviction": 20,
+      "band": "NO-GO",
+      "verdict": "AVOID",
+      "hardware": "GPU",
+      "diligenceHealth": 46,
+      "confidencePct": 39,
+      "rent": {
+        "rentable": true,
+        "entry": "displace",
+        "expectedNetMonthlyUsd": -1,
+        "expectedGrossMonthlyUsd": null,
+        "knifeFight": true,
+        "whaleMean": true,
+        "powerCostUsd": null
+      },
+      "reasons": [
+        "5 diligence stages failed — do not provision",
+        "Knife-fight seat — top UIDs take nearly all rewards",
+        "New-entrant EV ≈ $-1/mo net",
+        "Low model confidence — thin verified data",
+        "4% month-1 earn chance"
+      ]
+    },
+    "targon": {
+      "netuid": 3,
+      "id": "opp-live-3",
+      "name": "Targon",
+      "symbol": "α3",
+      "category": "Unclassified workload",
+      "workType": "Unclassified workload",
+      "minVramGb": 80,
+      "recommendedGpu": "8× H100 SXM / H200 / B200 / B300 / RTX PRO 6000 Blackwell (TEE hardware profiles)",
+      "earnChance": {
+        "level": "low",
+        "pct": 1
+      },
+      "rewardedRatio": 0.027,
+      "top10IncentiveShare": 1,
+      "rewardMedianShare": 0.875,
+      "freeSlots": 0,
+      "totalSlots": 256,
+      "rampWeeks": 13.8,
+      "estimatedMonthlyRewardUsd": 1749,
+      "netMonthlyUsd": 783,
+      "meetsMinimum": true,
+      "confidence": 0.57,
+      "conviction": 30,
+      "band": "NO-GO",
+      "verdict": "AVOID",
+      "hardware": "GPU",
+      "diligenceHealth": 71,
+      "confidencePct": 57,
+      "rent": {
+        "rentable": true,
+        "entry": "displace",
+        "expectedNetMonthlyUsd": 18,
+        "expectedGrossMonthlyUsd": null,
+        "knifeFight": true,
+        "whaleMean": true,
+        "powerCostUsd": null
+      },
+      "reasons": [
+        "1 diligence stage failed — do not provision",
+        "Knife-fight seat — top UIDs take nearly all rewards",
+        "New-entrant EV ≈ $18/mo net",
+        "1% month-1 earn chance"
+      ]
+    }
+  }
+}

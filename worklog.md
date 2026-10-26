@@ -2624,3 +2624,26 @@ Work Log:
 Stage Summary:
 - Shipped both features: (1) seat-flip watcher alerts (bell/trigger center + panel strip) when reward spread improves between scans; (2) your-rig $/mo projections + best-seat banner in the Can-I-win-here panel
 - Flip detection is stateless (prev tier recomputed from previous snapshot row) — survives recycles without schema changes
+
+---
+Task ID: investor-pdf-1
+Agent: main (Super Z)
+Task: Build complete investor PDF on the GPU business model: Bittensor + subnets, TAO emissions/distribution, Infranex BT purpose, problem, features, mining workflow, and business-model conclusion
+
+Work Log:
+- Clarified scope via AskUserQuestion: investors / 18-25 pages / clean minimal / live data / several charts / blunt tone / full emission mechanics / cover+TOC
+- Read full PDF skill chain: SKILL.md, configs/fonts.md, briefs/report.md, typesetting/{palette,charts,cover,cover-backgrounds,overflow,pagination,typography,fill-engine,geometry}.md
+- Verified emission facts via WebSearch + official docs: first halving FIRED 14-15 Dec 2025 (10.5M crossed), current 0.5 TAO/block = ~3,600 TAO/day, issuance 11.2M, next halving 15.75M, dTAO split 18% owner / 41% miners / 41% validators+stakers, 128 slots (256 planned), SN64 Chutes ~13% of all emission
+- Pulled live app snapshot (scripts/pdf-data-dump.ts -> pdf-data.json): TAO $254.21, census 1 open/18 fightable/5 knife/104 dont-enter, verdicts 3 RUN/125 AVOID, top picks Numinous SN05 $881/mo 66%, Cathedral SN83 $334 67%, Beam SN92 $329 61%, Bitcast SN82 $13,557 96% but H200-rig-gated
+- Cascade palette via design_engine palette-cascade --intent cold --mode minimal (steel-blue family, accent #2784b3)
+- 5 charts (scripts/pdf-charts.py -> pdf-assets/): emission-split donut, conviction 55/25/20 donut, tier census bars, top-10% whale-capture bars, $-EV menu bars
+- Cover: Template 01 HUD (scripts/pdf-cover.html), poster_validate + cover_validate PASS (removed nested span self-overlap), rendered via html2poster.js --width 794px
+- Body: ReportLab TocDocTemplate + multiBuild (scripts/pdf-engine.py + pdf_content_a/b.py), 9 chapters, FreeSerif, stat bands, callouts, 6 tables, roman TOC / arabic body reset footer via body_start_page tracking, TOC page numbers aligned to displayed numbering
+- Fixes during build: sandbox font paths (NotoSansSC variable unreadable -> alias fallback names to NotoSerifSC static), hyphen-named modules -> underscore rename, em-dash line-start prevention via nbsp Paragraph patch, cover A4 normalize tolerance 2pt -> 0.3pt, TOC offset = body_start_page-1, last-page orphan pulled back via content trims + trailing-spacer removal (19 -> 18 pages)
+- QA: pdf_qa.py PASS 13/13, font.check 0 issues, toc_validate PASS, pages.clean no blanks, meta.brand applied
+
+Stage Summary:
+- DELIVERED: download/Infranex-BT-GPU-Mining-Business-Model-Investor-Brief.pdf (18 pages, 520KB, vector, clickable TOC)
+- Also delivered: download/Infranex-BT-cover-source.html (editable cover source)
+- Content: 9 chapters covering Bittensor 101, halving/dTAO math, GPU unit economics with worked $ examples, winner-take-all evidence (Chutes/Pareton/Targon/SN30 trap), conviction engine 55/25/20, 7-feature suite, live decision workflow, revenue mechanics + risk register + one-sentence thesis
+- Reusable: scripts/pdf-engine.py + pdf_content_a/b.py can be re-run after any live-data refresh (re-run pdf-data-dump.ts first); charts regen via pdf-charts.py

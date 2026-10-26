@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+  <style>
+    @page { size: 794px 1123px; margin: 0; }
+    :root {
+      /* Cascade palette — design_engine palette-cascade --intent cold --mode minimal */
+      --c-bg:      #ffffff;
+      --c-accent:  #2784b3;
+      --c-text:    #202224;
+      --c-muted:   #6e7477;
+      --c-mid:     #37454c;
+      --c-surface: #e3e6e8;
+    }
+    html, body {
+      margin: 0; padding: 0;
+      width: 794px; height: 1123px;
+      background: var(--c-bg);
+      font-family: 'Inter', sans-serif;
+      color: var(--c-text);
+    }
+    @media screen {
+      html { height: auto; display: flex; justify-content: center; min-height: 100vh; background: var(--c-surface); }
+      body { transform-origin: top center; scale: min(1, calc(100vw / 794), calc(100vh / 1123)); margin: 0 auto; box-shadow: 0 0 60px rgba(0,0,0,0.12); }
+    }
+    .cover { width: 794px; height: 1123px; position: relative; border: none; outline: none; box-shadow: none; }
+
+    /* Layer 1 — background grid (2% opacity) */
+    .layer1 {
+      position: absolute; inset: 0; overflow: hidden; z-index: 1;
+      background-image:
+        linear-gradient(to right, rgba(39,132,179,0.05) 0.5px, transparent 0.5px),
+        linear-gradient(to bottom, rgba(39,132,179,0.05) 0.5px, transparent 0.5px);
+      background-size: 66px 66px;
+    }
+
+    /* Layer 2 — structure: ultra-thick left anchor line */
+    .layer2 { position: absolute; inset: 0; z-index: 2; }
+    .anchor-line {
+      position: absolute;
+      left: 95px;              /* 0.12 * W */
+      top: 112px;              /* 0.10 * H */
+      bottom: 112px;           /* to 0.90 * H */
+      width: 6px;
+      background: var(--c-accent);
+    }
+
+    /* Layer 3 — content. Left edge = anchor line + 2U breathing room. */
+    .layer3 { position: absolute; inset: 0; z-index: 3; }
+    .kicker {
+      position: absolute; left: 178px; top: 168px;   /* 0.15 * H */
+      font-size: 16pt; font-weight: 400;
+      letter-spacing: 3pt; text-transform: uppercase;
+      color: var(--c-text); opacity: 0.6;
+      max-width: 540px;
+    }
+    .hero {
+      position: absolute; left: 178px; top: 337px;   /* 0.30 * H */
+      font-size: 58pt; font-weight: 900; line-height: 1.15;
+      color: var(--c-text); letter-spacing: -0.5pt;
+      max-width: 560px;
+    }
+    .summary {
+      position: absolute; left: 178px; top: 596px;   /* ~0.53 * H */
+      font-size: 16.5pt; font-weight: 400; line-height: 1.6;
+      color: var(--c-text); opacity: 0.85;
+      max-width: 476px;                               /* 0.6 * W */
+    }
+    .meta {
+      position: absolute; left: 178px; top: 842px;   /* 0.75 * H */
+      font-size: 17pt; font-weight: 500; line-height: 1.7;
+      color: var(--c-text);
+    }
+    .meta .sub { font-size: 13pt; font-weight: 400; color: var(--c-muted); letter-spacing: 0.5pt; }
+  </style>
+</head>
+<body>
+  <div class="cover">
+    <div class="layer1"></div>
+    <div class="layer2"><div class="anchor-line"></div></div>
+    <div class="layer3">
+      <div class="kicker">GPU Mining Business Model · Investor Brief</div>
+      <div class="hero">INFRANEX<br>BT</div>
+      <div class="summary">
+        The decision engine for Bittensor mining: live competition odds,
+        rig-specific dollar projections and tier-flip alerts across all
+        128 subnets — so capital goes only where a new seat can actually earn.
+      </div>
+      <div class="meta">
+        October 2026
+        <div class="sub">Live network edition · 128 subnets scanned · TAO $254.21 · post-halving emission</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
