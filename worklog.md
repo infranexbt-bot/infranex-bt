@@ -2475,3 +2475,21 @@ Stage Summary:
 - Feedback delivered: chances are real but small (~3% month-1, EV $227/mo); performing (running the miner) is achievable on the user's rig but performing ≠ earning on Chutes — earning requires top-10 fleet-scale quality (8x H200-class ops)
 - Recommended path: same rig on Noah/Hone/REAX/CliqueAI where 91-96% of miners earned and rewards are broad
 - scripts/top-picks.ts persisted as the reusable "what should I run instead" ranker
+
+---
+Task ID: gpu-compare-1
+Agent: main (Z.ai)
+Task: User asked to research 3 GPUs (RTX 6000 Ada 48GB, PRO 6000 Blackwell Workstation 96GB, PRO 6000 Blackwell Server 96GB): which subnets use them, profit comparison on owned basis, which GPU gives new entrants the best earning chances
+
+Work Log:
+- Web research: specs verified from NVIDIA pages/resellers. Ada 48GB GDDR6 960GB/s 300W active, launched $6,800, no CC. PRO 6000 WS 96GB GDDR7 1792GB/s 600W active, $16k street Oct-2026 (GDDR7 shortage, was $8,565 MSRP). PRO 6000 Server 96GB 1597GB/s 400-600W passive, $16.6-20.2k, MIG 4x24
+- KEY FINDING: per SuperProtocol/NVIDIA Secure AI matrix, SPT CC (TEE) = HGX B200 + RTX PRO 6000 Server Edition (air R580+, liquid R595) ONLY — Workstation Edition NOT TEE-certified. App preset "PRO 6000 Blackwell 96GB TEE ✓" conflates WS with Server — preset split needed (proposed, not yet implemented)
+- scripts/gpu-compare.ts — models 3 profiles through exact conviction engine: Ada 71/128 rentable (RUN 3), WS 82/128 (RUN 4: +REAX via 80GB bar), Server 84/128 (+TEE subnets Chutes/Targon/SayGM/KubeTEE — all AVOID 30, knife-fight economics)
+- Top picks identical across profiles where they overlap: Noah 90 EV$14,010 (96% rewarded, 16/82 open), Hone 80 $855, REAX 75 $467 (96GB only), CliqueAI 74 $349 — top-3 are CPU subnets (minVram 0), GPU choice irrelevant there
+- Subnets explicitly naming the cards (ledger overrides): SN53 engy (RTX 6000 Ada listed), SN33/SN55/SN116/SN102 (A6000 48GB class), SN4 Targon + SN120 Affine (2x PRO 6000 miner slots, 399/1000 FREE seats, 23% rewarded) + SN100 Cortex (fallback) + SN85 Vidaio (>=16GB tier)
+- Answered in chat with spec table, subnet lists, per-card RUN tables, new-entry chances ranking; preset-split fix + PDF report offered as follow-ups
+
+Stage Summary:
+- Verdict: WS and Server tie on live income (identical engine fit; Server adds TEE optionality that today only unlocks AVOID knife-fights); Ada loses REAX (the one broad-seat GPU RUN) and 11 subnets to its 48GB bar
+- Buying a $16k Blackwell purely for GPU mining is hard to justify vs CPU subnets (Noah $14k/mo on a VPS) at Oct-2026 prices; REAX EV $467/mo → 14-35mo payback
+- App data-quality issue logged: profitability-settings.tsx PRO 6000 preset should split tee:true (Server) vs tee:false (Workstation)
