@@ -186,6 +186,12 @@ model ProfitabilitySettings {
   includeRegistrationBurn Boolean  @default(true)
   amortizeBurnMonths      Int      @default(3)
   riskAdjustment          Boolean  @default(true)
+  // NET-EARNINGS-1 — full ownership cost stack (owned basis only; rented
+  // rates bundle cooling/maintenance/hardware into the market rent).
+  coolingUpliftPct        Float    @default(15) // % uplift on the electricity line
+  maintenanceMonthlyUsd   Float    @default(15) // cleaning, fans, paste, repairs
+  rigCapexUsd             Float    @default(0) // rig build cost for hardware recovery
+  rigAmortizeMonths       Int      @default(24) // months to recover rig capex
   updatedAt               DateTime @updatedAt
 }
 

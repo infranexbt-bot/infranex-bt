@@ -23,6 +23,12 @@ import { OfficialMechanicsBlock, MechanicsChips, rampWeeksSourceNote } from "@/c
 import { DiligencePanel } from "@/components/opportunities/diligence-panel";
 import { useOddsTrends } from "@/hooks/use-odds";
 import { useProfitabilityConfig } from "@/hooks/use-profitability";
+import {
+  computeNetEarningsEstimate,
+  CONFIDENCE_BAND_STYLE,
+  CONSERVATIVE_VERDICT_META,
+  type NetEarningsEstimate,
+} from "@/lib/infranex/net-earnings";
 import type { Opportunity } from "@/lib/infranex/types";
 
 interface OpportunityDetailDialogProps {
@@ -61,6 +67,16 @@ export function OpportunityDetailDialog({
   // computeMinePick), so the dialog's verdict is identical by construction.
   // Pure function — safe after the early return (not a hook).
   const pick = computeMinePick(o, costBasisFromConfig(profConfig));
+
+  // NET-EARNINGS-1 — the conservative/base/optimistic estimate with per-
+  // scenario confidence, computed with the SAME pure engine the table uses
+  // so cell, dialog and rank can never disagree.
+  const estimate: NetEarningsEstimate | null = prof
+    ? computeNetEarningsEstimate(o as never, {
+        minNetTargetUsd: profConfig?.minNetProfitTargetUsd,
+        hardwareMode: profConfig?.hardwareMode,
+      })
+    : null;
 
   // VERDICT-UNIFY-1 / PNL-RECONCILE-1 — the dialog's headline badge + score
   // must speak the ONE conviction vocabulary. Before this change the badge
@@ -218,6 +234,37 @@ export function OpportunityDetailDialog({
                 <span>− Infrastructure</span>
                 <span className="tabular">−{formatCurrency(prof.infrastructureUsd)}</span>
               </div>
+              {/* NET-EARNINGS-1 — the owned-basis reality lines MUST appear in
+                  the waterfall or the net won't add up for anyone doing the
+                  math by hand (cooling + maintenance were silently absorbed). */}
+              {(prof.coolingUsd ?? 0) > 0 && (
+                <div className="flex items-center justify-between pl-4 text-muted-foreground">
+                  <span
+                    title={`Cooling uplift ${profConfig?.coolingUpliftPct ?? 15}% on the electricity line (Profitability settings)`}
+                  >
+                    − Cooling
+                  </span>
+                  <span className="tabular">−{formatCurrency(prof.coolingUsd)}</span>
+                </div>
+              )}
+              {(prof.maintenanceUsd ?? 0) > 0 && (
+                <div className="flex items-center justify-between pl-4 text-muted-foreground">
+                  <span title="Cleaning, fans, thermal paste, misc repairs (Profitability settings)">
+                    − Maintenance
+                  </span>
+                  <span className="tabular">−{formatCurrency(prof.maintenanceUsd)}</span>
+                </div>
+              )}
+              {(prof.hardwareRecoveryUsd ?? 0) > 0 && (
+                <div className="flex items-center justify-between pl-4 text-muted-foreground">
+                  <span
+                    title={`Rig capex ${formatCurrency((profConfig?.rigCapexUsd ?? 0))} ÷ ${profConfig?.rigAmortizeMonths ?? 24} months — the hardware itself is a cost`}
+                  >
+                    − Hardware recovery
+                  </span>
+                  <span className="tabular">−{formatCurrency(prof.hardwareRecoveryUsd)}</span>
+                </div>
+              )}
               <div className="flex items-center justify-between pl-4 text-muted-foreground">
                 <span
                   title={
@@ -440,66 +487,149 @@ export function OpportunityDetailDialog({
               </div>
             </div>
 
-            {/* Bear / Base / Bull — planning range, not a promise */}
-            <div className="mt-3 border-t border-border/60 pt-3">
-              <div className="flex items-baseline justify-between gap-2">
-                <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                  Monthly scenarios
-                </p>
-                <p className="text-[10px] text-muted-foreground">
-                  planning range — earnings are not guaranteed
-                </p>
-              </div>
-              <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-3">
-                {([
-                  {
-                    label: "Bear",
-                    sc: prof.scenarios.bear,
-                    cls:
-                      prof.scenarios.bear.netMonthlyUsd >= prof.targetUsd
-                        ? "text-success"
-                        : prof.scenarios.bear.netMonthlyUsd >= 0
-                          ? "text-warning"
-                          : "text-destructive",
-                    border: "border-border/60",
-                  },
-                  {
-                    label: "Base",
-                    sc: prof.scenarios.base,
-                    cls: prof.scenarios.base.meetsTarget ? "text-success" : "text-warning",
-                    border: "border-border/60",
-                  },
-                  {
-                    label: "Bull",
-                    sc: prof.scenarios.bull,
-                    cls: "text-success",
-                    border: "border-primary/30",
-                  },
-                ] as const).map(({ label, sc, cls, border }) => (
-                  <div
-                    key={label}
-                    title={sc.note}
-                    className={cn("rounded-md border px-3 py-2", border)}
-                  >
-                    <p className="text-[10px] font-bold tracking-widest text-muted-foreground">
-                      {label}
-                      {label === "Base" && (
-                        <span className="ml-1 font-normal normal-case tracking-normal">
-                          (the number above)
-                        </span>
+            {/* NET-EARNINGS-1 — conservative / base / optimistic, each with a
+                confidence level. Replaces the old bare Bear/Base/Bull strip:
+                the rewards side now decomposes into ramp × uptime ×
+                competition × alpha, the cost side shows every line, and the
+                confidence chip says how much data stands behind the number. */}
+            {estimate && (
+              <div className="mt-3 border-t border-border/60 pt-3">
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                    Net earnings estimate
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={cn(
+                        "rounded border px-1.5 py-0.5 text-[10px] font-semibold",
+                        CONSERVATIVE_VERDICT_META[estimate.conservativeVerdict].className
                       )}
-                    </p>
-                    <p className={cn("tabular text-lg font-bold", cls)}>
-                      {formatCurrency(sc.netMonthlyUsd)}
-                      <span className="ml-1 text-[10px] font-normal text-muted-foreground">/mo</span>
-                    </p>
-                    <p className="mt-0.5 text-[10px] leading-tight text-muted-foreground">
-                      {sc.note}
+                      title={CONSERVATIVE_VERDICT_META[estimate.conservativeVerdict].detail}
+                    >
+                      worst month: {CONSERVATIVE_VERDICT_META[estimate.conservativeVerdict].label}
+                    </span>
+                    <p className="text-[10px] text-muted-foreground">
+                      planning range — earnings are not guaranteed
                     </p>
                   </div>
-                ))}
+                </div>
+                <p className="mt-1 text-[11px] leading-snug text-muted-foreground">
+                  {estimate.oneLine}
+                </p>
+                <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-3">
+                  {([
+                    estimate.conservative,
+                    estimate.base,
+                    estimate.optimistic,
+                  ] as const).map((sc) => {
+                    const cb = CONFIDENCE_BAND_STYLE[sc.confidenceBand];
+                    const isCons = sc.key === "conservative";
+                    const factorEntries: [string, number][] = [
+                      ["ramp", sc.factors.ramp],
+                      ["uptime", sc.factors.uptime],
+                      ["competition", sc.factors.competition],
+                      ["alpha price", sc.factors.alpha],
+                    ];
+                    return (
+                      <div
+                        key={sc.key}
+                        className={cn(
+                          "rounded-md border px-3 py-2",
+                          sc.key === "optimistic"
+                            ? "border-primary/30"
+                            : sc.key === "conservative" && sc.netMonthlyUsd < 0
+                              ? "border-warning/40"
+                              : "border-border/60"
+                        )}
+                      >
+                        <div className="flex items-center justify-between gap-1">
+                          <p className="text-[10px] font-bold tracking-widest text-muted-foreground">
+                            {sc.label.toUpperCase()}
+                            {sc.key === "base" && (
+                              <span className="ml-1 font-normal normal-case tracking-normal">
+                                (gates use this)
+                              </span>
+                            )}
+                          </p>
+                          <span
+                            className={cn(
+                              "rounded border px-1 py-px text-[9px] font-bold",
+                              cb.className
+                            )}
+                            title={`${Math.round(sc.confidence * 100)}% confidence — drivers:\n${sc.confidenceDrivers.join("\n")}`}
+                          >
+                            {sc.confidenceBand} {Math.round(sc.confidence * 100)}%
+                          </span>
+                        </div>
+                        <p
+                          className={cn(
+                            "tabular text-lg font-bold",
+                            sc.netMonthlyUsd > 0
+                              ? "text-success"
+                              : sc.netMonthlyUsd < 0
+                                ? "text-destructive"
+                                : "text-warning"
+                          )}
+                        >
+                          {formatCurrency(sc.netMonthlyUsd)}
+                          <span className="ml-1 text-[10px] font-normal text-muted-foreground">/mo</span>
+                        </p>
+                        <p className="tabular text-[10px] text-muted-foreground">
+                          gross {formatCurrency(sc.grossMonthlyUsd)} − costs{" "}
+                          {formatCurrency(estimate.costs.totalUsd)}
+                          {sc.meetsTarget ? " · ✓ target" : " · ✗ under target"}
+                        </p>
+                        {isCons && (
+                          <div className="mt-1 flex flex-wrap gap-1">
+                            {factorEntries
+                              .filter(([, f]) => f !== 1)
+                              .map(([k, f]) => (
+                                <span
+                                  key={k}
+                                  className="mono rounded bg-muted/60 px-1 py-px text-[9px] text-muted-foreground"
+                                  title={`Conservative factor: ${k} ×${f.toFixed(2)}`}
+                                >
+                                  {k} ×{f.toFixed(2)}
+                                </span>
+                              ))}
+                          </div>
+                        )}
+                        <p className="mt-1 text-[10px] leading-tight text-muted-foreground" title={sc.note}>
+                          {sc.note}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+                {/* Confidence evidence — the base month's drivers, in one line */}
+                <p className="mt-1.5 text-[10px] leading-snug text-muted-foreground">
+                  <span className="font-semibold">Base confidence {estimate.base.confidenceBand.toLowerCase()} ({Math.round(estimate.base.confidence * 100)}%):</span>{" "}
+                  {estimate.base.confidenceDrivers.join(" ")}
+                </p>
+                {/* Cost stack + upfront cash — the full ownership bill */}
+                <p
+                  className="mt-1.5 text-[10px] leading-snug text-muted-foreground"
+                  title={`Every scenario carries the same monthly bill — costs run whether or not rewards arrive. Basis: ${estimate.costBasisNote}`}
+                >
+                  <span className="font-semibold">Costs {formatCurrency(estimate.costs.totalUsd)}/mo:</span>{" "}
+                  {owned ? "electricity" : "GPU rent"} {formatCurrency(estimate.costs.gpuOrElectricityUsd)} · cooling{" "}
+                  {formatCurrency(estimate.costs.coolingUsd)} · storage {formatCurrency(estimate.costs.storageUsd)} · infra{" "}
+                  {formatCurrency(estimate.costs.infrastructureUsd)} · maintenance {formatCurrency(estimate.costs.maintenanceUsd)} · registration{" "}
+                  {formatCurrency(estimate.costs.registrationUsd)} · hardware recovery {formatCurrency(estimate.costs.hardwareRecoveryUsd)} · other{" "}
+                  {formatCurrency(estimate.costs.otherUsd)}
+                  {prof.hardwareRecoveryIncomplete && (
+                    <span className="ml-1 text-warning">
+                      (set your rig cost in settings to charge hardware recovery)
+                    </span>
+                  )}
+                </p>
+                <p className="text-[10px] leading-snug text-muted-foreground">
+                  <span className="font-semibold">Upfront cash {formatCurrency(estimate.upfrontCashUsd)}</span>{" "}
+                  (registration burn + first-month costs) · break-even ≈{" "}
+                  {estimate.breakEvenMonths != null ? `${estimate.breakEvenMonths} months` : "never at current base net"}
+                </p>
               </div>
-            </div>
+            )}
           </div>
         )}
 
