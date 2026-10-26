@@ -35,9 +35,11 @@ import {
 import { SeatChanceBadge } from "@/components/subnets/seat-chance-badge";
 import { RegisterOddsInline } from "@/components/cards/register-odds";
 import { HostingChips } from "@/components/cards/hosting-requirements";
+import { OpportunityScoreCell } from "@/components/opportunities/opportunity-score-cell";
+import { computeOpportunityScoreMap } from "@/lib/infranex/subnet-opportunity";
 import { useOddsTrends } from "@/hooks/use-odds";
 import { useProfitabilityConfig } from "@/hooks/use-profitability";
-import { Swords, AlertTriangle, Ban, DollarSign, ShieldCheck, Coins } from "lucide-react";
+import { Swords, AlertTriangle, Ban, DollarSign, ShieldCheck, Coins, Target } from "lucide-react";
 import type { Opportunity } from "@/lib/infranex/types";
 
 interface OpportunityTableProps {
@@ -50,6 +52,7 @@ interface OpportunityTableProps {
 
 type SortKey =
   | "rank"
+  | "opportunity"
   | "conviction"
   | "subnetName"
   | "score"
@@ -128,7 +131,7 @@ export function OpportunityTable({
   className,
   compact = false,
 }: OpportunityTableProps) {
-  const [sortKey, setSortKey] = useState<SortKey>("conviction");
+  const [sortKey, setSortKey] = useState<SortKey>("opportunity");
   const [dir, setDir] = useState<"asc" | "desc">("desc");
   const [search, setSearch] = useState("");
   // Winner-stability trends for ALL subnets in ONE request — TanStack Query
@@ -161,6 +164,19 @@ export function OpportunityTable({
     [opportunities, profConfig]
   );
 
+  // OPPORTUNITY-SCORE-1 — the core decision score (net 30 / miners 20 /
+  // hardware 20 / entry 15 / data 15), hard-gated. Computed in the same
+  // single pass pattern as rentMap/pickMap; the score column shows the
+  // effective (post-gate) score and the dialog carries the full evidence.
+  const scoreMap = useMemo(
+    () =>
+      computeOpportunityScoreMap(opportunities as never[], {
+        hardwareMode: ownedBasis ? "owned" : "rented",
+        minNetTargetUsd: profConfig?.minNetProfitTargetUsd,
+      }),
+    [opportunities, ownedBasis, profConfig?.minNetProfitTargetUsd]
+  );
+
   const filtered = useMemo(() => {
     let r = opportunities;
     if (search.trim()) {
@@ -182,6 +198,19 @@ export function OpportunityTable({
       } else if (sortKey === "rentEarn") {
         av = rentMap.get(a.id)?.score ?? -1;
         bv = rentMap.get(b.id)?.score ?? -1;
+      } else if (sortKey === "opportunity") {
+        // Gated rows ALWAYS sink below ungated ones, regardless of score —
+        // the code-level enforcement of "a high score never overrides a
+        // failed mandatory requirement". Within each group: effective score.
+        const sa = scoreMap.get(a.id);
+        const sb = scoreMap.get(b.id);
+        const ga = sa?.gated ? 1 : 0;
+        const gb = sb?.gated ? 1 : 0;
+        if (ga !== gb) return dir === "asc" ? gb - ga : ga - gb;
+        av = sa?.effectiveScore ?? -1;
+        bv = sb?.effectiveScore ?? -1;
+        if (av === bv) return 0;
+        return dir === "asc" ? (av as number) - (bv as number) : (bv as number) - (av as number);
       } else {
         av = a[sortKey];
         bv = b[sortKey];
@@ -194,7 +223,7 @@ export function OpportunityTable({
         : String(bv).localeCompare(String(av));
     });
     return sorted;
-  }, [opportunities, sortKey, dir, search, rentMap, pickMap]);
+  }, [opportunities, sortKey, dir, search, rentMap, pickMap, scoreMap]);
 
   const handleSort = (k: SortKey) => {
     if (sortKey === k) {
@@ -239,6 +268,16 @@ export function OpportunityTable({
                 <SortableTh k="subnetName" sortKey={sortKey} dir={dir} onSort={handleSort} rowSpan={2}>
                   Subnet
                 </SortableTh>
+                <TableHead
+                  colSpan={2}
+                  className="h-7 text-center"
+                  title="Decision — Opportunity Score (core: net 30% · miner performance 20% · hardware fit 20% · entry risk 15% · data quality 15%, hard-gated) and Conviction (rent-earn × diligence × confidence). Click a score for its evidence."
+                >
+                  <span className="inline-flex items-center gap-1">
+                    <Target className="h-3 w-3 text-primary" />
+                    Decision
+                  </span>
+                </TableHead>
                 <TableHead
                   className="h-7 text-center"
                   title="Seat safety axis — slot pressure, reward concentration, burn cost, immunity. Detail lives in the seat badge under Score."
@@ -307,12 +346,24 @@ export function OpportunityTable({
               )}
               {!compact && (
                 <SortableTh
+                  k="opportunity"
+                  sortKey={sortKey}
+                  dir={dir}
+                  onSort={handleSort}
+                >
+                  <span title="OPPORTUNITY SCORE — the core ranking. Net contribution 30% · actual miner performance 20% · hardware & deployment fit 20% · competition & entry risk 15% · data quality & stability 15%. Hard gates (hardware mismatch, unverified payout, negative net) cap the score and sink the row — they are never overridden by a high number. Click for the full evidence.">
+                    Score
+                  </span>
+                </SortableTh>
+              )}
+              {!compact && (
+                <SortableTh
                   k="conviction"
                   sortKey={sortKey}
                   dir={dir}
                   onSort={handleSort}
                 >
-                  <span title={`CONVICTION — the one ranking. ${L.convictionStatTooltip} RUN ≥ 50 · WATCH 35–49 · AVOID below or gated.`}>
+                  <span title={`CONVICTION — the deployment lens. ${L.convictionStatTooltip} RUN ≥ 50 · WATCH 35–49 · AVOID below or gated.`}>
                     Conviction
                   </span>
                 </SortableTh>
@@ -430,7 +481,7 @@ export function OpportunityTable({
             {filtered.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={compact ? 5 : 14}
+                  colSpan={compact ? 5 : 15}
                   className="py-12 text-center text-muted-foreground"
                 >
                   No opportunities match your search.
@@ -468,6 +519,11 @@ export function OpportunityTable({
                         </div>
                       </div>
                     </TableCell>
+                    {!compact && (
+                      <TableCell>
+                        <OpportunityScoreCell score={scoreMap.get(o.id)} />
+                      </TableCell>
+                    )}
                     {!compact && (
                       <TableCell>
                         <div className="flex flex-col items-start gap-0.5">
