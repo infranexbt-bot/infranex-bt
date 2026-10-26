@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;500;600&family=Noto+Serif+SC:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    @page { size: 794px 1123px; margin: 0; }
+    :root {
+      --c-bg: #0a1628;      /* deep blue night sky */
+      --c-accent: #4da8da;  /* luminous bright blue */
+      --c-text: #e8f0f8;    /* cool white */
+      --c-muted: #7a9bb8;   /* blue-gray */
+      --c-glow: #2d7ab3;    /* mid blue glow */
+    }
+    html, body {
+      margin: 0; padding: 0;
+      width: 794px; height: 1123px;
+      background: var(--c-bg);
+      color: var(--c-text);
+      font-family: 'Inter', sans-serif;
+    }
+    @media screen {
+      html { height: auto; display: flex; justify-content: center; min-height: 100vh; background: var(--c-bg); }
+      body { transform-origin: top center; scale: min(1, calc(100vw / 794), calc(100vh / 1123)); margin: 0 auto; box-shadow: 0 0 60px rgba(0,0,0,0.4); }
+    }
+    .cover { width: 794px; height: 1123px; position: relative; border: none; outline: none; box-shadow: none; }
+
+    /* Layer 1 — background glow (clipped) */
+    .layer-bg {
+      position: absolute; inset: 0; overflow: hidden; z-index: 1;
+    }
+    .glow-a {
+      position: absolute; left: 0; top: 0; width: 100%; height: 100%;
+      background: radial-gradient(circle 340px at 18% 14%, rgba(45,122,179,0.08), transparent 70%);
+    }
+    .glow-b {
+      position: absolute; left: 0; top: 0; width: 100%; height: 100%;
+      background: radial-gradient(circle 380px at 84% 88%, rgba(45,122,179,0.07), transparent 70%);
+    }
+
+    /* Layer 2 — luminous rectangular frame */
+    .layer-frame { position: absolute; inset: 0; z-index: 2; }
+    .frame {
+      position: absolute; left: 60px; right: 60px; top: 80px; bottom: 80px;
+      border: 2px solid var(--c-accent);
+    }
+
+    /* Layer 3 — content */
+    .layer-content { position: absolute; inset: 0; z-index: 3; }
+    .kicker {
+      position: absolute; left: 90px; top: 135px;
+      font-size: 11pt; font-weight: 300; color: var(--c-accent);
+      letter-spacing: 5px; text-transform: uppercase;
+    }
+    .hero {
+      position: absolute; left: 90px; top: 236px;
+      font-family: 'Playfair Display', 'Noto Serif SC', serif;
+      font-size: 50pt; font-weight: 900; line-height: 1.15;
+      color: var(--c-text); max-width: 600px;
+      text-shadow: 0 0 24px rgba(45,122,179,0.35);
+    }
+    .summary {
+      position: absolute; left: 90px; top: 505px;
+      font-size: 15pt; font-weight: 300; line-height: 1.7;
+      color: var(--c-muted); max-width: 520px;
+    }
+    .org {
+      position: absolute; left: 90px; top: 719px;
+      font-size: 18pt; font-weight: 500; color: var(--c-text);
+    }
+    .org-sub {
+      position: absolute; left: 90px; top: 762px;
+      font-size: 11pt; font-weight: 300; color: var(--c-muted); letter-spacing: 1px;
+    }
+    .date {
+      position: absolute; left: 90px; bottom: 130px;
+      font-size: 10pt; font-weight: 300; color: var(--c-muted); letter-spacing: 3px;
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+  <div class="cover">
+    <div class="layer-bg">
+      <div class="glow-a"></div>
+      <div class="glow-b"></div>
+    </div>
+    <div class="layer-frame">
+      <div class="frame"></div>
+    </div>
+    <div class="layer-content">
+      <div class="kicker">Bittensor Subnet Infrastructure Plan</div>
+      <div class="hero">Mini GPU<br>Datacenter<br>Investment Plan</div>
+      <div class="summary">A data-backed build plan for a two-card Hopper node earning from Bittensor subnets and the GPU rental market &mdash; engine-verified verdicts, live marketplace yields, and a staged 3&ndash;6 month execution path under a $50,000 total budget.</div>
+      <div class="org">Infranex BT</div>
+      <div class="org-sub">Conviction Engine &middot; Owned-Basis Scoring &middot; Live Marketplace Data</div>
+      <div class="date">October 2026 &middot; Home Deployment &middot; $0.12/kWh</div>
+    </div>
+  </div>
+</body>
+</html>
