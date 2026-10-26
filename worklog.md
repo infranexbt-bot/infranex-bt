@@ -2493,3 +2493,21 @@ Stage Summary:
 - Verdict: WS and Server tie on live income (identical engine fit; Server adds TEE optionality that today only unlocks AVOID knife-fights); Ada loses REAX (the one broad-seat GPU RUN) and 11 subnets to its 48GB bar
 - Buying a $16k Blackwell purely for GPU mining is hard to justify vs CPU subnets (Noah $14k/mo on a VPS) at Oct-2026 prices; REAX EV $467/mo → 14-35mo payback
 - App data-quality issue logged: profitability-settings.tsx PRO 6000 preset should split tee:true (Server) vs tee:false (Workstation)
+
+---
+Task ID: gpu-subnet-list-1
+Agent: main (Z.ai)
+Task: User asked for the complete list of ALL subnets that can use the 3 GPUs (Ada 48GB / PRO 6000 WS / PRO 6000 Server), not just REAX
+
+Work Log:
+- scripts/gpu-subnet-list.ts — every subnet scored under all 3 profiles, bucketed by fit: 128 total = 84 GPU subnets + 44 CPU-only
+- Group 1 (runs on Ada + both Blackwell): 27 subnets, 0 RUN (best: ReadyAI EV $140 / ItsAI $79 — broad seats but below $300 min-profit target, auto-capped AVOID 20)
+- Group 2 (>48GB, Blackwell only): 11 subnets — REAX the only RUN (76, $471); Affine notable (399/1000 free seats, EV $111)
+- Group 3 (TEE, Server only): 2 subnets — Chutes ($252 EV, 7% rewarded), Targon ($31) — both AVOID
+- Group 4: 44 subnets need 141-180GB (H200/B200/B300) — out of reach for all three
+- Group 5: 44 CPU-only (Noah RUN 90 / Hone 80 / CliqueAI 74 live here)
+- Fit vs earn distinction delivered: Blackwell fits 40/84 GPU subnets vs Ada 27, but exactly 1 GPU subnet is a RUN today
+- scripts/gpu-subnet-list.ts persisted as reusable full-matrix generator
+
+Stage Summary:
+- Definitive subnet-GPU matrix delivered in chat; confirms Blackwell 96GB breadth advantage (40 vs 27 GPU subnets + the only GPU RUN) while showing fit ≠ earn across all 84 GPU subnets
