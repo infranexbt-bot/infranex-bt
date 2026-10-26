@@ -2532,3 +2532,23 @@ Stage Summary:
 - Recommended build: Twin-Hopper 2x used H100 PCIe — hosting-first ($2,645/mo base) with engine-triggered mining flips; VPS CPU subnets (Noah/Hone/CliqueAI) run in parallel at ~$40-80/mo
 - Key honest findings delivered: GPU mining alone doesn't pay for hardware at any tier <=$350k; hosting out-earns mining EV for every card; the datacenter is justified as a diversified income stack, not the best $/dollar use of $50k
 - Scripts persisted: dc-tier-check.ts, dcplan_charts.py, dcplan_cover.html, dcplan_report.py (edit + re-run for revisions)
+
+---
+Task ID: opp-gpu-diagnose-1
+Agent: main (Z.ai)
+Task: User reported Opportunities shows only 3 RUN (all CPU), no GPU RUN — investigate why
+
+Work Log:
+- scripts/opp-gpu-diagnose.ts — replicated exact Opportunities pipeline (mergeOpportunities + computeMinePickMap + costBasisFromConfig) via app API
+- ROOT CAUSE FOUND: ProfitabilitySettings singleton wiped AGAIN (2nd time) by sandbox recycle — recycle-baseline.json contained overrides/playbook/snapshot but NOT settings; first GET auto-created defaults (rent/0GB/noTEE)
+- Mechanism: mergeOpportunities bakes meetsMinimum into each row using the SAVED config; with rent/0GB defaults REAX SN92 priced on rented 80GB GPU (net -$756/mo) -> meetsMinimum=false -> hard cap 20 -> AVOID, hiding the GPU RUN even when computeMinePick got an owned basis
+- Fix layer 1: scripts/restore-profile.ts PUT owned/96GB/TEE back -> REAX SN92 flips to RUN (conv 75, EV $445/mo) — census 3 RUN -> 4 RUN (Noah 90, Hone 80, REAX 75 GPU, CliqueAI 74)
+- Fix layer 2 (durable): boot-restore.ts now restores ProfitabilitySettings when table empty (BaselineSettings interface + profCount check + upsert)
+- Fix layer 3 (durable): export-recycle-baseline.ts exports settings singleton; recycle-baseline.json regenerated (0.53MB, settings=owned/96GB captured)
+- Verified: module syntax OK, dev.log clean, API serves owned/96GB/TEE, app healthy (login 200)
+- Residual GPU AVOIDs are genuine data: brutal concentration fails (iota/NOVA/Actual/Carbon/GreenCompute 0-2% rewarded, top10 100% -> cap 30), Chutes 7% rewarded (EV $286 < $300 min), OnSale SN86 needs 141GB+ VRAM (beyond 96GB rig, cap 24 despite EV $1,606)
+
+Stage Summary:
+- User's "no GPU RUN" was 90% a data-loss bug (settings wipe hiding REAX), 10% genuine economics (other GPU subnets fail concentration/VRAM/min-profit gates on merit)
+- Opportunities now: 4 RUN (Noah $13,637, Hone $885, REAX $445 GPU, CliqueAI $351) — page refresh shows corrected owned-basis verdicts
+- Settings singleton now survives recycles via 3-layer fix; scripts persisted: opp-gpu-diagnose.ts, opp-gpu-diagnose2.ts, restore-profile.ts
