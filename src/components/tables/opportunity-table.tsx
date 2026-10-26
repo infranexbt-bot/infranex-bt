@@ -37,9 +37,15 @@ import { RegisterOddsInline } from "@/components/cards/register-odds";
 import { HostingChips } from "@/components/cards/hosting-requirements";
 import { OpportunityScoreCell } from "@/components/opportunities/opportunity-score-cell";
 import { computeOpportunityScoreMap } from "@/lib/infranex/subnet-opportunity";
+import {
+  computeNetEarningsMap,
+  CONFIDENCE_BAND_STYLE,
+  CONSERVATIVE_VERDICT_META,
+  type NetEarningsEstimate,
+} from "@/lib/infranex/net-earnings";
 import { useOddsTrends } from "@/hooks/use-odds";
 import { useProfitabilityConfig } from "@/hooks/use-profitability";
-import { Swords, AlertTriangle, Ban, DollarSign, ShieldCheck, Coins, Target } from "lucide-react";
+import { Swords, AlertTriangle, Ban, DollarSign, ShieldCheck, Coins, Target, TrendingUp } from "lucide-react";
 import type { Opportunity } from "@/lib/infranex/types";
 
 interface OpportunityTableProps {
@@ -177,6 +183,19 @@ export function OpportunityTable({
     [opportunities, ownedBasis, profConfig?.minNetProfitTargetUsd]
   );
 
+  // NET-EARNINGS-1 — conservative/base/optimistic estimate + confidence for
+  // every row, in the same single pass. The column ranks by the BASE month
+  // ("expected net earnings, not emissions"); the conservative month is
+  // shown beside it so the funding floor is never hidden.
+  const netEarningsMap = useMemo(
+    () =>
+      computeNetEarningsMap(opportunities as never[], {
+        minNetTargetUsd: profConfig?.minNetProfitTargetUsd,
+        hardwareMode: profConfig?.hardwareMode,
+      }),
+    [opportunities, profConfig?.minNetProfitTargetUsd, profConfig?.hardwareMode]
+  );
+
   const filtered = useMemo(() => {
     let r = opportunities;
     if (search.trim()) {
@@ -290,11 +309,11 @@ export function OpportunityTable({
                 <TableHead
                   colSpan={2}
                   className="h-7 text-center"
-                  title="Net ROI axis — per-earning-miner revenue minus GPU + infra cost (Net Monthly), annualized (Est. APY)."
+                  title="NET EARNINGS axis — conservative / base / optimistic monthly net after the full cost stack (electricity, cooling, registration, maintenance, hardware recovery on the owned basis), each with a data-confidence level. Net Monthly sorts by the BASE month."
                 >
                   <span className="inline-flex items-center gap-1">
-                    <DollarSign className="h-3 w-3 text-primary" />
-                    Net ROI
+                    <TrendingUp className="h-3 w-3 text-primary" />
+                    Net earnings
                   </span>
                 </TableHead>
                 <TableHead
@@ -375,7 +394,9 @@ export function OpportunityTable({
                 dir={dir}
                 onSort={handleSort}
               >
-                Net Monthly
+                <span title="NET EARNINGS — ranks by the BASE month (expected net after the full cost stack). Shown: base bold, worst/best month beside it, and the data-confidence level. Click a row for the factor-by-factor estimate.">
+                  Net / mo
+                </span>
               </SortableTh>
               {!compact && (
                 <SortableTh
@@ -490,6 +511,7 @@ export function OpportunityTable({
             ) : (
               filtered.map((o, rowIdx) => {
                 const pick = pickMap.get(o.id);
+                const est = netEarningsMap.get(o.id);
                 const vs = pick ? VERDICT_STYLE[pick.verdict] : null;
                 const risk = getStatusColor(o.riskLevel);
                 const prof = o.profitability;
@@ -565,40 +587,101 @@ export function OpportunityTable({
                     )}
                     <TableCell className="text-right">
                       <div className="flex flex-col items-end gap-0.5">
-                        <span
-                          title={
-                            prof
-                              ? `Revenue ${formatCurrency(prof.expectedRevenueUsd)}${o.revenueBasis === "provider-marketplace" ? " (measured provider income — 95% rental share + idle pay; not emission)" : ""} − ${ownedBasis ? "GPU electricity (owned basis — no market rent charged)" : "GPU rent (market rate)"} ${formatCurrency(prof.gpuRentalUsd)} − storage ${formatCurrency(prof.storageUsd)} − infra ${formatCurrency(prof.infrastructureUsd)} − other ${formatCurrency(prof.otherOperatingTotalUsd)} = net ${formatCurrency(prof.netMonthlyUsd)}/mo`
-                              : o.gpuCostMonthlyUsd != null
-                                ? `Gross $${(o.grossMonthlyUsd ?? 0).toLocaleString()}${o.revenueBasis === "provider-marketplace" ? " (measured provider income — 95% rental share + idle pay; not emission)" : ""} − GPU ${ownedBasis ? "electricity" : "rent"} $${Math.round(o.gpuCostMonthlyUsd).toLocaleString()} − infra $${Math.round(o.infraCostMonthlyUsd ?? 0).toLocaleString()} — what a median-performing miner keeps per month${o.rewardRealizability != null && o.rewardRealizability < 0.9 ? ` · rewards realizable at ${(o.rewardRealizability * 100).toFixed(0)}% of spot (thin pool)` : ""}`
-                                : "Per-earning-miner monthly revenue"
-                          }
-                          className={cn(
-                            "tabular font-semibold",
-                            (o.netMonthlyUsd ?? o.estimatedMonthlyRewardUsd) > 0
-                              ? "text-success"
-                              : (o.netMonthlyUsd ?? o.estimatedMonthlyRewardUsd) < 0
-                                ? "text-destructive"
-                                : "text-muted-foreground"
-                          )}
-                        >
-                          {formatCurrency(o.netMonthlyUsd ?? o.estimatedMonthlyRewardUsd)}
-                        </span>
-                        {prof && (
-                          <span
-                            className={cn(
-                              "text-[10px] font-medium",
-                              prof.meetsMinimum ? "text-success" : "text-destructive"
+                        {est ? (
+                          <>
+                            <div className="flex items-center justify-end gap-1.5">
+                              <span
+                                title={`NET EARNINGS (base month) — ${est.base.note}\n\n${est.oneLine}\n\nCosts ${formatCurrency(est.costs.totalUsd)}/mo: GPU/electricity ${formatCurrency(est.costs.gpuOrElectricityUsd)} + cooling ${formatCurrency(est.costs.coolingUsd)} + storage ${formatCurrency(est.costs.storageUsd)} + infra ${formatCurrency(est.costs.infrastructureUsd)} + maintenance ${formatCurrency(est.costs.maintenanceUsd)} + registration ${formatCurrency(est.costs.registrationUsd)} + hardware recovery ${formatCurrency(est.costs.hardwareRecoveryUsd)} + other ${formatCurrency(est.costs.otherUsd)}\n\nBasis: ${est.costBasisNote}`}
+                                className={cn(
+                                  "tabular font-semibold",
+                                  est.base.netMonthlyUsd > 0
+                                    ? "text-success"
+                                    : est.base.netMonthlyUsd < 0
+                                      ? "text-destructive"
+                                      : "text-muted-foreground"
+                                )}
+                              >
+                                {formatCurrency(est.base.netMonthlyUsd)}
+                              </span>
+                              {(() => {
+                                const cb = CONFIDENCE_BAND_STYLE[est.base.confidenceBand];
+                                return (
+                                  <span
+                                    title={`Base-month confidence: ${Math.round(est.base.confidence * 100)}% (${est.base.confidenceBand}) — ${est.base.confidenceDrivers.length} data drivers. Click the row for the full factor breakdown.`}
+                                    className={cn(
+                                      "inline-flex h-4 w-4 items-center justify-center rounded border text-[9px] font-bold",
+                                      cb.className
+                                    )}
+                                  >
+                                    {est.base.confidenceBand.charAt(0)}
+                                  </span>
+                                );
+                              })()}
+                            </div>
+                            <span
+                              className="text-[10px] leading-tight text-muted-foreground"
+                              title={`Conservative month ${formatCurrency(est.conservative.netMonthlyUsd)}/mo — ${est.conservative.note}.\nOptimistic month ${formatCurrency(est.optimistic.netMonthlyUsd)}/mo — ${est.optimistic.note}.`}
+                            >
+                              <span
+                                className={cn(
+                                  "tabular",
+                                  est.conservative.netMonthlyUsd < 0 && "text-warning"
+                                )}
+                              >
+                                worst {formatCurrency(est.conservative.netMonthlyUsd)}
+                              </span>
+                              {" · best "}
+                              <span className="tabular">{formatCurrency(est.optimistic.netMonthlyUsd)}</span>
+                              {est.conservativeVerdict === "RAMP_LOSS" && (
+                                <AlertTriangle
+                                  className="ml-1 inline h-3 w-3 text-warning"
+                                  aria-label="first month runs at a loss"
+                                />
+                              )}
+                              {est.conservativeVerdict === "LOSS_MAKING" && (
+                                <Ban
+                                  className="ml-1 inline h-3 w-3 text-destructive"
+                                  aria-label="loses money every month"
+                                />
+                              )}
+                            </span>
+                            {prof && (
+                              <span
+                                className={cn(
+                                  "text-[10px] font-medium",
+                                  prof.meetsMinimum ? "text-success" : "text-destructive"
+                                )}
+                                title={
+                                  prof.meetsMinimum
+                                    ? `Base month meets the minimum net-profit target ($${prof.targetUsd.toLocaleString()}/mo) — margin ${prof.profitMarginPct.toFixed(0)}%, ROI ${prof.roiMonthlyPct.toFixed(0)}%/mo`
+                                    : `Base month below the minimum net-profit target by ${formatCurrency(prof.shortfallUsd)}/mo — AVOID`
+                                }
+                              >
+                                {prof.meetsMinimum
+                                  ? `✓ ≥ $${prof.targetUsd.toLocaleString()} target`
+                                  : `✗ < $${prof.targetUsd.toLocaleString()} target`}
+                              </span>
                             )}
+                          </>
+                        ) : (
+                          <span
                             title={
-                              prof.meetsMinimum
-                                ? `Meets the minimum net profit target ($${prof.targetUsd.toLocaleString()}/mo) — margin ${prof.profitMarginPct.toFixed(0)}%, ROI ${prof.roiMonthlyPct.toFixed(0)}%/mo`
-                                : `Below the minimum net profit target by ${formatCurrency(prof.shortfallUsd)}/mo — AVOID`
+                              prof
+                                ? `Revenue ${formatCurrency(prof.expectedRevenueUsd)}${o.revenueBasis === "provider-marketplace" ? " (measured provider income — 95% rental share + idle pay; not emission)" : ""} − ${ownedBasis ? "GPU electricity (owned basis — no market rent charged)" : "GPU rent (market rate)"} ${formatCurrency(prof.gpuRentalUsd)} − storage ${formatCurrency(prof.storageUsd)} − infra ${formatCurrency(prof.infrastructureUsd)} − other ${formatCurrency(prof.otherOperatingTotalUsd)} = net ${formatCurrency(prof.netMonthlyUsd)}/mo`
+                                : o.gpuCostMonthlyUsd != null
+                                  ? `Gross $${(o.grossMonthlyUsd ?? 0).toLocaleString()}${o.revenueBasis === "provider-marketplace" ? " (measured provider income — 95% rental share + idle pay; not emission)" : ""} − GPU ${ownedBasis ? "electricity" : "rent"} $${Math.round(o.gpuCostMonthlyUsd).toLocaleString()} − infra $${Math.round(o.infraCostMonthlyUsd ?? 0).toLocaleString()} — what a median-performing miner keeps per month${o.rewardRealizability != null && o.rewardRealizability < 0.9 ? ` · rewards realizable at ${(o.rewardRealizability * 100).toFixed(0)}% of spot (thin pool)` : ""}`
+                                  : "Per-earning-miner monthly revenue"
                             }
+                            className={cn(
+                              "tabular font-semibold",
+                              (o.netMonthlyUsd ?? o.estimatedMonthlyRewardUsd) > 0
+                                ? "text-success"
+                                : (o.netMonthlyUsd ?? o.estimatedMonthlyRewardUsd) < 0
+                                  ? "text-destructive"
+                                  : "text-muted-foreground"
+                            )}
                           >
-                            {prof.meetsMinimum
-                              ? `✓ ≥ $${prof.targetUsd.toLocaleString()} target`
-                              : `✗ < $${prof.targetUsd.toLocaleString()} target`}
+                            {formatCurrency(o.netMonthlyUsd ?? o.estimatedMonthlyRewardUsd)}
                           </span>
                         )}
                       </div>

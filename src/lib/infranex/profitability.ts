@@ -54,6 +54,18 @@ export interface ProfitabilityConfig {
   amortizeBurnMonths: number;
   /** Apply the seat/alpha/earning risk factor to net profit. */
   riskAdjustment: boolean;
+  // --- NET-EARNINGS-1: the full ownership cost stack -----------------------
+  // The miner's real bill is electricity PLUS cooling PLUS maintenance PLUS
+  // the rig itself. Rented rates bundle all of these into the market price —
+  // these lines apply ONLY on the owned basis (0 on rent, by construction).
+  /** Cooling uplift as % of the electricity line (owned basis). */
+  coolingUpliftPct: number;
+  /** Maintenance: cleaning, fans, thermal paste, misc repairs ($/mo, owned). */
+  maintenanceMonthlyUsd: number;
+  /** Total rig build cost for hardware recovery ($, owned; 0 = not set). */
+  rigCapexUsd: number;
+  /** Months over which the rig capex is recovered (depreciation). */
+  rigAmortizeMonths: number;
 }
 
 export const DEFAULT_PROFITABILITY_CONFIG: ProfitabilityConfig = {
@@ -68,6 +80,10 @@ export const DEFAULT_PROFITABILITY_CONFIG: ProfitabilityConfig = {
   includeRegistrationBurn: true,
   amortizeBurnMonths: 3,
   riskAdjustment: true,
+  coolingUpliftPct: 15,
+  maintenanceMonthlyUsd: 15,
+  rigCapexUsd: 0,
+  rigAmortizeMonths: 24,
 };
 
 /** Defensive parse of untrusted JSON (API body / DB row) → valid config. */
@@ -98,6 +114,10 @@ export function sanitizeProfitabilityConfig(raw: unknown): ProfitabilityConfig {
     amortizeBurnMonths: Math.round(num(r.amortizeBurnMonths, d.amortizeBurnMonths, 1, 36)),
     riskAdjustment:
       typeof r.riskAdjustment === "boolean" ? r.riskAdjustment : d.riskAdjustment,
+    coolingUpliftPct: num(r.coolingUpliftPct, d.coolingUpliftPct, 0, 200),
+    maintenanceMonthlyUsd: num(r.maintenanceMonthlyUsd, d.maintenanceMonthlyUsd, 0, 100_000),
+    rigCapexUsd: num(r.rigCapexUsd, d.rigCapexUsd, 0, 10_000_000),
+    rigAmortizeMonths: Math.round(num(r.rigAmortizeMonths, d.rigAmortizeMonths, 1, 120)),
   };
 }
 
@@ -145,7 +165,18 @@ export interface ProfitabilityReport {
   otherOperatingTotalUsd: number;
   /** Amortized registration burn inside Other (0 when disabled). */
   amortizedBurnUsd: number;
-  /** GPU Rental + Storage + Infrastructure + Other operating. */
+  /** FULL upfront registration burn before amortization (0 when disabled). */
+  registrationBurnUsd: number;
+  /** Cooling uplift on the electricity line (owned basis; 0 rented). */
+  coolingUsd: number;
+  /** Maintenance line (owned basis; 0 rented). */
+  maintenanceUsd: number;
+  /** Hardware recovery: rig capex / amortize months (owned; 0 rented or unset). */
+  hardwareRecoveryUsd: number;
+  /** True when owned basis and rigCapexUsd is unset — recovery line is missing. */
+  hardwareRecoveryIncomplete: boolean;
+  /** GPU Rental + Storage + Infrastructure + Other operating + cooling +
+   *  maintenance + hardware recovery. */
   totalCostsUsd: number;
   // --- NET PROFIT ---
   netMonthlyUsd: number;
@@ -256,8 +287,27 @@ export function computeProfitabilityReport(
   const amortizedBurnUsd = burnUsd / Math.max(config.amortizeBurnMonths, 1);
   const otherOperatingTotalUsd = config.otherOpexMonthlyUsd + amortizedBurnUsd;
 
+  // NET-EARNINGS-1 — owned-basis reality lines. On the rented basis the
+  // market GPU rate already bundles cooling, maintenance and the hardware
+  // itself; charging them again would double-count.
+  const owned = config.hardwareMode === "owned";
+  const electricityLine = owned ? gpuRentalUsd : 0;
+  const coolingUsd = owned ? electricityLine * (config.coolingUpliftPct / 100) : 0;
+  const maintenanceUsd = owned ? config.maintenanceMonthlyUsd : 0;
+  const hardwareRecoveryUsd =
+    owned && config.rigCapexUsd > 0
+      ? config.rigCapexUsd / Math.max(config.rigAmortizeMonths, 1)
+      : 0;
+  const hardwareRecoveryIncomplete = owned && config.rigCapexUsd <= 0;
+
   const totalCostsUsd =
-    gpuRentalUsd + storageUsd + infrastructureUsd + otherOperatingTotalUsd;
+    gpuRentalUsd +
+    storageUsd +
+    infrastructureUsd +
+    otherOperatingTotalUsd +
+    coolingUsd +
+    maintenanceUsd +
+    hardwareRecoveryUsd;
 
   // --- NET PROFIT ----------------------------------------------------------
   // Zero-revenue subnets are honest losers: you still pay the cost stack.
@@ -355,6 +405,11 @@ export function computeProfitabilityReport(
     otherOperatingUsd: r1(config.otherOpexMonthlyUsd),
     otherOperatingTotalUsd: r1(otherOperatingTotalUsd),
     amortizedBurnUsd: r1(amortizedBurnUsd),
+    registrationBurnUsd: r1(burnUsd),
+    coolingUsd: r1(coolingUsd),
+    maintenanceUsd: r1(maintenanceUsd),
+    hardwareRecoveryUsd: r1(hardwareRecoveryUsd),
+    hardwareRecoveryIncomplete,
     totalCostsUsd: r1(totalCostsUsd),
     netMonthlyUsd: Math.round(netMonthlyUsd),
     netWeeklyUsd: Math.round(netWeeklyUsd),
