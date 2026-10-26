@@ -134,9 +134,13 @@ export function OpportunitiesView({ onSelectOpportunity, onStartMining }: Opport
             Opportunities
           </h1>
           <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
-            ONE ranked list, ONE verdict. Conviction —{" "}
-            {L.convictionFormula} — is the only
-            ranking.{" "}
+            ONE ranked list, ONE core number. The{" "}
+            <span className="font-medium text-primary">Opportunity Score</span>{" "}
+            (/100 = net contribution 30 · miner performance 20 · hardware fit 20
+            · entry risk 15 · data quality 15) ranks the table — hard gates
+            (hardware mismatch, unverified payout, negative net) always sink a
+            row, no matter how high the raw score. Click a score for its
+            evidence.{" "}
             <span className="font-medium text-success">RUN</span> = point your
             rig here ·{" "}
             <span className="font-medium text-warning">WATCH</span> = viable,
@@ -273,8 +277,8 @@ export function OpportunitiesView({ onSelectOpportunity, onStartMining }: Opport
             Ranked opportunities
           </CardTitle>
           <p className="text-xs text-muted-foreground">
-            Ranked by conviction — the same answer everywhere in the app. Click
-            a row for the full breakdown; the ⋯ menu starts the deploy.
+            Ranked by the Opportunity Score (gated rows sink). Click a row for
+            the full breakdown; the ⋯ menu starts the deploy.
           </p>
         </CardHeader>
         <CardContent>

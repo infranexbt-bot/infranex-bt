@@ -2662,3 +2662,25 @@ Work Log:
 Stage Summary:
 - Download link: <app-preview-url>/guides/Infranex-BT-Investor-Brief.pdf (no login needed)
 - Original still at download/Infranex-BT-GPU-Mining-Business-Model-Investor-Brief.pdf
+
+---
+Task ID: opportunity-score-1
+Agent: main (Super Z)
+Task: User's 5-improvement roadmap — build the Opportunity Score as the app's core feature (per-subnet 0-100, 5 weighted components + hard gates + evidence UI)
+
+Work Log:
+- Surveyed substrate: compat.ts (resolveCompat tiers), win-odds.ts (entry risk inputs), live-merge.ts (rows carry netMonthlyUsd/rewardedRatio/earnChance/demandScore/mechanics/hosting/gpuCount), profitability.ts (P&L), mine-pick/rent-earn (conviction lens)
+- NEW src/lib/infranex/subnet-opportunity.ts: components net 30% (log curve $300→29pts, $3k→100, thin-margin ×0.85) / miner performance 20% (rewardedRatio 3%→65% linear, median-share cap) / hardware fit 20% (compat tier points + unclassified ×0.9 + multi-GPU haircut) / entry risk 15% (earnChance base, top10≥85% ×0.6, ramp ≥8wk ×0.9) / data quality 15% (checklist: source +25, classified +10, mechanics +15, reward vec +10, demand 0-10, confidence 0-40); GATES: HARDWARE_INCOMPATIBLE (TEE always, bare-metal on rented basis, gpuCount≥4 doc config, dedupe by kind), PAYOUT_UNVERIFIED (!mechanics && !requirementsSource), NET_NEGATIVE, NET_BELOW_TARGET; caps 44/49/15/35; rankByOpportunityScore sinks gated below ALL ungated
+- Fixed during build: ProfitabilityReport field names (expectedRevenueUsd), o.liveMiners (not minersCount), o.demandScore (not demandReality); profitMarginPct already-pct double ×100 bug caught in browser evidence dialog
+- scripts/opportunity-score-verify.ts: weights=1.00 OK, arithmetic OK, gate caps OK, gated-sink OK, census {PAYOUT_UNVERIFIED 60, NET_BELOW_TARGET 51, HARDWARE_INCOMPATIBLE 10, NET_NEGATIVE 30}; top-4 all ungated (Numinous 70.1 STRONG, Cathedral 60.3, Pareton 54.4, Hone 49.2); SN82 raw 81.2→49 gated (payout unverified) — ALL INVARIANTS PASS
+- NEW components/opportunities/opportunity-score-cell.tsx: score chip (effective + band + gate triangle) → Dialog with 5 component bars + evidence bullets + gates panel ("HARD GATES — A HIGH SCORE NEVER OVERRIDES THESE") + raw→capped line
+- opportunity-table.tsx: Decision group header (Score+Conviction), opportunity sortKey w/ gated-sink comparator, default sort = opportunity, score cell after Subnet, colSpan 15
+- opportunities-view.tsx: header copy — score is the core ranking, gates always sink rows
+- Browser E2E (agent-browser): login → Opportunities → SN82 Noah 87.6 ELITE dialog (5 components, evidence, weights footer) → gated SN92 REAX 53.6→49 dialog (gate panel renders) → 108 gated / 20 ungated rows in DOM → margin fix verified ("94% margin") → dev.log clean
+- tsc clean; lint: only pre-existing errors in untouched files (append-recovery2.js, deploy-wizard.tsx)
+- Screenshots: download/opp-{score-dialog,gated-dialog,table-final}.png
+
+Stage Summary:
+- SHIPPED: Opportunity Score is now the app's core ranking — every subnet scored /100 from net 30/miners 20/hardware 20/entry 15/data 15, hard-gated (hardware mismatch, unverified payout, negative net never overridden), evidence dialog on every score
+- User's 5 improvements map: #1 compat engine → hardwareFit component (existing resolveCompat + gpuCount gate); #2 net-earnings → netContribution component (profitability P&L); #3 mining-vs-hosting → existing rent-earn/host-providers lenses (conviction column); #4 miner performance → minerPerformance component + Monitoring view; #5 controlled deployment → existing Deployments wizard (approval-gated)
+- Reusable: scripts/opportunity-score-verify.ts re-runs invariants on live data any time
