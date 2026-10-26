@@ -2511,3 +2511,24 @@ Work Log:
 
 Stage Summary:
 - Definitive subnet-GPU matrix delivered in chat; confirms Blackwell 96GB breadth advantage (40 vs 27 GPU subnets + the only GPU RUN) while showing fit ≠ earn across all 84 GPU subnets
+
+---
+Task ID: dc-plan-1
+Agent: main (Z.ai)
+Task: User asked what to do given GPU mining is unprofitable on owned cards — requested the best GPU infra + full setup cost plan for a mini GPU datacenter to earn from subnets. Clarified via AskUserQuestion: budget <=$50k, home power $0.12/kWh, balanced 50/50 strategy, plain GPUs (no TEE), staged 3-6mo, 75/25 capital split, PDF + chat summary deliverable
+
+Work Log:
+- AskUserQuestion batch (7 questions) pinned budget/power/strategy/TEE/timeline/capital-split/format
+- scripts/dc-tier-check.ts — scored 80/141/288GB tiers: H200 adds exactly ONE RUN (SayGM SN28, conv 57, EV $266); B300 adds none (SN51 lium AVOID 30 for mining); hosting >> mining EV for every card class
+- Web research: H200 NVL $31-40k (Network Outlet $39,995, smicro EUR 29,335, Jarvislabs $30-40k), used H100 PCIe $15-28k / refurb $21-34k (compute.exchange), PRO 6000 Server $16.6-20.2k real street
+- VERDICT: Twin-Hopper build — 2x used H100 PCIe 80GB ($31k) + used 4U server + infra = $38,000 capex, $12k buffer (75/25); base net $2,645/mo hosting (2x $1,388 measured - $106 elec - $25 misc), breakeven ~14 mo; bear $1,270 (30 mo), bull $3,180 (12 mo)
+- Balanced 50/50 implemented as anchor slot (host steady) + flex slot (host default, flip to mining when subnet daily EV > hosting day-rate ~$45/day — none today); Phase 0 = VPS CPU RUN list (Noah EV $13,933) immediately
+- PDF pipeline per pdf skill (Report route): read SKILL.md + fonts.md + report.md + all typesetting refs (cover/palette/charts/overflow/pagination/fill-engine/typography/geometry/cover-backgrounds)
+- scripts/dcplan_charts.py (2 PNGs: hosting yield hbar + payback scenarios w/ staggered breakeven labels), scripts/dcplan_cover.html (Template 07 Crystal Blue, passed poster_validate + cover_validate), scripts/dcplan_report.py (ReportLab TocDocTemplate+multiBuild, body-relative TOC page numbers matching roman-i footer scheme, Crystal Blue fixed body palette, Paragraph-wrapped ratio-width tables, CondPageBreak H1 gates, callout stats)
+- QA loop: fixed variable-font registration crash (NotoSansSC[wght] -> static NotoSerifSC), forced exact-A4 cover normalization (2pt->0.1pt tolerance), fixed TOC off-by-one vs footer scheme, fixed em-dash line-start punctuation, fixed "$2,645/mo" + "Breakeven" header wraps; final pdf_qa = PASS with 1 template-driven warning (left-anchored cover margins, by design)
+- Deliverables: download/Mini_GPU_Datacenter_Investment_Plan.pdf (12 pages, ~426KB, vector), download/Mini_GPU_Datacenter_Plan_cover.html (editable cover source)
+
+Stage Summary:
+- Recommended build: Twin-Hopper 2x used H100 PCIe — hosting-first ($2,645/mo base) with engine-triggered mining flips; VPS CPU subnets (Noah/Hone/CliqueAI) run in parallel at ~$40-80/mo
+- Key honest findings delivered: GPU mining alone doesn't pay for hardware at any tier <=$350k; hosting out-earns mining EV for every card; the datacenter is justified as a diversified income stack, not the best $/dollar use of $50k
+- Scripts persisted: dc-tier-check.ts, dcplan_charts.py, dcplan_cover.html, dcplan_report.py (edit + re-run for revisions)
