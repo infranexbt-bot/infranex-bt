@@ -13,6 +13,7 @@ import { runAutopilotPass } from "./autopilot";
 import { runUpstreamPass } from "./upstream";
 import { runBenchmarkPass } from "./benchmarks";
 import { runRunwayPass } from "./runway";
+import { runWinTierWatchPass } from "./win-odds-watch";
 import { runAlertsDigestPass } from "./alerts";
 import { runDeploymentTickerPass } from "./deployment/ticker";
 
@@ -222,6 +223,15 @@ async function runDevopsWorker(): Promise<WorkerRunResult> {
       await runRunwayPass();
     } catch (e) {
       console.warn(`[devops-worker] runway pass skipped: ${e instanceof Error ? e.message : e}`);
+    }
+    // WIN-ODDS-1 — seat-flip watcher: reward-spread improvements between
+    // chain scans (a winner-take-all subnet opening up to new seats).
+    // Stateless (previous tier recomputed from the previous snapshot row).
+    // Must never take the worker down.
+    try {
+      await runWinTierWatchPass();
+    } catch (e) {
+      console.warn(`[devops-worker] win-tier watch pass skipped: ${e instanceof Error ? e.message : e}`);
     }
     tasksProcessed = devops.deploymentsEvaluated;
     const result: WorkerRunResult = {

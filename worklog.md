@@ -2604,3 +2604,23 @@ Stage Summary:
 - Shipped: competition-reality panel answering "where can a NEW seat earn" across all 128 subnets, ranked by newcomer odds, with blunt tier vocabulary + data-cited why-lines
 - Key user-facing numbers: 1 open field (Noah SN82), 19 fightable, 5 knife fights, 103 don't-enter
 - REAX SN92 graded FIGHTABLE (odds data present); verdict chips preserved per row
+
+---
+Task ID: win-odds-2-projection-flips
+Agent: main (Super Z)
+Task: User said "yes both" — build (1) tier-flip alerts when a Don't-enter subnet opens up, (2) per-row your-rig $/mo projection in the win-odds panel
+
+Work Log:
+- triggers-core.ts: added SEAT_FLIP to TriggerKind + TRIGGER_KIND_META (label "Seat Flip", severity info/warning, color emerald)
+- win-odds.ts: added WIN_TIER_RANK + computeRawWinTier() — tier from ChainSnapshot.subnetsJson raw fields (rewardedMiners/minersCount/top10IncentiveShare), same thresholds as panel minus merge-time discounts
+- win-odds-watch.ts (new): runWinTierWatchPass() — stateless flip detection from last 2 ChainSnapshot rows; improvements commit SEAT_FLIP findings (dedupeKey seat-flip-{netuid}-{from}-to-{to}, webhook dispatch on create); regressions autoResolve the open event; runbook includes panel navigation steps
+- workers.ts: runWinTierWatchPass wired into runDevopsWorker (90s cadence, try/catch isolated)
+- API /api/win-odds/flips: recent SEAT_FLIP events for the panel (auth-gated, force-dynamic)
+- win-odds-panel.tsx: replaced verdictFor with pickFor {verdict, netMonthly}; per-row "your rig ~$X/mo" chips (negative shown honestly); "Best seat for your rig today" banner (best net $/mo across Open field+Fightable); "▲ Seat flips · 7d" strip (open events, 7d window, 60s staleTime)
+- opportunities-view.tsx: passes pickFor from pickMap.rent.expectedNetMonthlyUsd
+- Verified: npx tsc clean; scripts/win-odds-flip-test.ts end-to-end (simulated DONT_ENTER→FIGHTABLE flip: committed ✓, dedupe ✓, regression auto-resolve ✓, fakes cleaned); win-odds-verify.ts all spot checks pass; browser check: banner "SN82 Noah ~$13,723/mo net (open field · ~96% month-1 odds)", per-row chips incl. negative −$8/mo on SN123; flips API {"flips":[]}; screenshot download/win-odds-final.png
+- Incidents: dev server died mid-verify (sandbox reaper) — revived with setsid nohup npm run dev
+
+Stage Summary:
+- Shipped both features: (1) seat-flip watcher alerts (bell/trigger center + panel strip) when reward spread improves between scans; (2) your-rig $/mo projections + best-seat banner in the Can-I-win-here panel
+- Flip detection is stateless (prev tier recomputed from previous snapshot row) — survives recycles without schema changes
