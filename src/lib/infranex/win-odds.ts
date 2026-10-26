@@ -245,3 +245,56 @@ export function winTierCounts(rows: WinOdds[]): Record<WinTier, number> {
   for (const r of rows) counts[r.tier] += 1;
   return counts;
 }
+
+/** Lower = better seat (used by the flip watcher to rank improvements). */
+export const WIN_TIER_RANK: Record<WinTier, number> = {
+  OPEN_FIELD: 0,
+  FIGHTABLE: 1,
+  KNIFE_FIGHT: 2,
+  DONT_ENTER: 3,
+  UNKNOWN: 4,
+};
+
+/**
+ * Raw tier from ONLY the fields persisted in ChainSnapshot.subnetsJson
+ * (rewardedMiners/minersCount/top10IncentiveShare/rewardMedianShare) —
+ * same thresholds as computeWinOdds minus the merge-time discounts
+ * (earnChance bond-ramp / displacement). Boundary drift vs the panel is
+ * possible by one tier when a subnet is full or the ramp is long; the flip
+ * watcher therefore words its alerts as "reward spread now qualifies".
+ * Returns null when the scan row carries no usable reward-spread data.
+ */
+export function computeRawWinTier(sub: {
+  minersCount?: number | null;
+  rewardedMiners?: number | null;
+  top10IncentiveShare?: number | null;
+  rewardMedianShare?: number | null;
+}): WinTier | null {
+  const miners = sub.minersCount ?? 0;
+  const rewarded = sub.rewardedMiners;
+  const top10 = sub.top10IncentiveShare ?? null;
+  if ((rewarded == null && top10 == null) || miners <= 0) return null;
+  const rewardedRatio = rewarded != null ? rewarded / miners : null;
+
+  if (
+    (rewardedRatio != null && rewardedRatio < 0.05) ||
+    (top10 != null && top10 >= 0.95)
+  ) {
+    return "DONT_ENTER";
+  }
+  if (
+    (rewardedRatio != null && rewardedRatio < 0.2) ||
+    (top10 != null && top10 >= 0.85)
+  ) {
+    return "KNIFE_FIGHT";
+  }
+  // Without month-1 odds, a spread of <50% rewarded or whales ≥50% is at
+  // best fightable — matches the panel's FIGHTABLE preconditions.
+  if (
+    (rewardedRatio != null && rewardedRatio < 0.5) ||
+    (top10 != null && top10 >= 0.5)
+  ) {
+    return "FIGHTABLE";
+  }
+  return "OPEN_FIELD";
+}

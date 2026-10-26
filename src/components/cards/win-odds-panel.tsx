@@ -1,9 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Crosshair } from "lucide-react";
+import { Crosshair, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   rankWinOdds,
@@ -31,9 +32,11 @@ function top10BarClass(top10Pct: number): string {
 function WinRow({
   w,
   verdict,
+  netMonthly,
 }: {
   w: WinOdds;
   verdict?: string;
+  netMonthly?: number | null;
 }) {
   const style = WIN_TIER_STYLES[w.tier];
   return (
@@ -102,6 +105,17 @@ function WinRow({
             <span className="mono tabular text-[10px]">{Math.round(w.top10Pct)}%</span>
           </span>
         )}
+        {netMonthly != null && (
+          <span
+            className={cn(
+              "mono tabular text-[11px] font-semibold",
+              netMonthly > 0 ? "text-success" : "text-destructive"
+            )}
+            title="Modeled net $/mo for YOUR rig on the active cost basis (owned electricity / market rent) — what this seat pays if you earn"
+          >
+            your rig {netMonthly > 0 ? "~" : "−"}${Math.abs(Math.round(netMonthly)).toLocaleString()}/mo
+          </span>
+        )}
         {verdict && (
           <Badge
             variant="outline"
@@ -139,23 +153,69 @@ function WinRow({
  */
 export function WinOddsPanel({
   rows,
-  verdictFor,
+  pickFor,
 }: {
   rows: WinOddsInput[];
-  verdictFor?: (row: WinOddsInput) => string | undefined;
+  pickFor?: (row: WinOddsInput) =>
+    | { verdict?: string; netMonthly?: number | null }
+    | undefined;
 }) {
   const [tierFilter, setTierFilter] = useState<WinTier | "all">("all");
 
   const ranked = useMemo(() => rankWinOdds(rows), [rows]);
   const counts = useMemo(() => winTierCounts(ranked), [ranked]);
-  // netuid → verdict chip (RUN/WATCH/AVOID) — re-computed per render, cheap.
+  // netuid → verdict chip + your-rig $/mo — re-computed per render, cheap.
   const verdictMap = new Map<number, string>();
-  if (verdictFor) {
+  const netMonthlyMap = new Map<number, number>();
+  if (pickFor) {
     for (const r of rows) {
-      const v = verdictFor(r);
-      if (v) verdictMap.set(r.netuid, v);
+      const p = pickFor(r);
+      if (!p) continue;
+      if (p.verdict) verdictMap.set(r.netuid, p.verdict);
+      if (p.netMonthly != null && Number.isFinite(p.netMonthly)) {
+        netMonthlyMap.set(r.netuid, p.netMonthly);
+      }
     }
   }
+  // Best seat for THIS rig across the tiers worth entering (Open field +
+  // Fightable) — the direct answer to "if I enter today, what do I make?".
+  const bestSeat = useMemo(() => {
+    let best: { w: WinOdds; net: number } | null = null;
+    for (const w of ranked) {
+      if (w.tier !== "OPEN_FIELD" && w.tier !== "FIGHTABLE") continue;
+      const net = netMonthlyMap.get(w.netuid);
+      if (net != null && (!best || net > best.net)) best = { w, net };
+    }
+    return best;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ranked, rows]);
+  const flips = useQuery<{
+    flips: {
+      id: string;
+      netuid: number | null;
+      title: string;
+      detail: string;
+      from: string | null;
+      to: string | null;
+      status: string;
+      createdAt: string;
+    }[];
+  }>({
+    queryKey: ["win-odds-flips"],
+    queryFn: async () => {
+      const res = await fetch("/api/win-odds/flips", { cache: "no-store" });
+      if (!res.ok) throw new Error("flips unavailable");
+      return res.json();
+    },
+    staleTime: 60_000,
+    refetchInterval: 120_000,
+  });
+  const recentFlips = (flips.data?.flips ?? []).filter(
+    (f) =>
+      f.status === "open" &&
+      f.to != null &&
+      Date.now() - new Date(f.createdAt).getTime() < 7 * 24 * 3600_000
+  );
   const visible = useMemo(
     () => (tierFilter === "all" ? ranked : ranked.filter((r) => r.tier === tierFilter)),
     [ranked, tierFilter]
@@ -183,6 +243,35 @@ export function WinOddsPanel({
         </p>
       </CardHeader>
       <CardContent className="space-y-2.5">
+        {bestSeat && (
+          <div className="flex flex-wrap items-center gap-2 rounded-lg border border-success/30 bg-success/[0.06] px-3 py-2 text-xs">
+            <TrendingUp className="h-3.5 w-3.5 text-success" />
+            <span className="text-muted-foreground">Best seat for your rig today:</span>
+            <span className="mono font-semibold">SN{String(bestSeat.w.netuid).padStart(2, "0")} {bestSeat.w.subnetName}</span>
+            <span className={cn("mono tabular font-bold", "text-success")}>
+              ~${Math.abs(Math.round(bestSeat.net)).toLocaleString()}/mo net
+            </span>
+            <span className="text-muted-foreground">
+              ({WIN_TIER_STYLES[bestSeat.w.tier].label.toLowerCase()} · ~{bestSeat.w.oddsPct ?? "?"}% month-1 odds)
+            </span>
+          </div>
+        )}
+        {recentFlips.length > 0 && (
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-[10px] font-semibold uppercase tracking-wide text-success">
+              ▲ Seat flips · 7d
+            </span>
+            {recentFlips.slice(0, 6).map((f) => (
+              <span
+                key={f.id}
+                className="inline-flex items-center gap-1 rounded-full border border-success/40 bg-success/10 px-2 py-0.5 text-[10px] font-medium text-success"
+                title={f.detail}
+              >
+                SN{String(f.netuid ?? 0).padStart(2, "0")} → {f.to != null ? WIN_TIER_STYLES[f.to as WinTier]?.label ?? f.to : "?"}
+              </span>
+            ))}
+          </div>
+        )}
         <div className="flex flex-wrap items-center gap-1.5">
           <button
             onClick={() => setTierFilter("all")}
@@ -221,7 +310,12 @@ export function WinOddsPanel({
 
         <div className="max-h-[430px] space-y-1.5 overflow-y-auto pr-1">
           {visible.map((w) => (
-            <WinRow key={w.netuid} w={w} verdict={verdictMap.get(w.netuid)} />
+            <WinRow
+              key={w.netuid}
+              w={w}
+              verdict={verdictMap.get(w.netuid)}
+              netMonthly={netMonthlyMap.get(w.netuid) ?? null}
+            />
           ))}
           {visible.length === 0 && (
             <p className="py-6 text-center text-xs text-muted-foreground">

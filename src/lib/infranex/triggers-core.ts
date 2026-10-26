@@ -29,7 +29,12 @@ export type TriggerKind =
   // TIER4 / RUNWAY-1 — committed by the immunity-runway pass (runway.ts)
   // when the eviction T-minus enters the watch/at-risk bands (pre-expiry
   // warning; the live EVICTABLE state stays owned by DEREG_RISK).
-  | "RUNWAY";
+  | "RUNWAY"
+  // WIN-ODDS-1 — committed by the win-odds watcher (win-odds-watch.ts) when
+  // a subnet's reward spread IMPROVES between chain scans — e.g. a
+  // winner-take-all subnet starts paying its broader miner base, so a NEW
+  // seat becomes worth registering (DONT_ENTER → FIGHTABLE → OPEN_FIELD).
+  | "SEAT_FLIP";
 
 export const TRIGGER_KIND_META: Record<
   TriggerKind,
@@ -63,6 +68,8 @@ export const TRIGGER_KIND_META: Record<
   BENCH_REGRESS: { label: "Bench Regress", severity: "warning", color: "teal" },
   // TIER4 — immunity runway T-minus entered the watch/at-risk band (runway.ts).
   RUNWAY: { label: "Runway", severity: "critical", color: "lime" },
+  // WIN-ODDS-1 — reward spread improved between scans; a new seat can earn.
+  SEAT_FLIP: { label: "Seat Flip", severity: "info", color: "emerald" },
 };
 
 export interface TriggerEventDTO {

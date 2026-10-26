@@ -203,7 +203,13 @@ export function OpportunitiesView({ onSelectOpportunity, onStartMining }: Opport
           it answers "should I even enter" before "which RUN is best". */}
       <WinOddsPanel
         rows={opportunities}
-        verdictFor={(o) => pickMap.get(o.id)?.verdict}
+        pickFor={(o) => {
+          const p = pickMap.get(o.id ?? "");
+            return {
+              verdict: p?.verdict,
+              netMonthly: p?.rent.expectedNetMonthlyUsd ?? null,
+            };
+        }}
       />
 
       <div className="flex flex-wrap items-center gap-2">
