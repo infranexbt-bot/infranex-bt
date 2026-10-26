@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { OpportunityTable } from "@/components/tables/opportunity-table";
 import { OpportunityCard } from "@/components/cards/opportunity-detail";
+import { WinOddsPanel } from "@/components/cards/win-odds-panel";
 import { ProfitabilitySettingsDialog } from "@/components/cards/profitability-settings";
 import { CostBasisToggle } from "@/components/cards/cost-basis-toggle";
 import { useNetwork, mergeOpportunities } from "@/hooks/use-network";
@@ -196,6 +197,14 @@ export function OpportunitiesView({ onSelectOpportunity, onStartMining }: Opport
       {/* VERDICT-UNIFY-1 — the earnPicks chip strip is gone: rent-earn is
           already 40% of conviction, so it was a second mini-ranking. The GPU
           filter ("Rented/Owned rig picks") still covers "what can MY rig run". */}
+
+      {/* WIN-ODDS-1 — the pre-money question: where can a NEW seat earn,
+          graded by reward concentration. Sits above the ranked table because
+          it answers "should I even enter" before "which RUN is best". */}
+      <WinOddsPanel
+        rows={opportunities}
+        verdictFor={(o) => pickMap.get(o.id)?.verdict}
+      />
 
       <div className="flex flex-wrap items-center gap-2">
         {tabs.map((t) => (

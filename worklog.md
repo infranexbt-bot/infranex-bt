@@ -2584,3 +2584,23 @@ Stage Summary:
 - Verdict for user: app IS working — its AVOID list is the money-saver; 1 GPU RUN exists (REAX SN92); biggest EV is CPU (Noah SN82); on Chutes/iota/NOVA-class subnets buying high-end GPUs loses money because moat = scale+code+stake, not the GPU
 - Recommended plan: (1) start CPU RUNs, (2) REAX as GPU path with 62% odds, (3) never register on <10% rewardedRatio subnets, (4) consider staking/validator side with $40k
 - Offered next build: Competition Reality panel (per-subnet entry odds, top-10 threshold tracking)
+
+---
+Task ID: win-odds-panel-1
+Agent: main (Super Z)
+Task: Build the "Can I win here?" competition-reality panel into Opportunities (user said "yes build it")
+
+Work Log:
+- Explored: opportunities-view.tsx (283 lines, client merge pipeline), register-odds.tsx (existing odds chips), miner-score.ts computeEarnChance/SeatChance (raw signals already on every LiveOpportunity row)
+- Built src/lib/infranex/win-odds.ts — client-safe pure lib: computeWinOdds / rankWinOdds / winTierCounts. Tiers: OPEN_FIELD / FIGHTABLE / KNIFE_FIGHT / DONT_ENTER / UNKNOWN, derived from rewardedRatio, top10IncentiveShare, rewardMedianShare, freeSlots, rampWeeks, earnChance; worst-first rule order
+- Built src/components/cards/win-odds-panel.tsx — tier filter chips + ranked 128-row list (mo-1 odds, % slots earn, top-10% bar, why-lines, RUN/WATCH/AVOID cross-chip)
+- Wired into opportunities-view.tsx above the ranked table (WIN-ODDS-1 comment)
+- Fixed TS2339 by adding id?: string to WinOddsInput
+- Revived dead dev server (setsid nohup npm run dev, up in ~5s)
+- Verified: scripts/win-odds-verify.ts — census OPEN 1 / FIGHTABLE 19 / KNIFE 5 / DONT_ENTER 103; REAX FIGHTABLE, Noah OPEN_FIELD, Chutes+iota DONT_ENTER; browser check via agent-browser login → Opportunities → panel renders, tier filter works, SN30 case proves whale-dominance override (84% earn but top-10 take 99% → Don't enter)
+- Screenshot: download/win-odds-panel-verify.png
+
+Stage Summary:
+- Shipped: competition-reality panel answering "where can a NEW seat earn" across all 128 subnets, ranked by newcomer odds, with blunt tier vocabulary + data-cited why-lines
+- Key user-facing numbers: 1 open field (Noah SN82), 19 fightable, 5 knife fights, 103 don't-enter
+- REAX SN92 graded FIGHTABLE (odds data present); verdict chips preserved per row
