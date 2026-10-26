@@ -2721,3 +2721,19 @@ Stage Summary:
 - SHIPPED: opportunities now rank on expected net earnings (base month) with the conservative floor visible on every row; every scenario carries a data-confidence level with named drivers; the full ownership cost stack (electricity/cooling/registration/maintenance/hardware recovery) is deducted and displayed; popular-subnet traps are flagged (RAMP_LOSS 81, LOSS_MAKING 31) before money is spent.
 - User's ask mapped 1:1: competition+validator scoring+uptime+ramp → factor decomposition shown per scenario; costs → waterfall + cost-stack line; cons/base/opt + confidence → 3 cards with HIGH/MEDIUM/LOW chips; avoid-traps → conservativeVerdict + existing NET gates (score untouched, still core ranking).
 - Reusable: scripts/net-earnings-verify.ts re-runs invariants any time; rankByNetEarnings exported for future sort presets.
+
+---
+Task ID: app-load-restore-9
+Agent: main
+Task: "load the web app" — routine server revival + health verification
+
+Work Log:
+- GET /login and / both returned 000 (server process reaped again)
+- Revived via proven ritual: (setsid nohup bun run dev >/dev/null 2>&1 &) from /home/z/my-project
+- /login 200 within ~12s
+- bun scripts/verify-app-health.ts → ALL PASS: login OK; /api/network 129 subnets source=live block=9369558; /api/playbook 106 entries (SN82=Noah); /api/subnet-overrides 112 overrides (69 GPU); /api/profitability-config 200
+- DB untouched, no wipe; chain block advanced from 9,369,237 → 9,369,558 confirming live data flow
+
+Stage Summary:
+- App fully restored with net-earnings ranking feature live (shipped last session, task app-load-restore-8 follow-up): Opportunities rank on base-month net earnings, 3 scenarios + confidence, cost stack, trap flags
+- Public investor PDF still served at /guides/Infranex-BT-Investor-Brief.pdf (proxy.ts exemption)
