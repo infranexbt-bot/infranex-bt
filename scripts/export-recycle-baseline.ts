@@ -6,7 +6,8 @@
  * network access after a sandbox recycle wipes db/custom.db.
  *
  * Captures: SubnetOverride rows (incl. GitHub enrichment), SubnetPlaybook
- * rows, and the latest ChainSnapshot (marked source="baseline" on insert).
+ * rows, the latest ChainSnapshot (marked source="baseline" on insert), and
+ * the ProfitabilitySettings singleton (operator rig profile).
  *
  * Run after any restore/enrichment: bun --smol scripts/export-recycle-baseline.ts
  */
@@ -17,7 +18,7 @@ const db = new PrismaClient();
 const OUT = "scripts/recycle-baseline.json";
 
 async function main() {
-  const [overrides, playbook, snap] = await Promise.all([
+  const [overrides, playbook, snap, settings] = await Promise.all([
     db.subnetOverride.findMany({
       select: {
         netuid: true, name: true, description: true, category: true,
@@ -29,6 +30,7 @@ async function main() {
     }),
     db.subnetPlaybook.findMany({ orderBy: { netuid: "asc" } }),
     db.chainSnapshot.findFirst({ orderBy: { createdAt: "desc" } }),
+    db.profitabilitySettings.findUnique({ where: { id: 1 } }),
   ]);
 
   if (overrides.length === 0 || playbook.length === 0) {
@@ -38,6 +40,21 @@ async function main() {
 
   const baseline = {
     exportedAt: new Date().toISOString(),
+    settings: settings
+      ? {
+          minNetProfitTargetUsd: settings.minNetProfitTargetUsd,
+          storageMonthlyUsd: settings.storageMonthlyUsd,
+          infraMonthlyUsd: settings.infraMonthlyUsd,
+          otherOpexMonthlyUsd: settings.otherOpexMonthlyUsd,
+          hardwareMode: settings.hardwareMode,
+          electricityUsdPerKwh: settings.electricityUsdPerKwh,
+          rigGpuVramGb: settings.rigGpuVramGb,
+          rigTeeCapable: settings.rigTeeCapable,
+          includeRegistrationBurn: settings.includeRegistrationBurn,
+          amortizeBurnMonths: settings.amortizeBurnMonths,
+          riskAdjustment: settings.riskAdjustment,
+        }
+      : null,
     overrides: overrides.map((o) => ({ ...o, requirementsScrapedAt: null })),
     playbook: playbook.map((p) => ({
       netuid: p.netuid,
@@ -73,7 +90,7 @@ async function main() {
   writeFileSync(OUT, JSON.stringify(baseline));
   const mb = (JSON.stringify(baseline).length / 1024 / 1024).toFixed(2);
   console.log(
-    `baseline written: ${OUT} — overrides=${overrides.length} playbook=${playbook.length} snapshot=${snap ? "yes(b" + snap.blockNumber + ")" : "no"} (${mb}MB)`
+    `baseline written: ${OUT} — overrides=${overrides.length} playbook=${playbook.length} snapshot=${snap ? "yes(b" + snap.blockNumber + ")" : "no"} settings=${settings ? settings.hardwareMode + "/" + settings.rigGpuVramGb + "GB" : "none"} (${mb}MB)`
   );
 }
 

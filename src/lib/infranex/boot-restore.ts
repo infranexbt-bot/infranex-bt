@@ -68,10 +68,27 @@ interface BaselineSnapshot {
   capturedAt?: string; // baseline metadata — NOT a schema column, stripped on insert
 }
 
+interface BaselineSettings {
+  minNetProfitTargetUsd: number;
+  storageMonthlyUsd: number;
+  infraMonthlyUsd: number;
+  otherOpexMonthlyUsd: number;
+  hardwareMode: string;
+  electricityUsdPerKwh: number;
+  rigGpuVramGb: number;
+  rigTeeCapable: boolean;
+  includeRegistrationBurn: boolean;
+  amortizeBurnMonths: number;
+  riskAdjustment: boolean;
+}
+
 interface Baseline {
   overrides: BaselineOverride[];
   playbook: BaselinePlaybookRow[];
   snapshot: BaselineSnapshot | null;
+  /** Singleton operator profile (owned/rent, rig VRAM/TEE). Optional so older
+   *  baselines without it still parse; restored when the table is empty. */
+  settings?: BaselineSettings | null;
 }
 
 function baselinePath(): string {
@@ -140,14 +157,15 @@ export async function maybeRunBootRestore(): Promise<{ restored: string[]; skipp
   if (decided) return { restored, skipped: true };
   decided = true;
   try {
-    const [ovrCount, playCount, snapCount] = await Promise.all([
+    const [ovrCount, playCount, snapCount, profCount] = await Promise.all([
       db.subnetOverride.count(),
       db.subnetPlaybook.count(),
       db.chainSnapshot.count(),
+      db.profitabilitySettings.count(),
     ]);
-    if (ovrCount > 0 && playCount > 0 && snapCount > 0) {
+    if (ovrCount > 0 && playCount > 0 && snapCount > 0 && profCount > 0) {
       console.log(
-        `[boot-restore] DB healthy (overrides=${ovrCount} playbook=${playCount} snapshots=${snapCount}) — nothing to do`
+        `[boot-restore] DB healthy (overrides=${ovrCount} playbook=${playCount} snapshots=${snapCount} settings=${profCount}) — nothing to do`
       );
       return { restored, skipped: true };
     }
@@ -201,6 +219,19 @@ export async function maybeRunBootRestore(): Promise<{ restored: string[]; skipp
           },
         });
         restored.push(`snapshot=block${s.blockNumber}`);
+      }
+      if (profCount === 0 && baseline.settings) {
+        // Operator profile (OWNED-RIG-1) — restore the saved rig basis so the
+        // engine scores on owned/96GB/TEE right after a recycle, instead of
+        // silently reverting to rent/0GB defaults on the first GET.
+        await db.profitabilitySettings.upsert({
+          where: { id: 1 },
+          update: { ...baseline.settings },
+          create: { id: 1, ...baseline.settings },
+        });
+        restored.push(
+          `settings=${baseline.settings.hardwareMode}/${baseline.settings.rigGpuVramGb}GB`
+        );
       }
       console.log(
         restored.length
