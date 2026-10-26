@@ -2568,3 +2568,19 @@ Stage Summary:
 - Top-10 hardware: institutional on marketplaces (8x H200/H100 fleets, TDX bare metal); on research subnets they own 4-8x H100 training rigs or NOTHING (validator-side compute; skill is the moat)
 - Entry math: buying bigger GPUs does NOT buy share (rewards track served traffic/completed rounds/skill, not VRAM); realistic paths: (a) broad-reward subnets (REAX 93% rew, ReadyAI/ItsAI 93-95% but sub-$150 EV), (b) compliance-subnet entry with exact-fit hardware (Affine 393 free seats, 2x PRO 6000 = manifest-exact), (c) CPU skill subnets (Noah $13.6k/mo), (d) host-first (Twin-Hopper) since hosting pays > mining EV
 - App proposals: concentration chip (BROAD/MIXED/SKEWED/WHALE), competitive-moat drawer surfacing playbook top10 intel, broadening-alerts via snapshot ring buffer, odds-mode sort
+
+---
+Task ID: top10-competition-1
+Agent: main (Super Z)
+Task: User frustration — "no way to earn on Bittensor, no RUN GPU, what is this app for, what should I do". Research top-10 dominance and deliver honest answer.
+
+Work Log:
+- Re-ran scripts/opp-gpu-diagnose.ts: pipeline intact, 4 RUN (Noah SN82 CPU 90/$13,712, Hone SN5 CPU 80/$874, CliqueAI SN83 CPU 76/$388, REAX SN92 GPU 75/$446 rewPct 93, 62% month-1 earn chance)
+- Confirmed knife-fight economics on other GPU subnets: Chutes rew 7%, iota 1%, NOVA 2%, Actual 0%, Targon 1% — app correctly caps them at AVOID
+- Web research grounded: Chutes docs show top miners run Kubernetes clusters + gepetto scale-strategy code + 850GB-5TB model caches (datacenter ops, not single-GPU); SN64 gets ~13% of all TAO emissions, miners split ~198.7 TAO/day, 256/256 slots full; Bittensor mining is subnet-choice problem (OnFinality guide), stake-weighted vTrust concentrates rewards
+- Research subagents timed out twice; synthesized from app data + direct searches instead
+
+Stage Summary:
+- Verdict for user: app IS working — its AVOID list is the money-saver; 1 GPU RUN exists (REAX SN92); biggest EV is CPU (Noah SN82); on Chutes/iota/NOVA-class subnets buying high-end GPUs loses money because moat = scale+code+stake, not the GPU
+- Recommended plan: (1) start CPU RUNs, (2) REAX as GPU path with 62% odds, (3) never register on <10% rewardedRatio subnets, (4) consider staking/validator side with $40k
+- Offered next build: Competition Reality panel (per-subnet entry odds, top-10 threshold tracking)
