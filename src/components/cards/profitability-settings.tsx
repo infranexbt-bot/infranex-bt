@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Settings2, Target, Loader2, CheckCircle2, Cpu, Coins, TrendingUp } from "lucide-react";
+import { Settings2, Target, Loader2, CheckCircle2, Cpu, Coins, TrendingUp, Scale, ShieldAlert } from "lucide-react";
 import {
   useProfitabilityConfig,
   useSaveProfitabilityConfig,
@@ -31,6 +31,21 @@ import {
   DEFAULT_PROFITABILITY_CONFIG,
   type ProfitabilityConfig,
 } from "@/lib/infranex/profitability";
+import {
+  OPPORTUNITY_WEIGHTS_LABELS,
+  type OpportunityComponentKey,
+} from "@/lib/infranex/subnet-opportunity";
+
+/** OPPORTUNITY-SCORE-2 — the seven configurable factor weights. */
+const WEIGHT_FIELDS: OpportunityComponentKey[] = [
+  "netTaoPotential",
+  "minerCompetitiveness",
+  "rewardSustainability",
+  "validatorAcceptance",
+  "gpuCostEfficiency",
+  "operationalReliability",
+  "econProtocolRisk",
+];
 
 interface ProfitabilitySettingsDialogProps {
   open: boolean;
@@ -269,6 +284,61 @@ function SettingsForm({
           (e.g. 500 = “TAO doubles”). Empty/0 = follow the live price. This
           re-values every subnet equally, so the ranking never changes — only
           what the banked TAO is worth.
+        </p>
+        {/* OPPORTUNITY-SCORE-2 — runtime-configurable component weights. */}
+        <Separator className="my-3" />
+        <div className="flex items-center gap-2">
+          <Scale className="h-4 w-4 text-primary" />
+          <Label className="text-sm font-semibold">Opportunity score weights (%)</Label>
+        </div>
+        <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-2 sm:grid-cols-4">
+          {WEIGHT_FIELDS.map((k) => (
+            <div key={k}>
+              <Label className="text-[10px] font-medium capitalize">
+                {OPPORTUNITY_WEIGHTS_LABELS[k]}
+              </Label>
+              <Input
+                type="number"
+                min={0}
+                max={100}
+                step={1}
+                value={String(Math.round(draft.opportunityWeights[k] * 1000) / 10)}
+                onChange={(e) => {
+                  const pct = Number(e.target.value);
+                  const v = Number.isFinite(pct) && pct >= 0 ? pct / 100 : 0;
+                  set("opportunityWeights", { ...draft.opportunityWeights, [k]: v });
+                }}
+                className="mt-1 h-8 text-sm"
+              />
+            </div>
+          ))}
+        </div>
+        <p className="mt-2 text-xs text-muted-foreground">
+          The seven factor weights of the Opportunity Score (0–100). Percentages
+          are normalized to sum 100% on save, so hand tweaks can never break the
+          scale. Defaults: 30 / 20 / 15 / 10 / 10 / 10 / 5.
+        </p>
+        {/* OPPORTUNITY-CONTROLS — the approved-spend ceiling (§10). */}
+        <Separator className="my-3" />
+        <div className="flex items-center gap-2">
+          <ShieldAlert className="h-4 w-4 text-primary" />
+          <Label className="text-sm font-semibold">Max approved spend ($/mo per deployment)</Label>
+        </div>
+        <Input
+          type="number"
+          min={0}
+          step={50}
+          placeholder="No cap"
+          value={draft.maxApprovedSpendUsd != null ? String(draft.maxApprovedSpendUsd) : ""}
+          onChange={(e) => {
+            const n = Number(e.target.value);
+            set("maxApprovedSpendUsd", Number.isFinite(n) && n > 0 ? n : null);
+          }}
+          className="mt-2 h-10 w-40 text-lg font-bold"
+        />
+        <p className="mt-2 text-xs text-muted-foreground">
+          Deployment control: the API refuses any GPU rental above this
+          monthly cost, before a provider can charge you. Empty = no cap.
         </p>
       </div>
 

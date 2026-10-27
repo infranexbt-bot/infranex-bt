@@ -56,6 +56,12 @@ export const DEVOPS_THRESHOLDS = {
   sampleRetention: 240,
   /** Median rewarded incentive shift (relative) that counts as an economics regime change. */
   economicsShiftPct: 0.5,
+  // OPPORTUNITY-ENGINE-2 (§10) — performance-vs-projection thresholds: when a
+  // live miner's measured run-rate lags its creation-time projection this
+  // hard, for this many earning days, the pass recommends STOP-OR-SWITCH.
+  perfLagWarnRatio: 0.5,
+  perfLagCriticalRatio: 0.25,
+  perfMinEarningDays: 3,
 } as const;
 
 // ---------------------------------------------------------------------------
@@ -110,7 +116,7 @@ export interface DevopsPassResult {
   resolved: number;
   findings: {
     deploymentId: string;
-    kind: "GPU_HEALTH" | "SUBNET_DRIFT";
+    kind: "GPU_HEALTH" | "SUBNET_DRIFT" | "PERFORMANCE_LAG";
     action: string;
   }[];
 }
@@ -225,6 +231,15 @@ export async function runDevopsPass(
       result.findings.push({ deploymentId: dep.id, kind: "SUBNET_DRIFT", action: f.action });
     }
     result.resolved += drift.resolved;
+
+    // ---- OPPORTUNITY-ENGINE-2 (§10): performance vs projection -----------
+    const perf = await evaluatePerformanceVsProjection(dep);
+    for (const f of perf.findings) {
+      if (f.action === "created") result.created++;
+      else if (f.action === "refreshed") result.refreshed++;
+      result.findings.push({ deploymentId: dep.id, kind: "PERFORMANCE_LAG", action: f.action });
+    }
+    result.resolved += perf.resolved;
   }
 
   passState.lastRunAt = Date.now();
@@ -734,4 +749,93 @@ export function planDriftRemediation(changes: string[]): DriftRemediationPlan {
 
 async function autoResolveIfOpen(dedupeKey: string): Promise<number> {
   return autoResolve("SUBNET_DRIFT", dedupeKey);
+}
+
+// ---------------------------------------------------------------------------
+// OPPORTUNITY-ENGINE-2 (§10) — performance-vs-projection evaluator. Compares
+// the deployment's MEASURED earnings (EarningsDaily, chain-sampled) against
+// the TRUST-LOOP projection snapshotted at creation. Persistent lag beyond
+// the thresholds = a STOP-OR-SWITCH recommendation with the numbers attached.
+// Honest limits: needs ≥ perfMinEarningDays sampled days and a projection;
+// mock deployments and projection-less miners are skipped (no verdict).
+// ---------------------------------------------------------------------------
+
+interface PerfFinding {
+  action: "created" | "refreshed" | "exists" | "resolved" | "none";
+}
+
+async function evaluatePerformanceVsProjection(dep: {
+  id: string;
+  minerName: string;
+  netuid: number;
+  subnetName: string;
+  mode: string;
+  projectedMonthlyTao: number | null;
+  status: string;
+}): Promise<{ resolved: number; findings: PerfFinding[] }> {
+  const findings: PerfFinding[] = [];
+  const dedupeKey = `${dep.id}:performance-lag`;
+
+  // No projection or a test-harness deployment → honest skip, quiet baseline.
+  if (dep.mode === "mock" || dep.projectedMonthlyTao == null || dep.projectedMonthlyTao <= 0) {
+    return { resolved: await autoResolve("PERFORMANCE_LAG", dedupeKey), findings };
+  }
+
+  let days: { day: string; earnedTao: number }[] = [];
+  try {
+    days = await db.earningsDaily.findMany({
+      where: { deploymentId: dep.id },
+      orderBy: { day: "desc" },
+      take: 14,
+      select: { day: true, earnedTao: true },
+    });
+  } catch {
+    return { resolved: 0, findings };
+  }
+  const sampled = days.filter((d) => d.earnedTao > 0);
+  if (sampled.length < DEVOPS_THRESHOLDS.perfMinEarningDays) {
+    // Not enough measured history to judge — resolve any stale alarm.
+    return { resolved: await autoResolve("PERFORMANCE_LAG", dedupeKey), findings };
+  }
+
+  const recent = sampled.slice(0, DEVOPS_THRESHOLDS.perfMinEarningDays);
+  const meanDailyTao = recent.reduce((s, d) => s + d.earnedTao, 0) / recent.length;
+  const runRateMonthlyTao = meanDailyTao * 30;
+  const ratio = runRateMonthlyTao / dep.projectedMonthlyTao;
+
+  if (ratio >= DEVOPS_THRESHOLDS.perfLagWarnRatio) {
+    return { resolved: await autoResolve("PERFORMANCE_LAG", dedupeKey), findings };
+  }
+
+  const critical = ratio < DEVOPS_THRESHOLDS.perfLagCriticalRatio;
+  const r = await commitFinding({
+    kind: "PERFORMANCE_LAG",
+    severity: critical ? "critical" : "warning",
+    dedupeKey,
+    title: `"${dep.minerName}" earns ${Math.round(ratio * 100)}% of projection on α${dep.netuid} ${dep.subnetName}`,
+    detail:
+      `Measured run-rate over the last ${recent.length} earning days is ${runRateMonthlyTao.toFixed(2)} TAO/mo vs the ${dep.projectedMonthlyTao.toFixed(2)} TAO/mo projected at deployment (${Math.round(ratio * 100)}%). ` +
+      (critical
+        ? "Below the 25% critical line — the economics that justified this rental have not materialized. Stop the deployment and pick a replacement from the Opportunities ranking."
+        : "Below the 50% warning line — investigate the miner (scores, deregistration risk) and compare the Opportunities ranking for a better lane."),
+    evidence: {
+      netuid: dep.netuid,
+      projectedMonthlyTao: dep.projectedMonthlyTao,
+      runRateMonthlyTao: Math.round(runRateMonthlyTao * 100) / 100,
+      ratio: Math.round(ratio * 100) / 100,
+      sampledDays: recent.map((d) => d.day),
+      suggestedAction: critical ? "stop-and-switch" : "investigate",
+    },
+    deploymentId: dep.id,
+    netuid: dep.netuid,
+    runbook: [
+      "Open My Miners → check the miner's scores and last-epoch rewards for execution problems (fixable in place).",
+      critical
+        ? "Stop the deployment — the measured run-rate cannot pay for itself at this projection gap."
+        : "If execution looks healthy, the subnet moved — re-check its row on Opportunities.",
+      "Pick the replacement from the Opportunities ranking (filter: risk-adjusted) and start a TEST-sized deployment.",
+    ],
+  });
+  findings.push({ action: r });
+  return { resolved: 0, findings };
 }

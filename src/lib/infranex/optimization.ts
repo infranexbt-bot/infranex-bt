@@ -130,7 +130,7 @@ function computeHealthScore(
 }
 
 /** Load the SubnetOverride table as the merge map (same shape the client builds). */
-async function loadOverrides(): Promise<Map<number, Record<string, unknown>>> {
+export async function loadOverrides(): Promise<Map<number, Record<string, unknown>>> {
   const map = new Map<number, Record<string, unknown>>();
   try {
     const rows = await db.subnetOverride.findMany();

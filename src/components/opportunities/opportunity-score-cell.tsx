@@ -12,16 +12,16 @@ import {
 import { cn } from "@/lib/utils";
 import {
   OPPORTUNITY_BAND_STYLE,
-  OPPORTUNITY_WEIGHTS,
+  OPPORTUNITY_WEIGHTS_LABELS,
   type SubnetOpportunityScore,
   type OpportunityScoreComponent,
 } from "@/lib/infranex/subnet-opportunity";
 
-// OPPORTUNITY-SCORE-1 UI — the score chip + its evidence dialog.
+// OPPORTUNITY-SCORE-2 UI — the score chip + its evidence dialog.
 // The chip shows the effective score (gated rows carry a warning triangle);
-// the dialog shows ALL five weighted components with their evidence bullets,
-// because the rule is: the score is never shown without the evidence that
-// produced it.
+// the dialog shows ALL weighted components with their evidence bullets + the
+// data confidence, because the rule is: the score is never shown without the
+// evidence that produced it.
 
 function pointsBarClass(points: number): string {
   if (points >= 80) return "bg-success";
@@ -143,9 +143,30 @@ export function OpportunityScoreCell({ score }: { score?: SubnetOpportunityScore
           ))}
         </div>
 
+        <div className="rounded-lg border border-border/50 bg-card/30 p-3">
+          <div className="flex items-baseline justify-between gap-2">
+            <span className="text-xs font-medium">Data confidence</span>
+            <span className="mono tabular text-xs font-semibold">
+              {Math.round(score.dataConfidence * 100)}%
+            </span>
+          </div>
+          <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-border/40">
+            <div
+              className={cn(
+                "h-full rounded-full",
+                score.dataConfidence >= 0.7 ? "bg-success" : score.dataConfidence >= 0.45 ? "bg-warning" : "bg-destructive"
+              )}
+              style={{ width: `${Math.max(2, Math.round(score.dataConfidence * 100))}%` }}
+            />
+          </div>
+          <p className="mt-1.5 text-[11px] leading-snug text-muted-foreground">
+            How much verified data stands behind this score — missing inputs and unverified payout sources drag it down. It never lifts points; it blocks the SCALE classification when low.
+          </p>
+        </div>
+
         <p className="text-[11px] leading-snug text-muted-foreground">
-          Weights: {Object.entries(OPPORTUNITY_WEIGHTS)
-            .map(([k, w]) => `${Math.round(w * 100)}% ${OPPORTUNITY_WEIGHTS_LABELS[k] ?? k}`)
+          Weights: {score.components
+            .map((c) => `${Math.round(c.weight * 100)}% ${OPPORTUNITY_WEIGHTS_LABELS[c.key] ?? c.key}`)
             .join(" · ")}
           . A starting point, not a proven reward predictor — read the evidence, not just the number.
         </p>
@@ -153,11 +174,3 @@ export function OpportunityScoreCell({ score }: { score?: SubnetOpportunityScore
     </Dialog>
   );
 }
-
-const OPPORTUNITY_WEIGHTS_LABELS: Record<string, string> = {
-  netContribution: "net contribution",
-  minerPerformance: "miner performance",
-  hardwareFit: "hardware fit",
-  entryRisk: "entry risk",
-  dataQuality: "data quality",
-};

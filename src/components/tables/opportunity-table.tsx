@@ -35,8 +35,28 @@ import {
 import { SeatChanceBadge } from "@/components/subnets/seat-chance-badge";
 import { RegisterOddsInline } from "@/components/cards/register-odds";
 import { HostingChips } from "@/components/cards/hosting-requirements";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { OpportunityScoreCell } from "@/components/opportunities/opportunity-score-cell";
-import { computeOpportunityScoreMap } from "@/lib/infranex/subnet-opportunity";
+import {
+  computeOpportunityScoreMap,
+  type SubnetOpportunityScore,
+} from "@/lib/infranex/subnet-opportunity";
+import {
+  computeEntryDifficultyMap,
+  DIFFICULTY_META,
+  type EntryDifficultyVerdict,
+} from "@/lib/infranex/entry-difficulty";
+import {
+  classifyOpportunity,
+  ACTION_META,
+  type OpportunityClassification,
+} from "@/lib/infranex/opportunity-class";
 import {
   computeNetEarningsMap,
   CONFIDENCE_BAND_STYLE,
@@ -80,7 +100,13 @@ type SortKey =
   | "alphaChange24h"
   | "liquidityTao"
   | "burnCostTao"
-  | "demandScore";
+  | "demandScore"
+  // OPPORTUNITY-ENGINE-2 — spec'd sorts: conservative net TAO, lowest GPU
+  // cost, easiest entry, lowest competition.
+  | "netTaoConservative"
+  | "gpuCost"
+  | "ease"
+  | "competition";
 
 function SortIcon({
   k,
@@ -146,6 +172,9 @@ export function OpportunityTable({
   const [sortKey, setSortKey] = useState<SortKey>("opportunity");
   const [dir, setDir] = useState<"asc" | "desc">("desc");
   const [search, setSearch] = useState("");
+  // OPPORTUNITY-ENGINE-2 — difficulty + action filters (spec §7).
+  const [difficultyFilter, setDifficultyFilter] = useState<string>("all");
+  const [classFilter, setClassFilter] = useState<string>("all");
   // Winner-stability trends for ALL subnets in ONE request — TanStack Query
   // dedupes every table/card mount onto a single cache entry.
   const { data: oddsTrends } = useOddsTrends();
@@ -185,8 +214,17 @@ export function OpportunityTable({
       computeOpportunityScoreMap(opportunities as never[], {
         hardwareMode: ownedBasis ? "owned" : "rented",
         minNetTargetUsd: profConfig?.minNetProfitTargetUsd,
+        weights: profConfig?.opportunityWeights,
       }),
-    [opportunities, ownedBasis, profConfig?.minNetProfitTargetUsd]
+    [opportunities, ownedBasis, profConfig?.minNetProfitTargetUsd, profConfig?.opportunityWeights]
+  );
+
+  // OPPORTUNITY-ENGINE-2 — entry difficulty (EASY/MODERATE/DIFFICULT/UNKNOWN)
+  // single-pass, keyed by row id like every other map. The action
+  // classification follows netEarningsMap below (it consumes estimates).
+  const diffMap = useMemo(
+    () => computeEntryDifficultyMap(opportunities as never[]),
+    [opportunities]
   );
 
   // NET-EARNINGS-1 — conservative/base/optimistic estimate + confidence for
@@ -221,6 +259,32 @@ export function OpportunityTable({
     [opportunities, netEarningsMap, taoSnap?.taoPriceUsd, profConfig?.targetTaoPerMonth, profConfig?.assumedTaoPriceUsd]
   );
 
+  // OPPORTUNITY-ENGINE-2 — the four-way action classification
+  // (TEST/SCALE/WATCHLIST/AVOID) — needs score + estimates + difficulty.
+  const classMap = useMemo(
+    () =>
+      new Map<string, OpportunityClassification>(
+        opportunities
+          .map((o) => {
+            const id = o.id;
+            try {
+              return [
+                id,
+                classifyOpportunity(o as never, {
+                  score: scoreMap.get(id),
+                  est: netEarningsMap.get(id) ?? null,
+                  difficulty: diffMap.get(id),
+                }),
+              ] as const;
+            } catch {
+              return null;
+            }
+          })
+          .filter((x): x is readonly [string, OpportunityClassification] => x != null)
+      ),
+    [opportunities, scoreMap, netEarningsMap, diffMap]
+  );
+
   const filtered = useMemo(() => {
     let r = opportunities;
     if (search.trim()) {
@@ -232,6 +296,12 @@ export function OpportunityTable({
           String(o.netuid).includes(q) ||
           o.category.toLowerCase().includes(q)
       );
+    }
+    if (difficultyFilter !== "all") {
+      r = r.filter((o) => diffMap.get(o.id)?.difficulty === difficultyFilter);
+    }
+    if (classFilter !== "all") {
+      r = r.filter((o) => classMap.get(o.id)?.action === classFilter);
     }
     const sorted = [...r].sort((a, b) => {
       let av: unknown;
@@ -245,6 +315,30 @@ export function OpportunityTable({
       } else if (sortKey === "netTaoPerMonth") {
         av = taoMap.get(a.id)?.netTaoPerMonth ?? -999;
         bv = taoMap.get(b.id)?.netTaoPerMonth ?? -999;
+      } else if (sortKey === "netTaoConservative") {
+        av = taoMap.get(a.id)?.conservativeNetTaoPerMonth ?? -999;
+        bv = taoMap.get(b.id)?.conservativeNetTaoPerMonth ?? -999;
+      } else if (sortKey === "gpuCost") {
+        av = a.gpuCostMonthlyUsd ?? Number.POSITIVE_INFINITY;
+        bv = b.gpuCostMonthlyUsd ?? Number.POSITIVE_INFINITY;
+      } else if (sortKey === "ease") {
+        // UNKNOWN rows (no ease score) always sink, in both directions.
+        av = diffMap.get(a.id)?.easeScore ?? -1;
+        bv = diffMap.get(b.id)?.easeScore ?? -1;
+      } else if (sortKey === "competition") {
+        // "Lowest competition" — rewards broadly shared first (rewardedRatio
+        // desc), concentration as tiebreak (top-10 share asc). Miner COUNT is
+        // deliberately not the metric: a quiet subnet can be quiet because
+        // nobody earns there.
+        const ra = (a as never as { rewardedRatio?: number | null }).rewardedRatio ?? -1;
+        const rb = (b as never as { rewardedRatio?: number | null }).rewardedRatio ?? -1;
+        if (ra !== rb) {
+          av = ra;
+          bv = rb;
+        } else {
+          av = (a as never as { top10IncentiveShare?: number | null }).top10IncentiveShare ?? 2;
+          bv = (b as never as { top10IncentiveShare?: number | null }).top10IncentiveShare ?? 2;
+        }
       } else if (sortKey === "opportunity") {
         // Gated rows ALWAYS sink below ungated ones, regardless of score —
         // the code-level enforcement of "a high score never overrides a
@@ -270,7 +364,7 @@ export function OpportunityTable({
         : String(bv).localeCompare(String(av));
     });
     return sorted;
-  }, [opportunities, sortKey, dir, search, rentMap, pickMap, scoreMap, taoMap]);
+  }, [opportunities, sortKey, dir, search, rentMap, pickMap, scoreMap, taoMap, diffMap, difficultyFilter, classFilter, classMap]);
 
   const handleSort = (k: SortKey) => {
     if (sortKey === k) {
@@ -284,15 +378,42 @@ export function OpportunityTable({
   return (
     <div className={cn("space-y-4", className)}>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="relative w-full sm:w-72">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search subnets…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="h-9 rounded-lg border-border/60 bg-card/50 pl-9 focus:border-primary/40"
-            aria-label="Search opportunities"
-          />
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative w-full sm:w-60">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search subnets…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="h-9 rounded-lg border-border/60 bg-card/50 pl-9 focus:border-primary/40"
+              aria-label="Search opportunities"
+            />
+          </div>
+          {/* OPPORTUNITY-ENGINE-2 — difficulty + action filters. */}
+          <Select value={difficultyFilter} onValueChange={setDifficultyFilter}>
+            <SelectTrigger className="h-9 w-[10.5rem] rounded-lg border-border/60 bg-card/50 text-xs" aria-label="Filter by entry difficulty">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all" className="text-xs">All difficulties</SelectItem>
+              <SelectItem value="EASY" className="text-xs">{DIFFICULTY_META.EASY.label} to earn</SelectItem>
+              <SelectItem value="MODERATE" className="text-xs">{DIFFICULTY_META.MODERATE.label} to earn</SelectItem>
+              <SelectItem value="DIFFICULT" className="text-xs">{DIFFICULTY_META.DIFFICULT.label} to earn</SelectItem>
+              <SelectItem value="UNKNOWN" className="text-xs">{DIFFICULTY_META.UNKNOWN.label}</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={classFilter} onValueChange={setClassFilter}>
+            <SelectTrigger className="h-9 w-[11rem] rounded-lg border-border/60 bg-card/50 text-xs" aria-label="Filter by recommended action">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all" className="text-xs">All actions</SelectItem>
+              <SelectItem value="SCALE" className="text-xs">{ACTION_META.SCALE.label} — evidence-backed</SelectItem>
+              <SelectItem value="TEST" className="text-xs">{ACTION_META.TEST.label} — validate small</SelectItem>
+              <SelectItem value="WATCHLIST" className="text-xs">{ACTION_META.WATCHLIST.label} — research first</SelectItem>
+              <SelectItem value="AVOID" className="text-xs">{ACTION_META.AVOID.label} — do not deploy</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         <p className="text-xs text-muted-foreground">
           <span className="tabular text-foreground/80">{filtered.length}</span> of{" "}
@@ -316,9 +437,9 @@ export function OpportunityTable({
                   Subnet
                 </SortableTh>
                 <TableHead
-                  colSpan={2}
+                  colSpan={3}
                   className="h-7 text-center"
-                  title="Decision — Opportunity Score (core: net 30% · miner performance 20% · hardware fit 20% · entry risk 15% · data quality 15%, hard-gated) and Conviction (rent-earn × diligence × confidence). Click a score for its evidence."
+                  title="Decision — Opportunity Score (7 configurable factors: net TAO 30% · miner competitiveness 20% · reward sustainability 15% · validator acceptance 10% · GPU cost efficiency 10% · operational reliability 10% · economic & protocol risk 5%, hard-gated), Conviction (rent-earn × diligence × confidence), and the recommended Action (TEST/SCALE/WATCHLIST/AVOID) with entry difficulty. Click a score for its evidence."
                 >
                   <span className="inline-flex items-center gap-1">
                     <Target className="h-3 w-3 text-primary" />
@@ -398,7 +519,7 @@ export function OpportunityTable({
                   dir={dir}
                   onSort={handleSort}
                 >
-                  <span title="OPPORTUNITY SCORE — the core ranking. Net contribution 30% · actual miner performance 20% · hardware & deployment fit 20% · competition & entry risk 15% · data quality & stability 15%. Hard gates (hardware mismatch, unverified payout, negative net) cap the score and sink the row — they are never overridden by a high number. Click for the full evidence.">
+                  <span title="OPPORTUNITY SCORE — the core ranking. 7 configurable factors: net TAO potential 30% · miner competitiveness 20% · reward sustainability 15% · validator acceptance 10% · GPU cost efficiency 10% · operational reliability 10% · economic & protocol risk 5%. Hard gates (hardware mismatch, unverified payout, negative net) cap the score and sink the row — they are never overridden by a high number. Click for the full evidence.">
                     Score
                   </span>
                 </SortableTh>
@@ -412,6 +533,18 @@ export function OpportunityTable({
                 >
                   <span title={`CONVICTION — the deployment lens. ${L.convictionStatTooltip} RUN ≥ 50 · WATCH 35–49 · AVOID below or gated.`}>
                     Conviction
+                  </span>
+                </SortableTh>
+              )}
+              {!compact && (
+                <SortableTh
+                  k="ease"
+                  sortKey={sortKey}
+                  dir={dir}
+                  onSort={handleSort}
+                >
+                  <span title="ACTION & DIFFICULTY — the recommended action (SCALE = evidence-backed · TEST = validate small · WATCHLIST = research first · AVOID = do not deploy) over the entry difficulty (how hard a NEW miner finds earning here — measured from rewarded seats, concentration, slots, ramp and hardware, never from miner count alone). Sorting ranks the easiest entry first; filter by either with the toolbar.">
+                    Action
                   </span>
                 </SortableTh>
               )}
@@ -543,7 +676,7 @@ export function OpportunityTable({
             {filtered.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={compact ? 5 : 16}
+                  colSpan={compact ? 5 : 17}
                   className="py-12 text-center text-muted-foreground"
                 >
                   No opportunities match your search.
@@ -625,6 +758,43 @@ export function OpportunityTable({
                             ) : null;
                           })()}
                         </div>
+                      </TableCell>
+                    )}
+                    {/* OPPORTUNITY-ENGINE-2 — Action (TEST/SCALE/WATCHLIST/
+                        AVOID) over the entry difficulty, each with its
+                        reasons one hover away. */}
+                    {!compact && (
+                      <TableCell>
+                        {(() => {
+                          const cls = classMap.get(o.id);
+                          const diff = diffMap.get(o.id);
+                          if (!cls && !diff) return <span className="text-xs text-muted-foreground">—</span>;
+                          const am = cls ? ACTION_META[cls.action] : null;
+                          const dm = diff ? DIFFICULTY_META[diff.difficulty] : null;
+                          return (
+                            <div className="flex flex-col items-start gap-1">
+                              {am && (
+                                <span
+                                  className={cn("rounded border px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide", am.className)}
+                                  title={`RECOMMENDED ACTION — ${cls!.headline}\n\n${cls!.reasons.join("\n")}${cls!.upgradePath ? `\n\nUpgrade path: ${cls!.upgradePath}` : ""}`}
+                                >
+                                  {am.label}
+                                </span>
+                              )}
+                              {dm && (
+                                <span
+                                  className={cn("rounded border px-1.5 py-0.5 text-[9px] font-medium", dm.className)}
+                                  title={`ENTRY DIFFICULTY — ${dm.detail}\n\n${diff!.reasons.join("\n")}`}
+                                >
+                                  {diff!.difficulty}
+                                  {diff!.easeScore != null && (
+                                    <span className="ml-1 tabular opacity-70">{diff!.easeScore}</span>
+                                  )}
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })()}
                       </TableCell>
                     )}
                     <TableCell className="text-right">
@@ -737,7 +907,7 @@ export function OpportunityTable({
                             <>
                               <div className="flex items-center justify-end gap-1.5">
                                 <span
-                                  title={`TAO ACCUMULATION (base month, realizable prices) — gross ${tao.grossTaoPerMonth.toFixed(2)} TAO (α→TAO after the pool haircut) − costs ${tao.costsTaoPerMonth.toFixed(2)} TAO = net ${tao.netTaoPerMonth.toFixed(2)} TAO/mo.\nGoal: ${tao.targetTaoPerMonth} TAO/mo${tao.goalRatio != null ? ` → ${tao.goalRatio >= 1 ? "met" : `${Math.round(tao.goalRatio * 100)}% of goal`}` : ""}.\nAt $${tao.taoPriceUsd.toFixed(2)}/TAO. Worst month ${tao.conservativeNetTaoPerMonth.toFixed(2)} TAO · best ${tao.optimisticNetTaoPerMonth.toFixed(2)} TAO.${tao.conversionHaircutPct != null ? `\nPool haircut already charged: ${tao.conversionHaircutPct.toFixed(1)}% below spot.` : ""}${tao.thinPool ? `\n⚠ Thin pool (${Math.round(tao.poolDepthTao ?? 0).toLocaleString()} TAO side) — large conversions realize worse.` : ""}${tao.assumedTaoPriceUsd != null && tao.valueAtAssumedYearlyUsd != null ? `\nYour long-term bet: at $${tao.assumedTaoPriceUsd.toFixed(0)}/TAO this row's banked TAO is worth $${tao.valueAtAssumedMonthlyUsd?.toFixed(0)}/mo · $${tao.valueAtAssumedYearlyUsd.toFixed(0)}/yr (re-valued equally — ranking unchanged).` : ""}`}
+                                  title={`TAO ACCUMULATION (base month, realizable prices) — gross ${tao.grossTaoPerMonth.toFixed(2)} TAO (α→TAO after the pool haircut) − costs ${tao.costsTaoPerMonth.toFixed(2)} TAO = net ${tao.netTaoPerMonth.toFixed(2)} TAO/mo.\nGoal: ${tao.targetTaoPerMonth} TAO/mo${tao.goalRatio != null ? ` → ${tao.goalRatio >= 1 ? "met" : `${Math.round(tao.goalRatio * 100)}% of goal`}` : ""}.\nAt $${tao.taoPriceUsd.toFixed(2)}/TAO. Worst month ${tao.conservativeNetTaoPerMonth.toFixed(2)} TAO · best ${tao.optimisticNetTaoPerMonth.toFixed(2)} TAO.${tao.conversionHaircutPct != null ? `\nPool haircut already charged: ${tao.conversionHaircutPct.toFixed(1)}% below spot.` : ""}${tao.thinPool ? `\n⚠ Thin pool (${Math.round(tao.poolDepthTao ?? 0).toLocaleString()} TAO side) — large conversions realize worse.` : ""}${tao.assumedTaoPriceUsd != null && tao.valueAtAssumedYearlyUsd != null ? `\nYour long-term bet: at $${tao.assumedTaoPriceUsd.toFixed(0)}/TAO this row's banked TAO is worth $${tao.valueAtAssumedMonthlyUsd?.toFixed(0)}/mo · $${tao.valueAtAssumedYearlyUsd.toFixed(0)}/yr (re-valued equally — ranking unchanged).` : ""}\nHORIZONS (net · conservative): 7d ${tao.horizons[0].netTao.toFixed(2)} · ${tao.horizons[0].conservativeNetTao.toFixed(2)} | 30d ${tao.horizons[1].netTao.toFixed(2)} · ${tao.horizons[1].conservativeNetTao.toFixed(2)} | 90d ${tao.horizons[2].netTao.toFixed(2)} · ${tao.horizons[2].conservativeNetTao.toFixed(2)} TAO`}
                                   className={cn(
                                     "tabular font-semibold",
                                     tao.netTaoPerMonth > 0

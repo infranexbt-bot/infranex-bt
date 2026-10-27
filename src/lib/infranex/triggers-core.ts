@@ -34,13 +34,18 @@ export type TriggerKind =
   // a subnet's reward spread IMPROVES between chain scans — e.g. a
   // winner-take-all subnet starts paying its broader miner base, so a NEW
   // seat becomes worth registering (DONT_ENTER → FIGHTABLE → OPEN_FIELD).
-  | "SEAT_FLIP";
+  | "SEAT_FLIP"
+  // OPPORTUNITY-ENGINE-2 (§10) — committed by the devops pass when a live
+  // deployment's measured earnings lag its TRUST-LOOP projection beyond the
+  // configured threshold: the evidence-backed STOP-OR-SWITCH recommendation.
+  | "PERFORMANCE_LAG";
 
 export const TRIGGER_KIND_META: Record<
   TriggerKind,
   { label: string; severity: "info" | "warning" | "critical"; color: string }
 > = {
   RE_SYNC: { label: "Re-Sync", severity: "warning", color: "amber" },
+  PERFORMANCE_LAG: { label: "Perf. lag", severity: "warning", color: "amber" },
   SCALE: { label: "Scale", severity: "info", color: "sky" },
   KILL: { label: "Kill", severity: "critical", color: "red" },
   DEREG_RISK: { label: "Dereg Risk", severity: "critical", color: "violet" },

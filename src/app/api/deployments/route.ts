@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireActiveUser } from "@/lib/auth-admin";
+import { db } from "@/lib/db";
 import {
   createDeployment,
   listDeployments,
@@ -164,6 +165,25 @@ export async function POST(req: NextRequest) {
         { error: "GPU offer not found — connect a provider API key in the GPU catalog and pick a live offer" },
         { status: 400 }
       );
+    }
+
+    // OPPORTUNITY-CONTROLS (§10) — the approved-spend ceiling. The operator
+    // sets maxApprovedSpendUsd in Profitability settings; a rental above it
+    // is refused HERE, before any provider call can cost money. Null = no cap.
+    try {
+      const prof = await db.profitabilitySettings.findUnique({ where: { id: 1 } });
+      const cap = prof?.maxApprovedSpendUsd;
+      if (cap != null && cap > 0 && offer.monthlyPrice > cap) {
+        return NextResponse.json(
+          {
+            error: `Refused by the spend control: this offer costs $${Math.round(offer.monthlyPrice).toLocaleString()}/mo, above your $${Math.round(cap).toLocaleString()}/mo approved maximum. Raise the cap in Profitability settings if this is intentional.`,
+          },
+          { status: 422 }
+        );
+      }
+    } catch {
+      // Settings unavailable → no cap enforceable; the admin gate above is
+      // still the authority on who can spend.
     }
 
     if (!minerName?.trim()) {
