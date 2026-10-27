@@ -177,6 +177,9 @@ model ProfitabilitySettings {
   // TAO-ACCUMULATION-1 — the user bets on accumulating TAO (~1 TAO/mo);
   // the α→TAO mode's goal line (0 = disabled, verdicts then just use net>0).
   targetTaoPerMonth       Float    @default(1)
+  // TAO-ACCUMULATION-2 — the long-term bet: value banked TAO at this $/TAO
+  // assumption instead of the live price (null = follow the live price).
+  assumedTaoPriceUsd      Float?
   storageMonthlyUsd       Float    @default(15)
   infraMonthlyUsd         Float    @default(0) // 0 = auto by work type
   otherOpexMonthlyUsd     Float    @default(25)
