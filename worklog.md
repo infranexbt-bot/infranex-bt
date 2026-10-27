@@ -2737,3 +2737,19 @@ Work Log:
 Stage Summary:
 - App fully restored with net-earnings ranking feature live (shipped last session, task app-load-restore-8 follow-up): Opportunities rank on base-month net earnings, 3 scenarios + confidence, cost stack, trap flags
 - Public investor PDF still served at /guides/Infranex-BT-Investor-Brief.pdf (proxy.ts exemption)
+
+---
+Task ID: app-load-restore-10
+Agent: main
+Task: "load the app" — full sandbox recycle recovery (DB wipe + wedged dev cache)
+
+Work Log:
+- GET /login -> 000; first setsid revival produced a messy double-bind (EADDRINUSE in dev.log from stale holder); after tree kill the /login PAGE hung >90s while middleware routes stayed fast (/ 307, /api/network 401 in 11ms, static PDF 200 in 10ms)
+- Diagnosed TWO stacked failures: (1) full DB wipe (sandbox recycle) — AppUser=0, SubnetOverride=8 partial, SubnetPlaybook TABLE MISSING (boot's db:push raced/aborted), ChainSnapshot=6 stale, boot-restore aborted with "non-fatal failure" because playbook count() threw; (2) wedged Next dev compiler cache (.next) blocking all on-demand page compiles
+- Recovery chain executed: pkill dev tree → bun run db:push (schema synced, 57ms) → bun scripts/restore-users.ts (5 users from infranex-users.local.json: admin/analyst01/ops01/ops02/viewer01, codes re-hashed) → DELETE partial overrides + stale snapshots + stale settings row (so all four boot-restore gates trigger) → rm -rf .next → setsid restart
+- boot-restore at boot: "[boot-restore] restored from baseline: overrides=112, playbook=106, snapshot=block9368172, settings=owned/96GB" then "[boot-restore] live chain snapshot persisted (block 9373015)" (+25s delayed refresh)
+- /login 200 at t+5s after .next clear; verify-app-health.ts ALL PASS: 129 subnets source=live block=9373045, playbook 106 SN82=Noah, 112 overrides (69 GPU), profitability-config 200
+- Settings basis verified via API: owned / 96GB / TEE=true / target $300 (saved operator profile intact, NOT rent/0GB defaults)
+
+Stage Summary:
+- App fully restored after another sandbox recycle. Two new runbook learnings: (a) when dev.log shows EADDRINUSE at setsid revival, a stale holder survived — pkill the whole tree before restart; (b) when PAGE routes hang but middleware/API/static respond fast, the .next dev cache is wedged — rm -rf .next before restart. Full chain: pkill → db:push → restore-users → clear partial tables → rm -rf .next → setsid restart → boot-restore self-heals the rest
