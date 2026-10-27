@@ -12,10 +12,13 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { TrendingUp, AlertTriangle, Cpu, Wallet, Calculator, Coins } from "lucide-react";
+import { TrendingUp, AlertTriangle, Cpu, Wallet, Calculator, Coins, Gauge, Compass } from "lucide-react";
 import { formatNumber } from "@/lib/utils";
 import { assessSeatChance, formatBurnTao } from "@/lib/infranex/miner-score";
 import { computeMinePick, VERDICT_STYLE } from "@/lib/infranex/mine-pick";
+import { computeSubnetOpportunityScore } from "@/lib/infranex/subnet-opportunity";
+import { computeEntryDifficulty, DIFFICULTY_META } from "@/lib/infranex/entry-difficulty";
+import { classifyOpportunity, ACTION_META } from "@/lib/infranex/opportunity-class";
 import { costBasisFromConfig } from "@/lib/infranex/rent-earn";
 import { RegisterOddsBlock, RegisterOddsInline } from "@/components/cards/register-odds";
 import { HostingWarningBlock, HostingChips } from "@/components/cards/hosting-requirements";
@@ -94,6 +97,24 @@ export function OpportunityDetailDialog({
         assumedTaoPriceUsd: profConfig?.assumedTaoPriceUsd,
       })
     : null;
+
+  // OPPORTUNITY-ENGINE-2 — difficulty + action classification for this row
+  // (same engines the table columns use, so dialog and table never disagree).
+  // Plain consts — this component returns early when closed, so hooks are
+  // not allowed here (same pattern as `estimate`/`taoAcc` above).
+  const scoreLocal = estimate
+    ? computeSubnetOpportunityScore(o as never, {
+        hardwareMode: profConfig?.hardwareMode === "owned" ? "owned" : "rented",
+        minNetTargetUsd: profConfig?.minNetProfitTargetUsd,
+        weights: profConfig?.opportunityWeights,
+      })
+    : undefined;
+  const diffLocal = computeEntryDifficulty(o as never);
+  const clsLocal = classifyOpportunity(o as never, {
+    score: scoreLocal,
+    est: estimate ?? null,
+    difficulty: diffLocal,
+  });
 
   // VERDICT-UNIFY-1 / PNL-RECONCILE-1 — the dialog's headline badge + score
   // must speak the ONE conviction vocabulary. Before this change the badge
@@ -648,6 +669,77 @@ export function OpportunityDetailDialog({
               </div>
             )}
 
+            {/* OPPORTUNITY-ENGINE-2 — difficulty & action: how hard is a NEW
+                miner's entry here, and what the evidence supports doing
+                about it. Reasons always attached, never a naked label. */}
+            {(diffLocal || clsLocal) && (
+              <div className="mt-3 grid gap-2 border-t border-border/60 pt-3 sm:grid-cols-2">
+                {diffLocal && (
+                  <div className="rounded-md border border-border/60 px-3 py-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                        <Gauge className="h-3 w-3 text-primary" />
+                        Entry difficulty
+                      </p>
+                      <span
+                        className={cn(
+                          "rounded border px-1.5 py-0.5 text-[10px] font-semibold",
+                          DIFFICULTY_META[diffLocal.difficulty].className
+                        )}
+                      >
+                        {DIFFICULTY_META[diffLocal.difficulty].label}
+                        {diffLocal.easeScore != null && (
+                          <span className="ml-1 tabular opacity-70">{diffLocal.easeScore}/100</span>
+                        )}
+                      </span>
+                    </div>
+                    <ul className="mt-1.5 space-y-1">
+                      {diffLocal.reasons.slice(0, 5).map((r, i) => (
+                        <li key={i} className="flex gap-1.5 text-[10px] leading-snug text-muted-foreground">
+                          <span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-border" aria-hidden />
+                          <span>{r}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {clsLocal && (
+                  <div className="rounded-md border border-border/60 px-3 py-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                        <Compass className="h-3 w-3 text-primary" />
+                        Recommended action
+                      </p>
+                      <span
+                        className={cn(
+                          "rounded border px-1.5 py-0.5 text-[10px] font-semibold uppercase",
+                          ACTION_META[clsLocal.action].className
+                        )}
+                      >
+                        {ACTION_META[clsLocal.action].label}
+                      </span>
+                    </div>
+                    <p className="mt-1.5 text-[10px] font-medium leading-snug text-foreground">
+                      {clsLocal.headline}
+                    </p>
+                    <ul className="mt-1 space-y-1">
+                      {clsLocal.reasons.slice(0, 5).map((r, i) => (
+                        <li key={i} className="flex gap-1.5 text-[10px] leading-snug text-muted-foreground">
+                          <span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-border" aria-hidden />
+                          <span>{r}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    {clsLocal.upgradePath && (
+                      <p className="mt-1.5 text-[10px] leading-snug text-primary/80">
+                        <span className="font-semibold">Upgrade path:</span> {clsLocal.upgradePath}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* TAO-ACCUMULATION-1 — the goal view: TAO banked per month at
                 realizable α→TAO prices, measured against the user's goal. */}
             {taoAcc && (
@@ -792,6 +884,22 @@ export function OpportunityDetailDialog({
                       settings to value the banked TAO at your long-term bet.
                     </p>
                   )}
+                </div>
+                {/* OPPORTUNITY-ENGINE-2 — 7/30/90-day accumulation horizons
+                    (net · conservative), derived from the ROUNDED monthly. */}
+                <div className="mt-2 grid grid-cols-3 gap-2">
+                  {taoAcc.horizons.map((h) => (
+                    <div key={h.days} className="rounded-md border border-border/60 px-2.5 py-1.5">
+                      <p className="text-[9px] uppercase tracking-widest text-muted-foreground">{h.days}-day net TAO</p>
+                      <p className="tabular text-sm font-bold text-foreground">
+                        {h.netTao.toFixed(2)}
+                        <span className="ml-1 text-[10px] font-normal text-muted-foreground">TAO</span>
+                      </p>
+                      <p className="tabular text-[10px] text-muted-foreground">
+                        worst {h.conservativeNetTao.toFixed(2)}
+                      </p>
+                    </div>
+                  ))}
                 </div>
                 <p className="mt-1 text-[10px] leading-snug text-muted-foreground">
                   <span className="font-semibold">Basis:</span> the net-earnings base month re-denominated at the live

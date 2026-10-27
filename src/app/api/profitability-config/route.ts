@@ -50,11 +50,18 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: "invalid JSON body" }, { status: 400 });
   }
   const config = sanitizeProfitabilityConfig(body);
+  // OPPORTUNITY-SCORE-2 — the weight object persists as its JSON column form;
+  // everything else maps 1:1 onto the schema columns.
+  const { opportunityWeights, ...rest } = config;
+  const dbData = {
+    ...rest,
+    opportunityWeightsJson: JSON.stringify(opportunityWeights),
+  };
   try {
     await db.profitabilitySettings.upsert({
       where: { id: 1 },
-      update: { ...config },
-      create: { id: 1, ...config },
+      update: { ...dbData },
+      create: { id: 1, ...dbData },
     });
     return NextResponse.json(config);
   } catch (e) {

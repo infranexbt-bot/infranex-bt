@@ -36,6 +36,12 @@ import type { NetEarningsEstimate } from "./net-earnings";
 
 export type TaoVerdict = "GOAL_MET" | "PROGRESS" | "NEGATIVE";
 
+export interface TaoHorizonPoint {
+  days: 7 | 30 | 90;
+  netTao: number;
+  conservativeNetTao: number;
+}
+
 export interface TaoAccumulation {
   id: string;
   netuid: number;
@@ -63,6 +69,9 @@ export interface TaoAccumulation {
   // --- TAO-ACCUMULATION-2: the long-term bet ------------------------------
   /** Base month ×12 — the pace at today's realizable prices. */
   taoPerYear: number;
+  /** OPPORTUNITY-ENGINE-2 — accumulation horizons from the ROUNDED monthly
+   *  net (display-consistent: 7d = monthly × 7/30, 90d = monthly × 3). */
+  horizons: TaoHorizonPoint[];
   /** The user's long-term $/TAO assumption (null = follow live). */
   assumedTaoPriceUsd: number | null;
   /** (assumption ÷ live − 1) × 100 — how far the bet is from today. */
@@ -145,6 +154,15 @@ export function computeTaoAccumulation(
       ? ctx.assumedTaoPriceUsd
       : null;
   const taoPerYear = r2(netTaoRounded * 12);
+  // OPPORTUNITY-ENGINE-2 — 7/30/90-day accumulation horizons, derived from
+  // the ROUNDED monthly figures so every displayed horizon equals what the
+  // user gets multiplying the displayed monthly number themselves.
+  const conservativeRounded = r2(conservativeNetTaoPerMonth);
+  const horizons: TaoHorizonPoint[] = [
+    { days: 7, netTao: r2((netTaoRounded * 7) / 30), conservativeNetTao: r2((conservativeRounded * 7) / 30) },
+    { days: 30, netTao: netTaoRounded, conservativeNetTao: conservativeRounded },
+    { days: 90, netTao: r2(netTaoRounded * 3), conservativeNetTao: r2(conservativeRounded * 3) },
+  ];
   const assumedUpsidePct =
     assumed != null ? r2((assumed / taoUsd - 1) * 100) : null;
   const valueAtAssumedMonthlyUsd =
@@ -184,6 +202,7 @@ export function computeTaoAccumulation(
     goalRatio,
     verdict,
     taoPerYear,
+    horizons,
     assumedTaoPriceUsd: assumed,
     assumedUpsidePct,
     valueAtAssumedMonthlyUsd,

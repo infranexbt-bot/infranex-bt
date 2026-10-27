@@ -19,6 +19,11 @@
 // ---------------------------------------------------------------------------
 
 import type { ScoreComponents } from "./miner-score";
+import {
+  OPPORTUNITY_WEIGHTS,
+  sanitizeOpportunityWeights,
+  type OpportunityWeightSet,
+} from "./subnet-opportunity";
 
 // ---------------------------------------------------------------------------
 // Configuration — persisted in SQLite (ProfitabilitySettings singleton),
@@ -74,6 +79,13 @@ export interface ProfitabilityConfig {
   rigCapexUsd: number;
   /** Months over which the rig capex is recovered (depreciation). */
   rigAmortizeMonths: number;
+  // --- OPPORTUNITY-SCORE-2: the decision-engine knobs ---------------------
+  /** Runtime-configurable component weights (normalized to sum 1). Editable
+   *  in settings; persisted as JSON in the DB; defaults = documented spec. */
+  opportunityWeights: OpportunityWeightSet;
+  /** OPPORTUNITY-CONTROLS — max APPROVED GPU spend per deployment ($/mo).
+   *  null = no cap. The deployment API refuses rentals above it. */
+  maxApprovedSpendUsd: number | null;
 }
 
 export const DEFAULT_PROFITABILITY_CONFIG: ProfitabilityConfig = {
@@ -94,6 +106,8 @@ export const DEFAULT_PROFITABILITY_CONFIG: ProfitabilityConfig = {
   maintenanceMonthlyUsd: 15,
   rigCapexUsd: 0,
   rigAmortizeMonths: 24,
+  opportunityWeights: { ...OPPORTUNITY_WEIGHTS },
+  maxApprovedSpendUsd: null, // null = no cap
 };
 
 /** Defensive parse of untrusted JSON (API body / DB row) → valid config. */
@@ -136,6 +150,18 @@ export function sanitizeProfitabilityConfig(raw: unknown): ProfitabilityConfig {
     maintenanceMonthlyUsd: num(r.maintenanceMonthlyUsd, d.maintenanceMonthlyUsd, 0, 100_000),
     rigCapexUsd: num(r.rigCapexUsd, d.rigCapexUsd, 0, 10_000_000),
     rigAmortizeMonths: Math.round(num(r.rigAmortizeMonths, d.rigAmortizeMonths, 1, 120)),
+    // OPPORTUNITY-SCORE-2 — accepts the JSON object (API body) or the raw DB
+    // JSON string; invalid/absent keys fall back to defaults, then normalize.
+    opportunityWeights: sanitizeOpportunityWeights(
+      r.opportunityWeights ?? r.opportunityWeightsJson
+    ),
+    // OPPORTUNITY-CONTROLS — positive finite → clamp ≤ $1M/mo; else no cap.
+    maxApprovedSpendUsd: (() => {
+      const n = typeof r.maxApprovedSpendUsd === "string" ? Number(r.maxApprovedSpendUsd) : r.maxApprovedSpendUsd;
+      return typeof n === "number" && Number.isFinite(n) && n > 0
+        ? Math.min(1_000_000, n)
+        : null;
+    })(),
   };
 }
 

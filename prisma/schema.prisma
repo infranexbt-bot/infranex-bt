@@ -198,6 +198,12 @@ model ProfitabilitySettings {
   maintenanceMonthlyUsd   Float    @default(15) // cleaning, fans, paste, repairs
   rigCapexUsd             Float    @default(0) // rig build cost for hardware recovery
   rigAmortizeMonths       Int      @default(24) // months to recover rig capex
+  // OPPORTUNITY-SCORE-2 — runtime-configurable component weights, stored as
+  // JSON {"netTaoPotential":0.3,...}. Null/invalid = the documented defaults.
+  opportunityWeightsJson  String?
+  // OPPORTUNITY-CONTROLS — the maximum APPROVED GPU spend per deployment,
+  // USD/month. Null = no cap. The deployment API refuses rentals above it.
+  maxApprovedSpendUsd     Float?
   updatedAt               DateTime @updatedAt
 }
 
@@ -826,6 +832,35 @@ model EarningsDaily {
 
   @@unique([deploymentId, day])
   @@index([day])
+}
+
+// OPPORTUNITY-ENGINE-2 — daily opportunity snapshot per subnet (UTC day):
+// the scored economics of every subnet, captured continuously so "changes
+// in subnet economics" are measurable over time and today's predictions can
+// later be compared against reality. Historical measurements ONLY — never
+// mixed into the forecast inputs.
+model OpportunitySnapshot {
+  id                String   @id @default(cuid())
+  netuid            Int
+  day               String   // "2026-10-27" (UTC) — one row per subnet per day
+  scoreEffective    Float?
+  scoreRaw          Float?
+  netMonthlyUsd     Float?
+  netTaoPerMonth    Float?
+  gpuCostMonthlyUsd Float?
+  emissionTaoPerDay Float?
+  minersCount       Int?
+  rewardedRatio     Float?
+  dataConfidence    Float?
+  classification    String?  // SCALE | TEST | WATCHLIST | AVOID
+  difficulty        String?  // EASY | MODERATE | DIFFICULT | UNKNOWN
+  source            String   @default("live")
+  capturedAt        DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([netuid, day])
+  @@index([day])
+  @@index([netuid])
 }
 
 // Append-only audit trail: credential lifecycle, human approvals, sign-ins.

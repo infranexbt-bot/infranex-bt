@@ -2,44 +2,125 @@ import type { LiveOpportunity } from "./live-merge";
 import { resolveCompat, type CompatTier } from "./compat";
 
 // ---------------------------------------------------------------------------
-// OPPORTUNITY-SCORE-1 — the per-subnet Opportunity Score (0–100), the core
-// decision number of the app.
+// OPPORTUNITY-SCORE-2 — the per-subnet Opportunity Score (0–100), the core
+// decision number of the app. UPGRADE of OPPORTUNITY-SCORE-1 (5 components)
+// to the operator's 7-factor specification:
 //
-// Every subnet receives a score built from five weighted components:
-//   expected net contribution  30%   rewards minus ALL operating costs
-//   actual miner performance   20%   comparable miners' incentives/uptime/response
-//   hardware & deployment fit  20%   exact GPU / RAM / software / network fit
-//   competition & entry risk   15%   active miners, capacity, reg cost, eviction
-//   data quality & stability   15%   freshness of measurements, demand stability
+//   expected net TAO potential   30%   rewards minus ALL operating costs
+//   miner competitiveness        20%   do comparable miners actually earn
+//   reward sustainability        15%   demand-backed vs dilution-funded flow
+//   validator acceptance         10%   will validators score a NEW seat
+//   GPU cost efficiency          10%   net earned per GPU-rent dollar
+//   operational reliability      10%   can a rig actually run it day-2
+//   economic & protocol risk      5%   volatility, liquidity, dilution risk
 //
-// THE WEIGHTS ARE A STARTING POINT, NOT A PROVEN REWARD PREDICTOR.
+// ALL WEIGHTS ARE CONFIGURABLE at runtime (ProfitabilitySettings.
+// opportunityWeightsJson → sanitizer → ctx) and are NORMALIZED to sum to 1
+// before use, so hand-tuned weights can never break the 0–100 scale.
+// The defaults above are a STARTING POINT, not a proven reward predictor.
+//
+// NORMALIZATION (documented formulas):
+//   netTaoPotential      pts = 100·ln(1 + max(net,0)/300) / ln(1 + 3000/300)
+//                        (log curve: $300/mo ≈ 29, $1k ≈ 62, $3k+ = 100;
+//                        thin-margin <20% of gross → ×0.85)
+//   minerCompetitiveness pts = 100·(rewardedRatio−0.03)/(0.65−0.03),
+//                        clamped 4..100, capped at 70 when the median
+//                        earner's share < 30% of flow; blended 70/30 with
+//                        the month-1 earn chance when measured
+//   rewardSustainability demand score 0–100 direct; emission-funded
+//                        (dilution-subsidized) demand → ×0.7; dilution
+//                        ratio > 1.5 → ×0.8; measured provider income
+//                        (revenueBasis) → floor 60
+//   validatorAcceptance  free-slot access (0/1) × 40 + ramp speed
+//                        (clamp(1 − rampWeeks/12) × 30) + validator pool
+//                        (min(validators/13,1) × 15) + immunity breathing
+//                        room (×0.9 when ≤ 1 tempo of protection)
+//   gpuCostEfficiency    ROI = net ÷ GPU rent: ≥3.0 → 100, ≥1.5 → 80,
+//                        ≥0.5 → 55, >0 → 35, ≤0 → 5 (owned/CPU rows with
+//                        no GPU line fall back to the profit margin)
+//   operationalReliability compat tier spine (provider-friendly 100 …
+//                        parked 5) × multi-GPU haircut (4+ ×0.65, 2–3
+//                        ×0.9) × unclassified-hardware ×0.9; static-IP
+//                        requirement ×0.95
+//   econProtocolRisk     riskLevel (low 100 / med 60 / high 30) × thin-pool
+//                        haircut (slippage >5% or pool <1000 TAO → ×0.7)
+//                        × volatility haircut (|α 24h| > 20% → ×0.85)
+//
+// MISSING DATA RULE: a component without inputs scores a BELOW-AVERAGE
+// neutral (30–40, never higher than a measured median) and is flagged
+// `missing`. Missing data reduces the row's DATA CONFIDENCE and can block
+// the SCALE classification — it never improves a subnet's score.
 //
 // HARD GATES — a high score must NEVER override:
-//   · a failed mandatory hardware requirement (bare-metal/TEE-only subnet vs a
-//     container rig, or an 8-GPU documented config priced against 1 GPU)
+//   · a failed mandatory hardware requirement (bare-metal/TEE-only subnet vs
+//     a container rig, or an 8-GPU documented config priced against 1 GPU)
 //   · an unverified payout mechanism (no curated mechanics, no repo source)
-//   · negative net economics under the active cost basis
+//   · negative net economics under the active cost basis — NET-NEGATIVE ROWS
+//     CAN NEVER RECEIVE A POSITIVE DEPLOYMENT RECOMMENDATION (cap 15 +
+//     classification AVOID downstream)
 // Gated rows keep their raw score for evidence, but the EFFECTIVE score is
 // capped so they can never headline the ranking.
 // ---------------------------------------------------------------------------
 
+/** The operator-spec default weights (sum = 1.0). */
 export const OPPORTUNITY_WEIGHTS = {
-  netContribution: 0.3,
-  minerPerformance: 0.2,
-  hardwareFit: 0.2,
-  entryRisk: 0.15,
-  dataQuality: 0.15,
+  netTaoPotential: 0.3,
+  minerCompetitiveness: 0.2,
+  rewardSustainability: 0.15,
+  validatorAcceptance: 0.1,
+  gpuCostEfficiency: 0.1,
+  operationalReliability: 0.1,
+  econProtocolRisk: 0.05,
 } as const;
 
 export type OpportunityComponentKey = keyof typeof OPPORTUNITY_WEIGHTS;
+export type OpportunityWeightSet = Record<OpportunityComponentKey, number>;
 
-const COMPONENT_LABELS: Record<OpportunityComponentKey, string> = {
-  netContribution: "Expected net contribution",
-  minerPerformance: "Actual miner performance",
-  hardwareFit: "Hardware & deployment fit",
-  entryRisk: "Competition & entry risk",
-  dataQuality: "Data quality & stability",
+export const OPPORTUNITY_WEIGHTS_LABELS: Record<OpportunityComponentKey, string> = {
+  netTaoPotential: "net TAO potential",
+  minerCompetitiveness: "miner competitiveness",
+  rewardSustainability: "reward sustainability",
+  validatorAcceptance: "validator acceptance",
+  gpuCostEfficiency: "GPU cost efficiency",
+  operationalReliability: "operational reliability",
+  econProtocolRisk: "economic & protocol risk",
 };
+
+const COMPONENT_KEYS = Object.keys(OPPORTUNITY_WEIGHTS) as OpportunityComponentKey[];
+
+/** Merge a partial weight override over the defaults, clamp to [0,1] and
+ *  normalize so the set ALWAYS sums to 1.0 (within rounding). Invalid or
+ *  absent input falls back to the documented defaults per key. */
+export function resolveOpportunityWeights(
+  partial?: Partial<OpportunityWeightSet> | null
+): OpportunityWeightSet {
+  const merged: OpportunityWeightSet = { ...OPPORTUNITY_WEIGHTS };
+  if (partial) {
+    for (const k of COMPONENT_KEYS) {
+      const v = partial[k];
+      if (typeof v === "number" && Number.isFinite(v) && v >= 0) merged[k] = v;
+    }
+  }
+  const sum = COMPONENT_KEYS.reduce((s, k) => s + merged[k], 0);
+  if (!(sum > 0)) return { ...OPPORTUNITY_WEIGHTS };
+  const out = {} as OpportunityWeightSet;
+  for (const k of COMPONENT_KEYS) out[k] = Math.round((merged[k] / sum) * 1000) / 1000;
+  return out;
+}
+
+/** Settings-sanitizer view: accepts unknown JSON (string or object) and
+ *  returns a safe normalized weight set. Never throws. */
+export function sanitizeOpportunityWeights(input: unknown): OpportunityWeightSet {
+  if (typeof input === "string") {
+    try {
+      input = JSON.parse(input);
+    } catch {
+      return { ...OPPORTUNITY_WEIGHTS };
+    }
+  }
+  if (input == null || typeof input !== "object") return { ...OPPORTUNITY_WEIGHTS };
+  return resolveOpportunityWeights(input as Partial<OpportunityWeightSet>);
+}
 
 export type OpportunityGateKind =
   | "HARDWARE_INCOMPATIBLE"
@@ -83,6 +164,11 @@ export interface SubnetOpportunityScore {
   gates: OpportunityGate[];
   components: OpportunityScoreComponent[];
   band: OpportunityBand;
+  /** 0–1 — how much verified data stands behind the score (missing inputs
+   *  and unverified sources drag it down; it never lifts points). */
+  dataConfidence: number;
+  /** The weight set actually used (post-normalization) — shown in the UI. */
+  weights: OpportunityWeightSet;
   /** One-sentence summary of WHY the score landed where it did. */
   oneLine: string;
 }
@@ -92,28 +178,31 @@ export interface OpportunityScoreContext {
   hardwareMode?: "owned" | "rented";
   /** User's minimum acceptable net profit, USD/month (settings). */
   minNetTargetUsd?: number;
+  /** Runtime-configurable component weights (settings). Absent keys fall
+   *  back to the documented defaults; the set is normalized to sum 1. */
+  weights?: Partial<OpportunityWeightSet> | null;
 }
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 const r1 = (n: number) => Math.round(n * 10) / 10;
 
-// --- Component 1: expected net contribution (30%) ---------------------------
-// Log curve: $300/mo net ≈ 29 pts, $1,000 ≈ 62, $3,000+ = 100. Mining net is
-// heavy-tailed; a log map keeps a solid $500/mo play clearly ahead of a
-// break-even one without letting a $20k jackpot dominate the whole scale.
+// --- Component 1: expected net TAO potential (30%) ---------------------------
+// Log curve on the P&L net: $300/mo net ≈ 29 pts, $1,000 ≈ 62, $3,000+ = 100.
+// Mining net is heavy-tailed; a log map keeps a solid $500/mo play clearly
+// ahead of a break-even one without letting a $20k jackpot dominate.
 const NET_REF_USD = 300;
 const NET_FULL_USD = 3000;
 
-function scoreNetContribution(o: LiveOpportunity): OpportunityScoreComponent {
-  const net = o.netMonthlyUsd;
+function scoreNetTaoPotential(o: LiveOpportunity): OpportunityScoreComponent {
   const ev: string[] = [];
+  const net = o.netMonthlyUsd;
   if (net == null) {
     return {
-      key: "netContribution",
-      label: COMPONENT_LABELS.netContribution,
-      weight: OPPORTUNITY_WEIGHTS.netContribution,
+      key: "netTaoPotential",
+      label: OPPORTUNITY_WEIGHTS_LABELS.netTaoPotential,
+      weight: OPPORTUNITY_WEIGHTS.netTaoPotential,
       points: 30,
-      weighted: 30 * OPPORTUNITY_WEIGHTS.netContribution,
+      weighted: 30 * OPPORTUNITY_WEIGHTS.netTaoPotential,
       evidence: ["Net monthly figure unavailable — profitability engine has no P&L for this subnet yet."],
       missing: true,
     };
@@ -146,63 +235,172 @@ function scoreNetContribution(o: LiveOpportunity): OpportunityScoreComponent {
   }
   points = clamp(points, 0, 100);
   return {
-    key: "netContribution",
-    label: COMPONENT_LABELS.netContribution,
-    weight: OPPORTUNITY_WEIGHTS.netContribution,
+    key: "netTaoPotential",
+    label: OPPORTUNITY_WEIGHTS_LABELS.netTaoPotential,
+    weight: OPPORTUNITY_WEIGHTS.netTaoPotential,
     points: r1(points),
-    weighted: r1(points * OPPORTUNITY_WEIGHTS.netContribution),
+    weighted: r1(points * OPPORTUNITY_WEIGHTS.netTaoPotential),
     evidence: ev,
     missing: false,
   };
 }
 
-// --- Component 2: actual miner performance (20%) -----------------------------
+// --- Component 2: miner competitiveness (20%) --------------------------------
 // rewardedRatio = share of registered seats that earned last epoch — the
 // most honest "do comparable miners actually get paid" signal on chain.
-function scoreMinerPerformance(o: LiveOpportunity): OpportunityScoreComponent {
+// Blended 70/30 with the measured month-1 earn chance when available.
+function scoreMinerCompetitiveness(o: LiveOpportunity): OpportunityScoreComponent {
   const ev: string[] = [];
   const ratio = o.rewardedRatio;
-  if (ratio == null) {
+  const chance = o.earnChance;
+  if (ratio == null && !chance) {
     return {
-      key: "minerPerformance",
-      label: COMPONENT_LABELS.minerPerformance,
-      weight: OPPORTUNITY_WEIGHTS.minerPerformance,
+      key: "minerCompetitiveness",
+      label: OPPORTUNITY_WEIGHTS_LABELS.minerCompetitiveness,
+      weight: OPPORTUNITY_WEIGHTS.minerCompetitiveness,
       points: 40,
-      weighted: 40 * OPPORTUNITY_WEIGHTS.minerPerformance,
-      evidence: ["No reward vector yet — cannot see what share of miners earned last epoch."],
+      weighted: 40 * OPPORTUNITY_WEIGHTS.minerCompetitiveness,
+      evidence: ["No reward vector and no entry-odds data — cannot see what share of miners earned last epoch."],
       missing: true,
     };
   }
-  const pctEarned = Math.round(ratio * 100);
-  ev.push(`${pctEarned}% of registered miners earned rewards last epoch.`);
-  // ≥65% of seats earning = 100 pts, sliding to ~5 pts at 3%.
-  let points = clamp(((ratio - 0.03) / (0.65 - 0.03)) * 100, 4, 100);
-  const med = o.rewardMedianShare;
-  if (med != null) {
-    ev.push(`Median earning miner takes ${(med * 100).toFixed(1)}% of the subnet's incentive flow.`);
-    if (med < 0.3 && points > 70) {
-      points = 70;
-      ev.push("Median reward share is thin even for miners who do earn — capped this component.");
+  let points: number;
+  if (ratio != null) {
+    const pctEarned = Math.round(ratio * 100);
+    ev.push(`${pctEarned}% of registered miners earned rewards last epoch.`);
+    // ≥65% of seats earning = 100 pts, sliding to ~4 pts at 3%.
+    points = clamp(((ratio - 0.03) / (0.65 - 0.03)) * 100, 4, 100);
+    const med = o.rewardMedianShare;
+    if (med != null) {
+      ev.push(`Median earning miner takes ${(med * 100).toFixed(1)}% of the subnet's incentive flow.`);
+      if (med < 0.3 && points > 70) {
+        points = 70;
+        ev.push("Median reward share is thin even for miners who do earn — capped this component.");
+      }
     }
+  } else {
+    points = 40; // neutral — only entry odds present, blended below anyway
+    ev.push("No reward vector yet — competitiveness rests on entry odds alone.");
+  }
+  if (chance) {
+    ev.push(chance.note);
+    points = points * 0.7 + clamp(chance.pct, 0, 100) * 0.3;
   }
   if (o.liveMiners != null) {
     ev.push(`≈${o.liveMiners} registered miners observed on chain.`);
   }
+  points = clamp(points, 0, 100);
   return {
-    key: "minerPerformance",
-    label: COMPONENT_LABELS.minerPerformance,
-    weight: OPPORTUNITY_WEIGHTS.minerPerformance,
+    key: "minerCompetitiveness",
+    label: OPPORTUNITY_WEIGHTS_LABELS.minerCompetitiveness,
+    weight: OPPORTUNITY_WEIGHTS.minerCompetitiveness,
     points: r1(points),
-    weighted: r1(points * OPPORTUNITY_WEIGHTS.minerPerformance),
+    weighted: r1(points * OPPORTUNITY_WEIGHTS.minerCompetitiveness),
     evidence: ev,
-    missing: false,
+    missing: ratio == null,
   };
 }
 
-// --- Component 3: hardware & deployment fit (20%) ----------------------------
-// Compatibility tier is the spine (compat.ts full audit), then two reality
-// haircuts: an unclassified GPU line, and a documented multi-GPU requirement
-// the user's single-rig mental model can't satisfy.
+// --- Component 3: reward sustainability (15%) --------------------------------
+// Is the reward flow backed by EXTERNAL demand, or subsidized by dilution?
+// demandScore is the composite (0–100); a dilution-subsidized flow and a
+// dilutionRatio ≫ 1 are haircuts, and measured provider income floors it.
+function scoreRewardSustainability(o: LiveOpportunity): OpportunityScoreComponent {
+  const ev: string[] = [];
+  const demand = o.demandScore;
+  let points: number;
+  if (demand != null) {
+    points = clamp(demand, 0, 100);
+    ev.push(
+      `On-chain demand score ${Math.round(demand)}/100${o.demandBand ? ` (${o.demandBand.replace("-", " ")})` : ""}.`
+    );
+  } else {
+    points = 40; // neutral below-average — no demand signals
+    ev.push("No on-chain demand signals — sustainability cannot be verified.");
+  }
+  if (o.demandBand === "emission-funded") {
+    points *= 0.7;
+    ev.push("Rewards lean on staking dilution, not external demand — sustainability haircut.");
+  }
+  if (o.dilutionRatio != null && o.dilutionRatio > 1.5) {
+    points *= 0.8;
+    ev.push(`Paper emission is ${o.dilutionRatio.toFixed(1)}× the sustainable TAO inflow — dilution-subsidized.`);
+  }
+  if (o.revenueBasis === "provider-marketplace") {
+    points = Math.max(points, 60);
+    ev.push("Revenue is measured off-chain provider income, not a modeled emission share.");
+  }
+  if (o.mechanics?.rewardWindowDays != null) {
+    ev.push(`Payout window verified: rewards score over ${o.mechanics.rewardWindowDays} days (official sources).`);
+  }
+  if ((o.estimatedDailyReward ?? 0) <= 0) {
+    points = Math.min(points, 10);
+    ev.push("Zero measured reward flow right now — nothing to earn no matter the demand.");
+  }
+  points = clamp(points, 0, 100);
+  return {
+    key: "rewardSustainability",
+    label: OPPORTUNITY_WEIGHTS_LABELS.rewardSustainability,
+    weight: OPPORTUNITY_WEIGHTS.rewardSustainability,
+    points: r1(points),
+    weighted: r1(points * OPPORTUNITY_WEIGHTS.rewardSustainability),
+    evidence: ev,
+    missing: demand == null && o.revenueBasis !== "provider-marketplace",
+  };
+}
+
+// --- Component 4: validator acceptance (10%) ---------------------------------
+// Will validators score a NEW seat soon? Free-slot access, ramp speed
+// (bond/EMA maturity), the subnet's validator pool, and immunity room.
+function scoreValidatorAcceptance(o: LiveOpportunity): OpportunityScoreComponent {
+  const ev: string[] = [];
+  let points = 40; // neutral start; each measured signal moves it
+  let measured = false;
+  const free = o.freeSlots;
+  if (free != null) {
+    measured = true;
+    const open = free > 0;
+    points = open ? Math.max(points, 60) : Math.min(points, 45);
+    ev.push(
+      open
+        ? `${free} free registration slot${free === 1 ? "" : "s"} — a new miner can enter now.`
+        : "No free slots — entry costs (recycle) buy a queue position."
+    );
+  }
+  const ramp = o.rampWeeks;
+  if (ramp != null) {
+    measured = true;
+    const speed = clamp(1 - ramp / 12, 0, 1);
+    points = points * 0.6 + speed * 100 * 0.4;
+    ev.push(
+      ramp <= 4
+        ? `Fast ramp (≈${Math.round(ramp)} wk) — validators score a new UID quickly.`
+        : `≈${Math.round(ramp)}-week bond/EMA ramp before validators weight the new seat fully.`
+    );
+  }
+  const imm = o.immunityBlocks;
+  if (imm != null) {
+    ev.push(`Immunity window ${imm.toLocaleString()} blocks (~${Math.max(1, Math.round((imm * 12) / 86400))} days) before the UID can be deregistered.`);
+  }
+  const burn = o.burnCostTao;
+  if (burn != null && burn > 0) {
+    ev.push(`Registration burn ${burn.toLocaleString()} TAO — paying seats signal sustained demand.`);
+  }
+  points = clamp(points, 0, 100);
+  return {
+    key: "validatorAcceptance",
+    label: OPPORTUNITY_WEIGHTS_LABELS.validatorAcceptance,
+    weight: OPPORTUNITY_WEIGHTS.validatorAcceptance,
+    points: r1(points),
+    weighted: r1(points * OPPORTUNITY_WEIGHTS.validatorAcceptance),
+    evidence: ev.length ? ev : ["No registration/ramp signals available — validator acceptance unknown."],
+    missing: !measured,
+  };
+}
+
+// --- Component 5: GPU cost efficiency (10%) ----------------------------------
+// Net earned per GPU-rent dollar. Deliberately NOT raw performance: an
+// expensive GPU that mines slightly more can still be the worse buy.
 const TIER_POINTS: Record<CompatTier, number> = {
   "provider-friendly": 100,
   "gpu-flexible": 92,
@@ -214,19 +412,66 @@ const TIER_POINTS: Record<CompatTier, number> = {
   parked: 5,
 };
 
-function scoreHardwareFit(o: LiveOpportunity): OpportunityScoreComponent {
+function scoreGpuCostEfficiency(o: LiveOpportunity): OpportunityScoreComponent {
+  const ev: string[] = [];
+  const net = o.netMonthlyUsd;
+  const gpu = o.gpuCostMonthlyUsd;
+  let points: number;
+  if (net != null && gpu != null && gpu > 0) {
+    const roi = net / gpu;
+    points = roi >= 3 ? 100 : roi >= 1.5 ? 80 : roi >= 0.5 ? 55 : roi > 0 ? 35 : 5;
+    ev.push(`Net $${Math.round(net).toLocaleString()} per $${Math.round(gpu).toLocaleString()} GPU rent — ${(roi).toFixed(2)}× return on the rental line.`);
+  } else if (net != null && o.profitability && o.profitability.expectedRevenueUsd > 0) {
+    // Owned basis (electricity, not rent) or CPU work: fall back to margin.
+    const margin = net / o.profitability.expectedRevenueUsd;
+    points = margin >= 0.6 ? 90 : margin >= 0.35 ? 70 : margin > 0 ? 45 : 10;
+    ev.push(
+      `No GPU-rent line on this basis (owned/CPU) — ${Math.round(margin * 100)}% profit margin stands in for the rental ROI.`
+    );
+  } else {
+    points = 40;
+    ev.push("No GPU cost or net figure — cost efficiency cannot be computed.");
+  }
+  const compat = resolveCompat(o.netuid, o.hosting ?? null, o.requirementsSource ?? null);
+  // Tier spine tempers the ROI — a great ROI on hardware you cannot rent is
+  // not efficient, it's theoretical.
+  points = points * (0.5 + (TIER_POINTS[compat.tier] / 100) * 0.5);
+  if (compat.evidenceSource) ev.push(`Hardware source: ${compat.evidenceSource}.`);
+  if (o.hardwareClassified === false) {
+    points *= 0.9;
+    ev.push("GPU line is a revenue-based estimate, not a repo-documented spec.");
+  }
+  points = clamp(points, 0, 100);
+  return {
+    key: "gpuCostEfficiency",
+    label: OPPORTUNITY_WEIGHTS_LABELS.gpuCostEfficiency,
+    weight: OPPORTUNITY_WEIGHTS.gpuCostEfficiency,
+    points: r1(points),
+    weighted: r1(points * OPPORTUNITY_WEIGHTS.gpuCostEfficiency),
+    evidence: ev,
+    missing: net == null,
+  };
+}
+
+// --- Component 6: operational reliability (10%) ------------------------------
+// Can a rig actually run this day-2 without surprises: compat tier, the
+// multi-GPU reality, static-IP requirements, documented ops burden.
+function scoreOperationalReliability(o: LiveOpportunity): OpportunityScoreComponent {
   const ev: string[] = [];
   const compat = resolveCompat(o.netuid, o.hosting ?? null, o.requirementsSource ?? null);
   let points = TIER_POINTS[compat.tier];
   ev.push(compat.instructions);
   if (compat.requirements.length) ev.push(`Documented requirements: ${compat.requirements.join(", ")}.`);
-  if (compat.evidenceSource) ev.push(`Source: ${compat.evidenceSource}.`);
   if (compat.tier === "bare-metal-only" || compat.tier === "tee-required") {
     ev.push("Container clouds (Vast/Akash/RunPod) cannot satisfy this requirement — needs a dedicated server build.");
   }
+  if (o.hosting?.staticIpRequired) {
+    points *= 0.95;
+    ev.push("Static IP + 1:1 ports required — narrows provider choice.");
+  }
   if (o.hardwareClassified === false) {
     points *= 0.9;
-    ev.push("GPU line is a revenue-based estimate, not a repo-documented spec.");
+    ev.push("Hardware profile not repo-verified — ops plan is a guess until it is.");
   }
   if ((o.gpuCount ?? 1) >= 2) {
     const n = o.gpuCount!;
@@ -235,107 +480,80 @@ function scoreHardwareFit(o: LiveOpportunity): OpportunityScoreComponent {
       `Documented config is ${n}× GPU${n >= 8 ? " — a single-GPU build cannot run this as documented" : " — plan a multi-GPU build"}.`
     );
   }
+  const ops = o.mechanics?.operations?.length ?? 0;
+  if (ops >= 3) {
+    points *= 0.9;
+    ev.push(`${ops} documented operational duties in the official mechanics — this is a hands-on subnet.`);
+  }
   points = clamp(points, 0, 100);
   return {
-    key: "hardwareFit",
-    label: COMPONENT_LABELS.hardwareFit,
-    weight: OPPORTUNITY_WEIGHTS.hardwareFit,
+    key: "operationalReliability",
+    label: OPPORTUNITY_WEIGHTS_LABELS.operationalReliability,
+    weight: OPPORTUNITY_WEIGHTS.operationalReliability,
     points: r1(points),
-    weighted: r1(points * OPPORTUNITY_WEIGHTS.hardwareFit),
+    weighted: r1(points * OPPORTUNITY_WEIGHTS.operationalReliability),
     evidence: ev,
     missing: compat.tier === "unclear" || compat.tier === "no-repo",
   };
 }
 
-// --- Component 4: competition & entry risk (15%) ------------------------------
-// Month-1 odds a NEW seat earns (earnChance) is the base; whale concentration
-// and long ramps haircut it.
-function scoreEntryRisk(o: LiveOpportunity): OpportunityScoreComponent {
+// --- Component 7: economic & protocol risk (5%) ------------------------------
+// Volatility, exit liquidity and dilution risk — small weight, hard edge.
+function scoreEconProtocolRisk(o: LiveOpportunity): OpportunityScoreComponent {
   const ev: string[] = [];
-  const chance = o.earnChance;
-  if (!chance) {
-    return {
-      key: "entryRisk",
-      label: COMPONENT_LABELS.entryRisk,
-      weight: OPPORTUNITY_WEIGHTS.entryRisk,
-      points: 40,
-      weighted: 40 * OPPORTUNITY_WEIGHTS.entryRisk,
-      evidence: ["No entry-odds data — competition signals missing for this subnet."],
-      missing: true,
-    };
+  let points = o.riskLevel === "low" ? 100 : o.riskLevel === "medium" ? 60 : 30;
+  ev.push(`Risk level ${o.riskLevel} (ledger composite).`);
+  const slip = o.slippagePct;
+  const pool = o.liquidityTao;
+  if ((slip != null && slip > 5) || (pool != null && pool < 1000)) {
+    points *= 0.7;
+    ev.push(
+      `Thin exit liquidity${slip != null ? ` (daily flow ÷ pool ≈ ${slip.toFixed(1)}% price impact` : ""}${slip != null && pool != null ? "," : pool != null ? " (" : ""}${pool != null ? `${Math.round(pool).toLocaleString()} TAO side)` : ""}) — converting rewards moves the price.`
+    );
   }
-  ev.push(chance.note);
-  let points = clamp(chance.pct, 0, 100);
-  const top10 = o.top10IncentiveShare;
-  if (top10 != null) {
-    ev.push(`Top-10 validators/miners hold ${(top10 * 100).toFixed(0)}% of incentive flow.`);
-    if (top10 >= 0.85) {
-      points *= 0.6;
-      ev.push("Winner-take-all concentration — a new entrant rarely breaks in.");
-    } else if (top10 >= 0.7) {
-      points *= 0.8;
-    }
+  const d24 = o.alphaChange24h;
+  if (d24 != null && Math.abs(d24) > 20) {
+    points *= 0.85;
+    ev.push(`Alpha price moved ${d24 > 0 ? "+" : ""}${d24.toFixed(1)}% in 24h — volatile reward token.`);
   }
-  if (o.rampWeeks != null && o.rampWeeks >= 8) {
+  if (o.demandBand === "emission-funded") {
     points *= 0.9;
-    ev.push(`≈${o.rampWeeks} weeks of break-in before scores stabilize.`);
+    ev.push("Emission-funded demand — protocol-level dilution risk on the reward side.");
   }
-  if (o.freeSlots != null && o.freeSlots <= 0) {
-    points *= 0.95;
-    ev.push("No free registration slots right now — entry costs (recycle) buy a queue position.");
+  if (o.rewardRealizability != null && o.rewardRealizability < 0.7) {
+    points *= 0.9;
+    ev.push(`Only ${Math.round(o.rewardRealizability * 100)}% of the daily flow realizes at pool prices vs spot.`);
   }
   points = clamp(points, 0, 100);
   return {
-    key: "entryRisk",
-    label: COMPONENT_LABELS.entryRisk,
-    weight: OPPORTUNITY_WEIGHTS.entryRisk,
+    key: "econProtocolRisk",
+    label: OPPORTUNITY_WEIGHTS_LABELS.econProtocolRisk,
+    weight: OPPORTUNITY_WEIGHTS.econProtocolRisk,
     points: r1(points),
-    weighted: r1(points * OPPORTUNITY_WEIGHTS.entryRisk),
+    weighted: r1(points * OPPORTUNITY_WEIGHTS.econProtocolRisk),
     evidence: ev,
-    missing: false,
+    missing: o.riskLevel == null,
   };
 }
 
-// --- Component 5: data quality & stability (15%) ------------------------------
-// Additive checklist of measurement freshness + demand-stability signals.
-function scoreDataQuality(o: LiveOpportunity): OpportunityScoreComponent {
-  const ev: string[] = [];
-  let points = clamp((o.confidence ?? 0.4) * 40, 0, 40); // model confidence → 0–40
-  const src = o.requirementsSource;
-  if (src) {
-    points += 25;
-    ev.push(`Requirements scraped from the subnet's repo (${src}).`);
-  }
-  if (o.hardwareClassified) {
-    points += 10;
-    ev.push("Hardware profile classified from name/description, not guessed from revenue.");
-  }
-  if (o.mechanics) {
-    points += 15;
-    ev.push("Payout mechanism verified against curated official sources.");
-  }
-  if (o.rewardedRatio != null) {
-    points += 10;
-    ev.push("Live reward vector available — performance is measured, not modeled.");
-  }
-  const demand = o.demandScore;
-  if (demand != null) {
-    points += clamp(demand * 0.1, 0, 10); // on-chain demand composite → 0–10
-    ev.push(
-      `On-chain demand score ${Math.round(demand)}/100${o.demandBand ? ` (${o.demandBand.replace("-", " ")})` : ""}.`
-    );
-  }
-  if (!ev.length) ev.push("Few verified signals yet — treat every number for this subnet as provisional.");
-  points = clamp(points, 0, 100);
-  return {
-    key: "dataQuality",
-    label: COMPONENT_LABELS.dataQuality,
-    weight: OPPORTUNITY_WEIGHTS.dataQuality,
-    points: r1(points),
-    weighted: r1(points * OPPORTUNITY_WEIGHTS.dataQuality),
-    evidence: ev,
-    missing: ev.length <= 1,
-  };
+// --- Data confidence ----------------------------------------------------------
+// 0–1, additive + auditable. Missing component inputs and unverified
+// sources drag it down; it gates the SCALE classification downstream and is
+// displayed per row. It NEVER feeds the points of any component.
+function computeDataConfidence(
+  o: LiveOpportunity,
+  components: OpportunityScoreComponent[]
+): number {
+  let c = 0.3;
+  if (o.mechanics) c += 0.15;
+  if (o.rewardedRatio != null) c += 0.15;
+  if (o.requirementsSource) c += 0.1;
+  if (o.demandScore != null) c += 0.1;
+  if (o.profitability) c += 0.1;
+  if (typeof o.confidence === "number" && o.confidence > 0) c += o.confidence * 0.1;
+  const missingCount = components.filter((x) => x.missing).length;
+  c -= missingCount * 0.08;
+  return Math.round(clamp(c, 0.05, 0.95) * 100) / 100;
 }
 
 // --- Gates -------------------------------------------------------------------
@@ -354,11 +572,10 @@ function computeGates(o: LiveOpportunity, ctx: OpportunityScoreContext): Opportu
           : "Repo requires bare metal / VM — container clouds are excluded on the current rented-rig basis.",
     });
   }
-  // MANDATORY-RIG-GATE — the user's own example: a documented 8×-GPU config
-  // must never headline against a single-rig operator. 4+ repo-documented
-  // GPUs is a server build, not a rig; 2–3 stays a fit haircut only. If a
-  // hardware gate already fired (bare-metal/TEE), merge into it instead of
-  // stacking a second chip of the same kind.
+  // MANDATORY-RIG-GATE — a documented 8×-GPU config must never headline
+  // against a single-rig operator. 4+ repo-documented GPUs is a server
+  // build, not a rig; 2–3 stays a fit haircut only. If a hardware gate
+  // already fired, merge into it instead of stacking a second chip.
   if ((o.gpuCount ?? 0) >= 4) {
     const multi: OpportunityGate = {
       kind: "HARDWARE_INCOMPATIBLE",
@@ -385,7 +602,7 @@ function computeGates(o: LiveOpportunity, ctx: OpportunityScoreContext): Opportu
     gates.push({
       kind: "NET_NEGATIVE",
       label: "Loses money",
-      detail: `Net −$${Math.abs(Math.round(o.netMonthlyUsd)).toLocaleString()}/mo under the active cost basis — operating here is a guaranteed loss.`,
+      detail: `Net −$${Math.abs(Math.round(o.netMonthlyUsd)).toLocaleString()}/mo under the active cost basis — operating here is a guaranteed loss; deployment is refused regardless of score.`,
     });
   } else if (o.meetsMinimum === false) {
     gates.push({
@@ -416,13 +633,24 @@ export function computeSubnetOpportunityScore(
   o: LiveOpportunity,
   ctx: OpportunityScoreContext = {}
 ): SubnetOpportunityScore {
-  const components = [
-    scoreNetContribution(o),
-    scoreMinerPerformance(o),
-    scoreHardwareFit(o),
-    scoreEntryRisk(o),
-    scoreDataQuality(o),
+  const weights = resolveOpportunityWeights(ctx.weights);
+  const rawComponents = [
+    scoreNetTaoPotential(o),
+    scoreMinerCompetitiveness(o),
+    scoreRewardSustainability(o),
+    scoreValidatorAcceptance(o),
+    scoreGpuCostEfficiency(o),
+    scoreOperationalReliability(o),
+    scoreEconProtocolRisk(o),
   ];
+  // Re-weight components to the (possibly customized) weight set — the
+  // component builders stamp the default weights; scale them here so the
+  // displayed weighted contribution always matches the active weights.
+  const components = rawComponents.map((c) => ({
+    ...c,
+    weight: weights[c.key],
+    weighted: r1(c.points * weights[c.key]),
+  }));
   const raw = clamp(
     components.reduce((s, c) => s + c.weighted, 0),
     0,
@@ -431,12 +659,13 @@ export function computeSubnetOpportunityScore(
   const gates = computeGates(o, ctx);
   const cap = gates.length ? Math.min(...gates.map((g) => GATE_CAPS[g.kind])) : 100;
   const effective = Math.min(raw, cap);
+  const dataConfidence = computeDataConfidence(o, components);
 
   const strongest = [...components].sort((a, b) => b.weighted - a.weighted)[0];
   const weakest = [...components].filter((c) => !c.missing).sort((a, b) => a.points - b.points)[0];
   const oneLine = gates.length
     ? `Gated: ${gates.map((g) => g.label.toLowerCase()).join(", ")}.`
-    : `Score rides on ${strongest.label.toLowerCase()} (${r1(strongest.weighted)}/${OPPORTUNITY_WEIGHTS[strongest.key]} wts)${weakest && weakest.key !== strongest.key ? `, held back by ${weakest.label.toLowerCase()}` : ""}.`;
+    : `Score rides on ${strongest.label} (${r1(strongest.weighted)}/${Math.round(weights[strongest.key] * 100)}% wts)${weakest && weakest.key !== strongest.key ? `, held back by ${weakest.label.toLowerCase()}` : ""}.`;
 
   return {
     id: o.id,
@@ -448,6 +677,8 @@ export function computeSubnetOpportunityScore(
     gates,
     components,
     band: bandOf(effective),
+    dataConfidence,
+    weights,
     oneLine,
   };
 }

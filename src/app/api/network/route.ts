@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { fetchLiveSnapshot } from "@/lib/infranex/chain";
 import { startWorkers } from "@/lib/infranex/workers";
 import { requireActiveUserCookies } from "@/lib/auth-admin";
+import { loadOverrides } from "@/lib/infranex/optimization";
+import { loadProfitabilityConfig } from "@/lib/infranex/trust";
+import { captureOpportunitySnapshots } from "@/lib/infranex/opportunity-snapshot";
 
 // Live network snapshot — chain + price. Polled by the client every 30s.
 export const dynamic = "force-dynamic";
@@ -22,6 +25,21 @@ export async function GET() {
   if ("error" in gate) return NextResponse.json({ error: gate.error }, { status: gate.status });
 
   const snapshot = await fetchLiveSnapshot();
+
+  // OPPORTUNITY-ENGINE-2 — daily opportunity snapshot capture, fire-and-forget
+  // (once per UTC day; a capture failure never touches this response).
+  void (async () => {
+    try {
+      const [overrides, profConfig] = await Promise.all([
+        loadOverrides(),
+        loadProfitabilityConfig(),
+      ]);
+      captureOpportunitySnapshots(snapshot, profConfig, overrides);
+    } catch {
+      // non-fatal — snapshotting is best-effort
+    }
+  })();
+
   return NextResponse.json(snapshot, {
     headers: {
       "Cache-Control": "no-store, max-age=0",

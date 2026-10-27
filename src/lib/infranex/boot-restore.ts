@@ -76,6 +76,10 @@ interface BaselineSettings {
   /** TAO-ACCUMULATION-2 — the long-term $/TAO bet. Optional + nullable so
    *  pre-feature baselines parse; absent → DB default (null = follow live). */
   assumedTaoPriceUsd?: number | null;
+  /** OPPORTUNITY-SCORE-2 — configurable score weights (JSON string). */
+  opportunityWeightsJson?: string | null;
+  /** OPPORTUNITY-CONTROLS — max approved GPU spend per deployment ($/mo). */
+  maxApprovedSpendUsd?: number | null;
   storageMonthlyUsd: number;
   infraMonthlyUsd: number;
   otherOpexMonthlyUsd: number;
