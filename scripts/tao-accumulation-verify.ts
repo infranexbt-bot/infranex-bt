@@ -8,6 +8,10 @@
 //   6. thinPool ⇔ pool < 1000 TAO or slippage > 5%
 //   7. provider rows carry no α figure but do carry the USD-income note
 //   8. rankByTaoAccumulation sorts desc by netTao, missing rows last
+// TAO-ACCUMULATION-2 — the long-term bet:
+//   9. null assumption → all assumed-value fields null, taoPerYear still set
+//  10. assumed=$500 → value = displayed net × assumption (no hidden precision),
+//      upside % correct, and the RANKING IS BIT-IDENTICAL to the null run
 // Prints the TAO accumulation ranking + goal census.
 
 const BASE = "http://localhost:3000";
@@ -99,6 +103,15 @@ for (const o of opps as any[]) {
     fail(`${o.netuid}: missing hold-α note`);
   }
 
+  // 9. TAO-ACCUMULATION-2: null assumption → assumed-value fields all null,
+  //    but the yearly roll-up is still populated.
+  if (t.assumedTaoPriceUsd != null) fail(`${o.netuid}: assumedTaoPriceUsd ${t.assumedTaoPriceUsd} ≠ null (ctx has no assumption)`);
+  if (t.assumedUpsidePct != null) fail(`${o.netuid}: assumedUpsidePct ${t.assumedUpsidePct} ≠ null`);
+  if (t.valueAtAssumedMonthlyUsd != null) fail(`${o.netuid}: valueAtAssumedMonthlyUsd ${t.valueAtAssumedMonthlyUsd} ≠ null`);
+  if (t.valueAtAssumedYearlyUsd != null) fail(`${o.netuid}: valueAtAssumedYearlyUsd ${t.valueAtAssumedYearlyUsd} ≠ null`);
+  if (Math.abs(t.taoPerYear - Math.round(t.netTaoPerMonth * 12 * 100) / 100) > eps)
+    fail(`${o.netuid}: taoPerYear ${t.taoPerYear} ≠ net×12 ${(t.netTaoPerMonth * 12).toFixed(2)}`);
+
   if (t.verdict === "GOAL_MET") goalMet++;
   else if (t.verdict === "PROGRESS") progress++;
   else negative++;
@@ -117,6 +130,47 @@ ranked.forEach((r: any, i: number) => {
 });
 if (!orderOk) fail("rankByTaoAccumulation not sorted desc by netTao");
 if (!missingAtBottom) fail("rows without accumulation did not sink to the bottom");
+
+// 10. TAO-ACCUMULATION-2: the $500 long-term bet — value math must equal
+//     displayed-net × assumption (no hidden precision), and the assumption
+//     must be a pure re-valuation: the ranking is bit-identical to the null run.
+const ASSUMED = 500;
+const map500 = computeTaoAccumulationMap(opps as never[], estMap, { ...ctx, assumedTaoPriceUsd: ASSUMED });
+let assumedChecked = 0;
+for (const o of opps as any[]) {
+  const t = taoMap.get(o.id);
+  const a = map500.get(o.id);
+  if (!t || !a) { if (a) fail(`${o.netuid}: $500 run lost/gained accumulation membership`); continue; }
+  assumedChecked++;
+  if (a.assumedTaoPriceUsd !== ASSUMED) fail(`${o.netuid}: assumedTaoPriceUsd ${a.assumedTaoPriceUsd} ≠ ${ASSUMED}`);
+  if (Math.abs(a.valueAtAssumedMonthlyUsd! - Math.round(t.netTaoPerMonth * ASSUMED * 100) / 100) > eps)
+    fail(`${o.netuid}: $${ASSUMED} monthly ${a.valueAtAssumedMonthlyUsd} ≠ net×${ASSUMED} ${(t.netTaoPerMonth * ASSUMED).toFixed(2)}`);
+  if (Math.abs(a.valueAtAssumedYearlyUsd! - Math.round(a.taoPerYear * ASSUMED * 100) / 100) > eps)
+    fail(`${o.netuid}: $${ASSUMED} yearly ${a.valueAtAssumedYearlyUsd} ≠ taoPerYear×${ASSUMED} ${(a.taoPerYear * ASSUMED).toFixed(2)}`);
+  const wantUpside = Math.round(((ASSUMED / ctx.taoPriceUsd - 1) * 100) * 100) / 100;
+  if (Math.abs(a.assumedUpsidePct! - wantUpside) > eps)
+    fail(`${o.netuid}: upside ${a.assumedUpsidePct} ≠ ${(wantUpside).toFixed(2)}`);
+  // the re-valuation must not touch the TAO quantities or the verdict
+  if (a.netTaoPerMonth !== t.netTaoPerMonth || a.taoPerYear !== t.taoPerYear || a.verdict !== t.verdict)
+    fail(`${o.netuid}: assumption mutated quantities/verdict`);
+}
+const ranked500 = rankByTaoAccumulation(opps as never[], map500);
+const idsNull = ranked.map((r: any) => r.id).join(",");
+const ids500 = ranked500.map((r: any) => r.id).join(",");
+if (idsNull !== ids500) fail("ranking changed under the $500 assumption — re-valuation must be rank-neutral");
+console.log(`\nTAO-ACCUMULATION-2: assumption $${ASSUMED}/TAO checked on ${assumedChecked} rows · ranking bit-identical: ${idsNull === ids500 ? "YES" : "NO"}`);
+const aTop = ranked500
+  .map((r: any) => ({ r, a: map500.get(r.id) }))
+  .filter((x: any) => x.a)
+  .slice(0, 5);
+console.log("TOP 5 AT THE ASSUMPTION (what the banked TAO is worth):");
+for (const { r, a } of aTop as any[]) {
+  console.log(
+    `SN${String(r.netuid).padStart(3)} ${String(r.subnetName).padEnd(14)} net=${a.netTaoPerMonth.toFixed(2)} TAO/mo ` +
+    `→ $${a.valueAtAssumedMonthlyUsd?.toFixed(0)}/mo · $${a.valueAtAssumedYearlyUsd?.toFixed(0)}/yr ` +
+    `(${a.assumedUpsidePct! >= 0 ? "+" : ""}${a.assumedUpsidePct!.toFixed(1)}% vs live $${ctx.taoPriceUsd.toFixed(0)})`
+  );
+}
 
 console.log(`\ninvariants: checked ${checked} rows · ${fails} failures`);
 console.log(`census: GOAL_MET ${goalMet} · PROGRESS ${progress} · NEGATIVE ${negative} · thin-pool flagged ${thin}`);

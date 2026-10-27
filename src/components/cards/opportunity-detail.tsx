@@ -91,6 +91,7 @@ export function OpportunityDetailDialog({
     ? computeTaoAccumulation(o as never, estimate, {
         taoPriceUsd: taoSnap?.taoPriceUsd,
         targetTaoPerMonth: profConfig?.targetTaoPerMonth,
+        assumedTaoPriceUsd: profConfig?.assumedTaoPriceUsd,
       })
     : null;
 
@@ -750,6 +751,48 @@ export function OpportunityDetailDialog({
                     <span className="font-semibold">Hold-α comparison:</span> {taoAcc.holdAlphaNote}
                   </p>
                 )}
+                {/* TAO-ACCUMULATION-2 — the long-term bet: what the banked TAO
+                    is WORTH at the user's own $/TAO assumption vs the live
+                    price. Pure re-valuation — the ranking never changes. */}
+                <div
+                  className={cn(
+                    "mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-md border px-2.5 py-1.5",
+                    taoAcc.assumedTaoPriceUsd != null ? "border-primary/40 bg-primary/5" : "border-border/60"
+                  )}
+                >
+                  <TrendingUp
+                    className={cn(
+                      "h-3 w-3 shrink-0",
+                      taoAcc.assumedTaoPriceUsd != null ? "text-primary" : "text-muted-foreground"
+                    )}
+                  />
+                  {taoAcc.assumedTaoPriceUsd != null && taoAcc.valueAtAssumedMonthlyUsd != null ? (
+                    <p className="text-[10px] leading-snug">
+                      <span className="font-semibold text-foreground">
+                        At your ${taoAcc.assumedTaoPriceUsd.toFixed(0)}/TAO assumption:
+                      </span>{" "}
+                      <span className="tabular font-semibold text-primary">
+                        {formatCurrency(taoAcc.valueAtAssumedMonthlyUsd)}/mo
+                      </span>
+                      {taoAcc.valueAtAssumedYearlyUsd != null && (
+                        <> · <span className="tabular font-semibold text-primary">{formatCurrency(taoAcc.valueAtAssumedYearlyUsd)}/yr</span></>
+                      )}
+                      {taoAcc.assumedUpsidePct != null && (
+                        <span className="tabular text-muted-foreground">
+                          {" "}({taoAcc.assumedUpsidePct >= 0 ? "+" : ""}{taoAcc.assumedUpsidePct.toFixed(1)}% vs live ${taoAcc.taoPriceUsd.toFixed(0)})
+                        </span>
+                      )}
+                      <span className="text-muted-foreground">
+                        {" "}— banked TAO re-valued, ranking unchanged
+                      </span>
+                    </p>
+                  ) : (
+                    <p className="text-[10px] leading-snug text-muted-foreground">
+                      <span className="font-semibold">Following live price</span> — set a $/TAO assumption in
+                      settings to value the banked TAO at your long-term bet.
+                    </p>
+                  )}
+                </div>
                 <p className="mt-1 text-[10px] leading-snug text-muted-foreground">
                   <span className="font-semibold">Basis:</span> the net-earnings base month re-denominated at the live
                   TAO price. The top line is already realizable TAO — the chain's realizability (avg pool price of the

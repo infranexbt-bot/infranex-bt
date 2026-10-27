@@ -215,9 +215,10 @@ export function OpportunityTable({
         {
           taoPriceUsd: taoSnap?.taoPriceUsd,
           targetTaoPerMonth: profConfig?.targetTaoPerMonth,
+          assumedTaoPriceUsd: profConfig?.assumedTaoPriceUsd,
         }
       ),
-    [opportunities, netEarningsMap, taoSnap?.taoPriceUsd, profConfig?.targetTaoPerMonth]
+    [opportunities, netEarningsMap, taoSnap?.taoPriceUsd, profConfig?.targetTaoPerMonth, profConfig?.assumedTaoPriceUsd]
   );
 
   const filtered = useMemo(() => {
@@ -736,7 +737,7 @@ export function OpportunityTable({
                             <>
                               <div className="flex items-center justify-end gap-1.5">
                                 <span
-                                  title={`TAO ACCUMULATION (base month, realizable prices) — gross ${tao.grossTaoPerMonth.toFixed(2)} TAO (α→TAO after the pool haircut) − costs ${tao.costsTaoPerMonth.toFixed(2)} TAO = net ${tao.netTaoPerMonth.toFixed(2)} TAO/mo.\nGoal: ${tao.targetTaoPerMonth} TAO/mo${tao.goalRatio != null ? ` → ${tao.goalRatio >= 1 ? "met" : `${Math.round(tao.goalRatio * 100)}% of goal`}` : ""}.\nAt $${tao.taoPriceUsd.toFixed(2)}/TAO. Worst month ${tao.conservativeNetTaoPerMonth.toFixed(2)} TAO · best ${tao.optimisticNetTaoPerMonth.toFixed(2)} TAO.${tao.conversionHaircutPct != null ? `\nPool haircut already charged: ${tao.conversionHaircutPct.toFixed(1)}% below spot.` : ""}${tao.thinPool ? `\n⚠ Thin pool (${Math.round(tao.poolDepthTao ?? 0).toLocaleString()} TAO side) — large conversions realize worse.` : ""}`}
+                                  title={`TAO ACCUMULATION (base month, realizable prices) — gross ${tao.grossTaoPerMonth.toFixed(2)} TAO (α→TAO after the pool haircut) − costs ${tao.costsTaoPerMonth.toFixed(2)} TAO = net ${tao.netTaoPerMonth.toFixed(2)} TAO/mo.\nGoal: ${tao.targetTaoPerMonth} TAO/mo${tao.goalRatio != null ? ` → ${tao.goalRatio >= 1 ? "met" : `${Math.round(tao.goalRatio * 100)}% of goal`}` : ""}.\nAt $${tao.taoPriceUsd.toFixed(2)}/TAO. Worst month ${tao.conservativeNetTaoPerMonth.toFixed(2)} TAO · best ${tao.optimisticNetTaoPerMonth.toFixed(2)} TAO.${tao.conversionHaircutPct != null ? `\nPool haircut already charged: ${tao.conversionHaircutPct.toFixed(1)}% below spot.` : ""}${tao.thinPool ? `\n⚠ Thin pool (${Math.round(tao.poolDepthTao ?? 0).toLocaleString()} TAO side) — large conversions realize worse.` : ""}${tao.assumedTaoPriceUsd != null && tao.valueAtAssumedYearlyUsd != null ? `\nYour long-term bet: at $${tao.assumedTaoPriceUsd.toFixed(0)}/TAO this row's banked TAO is worth $${tao.valueAtAssumedMonthlyUsd?.toFixed(0)}/mo · $${tao.valueAtAssumedYearlyUsd.toFixed(0)}/yr (re-valued equally — ranking unchanged).` : ""}`}
                                   className={cn(
                                     "tabular font-semibold",
                                     tao.netTaoPerMonth > 0
