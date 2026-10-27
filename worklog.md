@@ -2771,3 +2771,17 @@ Work Log:
 
 Stage Summary:
 - SHIPPED: the app now speaks the user's goal language — every subnet shows TAO banked per month at realizable α→TAO prices vs the 1 TAO/mo goal, with the pool haircut, exit-liquidity warning and the hold-α-vs-convert choice made explicit. Ranking by the TAO /mo column = "where does a new miner accumulate TAO fastest", exactly the user's ask. USD net-earnings stays the cost-side truth; the two can never disagree (verify asserts the bijection).
+
+---
+Task ID: app-load-restore-11
+Agent: main
+Task: "load the web ap" — routine revival
+
+Work Log:
+- GET /login -> 000; no stale processes (clean state, unlike restore-10's EADDRINUSE case)
+- Cold restart with preemptive rm -rf .next (the wedged-compiler pattern recurred all session) -> /login 200 at t+10s
+- verify-app-health.ts ALL PASS: login OK; 129 subnets source=live block=9373412; playbook 106 (SN82=Noah); 112 overrides (69 GPU); profitability-config 200
+- DB intact, no wipe (no boot-restore lines needed); TAO Accumulation Mode (tao-accumulation-1) confirmed serving
+
+Stage Summary:
+- App UP with all features live incl. the new TAO /mo column and goal view; no data loss
