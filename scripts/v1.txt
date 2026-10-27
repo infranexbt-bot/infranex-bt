@@ -1,0 +1,39 @@
+weights sum = 1.00 OK
+arithmetic (Σ weighted = raw) fails: 0 OK
+gate census: {
+  PAYOUT_UNVERIFIED: 60,
+  NET_BELOW_TARGET: 42,
+  HARDWARE_INCOMPATIBLE: 9,
+  NET_NEGATIVE: 37,
+} cap fails: 0 OK
+ungated rows: 19; ungated-below-gated violations: false OK
+
+=== TOP 10 by Opportunity Score ===
+#1 SN  5 Numinous                65.3 (STRONG) raw  65.3
+     components: netTaoPo 56.7×0.3=17 | minerCom 89.8×0.2=18 | rewardSu 49.1×0.15=7.4 | validato 46.3×0.1=4.6 | gpuCostE 77.5×0.1=7.8 | operatio 55×0.1=5.5 | econProt 100×0.05=5
+#2 SN 64 Leadpoet                58.4 (VIABLE) raw  58.4
+     components: netTaoPo 100×0.3=30 | minerCom 5.4×0.2=1.1 | rewardSu 41.4×0.15=6.2 | validato 60.7×0.1=6.1 | gpuCostE 67.5×0.1=6.8 | operatio 31.5×0.1=3.2 | econProt 100×0.05=5
+#3 SN 83 Cathedral               57.4 (VIABLE) raw  57.4
+     components: netTaoPo 33.1×0.3=9.9 | minerCom 89.8×0.2=18 | rewardSu 52.6×0.15=7.9 | validato 46.3×0.1=4.6 | gpuCostE 69.8×0.1=7 | operatio 49.5×0.1=5 | econProt 100×0.05=5
+#4 SN  9 Pareton                 55.8 (VIABLE) raw  55.8
+     components: netTaoPo 82.6×0.3=24.8 | minerCom 2.8×0.2=0.6 | rewardSu 40.9×0.15=6.1 | validato 24×0.1=2.4 | gpuCostE 86.4×0.1=8.6 | operatio 82.8×0.1=8.3 | econProt 100×0.05=5
+#5 SN  4 Hone                    54.3 (VIABLE) raw  54.3
+     components: netTaoPo 100×0.3=30 | minerCom 2.8×0.2=0.6 | rewardSu 39.8×0.15=6 | validato 24×0.1=2.4 | gpuCostE 67.5×0.1=6.8 | operatio 35×0.1=3.5 | econProt 100×0.05=5
+#6 SN107 Swarm                   51.7 (VIABLE) raw  51.7
+     components: netTaoPo 64.2×0.3=19.3 | minerCom 21.6×0.2=4.3 | rewardSu 49.5×0.15=7.4 | validato 24×0.1=2.4 | gpuCostE 77.5×0.1=7.8 | operatio 55×0.1=5.5 | econProt 100×0.05=5
+#7 SN 39 Graphite                  49 (MARGINAL) raw    49
+     components: netTaoPo 67×0.3=20.1 | minerCom 2.8×0.2=0.6 | rewardSu 77.1×0.15=11.6 | validato 24×0.1=2.4 | gpuCostE 60.8×0.1=6.1 | operatio 31.5×0.1=3.2 | econProt 100×0.05=5
+#8 SN 17 Zeus                    42.9 (MARGINAL) raw  42.9
+     components: netTaoPo 40.7×0.3=12.2 | minerCom 2.8×0.2=0.6 | rewardSu 39.1×0.15=5.9 | validato 24×0.1=2.4 | gpuCostE 96×0.1=9.6 | operatio 92×0.1=9.2 | econProt 60×0.05=3
+#9 SN 80 cascade                 40.6 (MARGINAL) raw  40.6
+     components: netTaoPo 35.7×0.3=10.7 | minerCom 3.4×0.2=0.7 | rewardSu 45.9×0.15=6.9 | validato 24×0.1=2.4 | gpuCostE 86.4×0.1=8.6 | operatio 82.8×0.1=8.3 | econProt 60×0.05=3
+#10 SN 10 TrajectoryRL            38.5 (MARGINAL) raw  38.5
+     components: netTaoPo 36.3×0.3=10.9 | minerCom 2.8×0.2=0.6 | rewardSu 20.4×0.15=3.1 | validato 24×0.1=2.4 | gpuCostE 96×0.1=9.6 | operatio 92×0.1=9.2 | econProt 54×0.05=2.7
+
+=== SPOT CHECKS ===
+hardware-gated row (expect 8-GPU/bare-metal/TEE subnet): SN28 hoτfloaτ eff 44 gates [HARDWARE_INCOMPATIBLE]
+payout-unverified row (expect no mechanics + no repo source): SN82 Bitcast eff 49 gates [PAYOUT_UNVERIFIED]
+net-negative row: SN123 MANTIS eff 15 gates [PAYOUT_UNVERIFIED,NET_NEGATIVE]
+SN82 Bitcast: eff 49 raw 82.9 gates [PAYOUT_UNVERIFIED] — H200 (141GB) seat; payout unverified ⇒ gated, high raw must not headline
+
+RESULT: ALL INVARIANTS PASS

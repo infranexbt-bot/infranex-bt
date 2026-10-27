@@ -24,6 +24,7 @@ import {
   rentEarnLabels,
 } from "@/lib/infranex/rent-earn";
 import { computeMinePickMap } from "@/lib/infranex/mine-pick";
+import { computeVerdictMapFor } from "@/lib/infranex/verdict";
 import { cn } from "@/lib/utils";
 import { TrendingUp, LayoutGrid, List, Cpu, Settings2 } from "lucide-react";
 import type { Opportunity } from "@/lib/infranex/types";
@@ -77,6 +78,14 @@ export function OpportunitiesView({ onSelectOpportunity, onStartMining }: Opport
     () => computeMinePickMap(opportunities, costBasisFromConfig(profConfig)),
     [opportunities, profConfig]
   );
+  // VERDICT-UNIFY-2 — the verdict is DERIVED from the evidence engine (the
+  // same 7-factor score the table ranks by + the SCALE/TEST/WATCHLIST/AVOID
+  // classification), not from the legacy conviction bands. The legacy
+  // conviction (pickMap) stays only as the GPU-filter's seat-quality lens.
+  const verdictMap = useMemo(
+    () => computeVerdictMapFor(opportunities as never, profConfig),
+    [opportunities, profConfig]
+  );
   const target = profConfig?.minNetProfitTargetUsd ?? 300;
   const passCount = opportunities.filter((o) => o.meetsMinimum !== false).length;
   // Mode-aware lens labels — must never say "Rented" while the cost basis is Owned.
@@ -112,15 +121,15 @@ export function OpportunitiesView({ onSelectOpportunity, onStartMining }: Opport
       else if (gf.maxVram === 0) r = r.filter((o) => o.minVramGb <= 0);
       else if (gf.maxVram != null) r = r.filter((o) => o.minVramGb <= gf.maxVram!);
     }
-    if (filter !== "all") r = r.filter((o) => pickMap.get(o.id)?.verdict === filter);
+    if (filter !== "all") r = r.filter((o) => verdictMap.get(o.id ?? "") === filter);
     return r;
-  }, [filter, gpuFilter, opportunities, pickMap]);
+  }, [filter, gpuFilter, opportunities, pickMap, verdictMap]);
 
   const tabs: { key: typeof filter; label: string; count: number }[] = [
     { key: "all", label: "All", count: filtered.length },
-    { key: "RUN", label: "RUN", count: filtered.filter((o) => pickMap.get(o.id)?.verdict === "RUN").length },
-    { key: "WATCH", label: "WATCH", count: filtered.filter((o) => pickMap.get(o.id)?.verdict === "WATCH").length },
-    { key: "AVOID", label: "AVOID", count: filtered.filter((o) => pickMap.get(o.id)?.verdict === "AVOID").length },
+    { key: "RUN", label: "RUN", count: filtered.filter((o) => verdictMap.get(o.id ?? "") === "RUN").length },
+    { key: "WATCH", label: "WATCH", count: filtered.filter((o) => verdictMap.get(o.id ?? "") === "WATCH").length },
+    { key: "AVOID", label: "AVOID", count: filtered.filter((o) => verdictMap.get(o.id ?? "") === "AVOID").length },
   ];
 
   return (
@@ -141,12 +150,12 @@ export function OpportunitiesView({ onSelectOpportunity, onStartMining }: Opport
             (hardware mismatch, unverified payout, negative net) always sink a
             row, no matter how high the raw score. Click a score for its
             evidence.{" "}
-            <span className="font-medium text-success">RUN</span> = point your
-            rig here ·{" "}
-            <span className="font-medium text-warning">WATCH</span> = viable,
-            read the warnings ·{" "}
-            <span className="font-medium text-destructive">AVOID</span> = gated
-            or conviction &lt; 35.
+            <span className="font-medium text-success">RUN</span> = evidence-backed
+            (positive net, verified payout, score ≥ 50) ·{" "}
+            <span className="font-medium text-warning">WATCH</span> = interesting,
+            evidence incomplete ·{" "}
+            <span className="font-medium text-destructive">AVOID</span> = negative
+            economics, hardware-gated or below your minimum.
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
             Minimum entry rule: net &lt;{" "}
@@ -216,7 +225,7 @@ export function OpportunitiesView({ onSelectOpportunity, onStartMining }: Opport
         pickFor={(o) => {
           const p = pickMap.get(o.id ?? "");
             return {
-              verdict: p?.verdict,
+              verdict: verdictMap.get(o.id ?? "") ?? p?.verdict,
               netMonthly: p?.rent.expectedNetMonthlyUsd ?? null,
             };
         }}

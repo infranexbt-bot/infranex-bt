@@ -26,6 +26,7 @@ import {
   computeMinePickMap,
   VERDICT_STYLE,
 } from "@/lib/infranex/mine-pick";
+import { computeVerdictMapFor } from "@/lib/infranex/verdict";
 import {
   computeRentEarnMap,
   costBasisFromConfig,
@@ -202,6 +203,15 @@ export function OpportunityTable({
   // so owned-basis verdicts answer "can MY GPU run it & earn".
   const pickMap = useMemo(
     () => computeMinePickMap(opportunities, costBasisFromConfig(profConfig)),
+    [opportunities, profConfig]
+  );
+
+  // VERDICT-UNIFY-2 — the verdict chip derives from the evidence engine (the
+  // 7-factor score + SCALE/TEST/WATCHLIST/AVOID classification — the same
+  // inputs this table already displays), NOT from the legacy conviction
+  // bands. Single shared builder so every surface gives the same answer.
+  const verdictMap = useMemo(
+    () => computeVerdictMapFor(opportunities as never, profConfig),
     [opportunities, profConfig]
   );
 
@@ -531,7 +541,7 @@ export function OpportunityTable({
                   dir={dir}
                   onSort={handleSort}
                 >
-                  <span title={`CONVICTION — the deployment lens. ${L.convictionStatTooltip} RUN ≥ 50 · WATCH 35–49 · AVOID below or gated.`}>
+                  <span title={`CONVICTION — the seat-quality lens (rent-earn × diligence × confidence). ${L.convictionStatTooltip} It ORDERS the list but no longer decides the verdict: RUN/WATCH/AVOID derive from the evidence score + classification (VERDICT-UNIFY-2) — RUN needs positive net, verified payout and score ≥ 50.`}>
                     Conviction
                   </span>
                 </SortableTh>
@@ -687,7 +697,11 @@ export function OpportunityTable({
                 const pick = pickMap.get(o.id);
                 const est = netEarningsMap.get(o.id);
                 const tao: TaoAccumulation | undefined = taoMap.get(o.id);
-                const vs = pick ? VERDICT_STYLE[pick.verdict] : null;
+                // VERDICT-UNIFY-2 — the chip reads the evidence-derived verdict;
+                // falls back to the conviction verdict only if the row is
+                // unclassifiable (both agree that nothing positive is claimed).
+                const uVerdict = verdictMap.get(o.id) ?? pick?.verdict ?? "WATCH";
+                const vs = VERDICT_STYLE[uVerdict];
                 const risk = getStatusColor(o.riskLevel);
                 const prof = o.profitability;
                 return (

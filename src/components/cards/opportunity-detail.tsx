@@ -16,6 +16,7 @@ import { TrendingUp, AlertTriangle, Cpu, Wallet, Calculator, Coins, Gauge, Compa
 import { formatNumber } from "@/lib/utils";
 import { assessSeatChance, formatBurnTao } from "@/lib/infranex/miner-score";
 import { computeMinePick, VERDICT_STYLE } from "@/lib/infranex/mine-pick";
+import { unifiedVerdict } from "@/lib/infranex/verdict";
 import { computeSubnetOpportunityScore } from "@/lib/infranex/subnet-opportunity";
 import { computeEntryDifficulty, DIFFICULTY_META } from "@/lib/infranex/entry-difficulty";
 import { classifyOpportunity, ACTION_META } from "@/lib/infranex/opportunity-class";
@@ -116,12 +117,18 @@ export function OpportunityDetailDialog({
     difficulty: diffLocal,
   });
 
-  // VERDICT-UNIFY-1 / PNL-RECONCILE-1 — the dialog's headline badge + score
-  // must speak the ONE conviction vocabulary. Before this change the badge
-  // read the ledger score band (score 67 → "RUN") directly above a
-  // "P&L passed ≠ verdict AVOID" reconciliation — a contradiction in one
-  // view. The ledger composite stays visible in the score's tooltip.
-  const band = VERDICT_STYLE[pick.verdict];
+  // VERDICT-UNIFY-2 — the dialog's headline verdict comes from the SAME
+  // evidence rule as the table chip and the dashboard counts: derived from
+  // the classification + effective score (computed below), not from the
+  // legacy conviction bands. The conviction pick stays for the gate/fact
+  // reconciliation panel, which explains WHY a row is not RUN.
+  // VERDICT-UNIFY-1 heritage — the badge, the score and the classification
+  // in one view must never contradict each other again.
+  const band = VERDICT_STYLE[unifiedVerdict(clsLocal, {
+    effectiveScore: scoreLocal?.effectiveScore,
+    dataConfidence: scoreLocal?.dataConfidence,
+  })];
+  const uVerdict = band.label;
 
   // The gates / seat facts that explain a non-RUN verdict despite a passed
   // P&L — ordered hardest-first (hard gate → seat reality → entry).
@@ -346,11 +353,11 @@ export function OpportunityDetailDialog({
                 and the hard gates right here so the reconciliation is
                 visible, not a support question. Hidden when the P&L itself
                 fails the minimum rule (the red AVOID note above covers it). */}
-            {prof.meetsMinimum && pick.verdict !== "RUN" && (
+            {prof.meetsMinimum && uVerdict !== "RUN" && (
               <div
                 className={cn(
                   "mt-3 rounded-md border px-3 py-2.5",
-                  pick.verdict === "AVOID"
+                  uVerdict === "AVOID"
                     ? "border-destructive/40 bg-destructive/5"
                     : "border-warning/40 bg-warning/5"
                 )}
@@ -360,10 +367,10 @@ export function OpportunityDetailDialog({
                     <AlertTriangle
                       className={cn(
                         "h-3.5 w-3.5",
-                        pick.verdict === "AVOID" ? "text-destructive" : "text-warning"
+                        uVerdict === "AVOID" ? "text-destructive" : "text-warning"
                       )}
                     />
-                    P&amp;L passed ≠ verdict {pick.verdict}
+                    P&amp;L passed ≠ verdict {uVerdict}
                   </p>
                   <span
                     className="text-[10px] text-muted-foreground"
