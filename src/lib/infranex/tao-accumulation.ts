@@ -60,6 +60,17 @@ export interface TaoAccumulation {
   /** netTao ÷ target (×1.0 = goal exactly met). Null when target is 0. */
   goalRatio: number | null;
   verdict: TaoVerdict;
+  // --- TAO-ACCUMULATION-2: the long-term bet ------------------------------
+  /** Base month ×12 — the pace at today's realizable prices. */
+  taoPerYear: number;
+  /** The user's long-term $/TAO assumption (null = follow live). */
+  assumedTaoPriceUsd: number | null;
+  /** (assumption ÷ live − 1) × 100 — how far the bet is from today. */
+  assumedUpsidePct: number | null;
+  /** Net TAO valued at the assumption, per month. Null when no assumption. */
+  valueAtAssumedMonthlyUsd: number | null;
+  /** Net TAO valued at the assumption, per year. Null when no assumption. */
+  valueAtAssumedYearlyUsd: number | null;
   /** TAO-side pool depth = exit liquidity for converting the α. */
   poolDepthTao: number | null;
   /** Thin pool → converting large α flows realizes badly. */
@@ -73,6 +84,9 @@ export interface TaoAccumulationContext {
   taoPriceUsd?: number;
   /** User goal in TAO/month (settings.targetTaoPerMonth, default 1). */
   targetTaoPerMonth?: number;
+  /** TAO-ACCUMULATION-2 — the user's long-term $/TAO bet
+   *  (settings.assumedTaoPriceUsd; null/absent = follow the live price). */
+  assumedTaoPriceUsd?: number | null;
 }
 
 const r2 = (n: number) => Math.round(n * 100) / 100;
@@ -121,6 +135,23 @@ export function computeTaoAccumulation(
   const verdict: TaoVerdict =
     netTaoRounded >= target ? "GOAL_MET" : netTaoRounded > 0 ? "PROGRESS" : "NEGATIVE";
 
+  // TAO-ACCUMULATION-2 — the long-term bet. Computed from the ROUNDED net so
+  // the dialog sentence is exactly "displayed net × displayed assumption" —
+  // no hidden precision gap between the numbers the user can see.
+  const assumed =
+    ctx.assumedTaoPriceUsd != null &&
+    Number.isFinite(ctx.assumedTaoPriceUsd) &&
+    ctx.assumedTaoPriceUsd > 0
+      ? ctx.assumedTaoPriceUsd
+      : null;
+  const taoPerYear = r2(netTaoRounded * 12);
+  const assumedUpsidePct =
+    assumed != null ? r2((assumed / taoUsd - 1) * 100) : null;
+  const valueAtAssumedMonthlyUsd =
+    assumed != null ? r2(netTaoRounded * assumed) : null;
+  const valueAtAssumedYearlyUsd =
+    assumed != null ? r2(taoPerYear * assumed) : null;
+
   // Hold-α comparison — one honest sentence, α units when we know them.
   let holdAlphaNote: string | null = null;
   if (alphaPerMonth != null && alphaPerMonth > 0) {
@@ -152,6 +183,11 @@ export function computeTaoAccumulation(
     targetTaoPerMonth: target,
     goalRatio,
     verdict,
+    taoPerYear,
+    assumedTaoPriceUsd: assumed,
+    assumedUpsidePct,
+    valueAtAssumedMonthlyUsd,
+    valueAtAssumedYearlyUsd,
     poolDepthTao,
     thinPool,
     holdAlphaNote,

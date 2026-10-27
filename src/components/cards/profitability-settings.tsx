@@ -21,11 +21,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Settings2, Target, Loader2, CheckCircle2, Cpu, Coins } from "lucide-react";
+import { Settings2, Target, Loader2, CheckCircle2, Cpu, Coins, TrendingUp } from "lucide-react";
 import {
   useProfitabilityConfig,
   useSaveProfitabilityConfig,
 } from "@/hooks/use-profitability";
+import { useNetwork } from "@/hooks/use-network";
 import {
   DEFAULT_PROFITABILITY_CONFIG,
   type ProfitabilityConfig,
@@ -166,6 +167,8 @@ function SettingsForm({
 }) {
   const { data: saved } = useProfitabilityConfig();
   const saveMutation = useSaveProfitabilityConfig();
+  // TAO-ACCUMULATION-2 — live price powers the "0 = follow live" hint.
+  const { data: taoSnap } = useNetwork();
   const [draft, setDraft] = useState<ProfitabilityConfig>(
     saved ?? DEFAULT_PROFITABILITY_CONFIG
   );
@@ -237,6 +240,35 @@ function SettingsForm({
           Goal for the α→TAO accumulation view: net TAO per month after
           converting rewards at realizable (pool) prices. 0 = off. Default 1
           TAO/mo.
+        </p>
+        {/* TAO-ACCUMULATION-2 — the long-term bet. Re-values every row
+            equally, so it never changes the ranking — only the worth. */}
+        <Separator className="my-3" />
+        <div className="flex items-center gap-2">
+          <TrendingUp className="h-4 w-4 text-primary" />
+          <Label className="text-sm font-semibold">TAO price assumption ($/TAO)</Label>
+        </div>
+        <Input
+          type="number"
+          min={0}
+          step={25}
+          placeholder={
+            taoSnap?.taoPriceUsd
+              ? `Live: $${taoSnap.taoPriceUsd.toFixed(0)}`
+              : "Live price"
+          }
+          value={draft.assumedTaoPriceUsd != null ? String(draft.assumedTaoPriceUsd) : ""}
+          onChange={(e) => {
+            const n = Number(e.target.value);
+            set("assumedTaoPriceUsd", Number.isFinite(n) && n > 0 ? n : null);
+          }}
+          className="mt-2 h-10 w-36 text-lg font-bold"
+        />
+        <p className="mt-2 text-xs text-muted-foreground">
+          Your long-term bet — the TAO view values banked TAO at this price
+          (e.g. 500 = “TAO doubles”). Empty/0 = follow the live price. This
+          re-values every subnet equally, so the ranking never changes — only
+          what the banked TAO is worth.
         </p>
       </div>
 

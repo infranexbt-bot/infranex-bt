@@ -31,6 +31,11 @@ export interface ProfitabilityConfig {
   /** TAO-ACCUMULATION-1 — the α→TAO goal line (TAO/month, default 1).
    *  0 disables the goal; verdicts then just use net > 0. */
   targetTaoPerMonth: number;
+  /** TAO-ACCUMULATION-2 — the long-term bet ($/TAO). When set, the
+   *  accumulation view values banked TAO at this price (e.g. 500 = "TAO
+   *  doubles") instead of the live price. null = follow the live price.
+   *  Re-values every row equally → ranking never changes. */
+  assumedTaoPriceUsd: number | null;
   /** Storage line: NVMe volume / disk for models, logs, datasets ($/mo). */
   storageMonthlyUsd: number;
   /** Infrastructure line: VPS, monitoring, alerting ($/mo). 0 = auto by work
@@ -74,6 +79,7 @@ export interface ProfitabilityConfig {
 export const DEFAULT_PROFITABILITY_CONFIG: ProfitabilityConfig = {
   minNetProfitTargetUsd: 300,
   targetTaoPerMonth: 1,
+  assumedTaoPriceUsd: null, // null = follow the live TAO price
   storageMonthlyUsd: 15,
   infraMonthlyUsd: 0, // 0 = auto by work type
   otherOpexMonthlyUsd: 25,
@@ -104,6 +110,13 @@ export function sanitizeProfitabilityConfig(raw: unknown): ProfitabilityConfig {
   return {
     minNetProfitTargetUsd: num(r.minNetProfitTargetUsd, d.minNetProfitTargetUsd, 0, 1_000_000),
     targetTaoPerMonth: num(r.targetTaoPerMonth, d.targetTaoPerMonth, 0, 10_000),
+    // 0 / absent / non-finite → null (follow live); otherwise clamp 0..100k.
+    assumedTaoPriceUsd: (() => {
+      const n = typeof r.assumedTaoPriceUsd === "string" ? Number(r.assumedTaoPriceUsd) : r.assumedTaoPriceUsd;
+      return typeof n === "number" && Number.isFinite(n) && n > 0
+        ? Math.min(100_000, n)
+        : null;
+    })(),
     storageMonthlyUsd: num(r.storageMonthlyUsd, d.storageMonthlyUsd, 0, 100_000),
     infraMonthlyUsd: num(r.infraMonthlyUsd, d.infraMonthlyUsd, 0, 100_000),
     otherOpexMonthlyUsd: num(r.otherOpexMonthlyUsd, d.otherOpexMonthlyUsd, 0, 100_000),
