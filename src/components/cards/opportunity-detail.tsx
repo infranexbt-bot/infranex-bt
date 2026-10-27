@@ -12,7 +12,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { TrendingUp, AlertTriangle, Cpu, Wallet, Calculator } from "lucide-react";
+import { TrendingUp, AlertTriangle, Cpu, Wallet, Calculator, Coins } from "lucide-react";
 import { formatNumber } from "@/lib/utils";
 import { assessSeatChance, formatBurnTao } from "@/lib/infranex/miner-score";
 import { computeMinePick, VERDICT_STYLE } from "@/lib/infranex/mine-pick";
@@ -29,6 +29,11 @@ import {
   CONSERVATIVE_VERDICT_META,
   type NetEarningsEstimate,
 } from "@/lib/infranex/net-earnings";
+import {
+  computeTaoAccumulation,
+  TAO_VERDICT_META,
+} from "@/lib/infranex/tao-accumulation";
+import { useNetwork } from "@/hooks/use-network";
 import type { Opportunity } from "@/lib/infranex/types";
 
 interface OpportunityDetailDialogProps {
@@ -56,6 +61,8 @@ export function OpportunityDetailDialog({
   // OWNED-MODE: the P&L's GPU line label must reflect the active cost basis.
   // Hook lives above the early return (Rules of Hooks).
   const { data: profConfig } = useProfitabilityConfig();
+  // TAO-ACCUMULATION-1 — live TAO price for the α→TAO re-denomination.
+  const { data: taoSnap } = useNetwork();
   const owned = profConfig?.hardwareMode === "owned";
   if (!opportunity) return null;
   const o = opportunity;
@@ -75,6 +82,15 @@ export function OpportunityDetailDialog({
     ? computeNetEarningsEstimate(o as never, {
         minNetTargetUsd: profConfig?.minNetProfitTargetUsd,
         hardwareMode: profConfig?.hardwareMode,
+      })
+    : null;
+
+  // TAO-ACCUMULATION-1 — the same math re-denominated into the user's actual
+  // goal: TAO banked per month at realizable α→TAO prices, vs the goal line.
+  const taoAcc = estimate
+    ? computeTaoAccumulation(o as never, estimate, {
+        taoPriceUsd: taoSnap?.taoPriceUsd,
+        targetTaoPerMonth: profConfig?.targetTaoPerMonth,
       })
     : null;
 
@@ -627,6 +643,118 @@ export function OpportunityDetailDialog({
                   <span className="font-semibold">Upfront cash {formatCurrency(estimate.upfrontCashUsd)}</span>{" "}
                   (registration burn + first-month costs) · break-even ≈{" "}
                   {estimate.breakEvenMonths != null ? `${estimate.breakEvenMonths} months` : "never at current base net"}
+                </p>
+              </div>
+            )}
+
+            {/* TAO-ACCUMULATION-1 — the goal view: TAO banked per month at
+                realizable α→TAO prices, measured against the user's goal. */}
+            {taoAcc && (
+              <div className="mt-3 border-t border-border/60 pt-3">
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                    <Coins className="h-3 w-3 text-primary" />
+                    TAO accumulation — the goal view
+                  </p>
+                  <span
+                    className={cn(
+                      "rounded border px-1.5 py-0.5 text-[10px] font-semibold",
+                      TAO_VERDICT_META[taoAcc.verdict].className
+                    )}
+                    title={TAO_VERDICT_META[taoAcc.verdict].detail}
+                  >
+                    {TAO_VERDICT_META[taoAcc.verdict].label}
+                    {taoAcc.goalRatio != null && ` · ${taoAcc.goalRatio >= 1 ? `${taoAcc.goalRatio.toFixed(1)}× goal` : `${Math.round(taoAcc.goalRatio * 100)}% of goal`}`}
+                  </span>
+                </div>
+                <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  <div className="rounded-md border border-border/60 px-3 py-2">
+                    <p className="text-[9px] uppercase tracking-widest text-muted-foreground">Gross (realizable)</p>
+                    <p className="tabular text-base font-bold text-foreground">
+                      {taoAcc.grossTaoPerMonth.toFixed(2)} <span className="text-[10px] font-normal text-muted-foreground">TAO/mo</span>
+                    </p>
+                    <p className="text-[10px] text-muted-foreground">
+                      pool haircut {taoAcc.conversionHaircutPct != null ? `−${taoAcc.conversionHaircutPct.toFixed(1)}% vs spot` : "n/a"}
+                    </p>
+                  </div>
+                  <div className="rounded-md border border-border/60 px-3 py-2">
+                    <p className="text-[9px] uppercase tracking-widest text-muted-foreground">Costs (TAO-eq.)</p>
+                    <p className="tabular text-base font-bold text-foreground">
+                      −{taoAcc.costsTaoPerMonth.toFixed(2)} <span className="text-[10px] font-normal text-muted-foreground">TAO/mo</span>
+                    </p>
+                    <p className="text-[10px] text-muted-foreground">at ${taoAcc.taoPriceUsd.toFixed(2)}/TAO</p>
+                  </div>
+                  <div
+                    className={cn(
+                      "rounded-md border px-3 py-2",
+                      taoAcc.netTaoPerMonth >= 0 ? "border-success/40" : "border-destructive/40"
+                    )}
+                  >
+                    <p className="text-[9px] uppercase tracking-widest text-muted-foreground">Net TAO banked</p>
+                    <p
+                      className={cn(
+                        "tabular text-base font-bold",
+                        taoAcc.netTaoPerMonth > 0
+                          ? "text-success"
+                          : taoAcc.netTaoPerMonth < 0
+                            ? "text-destructive"
+                            : "text-muted-foreground"
+                      )}
+                    >
+                      {taoAcc.netTaoPerMonth.toFixed(2)} <span className="text-[10px] font-normal text-muted-foreground">TAO/mo</span>
+                    </p>
+                    <p className="text-[10px] text-muted-foreground">
+                      worst {taoAcc.conservativeNetTaoPerMonth.toFixed(2)} · best {taoAcc.optimisticNetTaoPerMonth.toFixed(2)}
+                    </p>
+                  </div>
+                  <div className="rounded-md border border-border/60 px-3 py-2">
+                    <p className="text-[9px] uppercase tracking-widest text-muted-foreground">α mined (hold path)</p>
+                    <p className="tabular text-base font-bold text-foreground">
+                      {taoAcc.alphaPerMonth != null ? (
+                        <>
+                          {taoAcc.alphaPerMonth < 10 ? taoAcc.alphaPerMonth.toFixed(2) : Math.round(taoAcc.alphaPerMonth).toLocaleString()}{" "}
+                          <span className="text-[10px] font-normal text-muted-foreground">α/mo</span>
+                        </>
+                      ) : (
+                        <span className="text-[11px] font-normal text-muted-foreground">USD income</span>
+                      )}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground">
+                      pool {taoAcc.poolDepthTao != null ? `${Math.round(taoAcc.poolDepthTao).toLocaleString()} TAO` : "—"}
+                      {taoAcc.thinPool && <span className="text-warning"> · thin ⚠</span>}
+                    </p>
+                  </div>
+                </div>
+                {taoAcc.targetTaoPerMonth > 0 && (
+                  <div className="mt-2">
+                    <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                      <span>
+                        Goal: <span className="font-semibold text-foreground">{taoAcc.targetTaoPerMonth} TAO/mo</span>
+                      </span>
+                      <span className="tabular">
+                        {taoAcc.goalRatio != null
+                          ? taoAcc.goalRatio >= 1
+                            ? `${taoAcc.goalRatio.toFixed(2)}× goal`
+                            : `${Math.round(taoAcc.goalRatio * 100)}% of goal`
+                          : "—"}
+                      </span>
+                    </div>
+                    <Progress
+                      value={taoAcc.goalRatio != null ? Math.min(100, Math.max(0, taoAcc.goalRatio * 100)) : 0}
+                      className="mt-1 h-1.5"
+                    />
+                  </div>
+                )}
+                {taoAcc.holdAlphaNote && (
+                  <p className="mt-1.5 text-[10px] leading-snug text-muted-foreground">
+                    <span className="font-semibold">Hold-α comparison:</span> {taoAcc.holdAlphaNote}
+                  </p>
+                )}
+                <p className="mt-1 text-[10px] leading-snug text-muted-foreground">
+                  <span className="font-semibold">Basis:</span> the net-earnings base month re-denominated at the live
+                  TAO price. The top line is already realizable TAO — the chain's realizability (avg pool price of the
+                  daily flow vs spot) is charged inside the ledger before any USD math; the conservative month stacks a
+                  further α-price stress on top.
                 </p>
               </div>
             )}

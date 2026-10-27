@@ -43,6 +43,7 @@ async function main() {
     settings: settings
       ? {
           minNetProfitTargetUsd: settings.minNetProfitTargetUsd,
+          targetTaoPerMonth: settings.targetTaoPerMonth,
           storageMonthlyUsd: settings.storageMonthlyUsd,
           infraMonthlyUsd: settings.infraMonthlyUsd,
           otherOpexMonthlyUsd: settings.otherOpexMonthlyUsd,

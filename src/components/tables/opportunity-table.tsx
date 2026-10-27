@@ -43,7 +43,12 @@ import {
   CONSERVATIVE_VERDICT_META,
   type NetEarningsEstimate,
 } from "@/lib/infranex/net-earnings";
+import {
+  computeTaoAccumulationMap,
+  type TaoAccumulation,
+} from "@/lib/infranex/tao-accumulation";
 import { useOddsTrends } from "@/hooks/use-odds";
+import { useNetwork } from "@/hooks/use-network";
 import { useProfitabilityConfig } from "@/hooks/use-profitability";
 import { Swords, AlertTriangle, Ban, DollarSign, ShieldCheck, Coins, Target, TrendingUp } from "lucide-react";
 import type { Opportunity } from "@/lib/infranex/types";
@@ -65,6 +70,7 @@ type SortKey =
   | "rentEarn"
   | "estimatedApy"
   | "netMonthlyUsd"
+  | "netTaoPerMonth"
   | "grossMonthlyUsd"
   | "requiredStake"
   | "utilization"
@@ -196,6 +202,24 @@ export function OpportunityTable({
     [opportunities, profConfig?.minNetProfitTargetUsd, profConfig?.hardwareMode]
   );
 
+  // TAO-ACCUMULATION-1 — the user's actual goal: accumulate TAO (~1/mo).
+  // Re-denominates the net-earnings estimate into realizable TAO per month
+  // (the ledger top line already carries the chain's realizability haircut)
+  // and measures every row against the TAO goal from settings.
+  const { data: taoSnap } = useNetwork();
+  const taoMap = useMemo(
+    () =>
+      computeTaoAccumulationMap(
+        opportunities as never[],
+        netEarningsMap,
+        {
+          taoPriceUsd: taoSnap?.taoPriceUsd,
+          targetTaoPerMonth: profConfig?.targetTaoPerMonth,
+        }
+      ),
+    [opportunities, netEarningsMap, taoSnap?.taoPriceUsd, profConfig?.targetTaoPerMonth]
+  );
+
   const filtered = useMemo(() => {
     let r = opportunities;
     if (search.trim()) {
@@ -217,6 +241,9 @@ export function OpportunityTable({
       } else if (sortKey === "rentEarn") {
         av = rentMap.get(a.id)?.score ?? -1;
         bv = rentMap.get(b.id)?.score ?? -1;
+      } else if (sortKey === "netTaoPerMonth") {
+        av = taoMap.get(a.id)?.netTaoPerMonth ?? -999;
+        bv = taoMap.get(b.id)?.netTaoPerMonth ?? -999;
       } else if (sortKey === "opportunity") {
         // Gated rows ALWAYS sink below ungated ones, regardless of score —
         // the code-level enforcement of "a high score never overrides a
@@ -242,7 +269,7 @@ export function OpportunityTable({
         : String(bv).localeCompare(String(av));
     });
     return sorted;
-  }, [opportunities, sortKey, dir, search, rentMap, pickMap, scoreMap]);
+  }, [opportunities, sortKey, dir, search, rentMap, pickMap, scoreMap, taoMap]);
 
   const handleSort = (k: SortKey) => {
     if (sortKey === k) {
@@ -307,9 +334,9 @@ export function OpportunityTable({
                   </span>
                 </TableHead>
                 <TableHead
-                  colSpan={2}
+                  colSpan={3}
                   className="h-7 text-center"
-                  title="NET EARNINGS axis — conservative / base / optimistic monthly net after the full cost stack (electricity, cooling, registration, maintenance, hardware recovery on the owned basis), each with a data-confidence level. Net Monthly sorts by the BASE month."
+                  title="NET EARNINGS axis — conservative / base / optimistic monthly net after the full cost stack (electricity, cooling, registration, maintenance, hardware recovery on the owned basis), each with a data-confidence level. Net Monthly sorts by the BASE month. TAO/mo re-denominates the same math into the user's actual goal: TAO accumulated per month at realizable α→TAO prices."
                 >
                   <span className="inline-flex items-center gap-1">
                     <TrendingUp className="h-3 w-3 text-primary" />
@@ -398,6 +425,19 @@ export function OpportunityTable({
                   Net / mo
                 </span>
               </SortableTh>
+              {!compact && (
+                <SortableTh
+                  k="netTaoPerMonth"
+                  align="right"
+                  sortKey={sortKey}
+                  dir={dir}
+                  onSort={handleSort}
+                >
+                  <span title="TAO ACCUMULATION — the user's actual goal: net TAO banked per month (base month, α converted at realizable pool prices) measured against the TAO goal from Profitability settings. Sorting by this ranks by TAO accumulated, not emission.">
+                    TAO / mo
+                  </span>
+                </SortableTh>
+              )}
               {!compact && (
                 <SortableTh
                   k="estimatedApy"
@@ -502,7 +542,7 @@ export function OpportunityTable({
             {filtered.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={compact ? 5 : 15}
+                  colSpan={compact ? 5 : 16}
                   className="py-12 text-center text-muted-foreground"
                 >
                   No opportunities match your search.
@@ -512,6 +552,7 @@ export function OpportunityTable({
               filtered.map((o, rowIdx) => {
                 const pick = pickMap.get(o.id);
                 const est = netEarningsMap.get(o.id);
+                const tao: TaoAccumulation | undefined = taoMap.get(o.id);
                 const vs = pick ? VERDICT_STYLE[pick.verdict] : null;
                 const risk = getStatusColor(o.riskLevel);
                 const prof = o.profitability;
@@ -686,6 +727,73 @@ export function OpportunityTable({
                         )}
                       </div>
                     </TableCell>
+                    {/* TAO-ACCUMULATION-1 — net TAO banked per month (base
+                        month, realizable α→TAO) vs the user's goal. */}
+                    {!compact && (
+                      <TableCell className="text-right">
+                        <div className="flex flex-col items-end gap-0.5">
+                          {tao ? (
+                            <>
+                              <div className="flex items-center justify-end gap-1.5">
+                                <span
+                                  title={`TAO ACCUMULATION (base month, realizable prices) — gross ${tao.grossTaoPerMonth.toFixed(2)} TAO (α→TAO after the pool haircut) − costs ${tao.costsTaoPerMonth.toFixed(2)} TAO = net ${tao.netTaoPerMonth.toFixed(2)} TAO/mo.\nGoal: ${tao.targetTaoPerMonth} TAO/mo${tao.goalRatio != null ? ` → ${tao.goalRatio >= 1 ? "met" : `${Math.round(tao.goalRatio * 100)}% of goal`}` : ""}.\nAt $${tao.taoPriceUsd.toFixed(2)}/TAO. Worst month ${tao.conservativeNetTaoPerMonth.toFixed(2)} TAO · best ${tao.optimisticNetTaoPerMonth.toFixed(2)} TAO.${tao.conversionHaircutPct != null ? `\nPool haircut already charged: ${tao.conversionHaircutPct.toFixed(1)}% below spot.` : ""}${tao.thinPool ? `\n⚠ Thin pool (${Math.round(tao.poolDepthTao ?? 0).toLocaleString()} TAO side) — large conversions realize worse.` : ""}`}
+                                  className={cn(
+                                    "tabular font-semibold",
+                                    tao.netTaoPerMonth > 0
+                                      ? "text-success"
+                                      : tao.netTaoPerMonth < 0
+                                        ? "text-destructive"
+                                        : "text-muted-foreground"
+                                  )}
+                                >
+                                  {tao.netTaoPerMonth.toFixed(2)} TAO
+                                </span>
+                                {tao.goalRatio != null && (
+                                  <span
+                                    className={cn(
+                                      "mono inline-flex items-center rounded border px-1 py-px text-[9px] font-bold",
+                                      tao.goalRatio >= 1
+                                        ? "border-success/40 bg-success/10 text-success"
+                                        : tao.goalRatio > 0
+                                          ? "border-warning/40 bg-warning/10 text-warning"
+                                          : "border-destructive/40 bg-destructive/10 text-destructive"
+                                    )}
+                                    title={`Goal ${tao.targetTaoPerMonth} TAO/mo — this row banks ${tao.goalRatio >= 1 ? "the full goal" : `${Math.round(tao.goalRatio * 100)}% of it`}`}
+                                  >
+                                    {tao.goalRatio >= 1 ? "✓ goal" : `${Math.round(tao.goalRatio * 100)}%`}
+                                  </span>
+                                )}
+                                {tao.thinPool && (
+                                  <AlertTriangle
+                                    className="h-3 w-3 text-warning"
+                                    aria-label="thin exit pool"
+                                  />
+                                )}
+                              </div>
+                              <span className="text-[10px] leading-tight text-muted-foreground">
+                                worst{" "}
+                                <span
+                                  className={cn(
+                                    "tabular",
+                                    tao.conservativeNetTaoPerMonth < 0 && "text-warning"
+                                  )}
+                                >
+                                  {tao.conservativeNetTaoPerMonth.toFixed(2)}
+                                </span>{" "}
+                                · best <span className="tabular">{tao.optimisticNetTaoPerMonth.toFixed(2)}</span>
+                                {tao.conversionHaircutPct != null && (
+                                  <> · α→TAO −{tao.conversionHaircutPct.toFixed(1)}%</>
+                                )}
+                              </span>
+                            </>
+                          ) : (
+                            <span className="text-muted-foreground" title="No P&L or TAO price — no honest TAO re-denomination">
+                              —
+                            </span>
+                          )}
+                        </div>
+                      </TableCell>
+                    )}
                     {!compact && (
                       <TableCell className="text-right tabular font-medium text-success">
                         {formatPercent(o.estimatedApy)}

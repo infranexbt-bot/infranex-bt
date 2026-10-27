@@ -2753,3 +2753,21 @@ Work Log:
 
 Stage Summary:
 - App fully restored after another sandbox recycle. Two new runbook learnings: (a) when dev.log shows EADDRINUSE at setsid revival, a stale holder survived — pkill the whole tree before restart; (b) when PAGE routes hang but middleware/API/static respond fast, the .next dev cache is wedged — rm -rf .next before restart. Full chain: pkill → db:push → restore-users → clear partial tables → rm -rf .next → setsid restart → boot-restore self-heals the rest
+
+---
+Task ID: tao-accumulation-1
+Agent: main
+Task: "Build it which ever suits more" — TAO Accumulation Mode (α→TAO goal view)
+
+Work Log:
+- User thesis: mining = TAO acquisition mechanism (~$248/TAO, long-term bet, goal ≈1 TAO/mo); best subnet ≠ most emission — it's where a NEW miner realistically banks TAO. Chose continuous-conversion primary path (α→TAO at realizable pool prices), hold-α as secondary line.
+- Key insight: ledger top line (expectedDailyTao) is ALREADY realizable TAO (chain rewardRealizability haircut inside miner-score) → the new engine is a pure re-denomination + goal layer over net-earnings (no second source of truth).
+- NEW src/lib/infranex/tao-accumulation.ts: computeTaoAccumulation(row, estimate, ctx) → grossTao/costsTao/netTao per month (÷ live TAO price), conservative/optimistic carry-over, goalRatio vs settings target, verdict GOAL_MET/PROGRESS/NEGATIVE (computed on ROUNDED net — boundary bug SN42 found by verify and fixed), thinPool flag (pool<1000 TAO or slippage>5%), alphaPerMonth (null for provider-marketplace rows — SN51 income is USD rental, honest "USD income" display), holdAlphaNote comparison sentence. + computeTaoAccumulationMap, rankByTaoAccumulation, TAO_VERDICT_META.
+- Config: ProfitabilitySettings.targetTaoPerMonth Float @default(1) (prisma db push done); ProfitabilityConfig type + default + sanitize (0–10,000); export-recycle-baseline.ts exports it; boot-restore.ts BaselineSettings optional field (old baselines → DB default).
+- UI: opportunity-table — new sortable "TAO /mo" column in the Net-earnings axis (colSpan 2→3, empty-state 15→16): net TAO bold + goal chip (✓ goal / NN%) + worst/best + haircut % + thin-pool ⚠, full tooltip. opportunity-detail — "TAO ACCUMULATION — the goal view" section: 4 stat cards (gross realizable w/ haircut, costs TAO-eq, net banked w/ worst/best, α hold path w/ pool depth), goal progress bar, hold-α note, basis note; verdict chip. profitability-settings — TAO goal field in the target box. opportunities-view header — "TAO goal: 1 TAO/mo" line.
+- scripts/tao-accumulation-verify.ts: 9 invariant families on live rows — ALL PASS 128/128 (bijection, net=gross−costs, USD⇄TAO consistency, monotonic scenarios, goal/verdict mapping, thinPool, provider α-null + note, hold note presence, rank order). Census: GOAL_MET 49 · PROGRESS 44 · NEGATIVE 35 · thin 11. Top: SN51 lium 197.32 TAO/mo (USD-income note) → SN82 Noah 52.79 → SN86 OnSale 33.07 (THIN) → SN90 KubeTEE 19.31 → SN64 Chutes 18.65.
+- tsc clean (3 pre-existing wealth-view errors untouched); eslint clean on all 6 touched files.
+- E2E (agent-browser): server reaped TWICE mid-E2E (revived; once needed the .next clear ritual). Verified: header goal line; TAO sort puts lium #1 (197.32 TAO ✓ goal); lium dialog shows USD-income hold note + pool 188,331 TAO; Noah dialog shows 1,412 α/mo hold path (α at 0.044 TAO, 24h −7.2%) + haircut −9.7%; settings shows TAO goal field (1). Screenshots: download/tao-accumulation-{table,dialog2,noah,settings}.png
+
+Stage Summary:
+- SHIPPED: the app now speaks the user's goal language — every subnet shows TAO banked per month at realizable α→TAO prices vs the 1 TAO/mo goal, with the pool haircut, exit-liquidity warning and the hold-α-vs-convert choice made explicit. Ranking by the TAO /mo column = "where does a new miner accumulate TAO fastest", exactly the user's ask. USD net-earnings stays the cost-side truth; the two can never disagree (verify asserts the bijection).
