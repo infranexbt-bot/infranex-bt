@@ -160,6 +160,12 @@ export function OpportunitiesView({ onSelectOpportunity, onStartMining }: Opport
             {profConfig?.hardwareMode === "owned"
               ? " · owned-rig electricity basis"
               : " · market-rent basis"}
+            {" · "}
+            <span className="font-semibold text-foreground/80">
+              TAO goal: {profConfig?.targetTaoPerMonth ?? 1} TAO/mo
+            </span>{" "}
+            (the <span className="font-medium text-primary">TAO / mo</span> column ranks by TAO actually banked at
+            realizable α→TAO prices)
           </p>
         </div>
         <div className="flex items-center gap-1 rounded-lg border bg-card/40 p-1">

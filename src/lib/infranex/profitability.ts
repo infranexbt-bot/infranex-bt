@@ -28,6 +28,9 @@ import type { ScoreComponents } from "./miner-score";
 export interface ProfitabilityConfig {
   /** MINIMUM ENTRY RULE: net profit below this monthly USD → AVOID. */
   minNetProfitTargetUsd: number;
+  /** TAO-ACCUMULATION-1 — the α→TAO goal line (TAO/month, default 1).
+   *  0 disables the goal; verdicts then just use net > 0. */
+  targetTaoPerMonth: number;
   /** Storage line: NVMe volume / disk for models, logs, datasets ($/mo). */
   storageMonthlyUsd: number;
   /** Infrastructure line: VPS, monitoring, alerting ($/mo). 0 = auto by work
@@ -70,6 +73,7 @@ export interface ProfitabilityConfig {
 
 export const DEFAULT_PROFITABILITY_CONFIG: ProfitabilityConfig = {
   minNetProfitTargetUsd: 300,
+  targetTaoPerMonth: 1,
   storageMonthlyUsd: 15,
   infraMonthlyUsd: 0, // 0 = auto by work type
   otherOpexMonthlyUsd: 25,
@@ -99,6 +103,7 @@ export function sanitizeProfitabilityConfig(raw: unknown): ProfitabilityConfig {
   };
   return {
     minNetProfitTargetUsd: num(r.minNetProfitTargetUsd, d.minNetProfitTargetUsd, 0, 1_000_000),
+    targetTaoPerMonth: num(r.targetTaoPerMonth, d.targetTaoPerMonth, 0, 10_000),
     storageMonthlyUsd: num(r.storageMonthlyUsd, d.storageMonthlyUsd, 0, 100_000),
     infraMonthlyUsd: num(r.infraMonthlyUsd, d.infraMonthlyUsd, 0, 100_000),
     otherOpexMonthlyUsd: num(r.otherOpexMonthlyUsd, d.otherOpexMonthlyUsd, 0, 100_000),

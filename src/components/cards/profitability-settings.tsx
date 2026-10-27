@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Settings2, Target, Loader2, CheckCircle2, Cpu } from "lucide-react";
+import { Settings2, Target, Loader2, CheckCircle2, Cpu, Coins } from "lucide-react";
 import {
   useProfitabilityConfig,
   useSaveProfitabilityConfig,
@@ -215,6 +215,29 @@ function SettingsForm({
             {passCount} of {totalCount} subnets pass this target.
           </p>
         )}
+        {/* TAO-ACCUMULATION-1 — the user's actual goal: accumulating TAO.
+            The α→TAO mode re-denominates net earnings into TAO banked per
+            month and measures every row against this goal line. */}
+        <Separator className="my-3" />
+        <div className="flex items-center gap-2">
+          <Coins className="h-4 w-4 text-primary" />
+          <Label className="text-sm font-semibold">TAO accumulation goal (TAO/month)</Label>
+        </div>
+        <Input
+          type="number"
+          min={0}
+          step={0.25}
+          value={String(draft.targetTaoPerMonth)}
+          onChange={(e) =>
+            set("targetTaoPerMonth", Math.max(0, Number(e.target.value) || 0))
+          }
+          className="mt-2 h-10 w-36 text-lg font-bold"
+        />
+        <p className="mt-2 text-xs text-muted-foreground">
+          Goal for the α→TAO accumulation view: net TAO per month after
+          converting rewards at realizable (pool) prices. 0 = off. Default 1
+          TAO/mo.
+        </p>
       </div>
 
           {/* --- Cost lines --- */}

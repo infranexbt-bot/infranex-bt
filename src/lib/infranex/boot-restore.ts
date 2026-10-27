@@ -70,6 +70,9 @@ interface BaselineSnapshot {
 
 interface BaselineSettings {
   minNetProfitTargetUsd: number;
+  /** TAO-ACCUMULATION-1 — optional so pre-feature baselines still parse;
+   *  absent → the DB column default (1 TAO/mo) applies on restore. */
+  targetTaoPerMonth?: number;
   storageMonthlyUsd: number;
   infraMonthlyUsd: number;
   otherOpexMonthlyUsd: number;
