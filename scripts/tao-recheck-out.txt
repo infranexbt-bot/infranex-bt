@@ -1,0 +1,29 @@
+login: OK
+rows: 128 · targetTaoPerMonth=1 · TAO=$247.07
+
+TAO-ACCUMULATION-2: assumption $500/TAO checked on 128 rows · ranking bit-identical: YES
+TOP 5 AT THE ASSUMPTION (what the banked TAO is worth):
+SN 51 lium.io        net=198.15 TAO/mo → $99075/mo · $1188900/yr (+102.4% vs live $247)
+SN 82 Noah           net=51.35 TAO/mo → $25675/mo · $308100/yr (+102.4% vs live $247)
+SN 86 OnSale         net=32.74 TAO/mo → $16370/mo · $196440/yr (+102.4% vs live $247)
+SN 90 KubeTEE        net=18.94 TAO/mo → $9470/mo · $113640/yr (+102.4% vs live $247)
+SN 64 Chutes         net=17.97 TAO/mo → $8985/mo · $107820/yr (+102.4% vs live $247)
+
+invariants: checked 128 rows · 0 failures
+census: GOAL_MET 50 · PROGRESS 43 · NEGATIVE 35 · thin-pool flagged 11
+
+TOP BY NET TAO/MO (the accumulation ranking):
+SN 51 lium.io        net=  198.15 TAO/mo gross=201.98 costs=3.83 goal=✓198.2× worst=13.98 haircut=−0.4% 
+SN 82 Noah           net=   51.35 TAO/mo gross=54.83 costs=3.47 goal=✓51.4× worst=26.79 haircut=−9.6% 
+SN 86 OnSale         net=   32.74 TAO/mo gross=33.50 costs=0.76 goal=✓32.7× worst=2.94 haircut=−3.7% THIN
+SN 90 KubeTEE        net=   18.94 TAO/mo gross=19.67 costs=0.73 goal=✓18.9× worst=1.28 haircut=−2.0% 
+SN 64 Chutes         net=   17.97 TAO/mo gross=20.67 costs=2.70 goal=✓18.0× worst=2.95 haircut=−0.2% 
+SN 35 Subnet 35      net=   11.72 TAO/mo gross=12.78 costs=1.06 goal=✓11.7× worst=0.38 haircut=−1.7% THIN
+SN 68 NOVA           net=   11.01 TAO/mo gross=11.72 costs=0.71 goal=✓11.0× worst=0.21 haircut=−0.1% 
+SN116 Carbon         net=   10.99 TAO/mo gross=11.56 costs=0.57 goal=✓11.0× worst=0.34 haircut=−8.3% 
+SN 95 Actual         net=   10.59 TAO/mo gross=11.32 costs=0.73 goal=✓10.6× worst=0.16 haircut=−0.8% 
+SN  4 Targon         net=    9.89 TAO/mo gross=13.55 costs=3.66 goal=✓9.9× worst=-2.60 haircut=−0.2% 
+SN 28 SayGM          net=    8.44 TAO/mo gross=9.20 costs=0.76 goal=✓8.4× worst=1.58 haircut=−0.7% 
+SN  9 iota           net=    7.61 TAO/mo gross=8.24 costs=0.63 goal=✓7.6× worst=0.02 haircut=−0.3% 
+
+ALL INVARIANTS PASS

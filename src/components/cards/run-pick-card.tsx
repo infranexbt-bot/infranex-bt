@@ -57,7 +57,7 @@ export function RunPickCard({
             Start here — the best subnet to run
           </CardTitle>
           <p className="mt-1 text-xs text-muted-foreground">
-            One conviction ranking powers this card and the Opportunities page — RUN / WATCH / AVOID is the only verdict.
+            One evidence engine powers this card and the Opportunities page — conviction orders the rows, the verdict (RUN / WATCH / AVOID) comes from the Opportunity Score + classification, so every RUN is evidence-backed.
           </p>
         </div>
         <div className="flex items-center gap-2">{toolbar}</div>

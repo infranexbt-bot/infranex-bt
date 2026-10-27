@@ -5,7 +5,8 @@ import { RefreshCw, Network, TrendingUp, Coins, Activity, ArrowRight, BadgeCheck
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { rankMinePicks, computeMinePickMap } from "@/lib/infranex/mine-pick";
+import { rankMinePicks } from "@/lib/infranex/mine-pick";
+import { computeVerdictMapFor } from "@/lib/infranex/verdict";
 import { costBasisFromConfig } from "@/lib/infranex/rent-earn";
 import { RunPickCard } from "@/components/cards/run-pick-card";
 import { CostBasisToggle } from "@/components/cards/cost-basis-toggle";
@@ -49,23 +50,37 @@ export function DashboardView({ onSelectOpportunity, onStartMining, onNavigate }
   // read owned-rig language (no rent sources), the rig profile (VRAM + TEE)
   // drives the fit gate, and weights shift to 55/25/20 (OWNED-RIG-1).
   const minePicks = rankMinePicks(liveOpps, costBasisFromConfig(profConfig));
-  // VERDICT-UNIFY-1 — the dashboard's RUN/WATCH/AVOID counts come from the
-  // SAME conviction engine as the Opportunities tabs. One engine, one answer.
-  const pickMapAll = useMemo(
-    () => computeMinePickMap(liveOpps, costBasisFromConfig(profConfig)),
+  // VERDICT-UNIFY-2 — the dashboard's RUN/WATCH/AVOID counts come from the
+  // SAME evidence-derived verdict as the Opportunities tabs (score +
+  // classification → verdict), so a row cannot read AVOID on one surface
+  // and RUN on another. The conviction engine stays the SORT lens for the
+  // Start-here card below.
+  const verdictMapAll = useMemo(
+    () => computeVerdictMapFor(liveOpps as never, profConfig),
     [liveOpps, profConfig]
   );
   const verdictCounts = useMemo(() => {
     let run = 0;
     let watch = 0;
     let avoid = 0;
-    for (const p of pickMapAll.values()) {
-      if (p.verdict === "RUN") run++;
-      else if (p.verdict === "WATCH") watch++;
+    for (const o of liveOpps) {
+      const v = verdictMapAll.get(o.id);
+      if (v === "RUN") run++;
+      else if (v === "WATCH") watch++;
       else avoid++;
     }
     return { run, watch, avoid };
-  }, [pickMapAll]);
+  }, [liveOpps, verdictMapAll]);
+  // The Start-here card displays the same unified verdicts on its rows —
+  // override the MinePick verdicts with the evidence-derived ones.
+  const unifiedPicks = useMemo(
+    () =>
+      minePicks.map((p) => {
+        const v = verdictMapAll.get(p.o.id);
+        return v && v !== p.verdict ? { ...p, verdict: v } : p;
+      }),
+    [minePicks, verdictMapAll]
+  );
   // HOST-EARN teaser — when GPU mining seats are overwhelmingly NO-GO (≥80%),
   // surface the provider path (SN51 hosting income never enters the mining
   // lens). Text adapts: all-NO-GO vs mostly-NO-GO (one GPU pick can be live).
@@ -131,11 +146,12 @@ export function DashboardView({ onSelectOpportunity, onStartMining, onNavigate }
         </div>
       </header>
 
-      {/* VERDICT-UNIFY-1 — ONE decision card. The old "Choose your subnet"
-          picker and the "Best subnets by score" table were two more rankings;
-          this card + the Opportunities page share the single conviction list. */}
+      {/* VERDICT-UNIFY-2 — ONE decision card. Ranking = conviction (seat
+          quality, orders the rows); VERDICTS = the evidence-derived unified
+          map (same source as the Opportunities tabs) — a row cannot read
+          AVOID here and RUN there. */}
       <RunPickCard
-        picks={minePicks}
+        picks={unifiedPicks}
         onStartMining={onStartMining}
         onSelectOpportunity={onSelectOpportunity}
         onNavigate={onNavigate}

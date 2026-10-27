@@ -1,0 +1,24 @@
+login: OK
+rows: 128 · TAO=$247.03 · weights from settings: 0.3/0.2/0.15/0.1/0.1/0.1/0.05
+1. weights: defaults sum 1 · resolve normalizes · sanitize safe ✓
+
+2–6. per-row invariants: 128 rows checked
+7. settings round-trip: weights normalized (sum 1.000) · cap enforced · hostile input → null · restored ✓
+8. snapshot pipeline: 128 rows captured for 2026-10-27 · per-subnet history serves ✓
+
+census: classification — SCALE 3 · TEST 17 · WATCHLIST 23 · AVOID 85 (gated 108, net-negative 34)
+census: difficulty — EASY 13 · MODERATE 7 · DIFFICULT 108 · UNKNOWN 0
+
+TOP 10 BY OPPORTUNITY SCORE (gates sink):
+SN 82 Noah             score= 84.2       SCALE     EASY      net=$12,685/mo conf=82%
+SN  5 Hone             score= 65.3       SCALE     EASY      net=$867/mo conf=82%
+SN 68 NOVA             score= 61.9       TEST      DIFFICULT net=$2,719/mo conf=81%
+SN 83 CliqueAI         score= 58.2       SCALE     EASY      net=$407/mo conf=82%
+SN  9 iota             score= 55.8       TEST      DIFFICULT net=$1,876/mo conf=81%
+SN120 Affine           score= 54.8       TEST      DIFFICULT net=$1,082/mo conf=81%
+SN 53 engy             score= 52.6       TEST      DIFFICULT net=$1,107/mo conf=81%
+SN107 Minos            score= 51.7       TEST      DIFFICULT net=$1,100/mo conf=81%
+SN104 TAOstatus        score= 42.3       TEST      DIFFICULT net=$1,080/mo conf=81%
+SN 80 OpenRoboto       score= 40.4       TEST      DIFFICULT net=$396/mo conf=81%
+
+ALL OPPORTUNITY-ENGINE INVARIANTS PASS

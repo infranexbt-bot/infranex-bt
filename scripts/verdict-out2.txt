@@ -1,0 +1,81 @@
+prisma:query SELECT `main`.`ProfitabilitySettings`.`id`, `main`.`ProfitabilitySettings`.`minNetProfitTargetUsd`, `main`.`ProfitabilitySettings`.`targetTaoPerMonth`, `main`.`ProfitabilitySettings`.`assumedTaoPriceUsd`, `main`.`ProfitabilitySettings`.`storageMonthlyUsd`, `main`.`ProfitabilitySettings`.`infraMonthlyUsd`, `main`.`ProfitabilitySettings`.`otherOpexMonthlyUsd`, `main`.`ProfitabilitySettings`.`hardwareMode`, `main`.`ProfitabilitySettings`.`electricityUsdPerKwh`, `main`.`ProfitabilitySettings`.`rigGpuVramGb`, `main`.`ProfitabilitySettings`.`rigTeeCapable`, `main`.`ProfitabilitySettings`.`includeRegistrationBurn`, `main`.`ProfitabilitySettings`.`amortizeBurnMonths`, `main`.`ProfitabilitySettings`.`riskAdjustment`, `main`.`ProfitabilitySettings`.`coolingUpliftPct`, `main`.`ProfitabilitySettings`.`maintenanceMonthlyUsd`, `main`.`ProfitabilitySettings`.`rigCapexUsd`, `main`.`ProfitabilitySettings`.`rigAmortizeMonths`, `main`.`ProfitabilitySettings`.`opportunityWeightsJson`, `main`.`ProfitabilitySettings`.`maxApprovedSpendUsd`, `main`.`ProfitabilitySettings`.`updatedAt` FROM `main`.`ProfitabilitySettings` WHERE (`main`.`ProfitabilitySettings`.`id` = ? AND 1=1) LIMIT ? OFFSET ?
+prisma:query SELECT `main`.`SubnetOverride`.`netuid`, `main`.`SubnetOverride`.`name`, `main`.`SubnetOverride`.`description`, `main`.`SubnetOverride`.`category`, `main`.`SubnetOverride`.`minVramGb`, `main`.`SubnetOverride`.`recommendedGpu`, `main`.`SubnetOverride`.`gpuCount`, `main`.`SubnetOverride`.`hostingRequirements`, `main`.`SubnetOverride`.`mechanicsJson`, `main`.`SubnetOverride`.`infraJson`, `main`.`SubnetOverride`.`requirementsSource`, `main`.`SubnetOverride`.`requirementsScrapedAt`, `main`.`SubnetOverride`.`githubUrl`, `main`.`SubnetOverride`.`website`, `main`.`SubnetOverride`.`tags`, `main`.`SubnetOverride`.`createdAt`, `main`.`SubnetOverride`.`updatedAt` FROM `main`.`SubnetOverride` WHERE 1=1 LIMIT ? OFFSET ?
+=== VERDICT DISTRIBUTION (computeMinePickMap, basis=rent) ===
+{
+  RUN: 4,
+  WATCH: 0,
+  AVOID: 124,
+} total=128
+
+=== TOP 25 WATCH rows (closest to RUN) ===
+netuid | conv | rentEarn | diligHlth | conf | rentable | diligVerdict | meetsMin | rewardedRatio | confModel | name
+
+=== BLOCKER FREQUENCY (all rows) ===
+diligence DO-NOT-PROVISION: 114
+rentEarn<40: 106
+whaleMean: 95
+knifeFight: 93
+meetsMinimum=false: 79
+diligHealth<60: 40
+net<=0: 34
+confidence<40: 17
+rentable=false: 7
+
+=== 4-WAY CLASSIFICATION DISTRIBUTION (SCALE/TEST/WATCHLIST/AVOID) ===
+{
+  SCALE: 3,
+  AVOID: 85,
+  TEST: 18,
+  WATCHLIST: 22,
+} total=128
+
+=== DATA COVERAGE ===
+rows=128 rewardedRatio=128 earnChance=128 mechanics=11 requirementsSource=69 top10Share=128 freeSlots=128 rampWeeks=128 hosting=7
+
+=== CURRENT RUN ROWS ===
+SN82 Noah conv=88 net=$12712/mo conf=74 ratio=0.955
+SN5 Hone conv=77 net=$865/mo conf=73 ratio=0.949
+SN83 CliqueAI conv=73 net=$408/mo conf=70 ratio=0.945
+SN92 REAX conv=67 net=$443/mo conf=62 ratio=0.926
+
+=== UNIFIED-VERDICT COUNTERFACTUAL ===
+RUN: 8
+WATCH: 35
+AVOID: 85
+
+-- unified RUN rows (full list) --
+SN82 Noah eff=84.2 conf=82 [%82]
+SN5 Hone eff=65.3 conf=82 [%5]
+SN83 CliqueAI eff=58.2 conf=82 [%83]
+SN120 Affine eff=54.8 conf=81 [%120]
+SN68 NOVA eff=61.9 conf=81 [%68]
+SN9 iota eff=55.8 conf=81 [%9]
+SN107 Minos eff=51.7 conf=81 [%107]
+SN53 engy eff=52.6 conf=81 [%53]
+
+-- unified WATCH sample (first 25) --
+SN39 deprecated eff=48.5 conf=63 [%39]
+SN92 REAX eff=49 conf=71 [%92]
+SN95 Actual eff=49 conf=71 [%95]
+SN122 CookingTAO eff=36.8 conf=73 [%122]
+SN116 Carbon eff=49 conf=63 [%116]
+SN62 Ridges eff=39.3 conf=71 [%62]
+SN23 Trishool eff=37.5 conf=71 [%23]
+SN110 Green Compute eff=45.2 conf=63 [%110]
+SN93 Bitcast eff=38.3 conf=71 [%93]
+SN24 Quasar eff=44.6 conf=71 [%24]
+SN16 Zero Hour eff=33.5 conf=63 [%16]
+SN86 OnSale eff=47.9 conf=63 [%86]
+SN48 Quantum Compute eff=40 conf=81 [%48]
+SN56 Gradients eff=35.4 conf=81 [%56]
+SN58 Attune eff=30.8 conf=63 [%58]
+SN11 TrajectoryRL eff=37.9 conf=81 [%11]
+SN104 TAOstatus eff=42.3 conf=81 [%104]
+SN10 Pareton eff=37.7 conf=81 [%10]
+SN25 UR eff=35.7 conf=71 [%25]
+SN71 Leadpoet eff=32.4 conf=71 [%71]
+SN97 Ingot eff=39.6 conf=63 [%97]
+SN69 Herald eff=39.6 conf=81 [%69]
+SN124 Swarm eff=39.8 conf=81 [%124]
+SN14 Cacheon eff=32.5 conf=73 [%14]
+SN112 THOR eff=31.9 conf=71 [%112]

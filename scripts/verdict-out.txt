@@ -1,0 +1,39 @@
+prisma:query SELECT `main`.`ProfitabilitySettings`.`id`, `main`.`ProfitabilitySettings`.`minNetProfitTargetUsd`, `main`.`ProfitabilitySettings`.`targetTaoPerMonth`, `main`.`ProfitabilitySettings`.`assumedTaoPriceUsd`, `main`.`ProfitabilitySettings`.`storageMonthlyUsd`, `main`.`ProfitabilitySettings`.`infraMonthlyUsd`, `main`.`ProfitabilitySettings`.`otherOpexMonthlyUsd`, `main`.`ProfitabilitySettings`.`hardwareMode`, `main`.`ProfitabilitySettings`.`electricityUsdPerKwh`, `main`.`ProfitabilitySettings`.`rigGpuVramGb`, `main`.`ProfitabilitySettings`.`rigTeeCapable`, `main`.`ProfitabilitySettings`.`includeRegistrationBurn`, `main`.`ProfitabilitySettings`.`amortizeBurnMonths`, `main`.`ProfitabilitySettings`.`riskAdjustment`, `main`.`ProfitabilitySettings`.`coolingUpliftPct`, `main`.`ProfitabilitySettings`.`maintenanceMonthlyUsd`, `main`.`ProfitabilitySettings`.`rigCapexUsd`, `main`.`ProfitabilitySettings`.`rigAmortizeMonths`, `main`.`ProfitabilitySettings`.`opportunityWeightsJson`, `main`.`ProfitabilitySettings`.`maxApprovedSpendUsd`, `main`.`ProfitabilitySettings`.`updatedAt` FROM `main`.`ProfitabilitySettings` WHERE (`main`.`ProfitabilitySettings`.`id` = ? AND 1=1) LIMIT ? OFFSET ?
+prisma:query SELECT `main`.`SubnetOverride`.`netuid`, `main`.`SubnetOverride`.`name`, `main`.`SubnetOverride`.`description`, `main`.`SubnetOverride`.`category`, `main`.`SubnetOverride`.`minVramGb`, `main`.`SubnetOverride`.`recommendedGpu`, `main`.`SubnetOverride`.`gpuCount`, `main`.`SubnetOverride`.`hostingRequirements`, `main`.`SubnetOverride`.`mechanicsJson`, `main`.`SubnetOverride`.`infraJson`, `main`.`SubnetOverride`.`requirementsSource`, `main`.`SubnetOverride`.`requirementsScrapedAt`, `main`.`SubnetOverride`.`githubUrl`, `main`.`SubnetOverride`.`website`, `main`.`SubnetOverride`.`tags`, `main`.`SubnetOverride`.`createdAt`, `main`.`SubnetOverride`.`updatedAt` FROM `main`.`SubnetOverride` WHERE 1=1 LIMIT ? OFFSET ?
+=== VERDICT DISTRIBUTION (computeMinePickMap, basis=rent) ===
+{
+  RUN: 4,
+  WATCH: 0,
+  AVOID: 124,
+} total=128
+
+=== TOP 25 WATCH rows (closest to RUN) ===
+netuid | conv | rentEarn | diligHlth | conf | rentable | diligVerdict | meetsMin | rewardedRatio | confModel | name
+
+=== BLOCKER FREQUENCY (all rows) ===
+diligence DO-NOT-PROVISION: 114
+rentEarn<40: 106
+whaleMean: 95
+knifeFight: 93
+meetsMinimum=false: 79
+diligHealth<60: 40
+net<=0: 34
+confidence<40: 17
+rentable=false: 7
+
+=== 4-WAY CLASSIFICATION DISTRIBUTION (SCALE/TEST/WATCHLIST/AVOID) ===
+{
+  SCALE: 3,
+  AVOID: 85,
+  TEST: 18,
+  WATCHLIST: 22,
+} total=128
+
+=== DATA COVERAGE ===
+rows=128 rewardedRatio=128 earnChance=128 mechanics=11 requirementsSource=69 top10Share=128 freeSlots=128 rampWeeks=128 hosting=7
+
+=== CURRENT RUN ROWS ===
+SN82 Noah conv=88 net=$12740/mo conf=74 ratio=0.955
+SN5 Hone conv=77 net=$866/mo conf=73 ratio=0.949
+SN83 CliqueAI conv=73 net=$409/mo conf=70 ratio=0.945
+SN92 REAX conv=67 net=$442/mo conf=62 ratio=0.926

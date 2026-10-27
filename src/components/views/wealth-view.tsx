@@ -100,7 +100,8 @@ export function WealthView({ onNavigate }: { onNavigate: (v: ViewKey) => void })
           </div>
         </div>
       ),
-      target: "invest",
+      // WINDUP-GATE-FIX: no "invest" ViewKey exists — the Invest engine has
+      // no dedicated view yet, so the card renders as a summary (no CTA).
       cta: "Open Invest engine",
     },
     {
@@ -132,7 +133,7 @@ export function WealthView({ onNavigate }: { onNavigate: (v: ViewKey) => void })
           </div>
         </div>
       ),
-      target: "earn",
+      // WINDUP-GATE-FIX: no "earn" ViewKey exists yet — see note above.
       cta: "Open Earn engine",
     },
     {
@@ -164,7 +165,7 @@ export function WealthView({ onNavigate }: { onNavigate: (v: ViewKey) => void })
           </div>
         </div>
       ),
-      target: "capture",
+      // WINDUP-GATE-FIX: no "capture" ViewKey exists yet — see note above.
       cta: "Open Capture desk",
     },
   ];

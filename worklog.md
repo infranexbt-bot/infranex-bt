@@ -2834,3 +2834,22 @@ Stage Summary:
 Known limits (honest):
 - SCALE evidence today = chain reward vectors; deployment-actual calibration activates automatically once ≥7 miner-days of EarningsDaily exist (trust loop already wired)
 - Stop/switch evaluator needs live (non-mock) deployments with projections to fire; snapshot history accumulates from today
+
+---
+Task ID: verdict-unify-2
+Agent: main (Super Z)
+Task: User: "but still we have only 4 RUN" — diagnose the verdict distribution and unify the verdict with the evidence-based Opportunity Engine (12-section spec workstream)
+
+Work Log:
+- Diagnosed via scripts/analyze-verdicts.ts (replicates fetchLiveSnapshot → mergeOpportunities → computeMinePickMap): RUN=4 · WATCH=0 · AVOID=124. WATCH=0 is structural: 114 rows hit diligence DO-NOT-PROVISION which caps conviction at 30, BELOW the WATCH band floor 35 — the whole middle of the distribution collapses to AVOID. Meanwhile the upgraded evidence engine says SCALE=3 · TEST=18 · WATCHLIST=22 — two engines, contradictory answers.
+- Confirmed most of the 12-section engine spec already implemented in prior sessions: 7-factor configurable weighted score (subnet-opportunity.ts OPPORTUNITY-SCORE-2, weights in ProfitabilitySettings.opportunityWeightsJson), EASY/MODERATE/DIFFICULT/UNKNOWN (entry-difficulty.ts), SCALE/TEST/WATCHLIST/AVOID (opportunity-class.ts), 3-scenario net earnings + confidence (net-earnings.ts), daily learning snapshots (opportunity-snapshot.ts), 8 sorts/filters in the table.
+- VERDICT-UNIFY-2: new src/lib/infranex/verdict.ts — single source of truth. Rule: AVOID=classification AVOID (negative net / below-min / hardware-gated); RUN=SCALE, or TEST with effectiveScore ≥ 50 (VIABLE band) AND dataConfidence ≥ 0.5; WATCH=everything else. Hard rules inherited from score gates: PAYOUT_UNVERIFIED caps eff at 49 < 50 → can never RUN; NET_NEGATIVE → AVOID; missing data never promotes.
+- Wired 5 surfaces to the unified verdict: opportunity-table.tsx (chip + conviction tooltip), opportunities-view.tsx (tab counts, filter, WinOddsPanel verdict, legend copy), dashboard-view.tsx (verdictCounts + unifiedPicks for the Start-here card), run-pick-card.tsx (copy), opportunity-detail.tsx (headline badge + PNL-RECONCILE block use unifiedVerdict(clsLocal, scoreLocal)).
+- Fixed pre-existing type errors blocking `bun run build` (WINDUP gate ignoreBuildErrors:false): wealth-view.tsx (dead code, zero render sites) referenced non-existent ViewKeys "invest"/"earn"/"capture" — dropped the 3 target literals (cards render non-clickable; zero runtime impact).
+- Verification: scripts/verdict-unify-verify.ts ALL PASS (8 unit matrix checks + live contracts: determinism, RUN⇒cls∈{SCALE,TEST} ∧ eff≥50 ∧ conf≥0.5 ∧ net>0 ∧ payout-verified, AVOID-cls⇒AVOID, negative-net never RUN, payout-unverified never RUN, WATCH band reachable). Regression: tao-accumulation-verify ALL INVARIANTS PASS (rank bit-identity intact), opportunity-score-verify + opportunity-engine-verify + net-earnings-verify ALL PASS. tsc --noEmit: 0 errors project-wide. Smoke: login 200, dashboard 200, /api/network 200 live (TAO $247.17, block 9,374,951).
+
+Stage Summary:
+- New verdict distribution on live data: RUN=8 · WATCH=35 · AVOID=85 (was 4 · 0 · 124).
+- RUN set: SN82 Noah (SCALE, $12.7k/mo), SN5 Hone (SCALE, $866/mo), SN83 CliqueAI (SCALE, $407/mo), SN120 Affine (TEST, $1,081/mo), SN68 NOVA (TEST, $2,722/mo), SN9 iota (TEST, $1,882/mo), SN107 Minos (TEST, $1,101/mo), SN53 engy (TEST, $1,108/mo) — every one evidence-backed; SN92 REAX moves RUN→WATCH at eff=49 (1pt under the VIABLE bar) with its upgrade path shown.
+- Files: NEW src/lib/infranex/verdict.ts; modified opportunity-table.tsx, opportunities-view.tsx, dashboard-view.tsx, run-pick-card.tsx, opportunity-detail.tsx, wealth-view.tsx (type-gate fix); NEW scripts/analyze-verdicts.ts, scripts/verdict-unify-verify.ts.
+- Known remaining parallel lens (intentionally untouched): utils.ts scoreBand() still bands the Miner's Ledger composite (≥60 RUN) for the analytics chart — that is a different metric (ledger score), not the decision verdict.

@@ -1,0 +1,22 @@
+login: OK
+rows: 128 · config mode=owned target=$300
+estimates: 128 built · 128 rows with P&L · 0 without
+verdict census: {"RESILIENT":6,"CASH_POSITIVE":10,"RAMP_LOSS":78,"LOSS_MAKING":34}
+base confidence census: {"HIGH":12,"MEDIUM":97,"LOW":19}
+
+Top 8 by BASE net earnings:
+  SN051 lium.io                base  $48,958/mo [HIGH] worst $3,453 best $48,958 → RESILIENT
+  SN082 Noah                   base  $12,685/mo [HIGH] worst $6,618 best $12,685 → RESILIENT
+  SN086 OnSale                 base  $8,086/mo [LOW] worst $726 best $49,457 → RESILIENT
+  SN090 KubeTEE                base  $4,678/mo [HIGH] worst $316 best $256,855 → RESILIENT
+  SN064 Chutes                 base  $4,440/mo [HIGH] worst $729 best $81,115 → RESILIENT
+  SN035 Subnet 35              base  $2,895/mo [LOW] worst $93 best $15,525 → CASH_POSITIVE
+  SN068 NOVA                   base  $2,719/mo [MEDIUM] worst $52 best $185,130 → CASH_POSITIVE
+  SN116 Carbon                 base  $2,714/mo [MEDIUM] worst $83 best $730,527 → CASH_POSITIVE
+
+Worst 3 by BASE net earnings:
+  SN019 blockmachine           base $-220/mo [MEDIUM] → LOSS_MAKING
+  SN030 Endure Network         base $-229/mo [MEDIUM] → LOSS_MAKING
+  SN029 hoτfloaτ               base $-691/mo [MEDIUM] → LOSS_MAKING
+
+ALL INVARIANTS PASS
