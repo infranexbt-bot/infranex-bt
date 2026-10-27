@@ -73,6 +73,9 @@ interface BaselineSettings {
   /** TAO-ACCUMULATION-1 — optional so pre-feature baselines still parse;
    *  absent → the DB column default (1 TAO/mo) applies on restore. */
   targetTaoPerMonth?: number;
+  /** TAO-ACCUMULATION-2 — the long-term $/TAO bet. Optional + nullable so
+   *  pre-feature baselines parse; absent → DB default (null = follow live). */
+  assumedTaoPriceUsd?: number | null;
   storageMonthlyUsd: number;
   infraMonthlyUsd: number;
   otherOpexMonthlyUsd: number;

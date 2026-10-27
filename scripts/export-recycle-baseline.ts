@@ -44,6 +44,7 @@ async function main() {
       ? {
           minNetProfitTargetUsd: settings.minNetProfitTargetUsd,
           targetTaoPerMonth: settings.targetTaoPerMonth,
+          assumedTaoPriceUsd: settings.assumedTaoPriceUsd,
           storageMonthlyUsd: settings.storageMonthlyUsd,
           infraMonthlyUsd: settings.infraMonthlyUsd,
           otherOpexMonthlyUsd: settings.otherOpexMonthlyUsd,

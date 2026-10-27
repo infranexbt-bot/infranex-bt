@@ -2785,3 +2785,25 @@ Work Log:
 
 Stage Summary:
 - App UP with all features live incl. the new TAO /mo column and goal view; no data loss
+
+---
+Task ID: tao-accumulation-2
+Agent: main
+Task: TAO Accumulation Mode element 4 — the long-term perspective (TAO price assumption + value-at-goal view)
+
+Work Log:
+- prisma/schema.prisma: ProfitabilitySettings.assumedTaoPriceUsd Float? (null = follow live price); bun run db:push synced (24ms)
+- src/lib/infranex/profitability.ts: type + default (null) + sanitizer (finite>0 → clamp ≤100,000; else null; string "750" → 750 verified)
+- src/lib/infranex/tao-accumulation.ts: Row gains taoPerYear + assumedTaoPriceUsd + assumedUpsidePct + valueAtAssumedMonthlyUsd + valueAtAssumedYearlyUsd; ctx gains assumedTaoPriceUsd; all derived from ROUNDED net (dialog sentence = displayed net × displayed assumption, no hidden precision)
+- opportunity-detail.tsx: ctx wired (profConfig?.assumedTaoPriceUsd) + new long-term bet line in the goal-view section — "At your $500/TAO assumption: $1,760/mo · $21,120/yr (+102.4% vs live $247) — banked TAO re-valued, ranking unchanged" (primary border when active) or "Following live price — set a $/TAO assumption in settings…" fallback
+- opportunity-table.tsx: map ctx wired + deps; TAO/mo cell tooltip gains "Your long-term bet: … worth $X/mo · $Y/yr (re-valued equally — ranking unchanged)" when set
+- profitability-settings.tsx: "TAO price assumption ($/TAO)" input (placeholder = live price, empty/0 → null) — verified in UI: 500 saved, cleared saved null
+- Persistence chain: profitability-config route already flows through sanitizeProfitabilityConfig (no change needed); boot-restore.ts BaselineSettings gains optional assumedTaoPriceUsd (old baselines → DB default); export-recycle-baseline.ts exports it; baseline re-exported (b9374240, field present=null)
+- scripts/tao-accumulation-verify.ts extended: family 9 (null assumption → all 4 assumed fields null, taoPerYear = net×12) + family 10 ($500 run: value = displayed net × 500, upside % correct, quantities/verdict untouched, RANKING BIT-IDENTICAL to null run) — ALL PASS 128/128, 0 failures. Census unchanged: GOAL_MET 49 · PROGRESS 44 · NEGATIVE 35 · thin 11 (proving rank-neutrality on live data)
+- API round-trip tested: PUT 500 → GET 500; sanitizer edges 0→null, "750"→750, 999999→clamp 100,000; restored null
+- E2E (agent-browser): settings $500 → SN5 Hone dialog shows "$1,760/mo · $21,120/yr (+102.4% vs live $247)" (3.52 TAO × 500 exact); clear → "Following live price" fallback. NOTE: agent-browser fill("") fires no events (Playwright quirk, not an app bug) — clear via click+Ctrl+A+Backspace. Screenshot: download/tao-accumulation2-dialog-assumption.png
+- Server reaped once mid-check → revived (login 200 t+5s); verify-app-health ALL PASS (129 subnets live b9374543, playbook 106, overrides 112/69 GPU, config 200); settings survive restart (target 1, assumed null, owned/96GB/$300)
+- tsc clean (3 pre-existing wealth-view errors untouched); eslint 0 errors on all touched files
+
+Stage Summary:
+- SHIPPED: element 4 of the TAO Accumulation spec — the operator can stake a long-term $/TAO assumption; every row then shows what the banked TAO is WORTH at that bet ($/mo · $/yr + % vs live) in dialog, table tooltip and settings, while the ranking is mathematically guaranteed unchanged (verify asserts bit-identical order on 128 live rows). Null = follow live price; value sentences always equal displayed net × displayed assumption.
