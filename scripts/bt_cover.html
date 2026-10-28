@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;500;700&family=Noto+Serif+SC:wght@400;700;900&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    @page { size: 794px 1123px; margin: 0; }
+    :root {
+      --c-bg: #0a1628;
+      --c-accent: #4da8da;
+      --c-text: #e8f0f8;
+      --c-muted: #7a9bb8;
+      --c-glow: #2d7ab3;
+    }
+    html, body {
+      margin: 0; padding: 0;
+      width: 794px; height: 1123px;
+      background: var(--c-bg);
+      color: var(--c-text);
+      font-family: 'Inter', 'Noto Sans SC', sans-serif;
+    }
+    @media screen {
+      html { height: auto; display: flex; justify-content: center; min-height: 100vh; background: var(--c-bg); }
+      body { transform-origin: top center; scale: min(1, calc(100vw / 794), calc(100vh / 1123)); margin: 0 auto; box-shadow: 0 0 60px rgba(0,0,0,0.4); }
+    }
+    .cover { width: 794px; height: 1123px; position: relative; box-sizing: border-box; border: none; outline: none; box-shadow: none; }
+
+    /* Layer 1 — background glows (clipped) */
+    .layer-1 { position: absolute; inset: 0; overflow: hidden; z-index: 1; }
+    .glow-a {
+      position: absolute; left: 0; top: 0;
+      width: 100%; height: 55%;
+      background: radial-gradient(circle at 18% 12%, rgba(77,168,218,0.08) 0%, rgba(77,168,218,0.0) 55%);
+    }
+    .glow-b {
+      position: absolute; left: 0; bottom: 0;
+      width: 100%; height: 60%;
+      background: radial-gradient(circle at 85% 90%, rgba(45,122,179,0.07) 0%, rgba(45,122,179,0.0) 55%);
+    }
+
+    /* Layer 2 — luminous rectangular frame */
+    .layer-2 { position: absolute; inset: 0; z-index: 2; }
+    .frame {
+      position: absolute;
+      top: 80px; bottom: 80px; left: 60px; right: 60px;
+      border: 2px solid var(--c-accent);
+      opacity: 0.85;
+    }
+
+    /* Layer 3 — content */
+    .layer-3 { position: absolute; inset: 0; z-index: 3; }
+    .kicker {
+      position: absolute; left: 110px; top: 135px;
+      font-size: 11pt; font-weight: 300;
+      color: var(--c-accent);
+      letter-spacing: 5px; text-transform: uppercase;
+    }
+    .hero {
+      position: absolute; left: 110px; top: 236px;
+      font-family: 'Playfair Display', 'Noto Serif SC', serif;
+      font-size: 50pt; font-weight: 900;
+      line-height: 1.15;
+      color: var(--c-text);
+      text-shadow: 0 0 26px rgba(77,168,218,0.35);
+      max-width: 560px;
+    }
+    .hero-sub {
+      position: absolute; left: 110px; top: 344px;
+      font-family: 'Playfair Display', 'Noto Serif SC', serif;
+      font-size: 25pt; font-weight: 400;
+      line-height: 1.25;
+      color: var(--c-accent);
+      max-width: 560px;
+    }
+    .summary {
+      position: absolute; left: 110px; top: 505px;
+      font-size: 15pt; font-weight: 300;
+      line-height: 1.7;
+      color: var(--c-muted);
+      max-width: 520px;
+    }
+    .org {
+      position: absolute; left: 110px; top: 745px;
+      font-size: 18pt; font-weight: 500;
+      color: var(--c-text);
+      letter-spacing: 1.5px;
+    }
+    .org-sub {
+      position: absolute; left: 110px; top: 786px;
+      font-size: 11pt; font-weight: 300;
+      color: var(--c-muted);
+      letter-spacing: 2px; text-transform: uppercase;
+    }
+    .footer-date {
+      position: absolute; left: 110px; bottom: 130px;
+      font-size: 10pt; font-weight: 300;
+      color: var(--c-muted);
+      letter-spacing: 3px; text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+  <div class="cover">
+    <div class="layer-1">
+      <div class="glow-a"></div>
+      <div class="glow-b"></div>
+    </div>
+    <div class="layer-2">
+      <div class="frame"></div>
+    </div>
+    <div class="layer-3">
+      <div class="kicker">Infranex BT &middot; Miner Intelligence Briefing</div>
+      <div class="hero">BITTENSOR</div>
+      <div class="hero-sub">The Complete Guide to the<br>Decentralized Intelligence Network</div>
+      <div class="summary">
+        What Bittensor is, what it produces, and how it works end to end &mdash;
+        subnets as digital markets, TAO as the scarce settlement asset, validators
+        and miners as the two engines of emission &mdash; and why this architecture
+        is a powerful business model for Infranex BT.
+      </div>
+      <div class="org">INFRANEX BT</div>
+      <div class="org-sub">Miner Intelligence Platform</div>
+      <div class="footer-date">October 2026 &middot; TAO Mainnet &middot; Edition 1.0</div>
+    </div>
+  </div>
+</body>
+</html>

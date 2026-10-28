@@ -2853,3 +2853,23 @@ Stage Summary:
 - RUN set: SN82 Noah (SCALE, $12.7k/mo), SN5 Hone (SCALE, $866/mo), SN83 CliqueAI (SCALE, $407/mo), SN120 Affine (TEST, $1,081/mo), SN68 NOVA (TEST, $2,722/mo), SN9 iota (TEST, $1,882/mo), SN107 Minos (TEST, $1,101/mo), SN53 engy (TEST, $1,108/mo) — every one evidence-backed; SN92 REAX moves RUN→WATCH at eff=49 (1pt under the VIABLE bar) with its upgrade path shown.
 - Files: NEW src/lib/infranex/verdict.ts; modified opportunity-table.tsx, opportunities-view.tsx, dashboard-view.tsx, run-pick-card.tsx, opportunity-detail.tsx, wealth-view.tsx (type-gate fix); NEW scripts/analyze-verdicts.ts, scripts/verdict-unify-verify.ts.
 - Known remaining parallel lens (intentionally untouched): utils.ts scoreBand() still bands the Miner's Ledger composite (≥60 RUN) for the analytics chart — that is a different metric (ledger score), not the decision verdict.
+
+---
+Task ID: bittensor-guide-pdf
+Agent: main (Z.ai)
+Task: User requested a quick PDF "complete guide" on Bittensor: what it is, what it does, subnets, TAO, supply/halving, how subnets work, validators vs miners, and the business case for Infranex BT.
+
+Work Log:
+- Loaded pdf skill; routed to creative-flow brief (guide/handbook); read fonts.md, overflow.md, typography.md, palette.md, pagination.md, cover.md
+- Web-verified current facts (Oct 2026): TAO ~$250, mcap ~$2.9B, circulating ~11.67M/21M, first halving Nov 2025, 120+ subnets (cap 32,768), 24-25 revenue-generating subnets ($28-35M annualized, >$100M projected), dTAO Feb 2025 + eTAO Oct 2026
+- Generated cascade palette (dark steel-blue family) via palette.cascade
+- Built 720x1020px flow HTML: cover + 9 chapters (What/Does/Subnets/TAO/Subnet loop/Validator-Miner/Infranex case/Risks/Glossary) + ending page; 5 tables, 3 stat-grids, 6-step flow, 12-term glossary
+- Fixed cover_validate findings (vline gap 37->50px, tiny fonts 9.5->10px); validated cover in isolation -> PASS
+- Installed pagedjs; rendered via html2pdf-next.js (11 pages, vector)
+- Fixed QA warnings: em-dash line-start (60 bound via nbsp), tau watermark overflow (brought inside page), page-9 fill 36% -> added TBL05 risk-counter table -> all fill/overflow checks pass
+- Stamped body page numbers 1-9 (cover/back hidden) + metadata via pymupdf script scripts/stamp_guide_pdf.py
+
+Stage Summary:
+- Deliverables: download/bittensor-guide-infranex-bt.pdf (11 pages, 410KB, vector) + .html source
+- QA: 10 passed, 2 residual warnings (intentional asymmetric display pages cover/ending)
+- Zero text corruption; all figures verified present in extraction
