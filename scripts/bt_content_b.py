@@ -257,4 +257,25 @@ SECTIONS_B = [
  "concepts into live, scored decisions on all 128 subnets — which is the point of having "
  "built it: the guide explains the machine, and the machine works the market."),
 
+("h2", "Where to go next"),
+
+("bullets", [
+    "bittensor.com/docs — protocol documentation: emissions, dTAO, Yuma Consensus, and the "
+    "official subnet developer guides; start here for mechanism-level detail.",
+    "bittensor.ai — the network's front page: live TAO price, per-subnet dashboards, alpha "
+    "pools, and registration status for all 128 slots.",
+    "taostats.io — chain analytics: supply history, emission flows, validator distributions, "
+    "and historical metagraph data for any subnet.",
+    "Infranex BT — the Miner Fit view for hardware matching, the Opportunities view for "
+    "scored verdicts across all subnets, and Deployments for execution with enforced spend "
+    "caps; the platform operationalizes every step of the playbook in chapter 8.",
+]),
+
+("body", "A final orientation for the reader: Bittensor rewards people who verify rather than "
+ "trust, and who treat every twelve-minute epoch as fresh evidence. Use this guide to build "
+ "the mental model, use the official documentation to verify every mechanism it summarizes, "
+ "and use the platform to keep the model synchronized with a market that reprices intelligence "
+ "twice an hour. The network is young, the emission is front-loaded, and the tools are now in "
+ "place — the remaining variable is disciplined participation."),
+
 ]

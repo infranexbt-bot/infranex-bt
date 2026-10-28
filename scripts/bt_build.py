@@ -260,7 +260,7 @@ def build_table(spec, story):
     assert sum(col_w) <= AVAIL_W + 0.5, 'table exceeds available width'
     data = [[Paragraph('<b>%s</b>' % h, S['th']) for h in spec['header']]]
     for row in spec['rows']:
-        data.append([Paragraph(c, S['td']) for c in row])
+        data.append([Paragraph(nb(c), S['td']) for c in row])
     t = Table(data, colWidths=col_w, hAlign='CENTER', repeatRows=1)
     style = [
         ('BACKGROUND', (0, 0), (-1, 0), TABLE_HEADER_COLOR),
@@ -276,7 +276,7 @@ def build_table(spec, story):
         bg = TABLE_ROW_EVEN if i % 2 == 1 else TABLE_ROW_ODD
         style.append(('BACKGROUND', (0, i), (-1, i), bg))
     t.setStyle(TableStyle(style))
-    caption = Paragraph(spec['caption'], S['caption'])
+    caption = Paragraph(nb(spec['caption']), S['caption'])
     story.append(Spacer(1, 14))
     if len(data) <= 15:
         story.extend(safe_keep_together([t, Spacer(1, 6), caption]))
@@ -304,7 +304,7 @@ def chart_block(spec, story):
     img = embed_image(os.path.join(BASE, spec['path']),
                       max_width=AVAIL_W * 0.97,
                       max_height=spec.get('max_h', 260))
-    caption = Paragraph(spec['caption'], S['caption'])
+    caption = Paragraph(nb(spec['caption']), S['caption'])
     story.append(Spacer(1, 18))
     story.extend(safe_keep_together([img, Spacer(1, 7), caption]))
     story.append(Spacer(1, 18))
@@ -315,6 +315,13 @@ from bt_content_a import SECTIONS_A  # noqa: E402
 from bt_content_b import SECTIONS_B  # noqa: E402
 
 BLOCKS = SECTIONS_A + SECTIONS_B
+
+
+def nb(text):
+    """Bind em dashes to the preceding word so a line never starts with one."""
+    if isinstance(text, str):
+        return text.replace(' \u2014 ', '\u00a0\u2014 ')
+    return text
 
 story = []
 
@@ -340,19 +347,19 @@ for kind, payload in BLOCKS:
         story.append(CondPageBreak(50))
         story.append(Paragraph('<b>%s</b>' % payload, S['h3']))
     elif kind == 'body':
-        story.append(Paragraph(payload, S['body']))
+        story.append(Paragraph(nb(payload), S['body']))
     elif kind == 'bullets':
         for item in payload:
-            story.append(Paragraph('\u2022  %s' % item,
+            story.append(Paragraph('\u2022  %s' % nb(item),
                                    S['bullet']))
         story.append(Spacer(1, 4))
     elif kind == 'numbered':
         for i, item in enumerate(payload, 1):
-            story.append(Paragraph('<b>%d.</b>  %s' % (i, item),
+            story.append(Paragraph('<b>%d.</b>  %s' % (i, nb(item)),
                                    S['numbered']))
         story.append(Spacer(1, 4))
     elif kind == 'quote':
-        quote_block(payload, story)
+        quote_block(nb(payload), story)
     elif kind == 'stats':
         stats_row(payload, story)
     elif kind == 'table':
@@ -370,7 +377,7 @@ doc = TocDocTemplate(
     subject='A complete guide to Bittensor: TAO, subnets, validators, '
             'miners, and the business model for Infranex BT',
 )
-doc.multiBuild(story)
+doc.multiBuild(story, onFirstPage=page_decor, onLaterPages=page_decor)
 print('body built:', BODY_PDF)
 
 # ------------------------------------------------------------- merge
@@ -385,7 +392,7 @@ os.makedirs(os.path.dirname(FINAL_PDF), exist_ok=True)
 def normalize_page_to_a4(page):
     box = page.mediabox
     w, h = float(box.width), float(box.height)
-    if abs(w - A4_W) > 2 or abs(h - A4_H) > 2:
+    if abs(w - A4_W) > 0.3 or abs(h - A4_H) > 0.3:
         page.scale_to(A4_W, A4_H)
     return page
 
