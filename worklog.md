@@ -2873,3 +2873,22 @@ Stage Summary:
 - Deliverables: download/bittensor-guide-infranex-bt.pdf (11 pages, 410KB, vector) + .html source
 - QA: 10 passed, 2 residual warnings (intentional asymmetric display pages cover/ending)
 - Zero text corruption; all figures verified present in extraction
+
+---
+Task ID: bt-guide-pdf
+Agent: main
+Task: User asked for a quick PDF — a complete Bittensor guide: what Bittensor is, what it does, subnets, TAO (supply/generated), how subnets work, validators vs miners, and why it is a strong business model for Infranex BT.
+
+Work Log:
+- Loaded pdf skill; read SKILL.md + configs/fonts.md + briefs/report.md (full 1703 lines) + ALL referenced typesetting files (cover.md 986, palette, typography, overflow 631, pagination, charts, fill-engine 528, geometry, cover-backgrounds 385)
+- Researched live facts: TAO ~$255 / ~$2.9B mcap (bittensor.ai sidebar, Oct 2026); first halving Dec 2025 at 10.5M (7,200 -> 3,600 TAO/day); circulating ~11.3M of 21M; ~70% staked; dTAO alpha economy ~$1.12B mcap (Mar 2026), subnets ~$43M Q1 2026 revenue; 128 slots -> 256 planned; 41/41/18 emission split
+- Cover: Template 07 Crystal Blue (dark #0a1628 + luminous #4da8da frame) — poster_validate PASS, cover_validate PASS, rendered via html2poster.js --width 794px
+- Assets: 5-node incentive-loop diagram (HTML -> Playwright PNG @2x), TAO supply trajectory chart + 41/41/18 donut (matplotlib, Template 07 palette, constrained_layout, anti-stacking rules)
+- Body: ReportLab TocDocTemplate + multiBuild (clickable TOC), FreeSerif + install_font_fallback, 9 chapters ~4,600 words, 8 tables (all Paragraph cells, repeatRows, HEADER_FILL headers), 3 stat callouts, pull quote, numbered playbook; merged cover via pypdf normalize_page_to_a4
+- Fixes during QA: NotoSansSC variable font unloadable in ReportLab (dropped; NotoSerifSC fallback chain); multiBuild needed onFirstPage/onLaterPages kwargs for header/footer/page numbers; cover page-size normalized to exact A4 (0.3pt tolerance); em-dash line-start bound via nbsp (nb() helper); last-page fill raised 22%->~55% with 9.1 Where-to-go-next section (code.sanitize had converted &nbsp; to literal NBSP, requiring byte-exact patch script)
+- QA final: pdf_qa.py PASS (13/13), font.check 0 issues, toc.check/toc_validate PASS, pages.clean 0 blank, meta.brand applied
+
+Stage Summary:
+- DELIVERED: download/Bittensor_Complete_Guide_Infranex_BT.pdf (15 pages, ~480KB, A4, vector body + Template 07 cover) + download/Bittensor_Guide_cover_source.html (editable cover source)
+- Sources persisted: scripts/bt_build.py, bt_content_a.py, bt_content_b.py, bt_cover.html, bt_diagram.html, bt_charts.py, bt_shot.js, bt_patch_nb.py; assets in scripts/assets/bt_{loop,supply,donut}.png
+- Numbers marked approximate (late Oct 2026) in the doc; protocol facts (21M cap, 41/41/18, halving schedule) stated as fixed by protocol
