@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  html, body { margin: 0; padding: 0; background: #ffffff; }
+  .canvas {
+    width: 900px; height: 330px;
+    position: relative;
+    font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+    background: #ffffff;
+    box-sizing: border-box;
+    padding: 18px 10px 8px 10px;
+  }
+  .flow {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    max-width: 100%;
+    gap: 0;
+  }
+  .node {
+    flex: 1 1 auto;
+    min-width: 130px;
+    max-width: 100%;
+    background: #e4ecf5;
+    border: 1.5px solid #2d7ab3;
+    border-radius: 8px;
+    padding: 14px 12px 12px 12px;
+    box-sizing: border-box;
+    text-align: center;
+    position: relative;
+    z-index: 2;
+  }
+  .node.owner {
+    background: #eef3fa;
+    border: 1.5px dashed #1a4a7a;
+  }
+  .node.chain {
+    background: #d8e5f2;
+    border: 1.5px solid #1a4a7a;
+  }
+  .node .t {
+    font-size: 18px; font-weight: 700; color: #142840;
+    line-height: 1.2; margin-bottom: 6px;
+  }
+  .node .d {
+    font-size: 13px; font-weight: 400; color: #44607c;
+    line-height: 1.35;
+  }
+  .node .tag {
+    display: inline-block;
+    font-size: 11px; font-weight: 600; letter-spacing: 1px;
+    color: #2d7ab3; text-transform: uppercase;
+    margin-bottom: 7px;
+  }
+  .arrow {
+    flex: 0 0 34px;
+    display: flex; align-items: center; justify-content: center;
+    color: #2d7ab3;
+    font-size: 22px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .return {
+    position: absolute;
+    left: 120px; right: 120px; bottom: 26px;
+    height: 40px;
+    z-index: 1;
+  }
+  .return svg { width: 100%; height: 100%; display: block; }
+  .return-label {
+    position: absolute;
+    left: 50%; bottom: 8px; transform: translateX(-50%);
+    font-size: 13px; color: #1a4a7a; font-weight: 600;
+    background: #ffffff;
+    padding: 0 12px;
+    white-space: nowrap;
+  }
+</style>
+</head>
+<body>
+<div class="canvas">
+  <div class="flow">
+    <div class="node owner">
+      <div class="tag">Sets the game</div>
+      <div class="t">Subnet Owner</div>
+      <div class="d">Publishes the incentive spec and on-chain code</div>
+    </div>
+    <div class="arrow">&#8594;</div>
+    <div class="node">
+      <div class="tag">Does the work</div>
+      <div class="t">Miners</div>
+      <div class="d">Serve models, compute or data on Axon endpoints</div>
+    </div>
+    <div class="arrow">&#8594;</div>
+    <div class="node">
+      <div class="tag">Grades the work</div>
+      <div class="t">Validators</div>
+      <div class="d">Query miners, score quality, set weights on chain</div>
+    </div>
+    <div class="arrow">&#8594;</div>
+    <div class="node chain">
+      <div class="tag">Settles the game</div>
+      <div class="t">Yuma Consensus</div>
+      <div class="d">Aggregates weights into tamper-resistant rewards</div>
+    </div>
+    <div class="arrow">&#8594;</div>
+    <div class="node chain">
+      <div class="tag">Every tempo</div>
+      <div class="t">Alpha Emission</div>
+      <div class="d">Roughly 41% miners / 41% validators / 18% owner</div>
+    </div>
+  </div>
+  <div class="return">
+    <svg viewBox="0 0 660 40" preserveAspectRatio="none">
+      <defs>
+        <marker id="ah" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+          <path d="M0,0 L8,4.5 L0,9 z" fill="#1a4a7a"/>
+        </marker>
+      </defs>
+      <path d="M620,2 L620,20 L40,20 L40,4"
+            stroke="#1a4a7a" stroke-width="1.6" fill="none"
+            stroke-dasharray="6 4" marker-end="url(#ah)"/>
+    </svg>
+    <div class="return-label">dTAO: staked TAO directs network emission into winning subnets</div>
+  </div>
+</div>
+</body>
+</html>
