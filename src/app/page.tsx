@@ -86,12 +86,12 @@ export default function Home() {
   const [dialogOpen, setDialogOpen] = useState(false);
 
   // POPOUT-1 — deep-link boot: /?view=opportunities&mode=full (built by the
-  // sidebar's "open in new window" action and the header pop-out button)
-  // lands directly on that page in standalone mode — only the page content,
-  // no sidebar. Plain /?view= (main-app deep link) keeps the full shell. The
-  // server renders the dashboard and this effect swaps before first data
-  // paint, so there is no hydration mismatch; unknown or missing params
-  // simply keep the dashboard.
+  // sidebar's Opportunities-only "open in new window" action) lands directly
+  // on that page in standalone mode — only the page content, no sidebar.
+  // Plain /?view= (main-app deep link) keeps the full shell. The server
+  // renders the dashboard and this effect swaps before first data paint, so
+  // there is no hydration mismatch; unknown or missing params simply keep
+  // the dashboard.
   // Microtask deferral mirrors Header's AUTH-1 pattern — the
   // react-hooks/set-state-in-effect rule forbids synchronous setState here.
   useEffect(() => {

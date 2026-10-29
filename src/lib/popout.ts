@@ -1,15 +1,16 @@
-// POPOUT-1 — "Open in new window" for menu pages.
+// POPOUT-1 — "Open in new window" for the Opportunities page.
 //
-// Every sidebar entry (and the header's pop-out button) can lift its page
-// into its own browser window. The mechanics are one URL contract:
+// Scope reduced 2026-10-30 to exactly ONE entry point, per the operator:
+// "i need only the opportunities page not complete all side menus. display
+// only the opportunity page". The Opportunities sidebar row is the only
+// caller; every other sidebar entry and the header render no pop-out button.
+// The mechanics are one URL contract:
 //   /?view=<ViewKey>&mode=full
 // The app boots straight into that page in STANDALONE mode (see POPOUT-1 in
 // src/app/page.tsx): only the page content is displayed — no sidebar, no
-// nav menus — exactly what the operator asked for (2026-10-30: "display only
-// the opportunity page", not the full menu tree). Session cookies are shared,
-// so the popout is fully signed in. The main app keeps using plain
-// /?view=<ViewKey> for its own deep links (full shell), so the two contexts
-// never collide.
+// nav menus. Session cookies are shared, so the popout is fully signed in.
+// The main app keeps using plain /?view=<ViewKey> for its own deep links
+// (full shell), so the two contexts never collide.
 //
 // A features string is passed on purpose: with dimensions present, browsers
 // open a REAL separate window (not just a background tab), which is what the
