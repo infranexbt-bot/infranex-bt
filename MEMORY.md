@@ -37,6 +37,14 @@ SPA — deep paths like `/subnets` 404 by design; use authed API calls.
    `NODE_OPTIONS=--max-old-space-size=2048`.
 6. Work happened in a different PID namespace per tool session — verify by
    HTTP (`curl localhost:3000`), not `ps`.
+7. **OOM incident (2026-10-29):** next-server leaked to 2.5GB RSS over ~4h →
+   kernel global OOM killed it AND the platform supervisor did not relaunch it
+   (supervisor only boots the dev server on sandbox recycle). setsid/nohup
+   revivals from tool calls only live for that one tool call. Fix: user
+   restarts the sandbox (platform boot supervisor relaunches `bun run dev`);
+   keeper cron now also preemptively restarts next-server when RSS > 2.2GB.
+   E2E proof script: `scripts/e2e-smart-framework.sh` (revive + login +
+   CRUD + browser, one call).
 
 ---
 
