@@ -217,10 +217,10 @@ function SegmentMapPanel() {
         <Table>
           <TableHeader>
             <TableRow className="table-header hover:bg-transparent">
-              <TableHead className="w-[150px]">Segment</TableHead>
-              <TableHead>Subnets</TableHead>
-              <TableHead className="min-w-[260px]">Hardware gate</TableHead>
-              <TableHead className="min-w-[220px]">Binding bottleneck</TableHead>
+              <TableHead className="w-[130px]">Segment</TableHead>
+              <TableHead className="w-[240px]">Subnets</TableHead>
+              <TableHead>Hardware gate</TableHead>
+              <TableHead className="w-[240px]">Binding bottleneck</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -248,10 +248,10 @@ function SegmentMapPanel() {
                       ))}
                     </span>
                   </TableCell>
-                  <TableCell className="text-[12px] leading-relaxed text-muted-foreground">
+                  <TableCell className="max-w-[460px] text-[12px] leading-relaxed text-muted-foreground">
                     {seg.hardwareGate}
                   </TableCell>
-                  <TableCell className="text-[12px] font-medium leading-relaxed text-foreground/90">
+                  <TableCell className="w-[240px] text-[12px] font-medium leading-relaxed text-foreground/90">
                     {seg.bottleneck}
                   </TableCell>
                 </TableRow>
