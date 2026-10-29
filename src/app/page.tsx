@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
+import { StandaloneShell } from "@/components/layout/standalone-shell";
 import { DashboardView } from "@/components/views/dashboard-view";
 import { FitView } from "@/components/views/fit-view";
 import { OpportunitiesView } from "@/components/views/opportunities-view";
@@ -26,6 +27,7 @@ import { RunbookView } from "@/components/views/runbook-view";
 import { AdminView } from "@/components/views/admin-view";
 import { OpportunityDetailDialog } from "@/components/cards/opportunity-detail";
 import { setDeployPreselect } from "@/components/deployments/deploy-preselect";
+import { POPOUT_MODE_PARAM } from "@/lib/popout";
 import type { Opportunity, ViewKey } from "@/lib/infranex/types";
 
 const VIEW_META: Record<
@@ -66,28 +68,46 @@ function readViewParam(): ViewKey | null {
   return raw && VIEW_KEYS.includes(raw as ViewKey) ? (raw as ViewKey) : null;
 }
 
+// POPOUT-1 — standalone flag: ?mode=full next to a valid ?view= means this
+// window was opened via "Open in new window" and must show ONLY the page
+// content (no sidebar/menus). The main app never carries mode=full, so its
+// own /?view= deep links keep the full shell.
+function readPopoutMode(): boolean {
+  if (typeof window === "undefined") return false;
+  return (
+    new URLSearchParams(window.location.search).get("mode") === POPOUT_MODE_PARAM
+  );
+}
+
 export default function Home() {
   const [view, setView] = useState<ViewKey>("dashboard");
+  const [popout, setPopout] = useState(false);
   const [selected, setSelected] = useState<Opportunity | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  // POPOUT-1 — deep-link boot: /?view=opportunities (built by the sidebar's
-  // "open in new window" action and the header pop-out button) lands directly
-  // on that page with the full shell. The server renders the dashboard and
-  // this effect swaps before first data paint, so there is no hydration
-  // mismatch; unknown or missing params simply keep the dashboard.
+  // POPOUT-1 — deep-link boot: /?view=opportunities&mode=full (built by the
+  // sidebar's "open in new window" action and the header pop-out button)
+  // lands directly on that page in standalone mode — only the page content,
+  // no sidebar. Plain /?view= (main-app deep link) keeps the full shell. The
+  // server renders the dashboard and this effect swaps before first data
+  // paint, so there is no hydration mismatch; unknown or missing params
+  // simply keep the dashboard.
   // Microtask deferral mirrors Header's AUTH-1 pattern — the
   // react-hooks/set-state-in-effect rule forbids synchronous setState here.
   useEffect(() => {
     void Promise.resolve().then(() => {
       const fromUrl = readViewParam();
-      if (fromUrl) setView(fromUrl);
+      if (fromUrl) {
+        setView(fromUrl);
+        setPopout(readPopoutMode());
+      }
     });
   }, []);
 
-  // Keep the URL glued to the active view so every page is bookmarkable,
-  // reload-safe and copyable into a new window. replaceState (not push) —
-  // view switches are navigation within one screen, not history spam.
+  // Keep the URL glued to the active view (and the popout flag) so every
+  // page is bookmarkable, reload-safe and copyable into a new window.
+  // replaceState (not push) — view switches are navigation within one
+  // screen, not history spam.
   const syncedOnce = useRef(false);
   useEffect(() => {
     // Skip the mount pass: it would momentarily overwrite a ?view= deep link
@@ -98,8 +118,10 @@ export default function Home() {
     }
     const url = new URL(window.location.href);
     url.searchParams.set("view", view);
+    if (popout) url.searchParams.set("mode", POPOUT_MODE_PARAM);
+    else url.searchParams.delete("mode");
     window.history.replaceState(null, "", url.pathname + url.search);
-  }, [view]);
+  }, [view, popout]);
 
   // FLOW-1 — ONE deploy flow: the inline 4-step stepper on the Deployments
   // page. Every entry point (opportunity "Start mining", GPU catalog
@@ -118,13 +140,11 @@ export default function Home() {
 
   const meta = VIEW_META[view];
 
-  return (
-    <DashboardLayout
-      current={view}
-      onNavigate={setView}
-      title={meta.title}
-      eyebrow={meta.eyebrow}
-    >
+  // POPOUT-1 — the view stage is identical in both shells; only the chrome
+  // differs. Standalone mode (popout) wraps it in StandaloneShell — page
+  // content only, no sidebar/menus; the main window keeps DashboardLayout.
+  const viewStage = (
+    <>
       {view === "dashboard" && (
         <DashboardView
           onSelectOpportunity={handleSelect}
@@ -179,6 +199,25 @@ export default function Home() {
           setDeployPreselect({ netuid: selected.netuid });
         }}
       />
+    </>
+  );
+
+  if (popout) {
+    return (
+      <StandaloneShell title={meta.title} eyebrow={meta.eyebrow}>
+        {viewStage}
+      </StandaloneShell>
+    );
+  }
+
+  return (
+    <DashboardLayout
+      current={view}
+      onNavigate={setView}
+      title={meta.title}
+      eyebrow={meta.eyebrow}
+    >
+      {viewStage}
     </DashboardLayout>
   );
 }
