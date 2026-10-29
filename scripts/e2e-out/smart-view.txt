@@ -37,4 +37,4 @@
 - button "DROPPED · 0" [ref=e46]
 - button "Define a goal" [ref=e47]
 - region "Notifications (F8)" [ref=e1]
-- button "Open Next.js Dev Tools" [expanded=false, ref=e48]
+- button "Open Next.js Dev Tools" [expanded=false, ref=e16]
