@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { useNetwork } from "@/hooks/use-network";
+import { openViewInNewWindow } from "@/lib/popout";
 import { useQuery } from "@tanstack/react-query";
 import {
   LayoutDashboard,
@@ -30,6 +31,7 @@ import {
   Banknote,
   Milestone,
   Crosshair,
+  SquareArrowOutUpRight,
 } from "lucide-react";
 import type { ViewKey } from "@/lib/infranex/types";
 
@@ -137,25 +139,50 @@ export function Sidebar({
             {group.items.map((item) => {
               const Icon = item.icon;
               const active = current === item.key;
+              // POPOUT-1 — the row is a div carrying the sidebar-link chrome;
+              // inside it sit TWO real buttons: the nav button (full width,
+              // icon + label + hint) and the "open in new window" action.
+              // Splitting them avoids nested <button> DOM warnings while
+              // keeping one hover surface and one active indicator.
               return (
-                <button
+                <div
                   key={item.key}
-                  onClick={() => handleNav(item.key)}
-                  className={cn("sidebar-link group", active && "active")}
-                  aria-current={active ? "page" : undefined}
+                  className={cn(
+                    "sidebar-link group cursor-pointer",
+                    active && "active"
+                  )}
                 >
-                  <Icon
-                    className={cn(
-                      "h-4 w-4 shrink-0 transition-transform duration-200 group-hover:scale-110",
-                      active ? "text-primary" : "text-muted-foreground/70"
-                    )}
-                    aria-hidden="true"
-                  />
-                  <span className="flex-1 text-left">{item.label}</span>
-                  <span className="mono text-[10px] tabular text-muted-foreground/50 transition-colors group-hover:text-muted-foreground">
-                    {item.hint}
-                  </span>
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => handleNav(item.key)}
+                    className="flex min-w-0 flex-1 items-center gap-3 text-left"
+                    aria-current={active ? "page" : undefined}
+                  >
+                    <Icon
+                      className={cn(
+                        "h-4 w-4 shrink-0 transition-transform duration-200 group-hover:scale-110",
+                        active ? "text-primary" : "text-muted-foreground/70"
+                      )}
+                      aria-hidden="true"
+                    />
+                    <span className="min-w-0 flex-1 truncate">{item.label}</span>
+                    <span className="mono text-[10px] tabular text-muted-foreground/50 transition-colors group-hover:text-muted-foreground">
+                      {item.hint}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => openViewInNewWindow(item.key)}
+                    className="shrink-0 rounded-md p-1 text-muted-foreground/40 opacity-0 transition-all duration-150 hover:bg-accent/70 hover:text-primary focus-visible:opacity-100 focus-visible:text-primary group-hover:opacity-100 max-lg:opacity-60 max-lg:hover:text-primary"
+                    aria-label={`Open ${item.label} in a new window`}
+                    title={`Open ${item.label} in a new window`}
+                  >
+                    <SquareArrowOutUpRight
+                      className="h-3.5 w-3.5"
+                      aria-hidden="true"
+                    />
+                  </button>
+                </div>
               );
             })}
           </div>

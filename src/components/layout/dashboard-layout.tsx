@@ -47,6 +47,7 @@ export function DashboardLayout({
             onMenuClick={() => setMobileOpen(true)}
             title={title}
             eyebrow={eyebrow}
+            popoutView={current}
           />
           <main className="mx-auto w-full max-w-[1400px] flex-1 p-4 lg:p-8" role="main">
             {children}

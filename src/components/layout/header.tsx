@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Bell, LogOut, Moon, Sun, Wifi, Menu, Search } from "lucide-react";
+import { Bell, LogOut, Moon, Sun, Wifi, Menu, Search, SquareArrowOutUpRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { openViewInNewWindow } from "@/lib/popout";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -25,11 +26,14 @@ import { Input } from "@/components/ui/input";
 import { useTriggers } from "@/hooks/use-triggers";
 import { cn, formatRelativeTime } from "@/lib/utils";
 import type { TriggerEventDTO } from "@/hooks/use-triggers";
+import type { ViewKey } from "@/lib/infranex/types";
 
 interface HeaderProps {
   onMenuClick: () => void;
   title: string;
   eyebrow: string;
+  /** POPOUT-1 — the active view, so the header can pop this page out. */
+  popoutView: ViewKey;
 }
 
 interface SessionUser {
@@ -38,7 +42,7 @@ interface SessionUser {
   role: string;
 }
 
-export function Header({ onMenuClick, title, eyebrow }: HeaderProps) {
+export function Header({ onMenuClick, title, eyebrow, popoutView }: HeaderProps) {
   const [time, setTime] = useState<Date | null>(null);
   const [isDark, setIsDark] = useState(false);
 
@@ -153,6 +157,25 @@ export function Header({ onMenuClick, title, eyebrow }: HeaderProps) {
         </div>
 
         <div className="flex items-center gap-1.5">
+          <TooltipProvider delayDuration={200}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-9 w-9"
+                  onClick={() => openViewInNewWindow(popoutView)}
+                  aria-label="Open this page in a new window"
+                >
+                  <SquareArrowOutUpRight className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                Open “{title}” in a new window
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
           <TooltipProvider delayDuration={200}>
             <Tooltip>
               <TooltipTrigger asChild>
