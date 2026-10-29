@@ -5,6 +5,14 @@ import { useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
   AlertTriangle,
   ArrowDownUp,
   Atom,
@@ -18,6 +26,7 @@ import {
   Lock,
   MemoryStick,
   Network,
+  Server,
   ShieldAlert,
   Users,
   Zap,
@@ -122,6 +131,145 @@ function fmtUsd(n: number | null | undefined): string {
   return `$${n.toFixed(3)}`;
 }
 
+// ---------------------------------------------------------------------------
+// SEGMENT-MAP — the same network grouped by WHAT THE MARKET PAYS FOR, the
+// complement to the A/B/C/D hardware classes below. Membership is the
+// operator-approved mapping (2026-10-29 review): SN24 Quasar sits in
+// Pre-Training (FSDP fragment training, not serving) and SN4 Targon sits in
+// Cloud & Rental (rentable TEE compute marketplace), not the other way round.
+// Names are chain-verified (SubnetIdentitiesV3, see subnet-links-seed.ts).
+// ---------------------------------------------------------------------------
+
+interface SegmentRow {
+  key: string;
+  label: string;
+  icon: typeof Zap;
+  subnets: { netuid: number; name: string }[];
+  hardwareGate: string;
+  bottleneck: string;
+}
+
+const SEGMENT_MAP: SegmentRow[] = [
+  {
+    key: "cloud-rental",
+    label: "Cloud & Rental",
+    icon: Server,
+    subnets: [
+      { netuid: 51, name: "lium.io" },
+      { netuid: 12, name: "Compute Horde" },
+      { netuid: 128, name: "ByteLeap" },
+      { netuid: 4, name: "Targon" },
+    ],
+    hardwareGate:
+      "Marketplace supply — consumer 24 GB cards up to 8× B300 nodes; per-subnet hosting gates apply (SN51: bare metal + Sysbox + portal; SN4: TEE profiles)",
+    bottleneck: "Hosting gates (bare-metal / TEE / static IP) & seat competition",
+  },
+  {
+    key: "fast-inference",
+    label: "Fast Inference",
+    icon: Zap,
+    subnets: [
+      { netuid: 64, name: "Chutes" },
+      { netuid: 46, name: "Instant" },
+    ],
+    hardwareGate:
+      "8× H200-class serving nodes; SN64 is TEE-exclusive (Intel TDX CVM, bare metal/VM, static 1:1 IP — RunPod/Vast containers rejected)",
+    bottleneck: "TEE bare-metal hosting & serving throughput/uptime",
+  },
+  {
+    key: "pre-training",
+    label: "Pre-Training",
+    icon: MemoryStick,
+    subnets: [
+      { netuid: 9, name: "iota" },
+      { netuid: 3, name: "Teutonic" },
+      { netuid: 102, name: "ConnitoAI" },
+      { netuid: 24, name: "Quasar" },
+    ],
+    hardwareGate:
+      "Datacenter training rigs — multi-GPU large-VRAM nodes (H100/H200-class; SN24 splits Quasar Preview tensors into 24 fragments and trains FSDP across 4+ GPUs per miner)",
+    bottleneck: "VRAM Size & Inter-Node Communication Bandwidth",
+  },
+];
+
+function SegmentMapPanel() {
+  return (
+    <section className="rounded-xl border border-border/70 bg-card/60 p-5">
+      <div className="flex flex-wrap items-center gap-3">
+        <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-primary/40 bg-primary/10 text-primary">
+          <Network className="h-5 w-5" aria-hidden="true" />
+        </span>
+        <div className="min-w-0">
+          <h2 className="text-display text-lg font-bold tracking-tight">Segment map</h2>
+          <p className="mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+            what each GPU market pays for · operator-approved grouping
+          </p>
+        </div>
+      </div>
+      <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+        The classes on the left bucket subnets by the card you bring. This map shows the same
+        network from the demand side: the three markets that actually buy GPU-hours, which
+        subnets sell into each, and the one constraint that decides whether your hardware can
+        compete there at all. Read it before the class buckets — it tells you which row to shop
+        for, and the bottleneck column tells you what upgrade actually moves the needle.
+      </p>
+      <div className="mt-4 overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow className="table-header hover:bg-transparent">
+              <TableHead className="w-[150px]">Segment</TableHead>
+              <TableHead>Subnets</TableHead>
+              <TableHead className="min-w-[260px]">Hardware gate</TableHead>
+              <TableHead className="min-w-[220px]">Binding bottleneck</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {SEGMENT_MAP.map((seg) => {
+              const Icon = seg.icon;
+              return (
+                <TableRow key={seg.key} className="align-top">
+                  <TableCell>
+                    <span className="flex items-center gap-2 font-semibold">
+                      <Icon className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+                      {seg.label}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <span className="flex flex-wrap gap-1.5">
+                      {seg.subnets.map((s) => (
+                        <span
+                          key={s.netuid}
+                          className="mono inline-flex items-center whitespace-nowrap rounded-md border border-border/70 bg-card/50 px-2 py-1 text-[11px] text-muted-foreground"
+                        >
+                          <span className="text-foreground/80">SN{s.netuid}</span>
+                          <span className="mx-1 text-border">|</span>
+                          {s.name}
+                        </span>
+                      ))}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-[12px] leading-relaxed text-muted-foreground">
+                    {seg.hardwareGate}
+                  </TableCell>
+                  <TableCell className="text-[12px] font-medium leading-relaxed text-foreground/90">
+                    {seg.bottleneck}
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </div>
+      <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">
+        Membership follows each subnet&apos;s own repo evidence: rental marketplaces and rentable
+        TEE fleets (SN51, SN12, SN128, SN4) form Cloud &amp; Rental; serving-heavy markets with
+        throughput scoring (SN64, SN46) form Fast Inference; checkpoint/fragment training
+        markets (SN9, SN3, SN102, SN24) form Pre-Training.
+      </p>
+    </section>
+  );
+}
+
 export function GpuLandscapeView() {
   const [active, setActive] = useState<CategoryMeta["key"]>("consumer");
 
@@ -167,6 +315,9 @@ export function GpuLandscapeView() {
           <span>loading…</span>
         )}
       </div>
+
+      {/* ---- Segment map — demand-side view, corrected grouping ---- */}
+      <SegmentMapPanel />
 
       <div className="grid gap-6 lg:grid-cols-[240px_1fr]">
         {/* ---- Category-wise side menu ---- */}
