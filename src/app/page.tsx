@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { DashboardView } from "@/components/views/dashboard-view";
 import { FitView } from "@/components/views/fit-view";
@@ -56,10 +56,50 @@ const VIEW_META: Record<
   admin: { title: "Access Control", eyebrow: "Section · 15 · Administration" },
 };
 
+// POPOUT-1 — runtime guard for the ?view= deep link. VIEW_META is a
+// Record<ViewKey, …>, so its keys are exactly the legal view ids.
+const VIEW_KEYS = Object.keys(VIEW_META) as ViewKey[];
+
+function readViewParam(): ViewKey | null {
+  if (typeof window === "undefined") return null;
+  const raw = new URLSearchParams(window.location.search).get("view");
+  return raw && VIEW_KEYS.includes(raw as ViewKey) ? (raw as ViewKey) : null;
+}
+
 export default function Home() {
   const [view, setView] = useState<ViewKey>("dashboard");
   const [selected, setSelected] = useState<Opportunity | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+
+  // POPOUT-1 — deep-link boot: /?view=opportunities (built by the sidebar's
+  // "open in new window" action and the header pop-out button) lands directly
+  // on that page with the full shell. The server renders the dashboard and
+  // this effect swaps before first data paint, so there is no hydration
+  // mismatch; unknown or missing params simply keep the dashboard.
+  // Microtask deferral mirrors Header's AUTH-1 pattern — the
+  // react-hooks/set-state-in-effect rule forbids synchronous setState here.
+  useEffect(() => {
+    void Promise.resolve().then(() => {
+      const fromUrl = readViewParam();
+      if (fromUrl) setView(fromUrl);
+    });
+  }, []);
+
+  // Keep the URL glued to the active view so every page is bookmarkable,
+  // reload-safe and copyable into a new window. replaceState (not push) —
+  // view switches are navigation within one screen, not history spam.
+  const syncedOnce = useRef(false);
+  useEffect(() => {
+    // Skip the mount pass: it would momentarily overwrite a ?view= deep link
+    // with ?view=dashboard before the boot effect above swaps the view.
+    if (!syncedOnce.current) {
+      syncedOnce.current = true;
+      return;
+    }
+    const url = new URL(window.location.href);
+    url.searchParams.set("view", view);
+    window.history.replaceState(null, "", url.pathname + url.search);
+  }, [view]);
 
   // FLOW-1 — ONE deploy flow: the inline 4-step stepper on the Deployments
   // page. Every entry point (opportunity "Start mining", GPU catalog

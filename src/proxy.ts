@@ -63,9 +63,14 @@ export default async function proxy(req: NextRequest) {
     );
   }
 
-  // Protected page → login screen.
+  // Protected page → login screen. POPOUT-1: keep the full target (path +
+  // query) so a deep link like /?view=opportunities survives the bounce and
+  // the operator lands back on that exact page after signing in. The login
+  // page's open-redirect guard only accepts same-origin paths starting with
+  // "/", which "/?view=…" satisfies; protocol-relative forms stay blocked.
   const loginUrl = new URL("/login", req.url);
-  if (pathname !== "/") loginUrl.searchParams.set("next", pathname);
+  const nextTarget = pathname + req.nextUrl.search;
+  if (nextTarget !== "/") loginUrl.searchParams.set("next", nextTarget);
   return NextResponse.redirect(loginUrl);
 }
 
