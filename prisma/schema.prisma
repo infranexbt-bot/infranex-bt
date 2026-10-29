@@ -1070,3 +1070,31 @@ model BotSignal {
 
   @@index([status, createdAt])
 }
+
+// SMART-FRAMEWORK-1 — Operator goal engine. One row = one SMART goal
+// (Specific · Measurable · Achievable · Relevant · Time-bound) for the
+// mining operation, e.g. "SN53 GPU miner earning 50 alpha/day in 30 days".
+model SmartGoal {
+  id             String    @id @default(cuid())
+  title          String
+  // S — what exactly will be done (concrete outcome, subnet, action)
+  specific       String    @default("")
+  // M — the number that proves it: metric name + target vs current value
+  metric         String    @default("")
+  target         Float     @default(0)
+  current        Float     @default(0)
+  // A — resources, plan and feasibility (hardware, budget, skills)
+  achievable     String    @default("")
+  confidence     Int       @default(3) // self-score 1..5
+  // R — why it matters / strategy alignment
+  relevant       String    @default("")
+  // T — deadline
+  deadline       DateTime?
+  milestonesJson String    @default("[]") // [{ text, done }]
+  // draft | active | achieved | at-risk | abandoned
+  status         String    @default("draft")
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([status, updatedAt])
+}

@@ -10,6 +10,7 @@ import { JudgeView } from "@/components/views/judge-view";
 import { CpuGuideView } from "@/components/views/cpu-guide-view";
 import { GpuLandscapeView } from "@/components/views/gpu-landscape-view";
 import { MinerPlaybookView } from "@/components/views/miner-playbook-view";
+import { SmartFrameworkView } from "@/components/views/smart-framework-view";
 import { HostEarnView } from "@/components/views/host-earn-view";
 import { LiumSetupView } from "@/components/views/lium-setup-view";
 import { GpusView } from "@/components/views/gpus-view";
@@ -39,6 +40,7 @@ const VIEW_META: Record<
   "cpu-guide": { title: "CPU Guide", eyebrow: "Section · 05 · Harnyx SN67 mining path" },
   "gpu-landscape": { title: "GPU Landscape", eyebrow: "Section · 05b · GPU class requirements" },
   "miner-playbook": { title: "Miner Playbook", eyebrow: "Section · 05c · How to win each subnet" },
+  "smart-framework": { title: "SMART Framework", eyebrow: "Section · 05f · Operator goal engine" },
   "host-earn": { title: "Host & Earn", eyebrow: "Section · 05d · SN51 lium.io provider path" },
   "lium-setup": { title: "Setup Guide", eyebrow: "Section · 05e · GPU → SN51 provider onboarding" },
   gpus: { title: "GPU Catalog", eyebrow: "Section · 06 · Infrastructure" },
@@ -104,6 +106,7 @@ export default function Home() {
       {view === "cpu-guide" && <CpuGuideView onNavigate={setView} />}
       {view === "gpu-landscape" && <GpuLandscapeView />}
       {view === "miner-playbook" && <MinerPlaybookView />}
+      {view === "smart-framework" && <SmartFrameworkView />}
       {view === "host-earn" && <HostEarnView onNavigate={setView} />}
       {view === "lium-setup" && <LiumSetupView onNavigate={setView} />}
       {view === "gpus" && (
