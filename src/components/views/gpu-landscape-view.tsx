@@ -227,14 +227,14 @@ function SegmentMapPanel() {
             {SEGMENT_MAP.map((seg) => {
               const Icon = seg.icon;
               return (
-                <TableRow key={seg.key} className="align-top">
-                  <TableCell>
+                <TableRow key={seg.key}>
+                  <TableCell className="w-[130px] align-top">
                     <span className="flex items-center gap-2 font-semibold">
                       <Icon className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
                       {seg.label}
                     </span>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="w-[240px] align-top">
                     <span className="flex flex-wrap gap-1.5">
                       {seg.subnets.map((s) => (
                         <span
@@ -248,10 +248,10 @@ function SegmentMapPanel() {
                       ))}
                     </span>
                   </TableCell>
-                  <TableCell className="max-w-[460px] text-[12px] leading-relaxed text-muted-foreground">
+                  <TableCell className="w-[420px] align-top whitespace-normal text-[12px] leading-relaxed text-muted-foreground">
                     {seg.hardwareGate}
                   </TableCell>
-                  <TableCell className="w-[240px] text-[12px] font-medium leading-relaxed text-foreground/90">
+                  <TableCell className="w-[240px] align-top whitespace-normal text-[12px] font-medium leading-relaxed text-foreground/90">
                     {seg.bottleneck}
                   </TableCell>
                 </TableRow>

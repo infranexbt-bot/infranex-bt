@@ -2892,3 +2892,19 @@ Stage Summary:
 - DELIVERED: download/Bittensor_Complete_Guide_Infranex_BT.pdf (15 pages, ~480KB, A4, vector body + Template 07 cover) + download/Bittensor_Guide_cover_source.html (editable cover source)
 - Sources persisted: scripts/bt_build.py, bt_content_a.py, bt_content_b.py, bt_cover.html, bt_diagram.html, bt_charts.py, bt_shot.js, bt_patch_nb.py; assets in scripts/assets/bt_{loop,supply,donut}.png
 - Numbers marked approximate (late Oct 2026) in the doc; protocol facts (21M cap, 41/41/18, halving schedule) stated as fixed by protocol
+
+---
+Task ID: segment-map-fixes
+Agent: main
+Task: User: "yes implement the fixes" — apply the operator-approved corrections to the subnet GPU mapping (SN24 Quasar → Pre-Training; SN4 Targon → Cloud & Rental; Row 3 bottleneck wording → "VRAM Size & Inter-Node Communication Bandwidth").
+
+Work Log:
+- Exhaustive codebase search confirmed the approved 3-row segment table did NOT exist anywhere in the project (src/, backend/, scripts/, docs, git history — only a coincidental phrase in SN90 research JSON). The grouping had only ever existed in chat, so the durable implementation was to land it in the app.
+- Implemented SEGMENT_MAP as a new "Segment map" panel at the top of the GPU Landscape page (Section 05b, gpu-landscape-view.tsx): 3 rows × [Segment | Subnets | Hardware gate | Binding bottleneck], subnet chips use chain-verified names from subnet-links-seed.ts.
+- Approved grouping encoded verbatim: Cloud & Rental = SN51 lium.io / SN12 Compute Horde / SN128 ByteLeap / SN4 Targon; Fast Inference = SN64 Chutes / SN46 Instant; Pre-Training = SN9 iota / SN3 Teutonic / SN102 ConnitoAI / SN24 Quasar. Row 3 bottleneck = "VRAM Size & Inter-Node Communication Bandwidth" (exact wording). Rows 1-2 bottlenecks worded from the project's own hosting-gate evidence (bare-metal/TEE/static IP; SN64 TDX exclusivity).
+- Layout fixes during verification: TableCell defaults to whitespace-nowrap → prose cells got whitespace-normal + fixed widths (130/240/420/240px) + align-top to stop text overlap and horizontal clipping.
+- Verified: tsc --noEmit 0 errors; app recovered via hold-open.sh (1 restart, HOLD: open=200 close=200); compiled chunk contains new table; browser E2E — login 200, GPU Landscape renders the full panel, accessibility tree shows all 3 rows with correct membership, exact Row-3 bottleneck string confirmed; screenshot download/segment-map-verified.png.
+
+Stage Summary:
+- The operator-approved segment mapping is now a permanent, live part of the GPU Landscape page above the A/B/C/D class buckets, with provenance note (repo-evidence rationale per row).
+- Files: modified src/components/views/gpu-landscape-view.tsx only (pure display panel; no scoring/data paths touched).
