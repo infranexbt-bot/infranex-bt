@@ -1,0 +1,15 @@
+HTTP/1.1 200 OK
+X-Content-Type-Options: nosniff
+Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self' https://*.space-z.ai https://*.z.ai
+Referrer-Policy: strict-origin-when-cross-origin
+Permissions-Policy: camera=(), microphone=(), geolocation=()
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+vary: rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch
+content-type: application/json
+set-cookie: infranex_session=v1.eyJ1aWQiOiJhZG1pbiIsImxhYmVsIjoiQWRtaW5pc3RyYXRvciIsInJvbGUiOiJhZG1pbiIsImV4cCI6MTc5Mzg1NTU1MH0.QBBMz67NgA3Jd29j0nLaYEV2CZlB-wkAZR_pPDw2rfY; Path=/; Expires=Thu, 05 Nov 2026 05:12:30 GMT; Max-Age=604800; HttpOnly; SameSite=lax
+Date: Thu, 29 Oct 2026 05:12:30 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Transfer-Encoding: chunked
+
+{"ok":true,"user":{"userId":"admin","label":"Administrator","role":"admin"}}
