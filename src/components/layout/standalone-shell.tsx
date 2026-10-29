@@ -1,19 +1,22 @@
 "use client";
 
-// POPOUT-1 — StandaloneShell: the full-page chrome for popped-out windows.
+// POPOUT-2 — content-only chrome for popped-out pages.
 //
-// When a menu page is opened via "Open in new window" (URL carries
-// ?view=<key>&mode=full), the operator wants ONLY that page on screen —
-// no sidebar, no nav menus (feedback 2026-10-30: "display only the
-// opportunity page"). This shell renders a slim top bar — brand mark, the
-// page's eyebrow/title, and an "Open in dashboard" escape hatch — above the
-// view content at full window width. In-popout navigation still works: the
-// view components receive the same onNavigate handler, so cross-page links
-// switch pages inside this window (the URL keeps mode=full, see page.tsx).
+// A popout window (/?view=<key>) shows ONE thing: the page itself. No
+// sidebar, no nav groups, no footer — that is the whole point of popping a
+// page out (e.g. Opportunities docked on a second monitor). This shell wraps
+// the view in the bare minimum that keeps it recognizable and escape-able:
+//
+//   [ brand mark | eyebrow + page title .................. [Open full app] ]
+//   [                      the view at full width                        ]
+//
+// "Open full app" is a same-tab client navigation to "/" — the full dashboard
+// takes over the window (session cookie is shared, so no re-auth). The slim
+// header reuses the dashboard's exact type scale and the same ambient
+// background so the popout feels like the same product, just undressed.
 
 import { Activity, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 
 interface StandaloneShellProps {
   title: string;
@@ -24,8 +27,7 @@ interface StandaloneShellProps {
 export function StandaloneShell({ title, eyebrow, children }: StandaloneShellProps) {
   return (
     <div className="relative flex min-h-screen flex-col bg-background">
-      {/* Ambient background — same grid + aurora glow as the dashboard so the
-          popout feels like the same product, just focused. */}
+      {/* Same ambient layer as DashboardLayout — grid + aurora glow */}
       <div
         aria-hidden="true"
         className="pointer-events-none fixed inset-0 z-0 overflow-hidden"
@@ -35,46 +37,42 @@ export function StandaloneShell({ title, eyebrow, children }: StandaloneShellPro
         <div className="absolute -top-24 right-0 h-80 w-96 rounded-full bg-chart-4/[0.05] blur-[110px]" />
       </div>
 
-      <header className="sticky top-0 z-30 h-14 shrink-0 border-b border-border/60 bg-background/70 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
-        <div className="mx-auto flex h-full w-full max-w-[1600px] items-center gap-3 px-4 lg:px-6">
-          {/* Plain anchors on purpose — the full dashboard must boot as a
-              FRESH document so the popout state flag resets; a client-side
-              Link would keep this window's React state (and its standalone
-              mode) alive. */}
-          <a
-            href="/"
-            className="flex items-center gap-2.5 rounded-lg px-1 py-1 transition-opacity hover:opacity-80"
-            title="Open the full Infranex BT dashboard"
-          >
-            <span className="relative flex h-7 w-7 items-center justify-center rounded-lg border border-primary/30 bg-gradient-to-br from-primary/25 via-primary/10 to-transparent">
-              <Activity className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
-            </span>
-            <span className="text-display text-sm font-bold tracking-tight">
-              Infranex<span className="text-gradient"> BT</span>
-            </span>
-          </a>
-
-          <Separator orientation="vertical" className="h-6" />
-
-          <div className="min-w-0">
-            <p className="text-eyebrow truncate text-muted-foreground/80">{eyebrow}</p>
-            <h2 className="text-display truncate text-base font-bold leading-tight">
-              {title}
-            </h2>
+      <header
+        className="sticky top-0 z-30 h-14 border-b border-border/60 bg-background/70 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60"
+        aria-label="Standalone page header"
+      >
+        <div className="flex h-full items-center justify-between gap-3 px-4 lg:px-8">
+          <div className="flex min-w-0 items-center gap-3">
+            <div
+              className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-primary/30 bg-gradient-to-br from-primary/25 via-primary/10 to-transparent shadow-[inset_0_1px_0_0_hsl(var(--primary)/0.25)]"
+              aria-hidden="true"
+            >
+              <Activity className="h-4 w-4 text-primary" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-eyebrow truncate text-muted-foreground/80">{eyebrow}</p>
+              <h1 className="text-display truncate text-base font-bold leading-tight">
+                {title}
+              </h1>
+            </div>
           </div>
 
-          <div className="ml-auto flex shrink-0 items-center gap-1.5">
-            <Button variant="ghost" size="sm" className="h-8 gap-1.5 text-xs" asChild>
-              <a href="/" title="Open the complete dashboard with all menus">
-                <LayoutDashboard className="h-3.5 w-3.5" aria-hidden="true" />
-                Full dashboard
-              </a>
-            </Button>
-          </div>
+          {/* POPOUT-2 — a PLAIN anchor, deliberately not <Link>: this must be a
+              full document load. Client-side nav would reuse the mounted Home
+              instance, whose boot effect already consumed the original ?view=
+              params — the page would keep rendering standalone under a "/"
+              URL. A hard load re-runs the boot logic against the clean URL and
+              restores the full dashboard with all menus. */}
+          <Button asChild variant="outline" size="sm" className="shrink-0">
+            <a href="/" aria-label="Open the full dashboard with all menus">
+              <LayoutDashboard className="mr-2 h-4 w-4" aria-hidden="true" />
+              Open full app
+            </a>
+          </Button>
         </div>
       </header>
 
-      <main className="relative z-10 mx-auto w-full max-w-[1600px] flex-1 p-4 lg:p-6" role="main">
+      <main className="relative z-10 mx-auto w-full max-w-[1400px] flex-1 p-4 lg:p-8" role="main">
         {children}
       </main>
     </div>
