@@ -279,6 +279,7 @@ export type ViewKey =
   | "cpu-guide"
   | "gpu-landscape"
   | "miner-playbook"
+  | "smart-framework"
   | "host-earn"
   | "lium-setup"
   | "cpus"
