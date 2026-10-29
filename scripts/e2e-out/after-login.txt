@@ -33,6 +33,6 @@
 - button "Rented" [ref=e13]
 - button "Owned" [ref=e14]
 - button "My miners" [ref=e7]
-- button "Refresh" [disabled, ref=e15]
+- button "Refresh" [ref=e15]
 - region "Notifications (F8)" [ref=e1]
-- button "Open Next.js Dev Tools" [ref=e16]
+- button "Open Next.js Dev Tools" [expanded=false, ref=e16]
