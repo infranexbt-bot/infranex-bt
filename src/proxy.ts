@@ -101,15 +101,12 @@ function originAllowed(req: NextRequest): boolean {
   if (originHost === host || originName === hostName) return true;
 
   // Preview platform: app pages live under *.space-z.ai while the front proxy
-  // surfaces an internal Host. Accept platform Origins when this request
-  // arrived through the platform (platform or loopback/internal Host).
-  const INTERNAL_HOSTS = new Set(["localhost", "127.0.0.1", "::1", "0.0.0.0"]);
-  const hostInternal =
-    INTERNAL_HOSTS.has(hostName) || !hostName.includes(".");
-  if (
-    originName.endsWith(".space-z.ai") &&
-    (hostName.endsWith(".space-z.ai") || hostInternal)
-  ) {
+  // surfaces an internal/pull Host (e.g. gw.internal…). The browser-verdict
+  // check above already rejected genuine cross-site attackers (including a
+  // malicious sibling *.space-z.ai tenant, whose requests are cross-site to
+  // us), so a platform Origin that survived it is our own page or an
+  // authorized platform context — accept it regardless of Host rewriting.
+  if (originName.endsWith(".space-z.ai")) {
     return true;
   }
 
@@ -134,7 +131,17 @@ function originAllowed(req: NextRequest): boolean {
 export default async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  if (!originAllowed(req)) {
+  const mutating = MUTATING_METHODS.has(req.method.toUpperCase());
+  const allowed = originAllowed(req);
+  if (mutating && process.env.INFRANEX_GATE_DEBUG === "1") {
+    console.log(
+      `[GATE] ${req.method} ${pathname} verdict=${allowed ? "allow" : "reject"} ` +
+        `origin=${req.headers.get("origin")} host=${req.headers.get("host")} ` +
+        `xfh=${req.headers.get("x-forwarded-host")} sfs=${req.headers.get("sec-fetch-site")}`
+    );
+  }
+
+  if (!allowed) {
     // SEC-4b ops log: when the gate rejects, record the exact routing headers
     // so proxy/gateway surprises (Host rewrite, stripped Origin, ...) are
     // diagnosable from server.log instead of guesswork.

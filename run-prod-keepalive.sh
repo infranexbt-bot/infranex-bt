@@ -15,7 +15,8 @@ export INFRANEX_WORKERS=on
 # the CSRF gate 403s every browser POST ("Cross-origin request rejected").
 # NOTE: proxy.ts compares these entries against the bare hostname (no scheme),
 # so list host names only, comma-separated.
-export INFRANEX_ALLOWED_ORIGINS="x1vjv8jfmfp0-d.space-z.ai"
+export INFRANEX_ALLOWED_ORIGINS="https://x1vjv8jfmfp0-d.space-z.ai"
+export INFRANEX_GATE_DEBUG=1
 export NODE_OPTIONS="--max-old-space-size=2048"
 
 # MEMORY-GUARD-3 (2026-09-29) — swap insurance: the 4GB sandbox kernel-OOM-
