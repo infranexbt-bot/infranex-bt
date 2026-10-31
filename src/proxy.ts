@@ -43,8 +43,63 @@ function isPublic(pathname: string): boolean {
   return PUBLIC_PATHS.has(pathname) || pathname.startsWith("/guides/");
 }
 
+// ---------------------------------------------------------------------------
+// AUDIT-SEC-4 (2026-11-01) — CSRF defense-in-depth. Session protection already
+// rests on SameSite=Lax; this adds an Origin/Sec-Fetch-Site gate for mutating
+// requests so a forged cross-site POST from a legacy browser or same-site
+// subdomain is rejected at the edge. Non-browser clients (curl, the daemon
+// HMAC bridge, the local agent) send no Origin and are unaffected.
+// ---------------------------------------------------------------------------
+const MUTATING_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
+
+function originAllowed(req: NextRequest): boolean {
+  if (!MUTATING_METHODS.has(req.method.toUpperCase())) return true;
+
+  // The browser's own verdict is authoritative when present.
+  if (req.headers.get("sec-fetch-site") === "cross-site") return false;
+
+  const origin = req.headers.get("origin");
+  if (!origin) return true; // non-browser client (curl / daemon / agent)
+
+  let originHost: string;
+  try {
+    originHost = new URL(origin).host;
+  } catch {
+    return false; // malformed Origin
+  }
+  if (!originHost) return false;
+
+  const host = req.headers.get("host") ?? req.nextUrl.host;
+  if (originHost === host) return true;
+
+  // Preview platform: the app is served under *.space-z.ai; accept when BOTH
+  // the Origin and the Host are platform hosts (Host can differ from Origin
+  // across the front proxy).
+  if (
+    originHost.endsWith(".space-z.ai") &&
+    host.endsWith(".space-z.ai")
+  ) {
+    return true;
+  }
+
+  // Optional operator allowlist for custom domains / tunnels.
+  const allowlist = (process.env.INFRANEX_ALLOWED_ORIGINS ?? "")
+    .split(",")
+    .map((s) => s.trim().toLowerCase())
+    .filter(Boolean);
+  return allowlist.includes(originHost.toLowerCase());
+}
+
 export default async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
+
+  if (!originAllowed(req)) {
+    return NextResponse.json(
+      { error: "Cross-origin request rejected" },
+      { status: 403 }
+    );
+  }
+
   const token = req.cookies.get(SESSION_COOKIE)?.value;
   const session = await verifySessionToken(token);
 

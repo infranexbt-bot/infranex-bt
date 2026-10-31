@@ -1,6 +1,6 @@
 // Audit: what does the REAL opportunities pipeline produce for SN64 (Chutes)?
 import { db } from "../src/lib/db";
-import { mergeOpportunities } from "../src/lib/infranex/use-network";
+import { mergeOpportunities } from "../src/hooks/use-network";
 
 const snap = await (async () => {
   const row = await db.chainSnapshot.findFirst({ orderBy: { id: "desc" } });

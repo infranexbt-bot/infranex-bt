@@ -1,3 +1,4 @@
+import os
 """Focused login probe — dump form state, submit, capture error/redirect."""
 import asyncio
 import sys
@@ -5,7 +6,7 @@ import sys
 from playwright.async_api import async_playwright
 
 BASE = "http://127.0.0.1:3000"
-CODE = "BRJ2-W2GT-WJNF-97VC"
+CODE = os.environ.get("INFRANEX_ADMIN_CODE", "")
 
 
 async def main() -> int:

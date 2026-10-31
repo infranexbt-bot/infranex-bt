@@ -517,7 +517,7 @@ export async function GET() {
         },
         chain: {
           found: dep.monitoring.chain.found,
-          incentive: dep.monitoring.chain.incentive,
+          incentive: dep.monitoring.chain.subnetAvgIncentive,
           emissionPerMonthUsd: dep.monitoring.rewards.emissionPerMonthUsd,
           netProfitPerMonthUsd: dep.monitoring.rewards.netProfitPerMonthUsd,
           roiPercent: dep.monitoring.rewards.roiPercent,

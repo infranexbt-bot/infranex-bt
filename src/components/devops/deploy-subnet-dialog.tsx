@@ -184,11 +184,6 @@ function StepIcon({ status }: { status: InstallStepDto["status"] }) {
   return <CircleDashed className="h-4 w-4 shrink-0 text-muted-foreground/50" />;
 }
 
-const GATE_HINT: Record<InstallStepDto["gate"], string> = {
-  auto: "runs automatically",
-  manual: "manual gate — confirm your wallet files",
-  approval: "approval gate — starts the real workload",
-};
 
 export function DeploySubnetDialog({
   hostId,

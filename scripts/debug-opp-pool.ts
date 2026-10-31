@@ -2,7 +2,7 @@
 // how many subnets pass each filter, and what the survivors look like.
 import fs from "fs";
 import path from "path";
-import { mergeOpportunities } from "../src/lib/infranex/use-network";
+import { mergeOpportunities } from "../src/hooks/use-network";
 import { DEFAULT_PROFITABILITY_CONFIG } from "../src/lib/infranex/profitability";
 import { computeStakingStrategies } from "../src/lib/infranex/staking";
 import type { LiveNetworkSnapshot } from "../src/lib/infranex/chain";

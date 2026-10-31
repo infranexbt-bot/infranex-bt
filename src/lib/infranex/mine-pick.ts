@@ -139,7 +139,7 @@ function gateReasons(pick: {
   confidencePct: number;
   o: Opportunity;
 }): string[] {
-  const { rent, diligence, diligenceHealth, confidencePct, o } = pick;
+  const { rent, diligence, confidencePct, o } = pick;
   const reasons: string[] = [];
   if (!rent.rentable) reasons.push(rent.rentBlock ?? "Blocked by the hosting gate");
   if (diligence.verdict === "DO NOT PROVISION")

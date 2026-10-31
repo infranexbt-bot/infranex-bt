@@ -1221,7 +1221,7 @@ function discoverMinerRepoUrl(readme: string, identity: RepoInfo): string | null
   const re = /github\.com\/([A-Za-z0-9_.-]+)\/([A-Za-z0-9_.-]+)/g;
   let m: RegExpExecArray | null;
   while ((m = re.exec(readme)) !== null) {
-    const [full, owner, repoRaw] = m;
+    const [, owner, repoRaw] = m;
     const repo = repoRaw.replace(/\.git$/i, "").replace(/[).,]+$/, "");
     const key = `${owner}/${repo}`.toLowerCase();
     if (seen.has(key)) continue;

@@ -3,7 +3,7 @@
 // Runs BOTH engines (dashboard's computeOpportunityScore + Opportunities'
 // mergeOpportunities → Miner's Ledger) on the same live snapshot.
 import { readFileSync } from "fs";
-import { mergeOpportunities, type LiveNetworkSnapshot } from "/home/z/my-project/src/lib/infranex/use-network";
+import { mergeOpportunities, type LiveNetworkSnapshot } from "/home/z/my-project/src/hooks/use-network";
 import { computeOpportunityScore } from "/home/z/my-project/src/lib/infranex/opportunity-score";
 import { DEFAULT_PROFITABILITY_CONFIG } from "/home/z/my-project/src/lib/infranex/profitability";
 

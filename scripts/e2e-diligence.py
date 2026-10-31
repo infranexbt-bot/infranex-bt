@@ -1,3 +1,4 @@
+import os
 """DILIGENCE-1 E2E — login → opportunities → detail dialog → diligence panel
 → 14 stages → approve → provision hand-off. Runs Chromium inside the container.
 """
@@ -8,7 +9,7 @@ import sys
 from playwright.async_api import async_playwright
 
 BASE = "http://127.0.0.1:3000"
-CODE = "BRJ2-W2GT-WJNF-97VC"  # admin enroll code from scripts/users.local.json
+CODE = os.environ.get("INFRANEX_ADMIN_CODE", "")  # admin enroll code from scripts/users.local.json
 SHOTS = "/tmp/e2e"
 
 

@@ -1,3 +1,4 @@
+import os
 #!/usr/bin/env python3
 """GPU provider analysis — extract platform data for the provider report.
 
@@ -92,7 +93,7 @@ for p, deps in by_provider_deploys.items():
 login = subprocess.run(
     ["curl", "-s", "-c", "/tmp/infranex-cookies.txt", BASE + "/api/auth/login",
      "-H", "Content-Type: application/json",
-     "-d", '{"userId":"admin","code":"BRJ2-W2GT-WJNF-97VC"}', "--max-time", "15"],
+     "-d", '{"userId":"admin","code":os.environ.get("INFRANEX_ADMIN_CODE", "")}', "--max-time", "15"],
     capture_output=True, text=True)
 offers_raw = subprocess.run(
     ["curl", "-s", "-b", "/tmp/infranex-cookies.txt", BASE + "/api/gpu-offers?limit=200", "--max-time", "60"],

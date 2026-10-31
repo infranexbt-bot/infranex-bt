@@ -23,7 +23,7 @@ curl -s -o /dev/null --max-time 5 http://localhost:3000/login && pass "dev serve
 agent-browser open http://localhost:3000/login >/dev/null 2>&1
 agent-browser wait --load networkidle >/dev/null 2>&1
 agent-browser find label "User ID" fill "admin" >/dev/null 2>&1
-agent-browser find label "Access code" fill "BRJ2-W2GT-WJNF-97VC" >/dev/null 2>&1
+agent-browser find label "Access code" fill "${INFRANEX_ADMIN_CODE:-}" >/dev/null 2>&1
 agent-browser find role button click --name "Sign in" >/dev/null 2>&1
 for i in $(seq 1 10); do
   URL=$(agent-browser get url 2>/dev/null)
@@ -32,7 +32,7 @@ for i in $(seq 1 10); do
 done
 if [ "$URL" != "http://localhost:3000/login" ]; then pass "login → $URL"; else
   fail "login stuck on /login — API says:"
-  agent-browser eval "fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId:'admin',code:'BRJ2-W2GT-WJNF-97VC'})}).then(r=>r.text()).then(t=>t.slice(0,200))" 2>&1 | head -3
+  agent-browser eval "fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId:'admin',code:"${INFRANEX_ADMIN_CODE:-}"})}).then(r=>r.text()).then(t=>t.slice(0,200))" 2>&1 | head -3
   exit 1
 fi
 

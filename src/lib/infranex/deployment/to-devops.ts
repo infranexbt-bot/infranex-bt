@@ -117,7 +117,8 @@ export async function bridgeDeploymentToDevOps(id: string): Promise<BridgeResult
       });
 
   // Register the Node Daemon so the Trigger Engine can reach this host.
-  const daemon = await ensureDaemon(dep.id);
+  // (binding dropped — result unused; the call itself registers the daemon)
+  await ensureDaemon(dep.id);
 
   return {
     ok: true,

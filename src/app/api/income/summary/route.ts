@@ -39,11 +39,17 @@ export async function GET(req: NextRequest) {
   const today = new Date();
   const day30 = new Date(today.getTime() - 30 * 24 * 3600 * 1000);
   const day30Str = day30.toISOString().slice(0, 10);
-  const months = lastNMonths(6);
+  const months = lastNMonths(6); // descending: [current, ..., oldest]
+
+  // AUDIT-AI-1 (2026-11-01) — the 6-month trend used to be fed by a query
+  // capped at the trailing 30 days, so months 2-6 were structurally always
+  // $0. Fetch from the first day of the OLDEST trend month instead; the
+  // trailing-30d rollup below filters in memory.
+  const trendFromStr = `${months[months.length - 1]}-01`;
 
   const [earnings, yieldRows, manualRows] = await Promise.all([
     db.earningsDaily.findMany({
-      where: { day: { gte: day30Str } },
+      where: { day: { gte: trendFromStr } },
       select: { hotkey: true, netuid: true, day: true, earnedUsd: true, earnedTao: true },
     }),
     db.yieldPosition.findMany({ where: { status: "active" } }),
@@ -51,9 +57,10 @@ export async function GET(req: NextRequest) {
   ]);
 
   // --- Mining: trailing-30d realized, per subnet for the breakdown.
+  const earnings30d = earnings.filter((e) => e.day >= day30Str);
   const bySubnet = new Map<number, number>();
   let mining30d = 0;
-  for (const e of earnings) {
+  for (const e of earnings30d) {
     mining30d += e.earnedUsd;
     bySubnet.set(e.netuid, (bySubnet.get(e.netuid) ?? 0) + e.earnedUsd);
   }

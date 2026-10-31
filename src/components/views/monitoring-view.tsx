@@ -317,14 +317,14 @@ function DeploymentMonitoringCard({
             <div className="space-y-1.5 text-xs">
               <MonitorRow label="Rank" value={m.chain.rank != null ? `#${m.chain.rank}` : "—"} mono />
               <MonitorRow
-                label="Incentive"
-                value={m.chain.incentive != null ? `${(m.chain.incentive * 100).toFixed(2)}%` : "—"}
+                label="Subnet avg inc"
+                value={m.chain.subnetAvgIncentive != null ? `${(m.chain.subnetAvgIncentive * 100).toFixed(2)}%` : "—"}
                 mono
-                tone={m.chain.incentive != null && m.chain.incentive > 0.05 ? "success" : "neutral"}
+                tone={m.chain.subnetAvgIncentive != null && m.chain.subnetAvgIncentive > 0.05 ? "success" : "neutral"}
               />
               <MonitorRow
-                label="Trust"
-                value={m.chain.trust != null ? `${(m.chain.trust * 100).toFixed(2)}%` : "—"}
+                label="Subnet avg trust"
+                value={m.chain.subnetAvgTrust != null ? `${(m.chain.subnetAvgTrust * 100).toFixed(2)}%` : "—"}
                 mono
               />
               <MonitorRow label="Consensus" value={m.chain.consensus != null ? `${(m.chain.consensus * 100).toFixed(2)}%` : "—"} mono />

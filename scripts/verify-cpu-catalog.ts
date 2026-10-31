@@ -31,7 +31,7 @@ async function main() {
   let res = await fetch(`${BASE}/api/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId: "admin", code: "BRJ2-W2GT-WJNF-97VC" }),
+    body: JSON.stringify({ userId: "admin", code: process.env.INFRANEX_ADMIN_CODE ?? "" }),
   });
   if (res.status === 401) {
     console.log("  (AppUser table wiped — re-seeding via scripts/seed-users.ts)");
@@ -40,7 +40,7 @@ async function main() {
     res = await fetch(`${BASE}/api/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId: "admin", code: "BRJ2-W2GT-WJNF-97VC" }),
+      body: JSON.stringify({ userId: "admin", code: process.env.INFRANEX_ADMIN_CODE ?? "" }),
     });
   }
   check("login", res.ok, `HTTP ${res.status}`);

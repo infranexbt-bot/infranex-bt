@@ -194,7 +194,7 @@ async function main() {
   let login = await fetch(`${BASE}/api/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId: "admin", code: "BRJ2-W2GT-WJNF-97VC" }),
+    body: JSON.stringify({ userId: "admin", code: process.env.INFRANEX_ADMIN_CODE ?? "" }),
   });
   if (login.status === 401) {
     const { execSync } = await import("child_process");
@@ -202,7 +202,7 @@ async function main() {
     login = await fetch(`${BASE}/api/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId: "admin", code: "BRJ2-W2GT-WJNF-97VC" }),
+      body: JSON.stringify({ userId: "admin", code: process.env.INFRANEX_ADMIN_CODE ?? "" }),
     });
   }
   const cookie = (login.headers.getSetCookie?.() ?? []).map((c) => c.split(";")[0]).join("; ");

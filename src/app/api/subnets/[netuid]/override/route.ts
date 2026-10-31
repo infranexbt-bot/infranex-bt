@@ -1,3 +1,4 @@
+import { parseNetuid } from "@/lib/infranex/validation";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireActiveUser, requireActiveUserRequest } from "@/lib/auth-admin";
@@ -34,8 +35,8 @@ export async function PUT(
   const gate = await requireActiveUser(req);
   if ("error" in gate) return NextResponse.json({ error: gate.error }, { status: gate.status });
   const { netuid } = await params;
-  const n = Number.parseInt(netuid, 10);
-  if (!Number.isFinite(n) || n < 0 || n > 255) {
+  const n = parseNetuid(netuid);
+  if (n === null) {
     return NextResponse.json({ error: "Invalid netuid" }, { status: 400 });
   }
   let body: Record<string, unknown>;

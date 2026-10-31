@@ -9,7 +9,7 @@ async function cookie(): Promise<string> {
   const login = await fetch(BASE + "/api/auth/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId: "admin", code: "BRJ2-W2GT-WJNF-97VC" }),
+    body: JSON.stringify({ userId: "admin", code: process.env.INFRANEX_ADMIN_CODE ?? "" }),
   });
   if (!login.ok) throw new Error("login failed " + login.status);
   return (login.headers.getSetCookie?.() ?? [])

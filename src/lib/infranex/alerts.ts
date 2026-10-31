@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { decryptSecret, encryptSecret, secretHint } from "@/lib/devops/crypto";
+import { assertPublicResolution } from "@/lib/infranex/net-guard";
 
 /**
  * TIER4 — External alerting. Operator-configured webhook channels that
@@ -142,6 +143,10 @@ async function deliverToChannel(
   }
   try {
     validateWebhookUrl(url);
+    // AUDIT-SEC-3: literal-IP policy above is not enough — a public DNS name
+    // resolving into loopback/RFC1918/link-local used to pass. Resolve and
+    // re-check every address before the socket is opened.
+    await assertPublicResolution(new URL(url).hostname);
   } catch (e) {
     const msg = e instanceof Error ? e.message : "webhook URL rejected";
     await bookkeep(channel.id, false, msg);
@@ -280,6 +285,8 @@ export async function createChannel(input: {
   const url = input.url.trim();
   // Full destination policy (was: scheme-only regex — WINDUP-1 SSRF hardening).
   validateWebhookUrl(url);
+  // AUDIT-SEC-3: also refuse DNS names that resolve to private addresses.
+  await assertPublicResolution(new URL(url).hostname);
   const row = await db.alertChannel.create({
     data: {
       name: input.name.trim().slice(0, 80),

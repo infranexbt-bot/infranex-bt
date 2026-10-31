@@ -44,7 +44,7 @@ async function api(path: string, init?: RequestInit) {
 async function login() {
   const r = await api("/api/auth/login", {
     method: "POST",
-    body: JSON.stringify({ userId: "admin", code: "BRJ2-W2GT-WJNF-97VC" }),
+    body: JSON.stringify({ userId: "admin", code: process.env.INFRANEX_ADMIN_CODE ?? "" }),
   });
   if (r.status !== 200) throw new Error(`login failed: ${r.status} ${JSON.stringify(r.json)}`);
   console.log("login OK");

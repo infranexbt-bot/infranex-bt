@@ -1,7 +1,7 @@
 // Verify Fix 2's badge logic: simulate what the dashboard card would render
 // for each of its top ROI candidates (badge shows when Ledger band != RUN).
 import { readFileSync } from "fs";
-import { mergeOpportunities, type LiveNetworkSnapshot } from "../src/lib/infranex/use-network";
+import { mergeOpportunities, type LiveNetworkSnapshot } from "../src/hooks/use-network";
 import { computeOpportunityScore } from "../src/lib/infranex/opportunity-score";
 import { opportunityBand } from "../src/lib/utils";
 

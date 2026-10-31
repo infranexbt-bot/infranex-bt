@@ -422,7 +422,7 @@ async function main() {
   const anonAgent = await fetch(`${BASE}/api/devops/agent`);
   check("agent anon → 401", anonAgent.status === 401, anonAgent.status);
 
-  const adminC = await loginCookie("admin", "BRJ2-W2GT-WJNF-97VC");
+  const adminC = await loginCookie("admin", process.env.INFRANEX_ADMIN_CODE ?? "");
   const opsC = await loginCookie("ops01", "JFU8-8KJR-CZGH-PN8W");
   check("admin + ops logins work", !!adminC && !!opsC);
 

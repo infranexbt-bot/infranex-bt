@@ -1,3 +1,4 @@
+import { parseNetuid } from "@/lib/infranex/validation";
 import { NextRequest, NextResponse } from "next/server";
 import { requireActiveUser } from "@/lib/auth-admin";
 import { getUidState } from "@/lib/infranex/metagraph";
@@ -23,12 +24,12 @@ export async function GET(req: NextRequest) {
   if ("error" in gate) return NextResponse.json({ error: gate.error }, { status: gate.status });
 
   const url = new URL(req.url);
-  const netuid = Number(url.searchParams.get("netuid"));
+  const netuid = parseNetuid(Number(url.searchParams.get("netuid")), { min: 1 });
   const hotkey = (url.searchParams.get("hotkey") ?? "").trim();
 
-  if (!Number.isInteger(netuid) || netuid < 1 || netuid > 1024) {
+  if (netuid === null) {
     return NextResponse.json(
-      { ok: false, error: "netuid must be an integer between 1 and 1024" },
+      { ok: false, error: "netuid must be an integer between 1 and 1023 (0 is the root subnet)" },
       { status: 400 }
     );
   }

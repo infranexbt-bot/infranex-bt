@@ -101,12 +101,6 @@ const DEFAULT_PROFILE: MinerFitProfile = {
   hoursPerWeek: "0",
 };
 
-const OPTION_KEYS: Record<QuestionKey, MinerFitProfile[QuestionKey][]> = {
-  techLevel: ["none", "basic", "coder"],
-  hardware: ["none", "cpu-vps", "gpu-24gb", "gpu-80gb", "gpu-140gb"],
-  budget: ["lt100", "500", "2000plus"],
-  hoursPerWeek: ["0", "2-4", "10"],
-};
 
 export function FitView({ onSelectOpportunity, onStartMining }: FitViewProps) {
   const [profile, setProfile] = useState<MinerFitProfile | null>(null);

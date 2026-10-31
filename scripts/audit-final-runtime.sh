@@ -22,7 +22,7 @@ done
 # 1) login
 code=$(curl -s -c /tmp/audit-cookie.txt -X POST http://localhost:3000/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"userId":"admin","accessCode":"BRJ2-W2GT-WJNF-97VC"}' \
+  -d '{"userId":"admin","accessCode":"${INFRANEX_ADMIN_CODE:-}"}' \
   -o /tmp/audit-login.json -w "%{http_code}" --max-time 60)
 say "login: $code $(head -c 80 /tmp/audit-login.json)"
 

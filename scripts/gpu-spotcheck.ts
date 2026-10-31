@@ -1,7 +1,7 @@
 const BASE = "http://localhost:3000";
 const login = await fetch(`${BASE}/api/auth/login`, {
   method: "POST", headers: { "content-type": "application/json" },
-  body: JSON.stringify({ userId: "admin", code: "BRJ2-W2GT-WJNF-97VC" }),
+  body: JSON.stringify({ userId: "admin", code: process.env.INFRANEX_ADMIN_CODE ?? "" }),
 });
 const cookie = (login.headers.get("set-cookie") ?? "").split(";")[0];
 const snap = await (await fetch(`${BASE}/api/network`, { headers: { cookie }, cache: "no-store" })).json() as any;

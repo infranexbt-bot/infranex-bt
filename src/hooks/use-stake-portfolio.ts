@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import type { HotkeyPortfolio, StakePortfolioReport } from "../lib/infranex/stake-portfolio";
+import type { StakePortfolioReport } from "../lib/infranex/stake-portfolio";
 
 export type { HotkeyPortfolio, StakePortfolioReport, StakePosition } from "../lib/infranex/stake-portfolio";
 

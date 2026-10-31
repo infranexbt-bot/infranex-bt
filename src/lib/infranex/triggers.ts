@@ -179,7 +179,7 @@ export async function runTriggerPass(): Promise<PassResult> {
     const cost = dep.monitoring.rewards.costPerMonthUsd ?? dep.monthlyCost;
     const revenue = dep.monitoring.rewards.emissionPerMonthUsd ?? 0;
     const chainKnown = dep.monitoring.chain.found;
-    const clearLoss = chainKnown && cost > revenue * 2 && revenue < cost * 0.5;
+    const clearLoss = chainKnown && cost > revenue * 2; // revenue < cost/2 ⟺ cost > revenue·2 (AUDIT-AI-14: duplicate conjunct removed)
 
     if (clearLoss) {
       const lossPasses = (pass.lossPasses.get(key) ?? 0) + 1;
@@ -195,7 +195,7 @@ export async function runTriggerPass(): Promise<PassResult> {
             lossPasses,
             costPerMonthUsd: cost,
             revenuePerMonthUsd: revenue,
-            incentive: dep.monitoring.chain.incentive,
+            incentive: dep.monitoring.chain.subnetAvgIncentive,
             monitoredAt: overview.fetchedAt,
           },
           deploymentId: dep.id,

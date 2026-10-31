@@ -15,7 +15,7 @@ async function login(): Promise<string> {
   const res = await fetch(`${BASE}/api/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId: "admin", code: "BRJ2-W2GT-WJNF-97VC" }),
+    body: JSON.stringify({ userId: "admin", code: process.env.INFRANEX_ADMIN_CODE ?? "" }),
   });
   if (!res.ok) throw new Error(`login failed ${res.status}`);
   return (res.headers.get("set-cookie") || "").split(";")[0];

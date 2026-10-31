@@ -35,13 +35,13 @@ COPY worker/requirements.txt /app/worker/requirements.txt
 RUN pip install --no-cache-dir -r /app/worker/requirements.txt
 
 # Now copy only the backend code the worker actually needs. We avoid
-# COPYing the full `infranex-bt/backend` tree because it pulls in
+# COPYing the full `backend` tree because it pulls in
 # Vercel-only files (vercel.json, api/, etc.) that the worker never
 # uses. Anything the worker imports must live under one of the
 # directories below.
-COPY infranex-bt/backend/app /app/app
-COPY infranex-bt/backend/alembic /app/alembic
-COPY infranex-bt/backend/alembic.ini /app/alembic.ini
+COPY backend/app /app/app
+COPY backend/alembic /app/alembic
+COPY backend/alembic.ini /app/alembic.ini
 
 # Worker entry point
 COPY worker/main.py /app/worker_main.py

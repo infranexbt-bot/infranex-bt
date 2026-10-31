@@ -3,7 +3,7 @@ import { fetchMonitoringOverview } from "./monitoring";
 
 /**
  * TIER4 — AI Ops Agent. One LLM run over a compact, number-dense digest of
- * the live fleet state: per-miner vitals (incentive, net profit, ROI, UID
+ * the live fleet state: per-miner vitals (subnet-avg incentive, net profit, ROI, UID
  * risk), the open trigger events, and fleet economics. The agent ranks what
  * matters and tags every recommendation [auto-safe] (policy-gated autopilot
  * territory) or [needs-approval] (the Recommendations inbox) — it NEVER
@@ -23,7 +23,7 @@ export interface FleetContextMiner {
   provider: string;
   status: string;
   hourlyCost: number;
-  incentive: number | null;
+  subnetAvgIncentive: number | null;
   emissionPerMonthUsd: number | null;
   netProfitPerMonthUsd: number | null;
   roiPercent: number | null;
@@ -67,7 +67,7 @@ export async function buildFleetContext(): Promise<FleetContext> {
     provider: d.provider,
     status: d.status,
     hourlyCost: Math.round(((d.monitoring.rewards.costPerMonthUsd ?? d.monthlyCost) / 30) * 1000) / 1000,
-    incentive: d.monitoring.chain.incentive,
+    subnetAvgIncentive: d.monitoring.chain.subnetAvgIncentive,
     emissionPerMonthUsd: d.monitoring.rewards.emissionPerMonthUsd,
     netProfitPerMonthUsd: d.monitoring.rewards.netProfitPerMonthUsd,
     roiPercent: d.monitoring.rewards.roiPercent,
@@ -112,7 +112,7 @@ export async function buildFleetContext(): Promise<FleetContext> {
 
 const SYSTEM_PROMPT = `You are the Infranex Ops Agent — a senior Bittensor mining operations engineer embedded in a GPU fleet control room.
 
-You receive a JSON digest of the live fleet: per-miner vitals (incentive, monthly emission USD, net profit, ROI, UID deregistration risk), the currently OPEN trigger events from the 90-second DevOps engine, and fleet economics per day.
+You receive a JSON digest of the live fleet: per-miner vitals (subnet-average incentive, monthly emission USD, net profit, ROI, UID deregistration risk), the currently OPEN trigger events from the 90-second DevOps engine, and fleet economics per day.
 
 Produce EXACTLY this structure, concise and number-dense:
 SITUATION: 2-3 sentences on fleet posture right now, citing the numbers.

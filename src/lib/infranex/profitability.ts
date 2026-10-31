@@ -263,15 +263,25 @@ export function computeRiskFactor(c: ScoreComponents): number {
 }
 
 // ---------------------------------------------------------------------------
-// Owned-hardware electricity: GPU draw + ~150 W host (CPU/RAM/network).
+// AUDIT-AI-5 (2026-11-01) — ONE electricity model for every surface. There
+// used to be two divergent copies: this one (150 W host + 30-day month) and
+// lium-earnings' (GPU-only + 30.4-day month) — 10-14% apart for identical
+// inputs, so the Host & Earn and payback surfaces disagreed on cost.
+// Shared constants: HOURS_PER_MONTH = 729.6 h (30.4-day billing month);
+// host overhead is an explicit opt-in so GPU-only surfaces stay GPU-only.
 // ---------------------------------------------------------------------------
+
+/** Billing month length used across the lib (30.4-day month, 729.6 h). */
+export const HOURS_PER_MONTH = 729.6;
 
 export function electricityMonthlyUsd(
   powerWatts: number,
-  usdPerKwh: number
+  usdPerKwh: number,
+  opts?: { hostWatts?: number }
 ): number {
-  const kw = (Math.max(powerWatts, 0) + 150) / 1000;
-  return kw * 24 * 30 * usdPerKwh;
+  const hostWatts = Math.max(opts?.hostWatts ?? 0, 0);
+  const kw = (Math.max(powerWatts, 0) + hostWatts) / 1000;
+  return kw * HOURS_PER_MONTH * usdPerKwh;
 }
 
 // ---------------------------------------------------------------------------
@@ -318,7 +328,7 @@ export function computeProfitabilityReport(
   // --- Cost line items -----------------------------------------------------
   const gpuRentalUsd =
     config.hardwareMode === "owned"
-      ? electricityMonthlyUsd(gpuPowerWatts, config.electricityUsdPerKwh)
+      ? electricityMonthlyUsd(gpuPowerWatts, config.electricityUsdPerKwh, { hostWatts: 150 })
       : gpuRentMonthlyUsd;
   const storageUsd = config.storageMonthlyUsd;
   const infrastructureUsd =

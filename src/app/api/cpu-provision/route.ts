@@ -1,3 +1,4 @@
+import { parseNetuid } from "@/lib/infranex/validation";
 // CPU-CATALOG-1 — CPU provisioning API: rent the exact catalogued box and
 // auto-install the mining base on it.
 //
@@ -52,7 +53,7 @@ export async function POST(req: NextRequest) {
   const provider = body?.provider;
   const offerId = typeof body?.offerId === "string" ? body.offerId.trim() : "";
   const region = typeof body?.region === "string" ? body.region.trim() : "";
-  const netuid = parseInt(String(body?.netuid ?? ""), 10);
+  const netuid = parseNetuid(body?.netuid);
   const walletName = String(body?.walletName ?? "").trim();
   const hotkeyName = String(body?.hotkeyName ?? "").trim();
   const rawName = typeof body?.name === "string" ? body.name.trim().toLowerCase() : "";
@@ -63,8 +64,8 @@ export async function POST(req: NextRequest) {
   if (!offerId) {
     return NextResponse.json({ error: "offerId is required." }, { status: 400 });
   }
-  if (!Number.isFinite(netuid) || netuid < 0 || netuid > 1024) {
-    return NextResponse.json({ error: "netuid must be 0-1024." }, { status: 400 });
+  if (netuid === null) {
+    return NextResponse.json({ error: "netuid must be an integer between 0 and 1023." }, { status: 400 });
   }
   if (!/^[a-zA-Z0-9_-]{1,32}$/.test(walletName)) {
     return NextResponse.json({ error: "walletName: 1-32 chars [a-zA-Z0-9_-]" }, { status: 400 });

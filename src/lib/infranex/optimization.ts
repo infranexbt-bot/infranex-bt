@@ -99,17 +99,17 @@ function computeHealthScore(
   else score -= 30;
 
   // On-chain incentive
-  if (m.chain.incentive !== null) {
-    if (m.chain.incentive > 0.1) score += 25;
-    else if (m.chain.incentive > 0.05) score += 15;
-    else if (m.chain.incentive > 0.01) score += 0; // warmup
+  if (m.chain.subnetAvgIncentive !== null) {
+    if (m.chain.subnetAvgIncentive > 0.1) score += 25;
+    else if (m.chain.subnetAvgIncentive > 0.05) score += 15;
+    else if (m.chain.subnetAvgIncentive > 0.01) score += 0; // warmup
     else score -= 10;
   }
 
   // Trust
-  if (m.chain.trust !== null) {
-    if (m.chain.trust > 0.05) score += 10;
-    else if (m.chain.trust < 0.01) score -= 5;
+  if (m.chain.subnetAvgTrust !== null) {
+    if (m.chain.subnetAvgTrust > 0.05) score += 10;
+    else if (m.chain.subnetAvgTrust < 0.01) score -= 5;
   }
 
   // ROI
@@ -255,8 +255,8 @@ function buildRecommendation(
   if (score >= 70) {
     type = "keep";
     headline = "Performing well — keep running";
-    if (dep.monitoring.chain.incentive !== null && dep.monitoring.chain.incentive > 0.1) {
-      reasoning.push(`Healthy incentive at ${(dep.monitoring.chain.incentive * 100).toFixed(1)}%`);
+    if (dep.monitoring.chain.subnetAvgIncentive !== null && dep.monitoring.chain.subnetAvgIncentive > 0.1) {
+      reasoning.push(`Healthy incentive at ${(dep.monitoring.chain.subnetAvgIncentive * 100).toFixed(1)}%`);
     }
     if (dep.monitoring.rewards.roiPercent !== null && dep.monitoring.rewards.roiPercent > 0) {
       reasoning.push(`Profitable with ${dep.monitoring.rewards.roiPercent}% ROI`);
@@ -268,8 +268,8 @@ function buildRecommendation(
   } else if (score >= 40) {
     type = "optimize";
     headline = "Underperforming — optimize config";
-    if (dep.monitoring.chain.incentive !== null && dep.monitoring.chain.incentive < 0.05) {
-      reasoning.push(`Low incentive (${(dep.monitoring.chain.incentive * 100).toFixed(2)}%) — may still be in warmup`);
+    if (dep.monitoring.chain.subnetAvgIncentive !== null && dep.monitoring.chain.subnetAvgIncentive < 0.05) {
+      reasoning.push(`Low incentive (${(dep.monitoring.chain.subnetAvgIncentive * 100).toFixed(2)}%) — may still be in warmup`);
       actions.push({
         type: "update_weights",
         label: "Update model weights",
@@ -346,7 +346,7 @@ function buildRecommendation(
   }
 
   // Add watch status for newly started deployments
-  if (dep.status === "started" && score >= 40 && score < 70 && dep.monitoring.chain.incentive === null) {
+  if (dep.status === "started" && score >= 40 && score < 70 && dep.monitoring.chain.subnetAvgIncentive === null) {
     type = "watch";
     headline = "Recently started — monitoring warmup";
     reasoning.push("Miner is in warmup period — incentive data not yet available");

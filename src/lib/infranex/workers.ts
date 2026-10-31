@@ -24,7 +24,8 @@ import { runDeploymentTickerPass } from "./deployment/ticker";
  * user requests:
  *
  *   1. Chain scanner worker  — polls the Finney chain every 2 min
- *   2. Market data worker    — fetches TAO price every 1 min
+ *   2. Market data worker    — price-freshness checker (the chain worker
+ *                             already fetches the TAO price)
  *   3. GitHub analyzer worker — re-scrapes subnet repos every 60 min
  *   4. DevOps monitor worker — DEVOPS-1: runs the full trigger pass
  *      (RE_SYNC/SCALE/KILL + UID defense) + the DevOps pass (GPU health

@@ -1,5 +1,5 @@
 // Verify mergeOpportunities output over the live snapshot.
-const m = await import("/home/z/my-project/infranex-bt/src/lib/infranex/use-network.ts");
+const m = await import("/home/z/my-project/infranex-bt/src/hooks/use-network.ts");
 const snap = await Bun.file("/tmp/net.json").json();
 const opps = m.mergeOpportunities(snap);
 console.log("rows:", opps.length);

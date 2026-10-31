@@ -1,3 +1,4 @@
+import { parseNetuid } from "@/lib/infranex/validation";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireActiveUser } from "@/lib/auth-admin";
@@ -24,8 +25,8 @@ export async function GET(
   if ("error" in gate) return NextResponse.json({ error: gate.error }, { status: gate.status });
 
   const { netuid: netuidRaw } = await ctx.params;
-  const netuid = Number(netuidRaw);
-  if (!Number.isInteger(netuid) || netuid < 0) {
+  const netuid = parseNetuid(netuidRaw);
+  if (netuid === null) {
     return NextResponse.json({ error: "Invalid netuid" }, { status: 400 });
   }
 

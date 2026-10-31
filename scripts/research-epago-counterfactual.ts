@@ -4,7 +4,7 @@ import { readFileSync } from "fs";
 import { scoreMinersLedger, totalScore } from "../src/lib/infranex/miner-score";
 import { classifySubnetHardware } from "../src/lib/infranex/miner-score";
 import { computeProfitabilityReport, DEFAULT_PROFITABILITY_CONFIG } from "../src/lib/infranex/profitability";
-import type { LiveNetworkSnapshot } from "../src/lib/infranex/use-network";
+import type { LiveNetworkSnapshot } from "../src/hooks/use-network";
 
 const snap: LiveNetworkSnapshot = JSON.parse(readFileSync("/tmp/network.json", "utf8"));
 const live = snap.subnets.find((s) => s.netuid === 36)!;

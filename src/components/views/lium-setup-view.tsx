@@ -65,7 +65,6 @@ import {
   SETUP_PHASES,
   loadProgress,
   saveProgress,
-  totalStepCount,
   type PayoutPath,
   type SetupPhase,
   type SetupStep,

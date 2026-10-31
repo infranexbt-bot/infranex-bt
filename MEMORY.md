@@ -14,7 +14,7 @@ Next.js 16 SPA + Prisma + in-process workers. Owner requirement: **English
 only UI**. Current scale: 19 views · 43 Prisma models · 38 API route groups ·
 129 subnets tracked · 106 playbook rows · 112 overrides (69 with GPU data).
 
-**Access (sandbox):** `POST /api/auth/login {"userId":"admin","code":"BRJ2-W2GT-WJNF-97VC"}` → cookie.
+**Access (sandbox):** `POST /api/auth/login {"userId":"admin","code":"<redacted — set INFRANEX_ADMIN_CODE>"}` → cookie.
 Verify app with `GET /` (307 → `/login` unauthed, 200 authed). The app is an
 SPA — deep paths like `/subnets` 404 by design; use authed API calls.
 

@@ -5,7 +5,7 @@ import { verifyCode } from "../src/lib/auth-users";
 const db = new PrismaClient();
 async function main() {
   const users = await db.appUser.findMany();
-  const code = "BRJ2-W2GT-WJNF-97VC";
+  const code = process.env.INFRANEX_ADMIN_CODE ?? "";
   for (const u of users) {
     const match = u.userId === "admin" ? verifyCode(code, u.codeHash) : null;
     console.log(u.userId, u.role, "active=" + u.active, "codeHashLen=" + u.codeHash.length, u.userId === "admin" ? `codeMatches=${match}` : "");

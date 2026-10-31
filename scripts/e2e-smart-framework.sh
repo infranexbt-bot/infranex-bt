@@ -24,7 +24,7 @@ if [ "$up" != "200" ]; then echo "SERVER FAILED TO START — aborting"; exit 1; 
 echo "=== 2. API LOGIN (capture session cookie) ==="
 curl -si --max-time 20 -X POST http://localhost:3000/api/auth/login \
   -H 'Content-Type: application/json' \
-  -d '{"userId":"admin","code":"BRJ2-W2GT-WJNF-97VC"}' -o "$OUT/login-headers.txt"
+  -d '{"userId":"admin","code":"${INFRANEX_ADMIN_CODE:-}"}' -o "$OUT/login-headers.txt"
 head -1 "$OUT/login-headers.txt"
 COOKIE_LINE=$(grep -i '^set-cookie:' "$OUT/login-headers.txt" | head -1 | sed 's/^[Ss]et-[Cc]ookie: //' | sed 's/;.*//' | tr -d '\r')
 echo "cookie pair: $COOKIE_LINE"

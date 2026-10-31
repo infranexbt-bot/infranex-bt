@@ -69,8 +69,8 @@ async function fetchAllPods(): Promise<Map<string, RunpodPod>> {
 // We query the metagraph snapshot via storage to get per-miner data.
 interface ChainMinerMetrics {
   rank: number | null;
-  incentive: number | null;
-  trust: number | null;
+  subnetAvgIncentive: number | null;
+  subnetAvgTrust: number | null;
   emission: number | null;
   consensus: number | null;
   validatorTrust: number | null;
@@ -83,7 +83,7 @@ async function fetchChainMinerMetrics(
   hotkey: string | null
 ): Promise<ChainMinerMetrics> {
   if (!hotkey) {
-    return { rank: null, incentive: null, trust: null, emission: null, consensus: null, validatorTrust: null, dividends: null, found: false };
+    return { rank: null, subnetAvgIncentive: null, subnetAvgTrust: null, emission: null, consensus: null, validatorTrust: null, dividends: null, found: false };
   }
   // Race the chain query against a 10s timeout — if the chain is slow,
   // return null values instead of blocking the whole monitoring response.
@@ -92,8 +92,8 @@ async function fetchChainMinerMetrics(
       () =>
         resolve({
           rank: null,
-          incentive: null,
-          trust: null,
+          subnetAvgIncentive: null,
+          subnetAvgTrust: null,
           emission: null,
           consensus: null,
           validatorTrust: null,
@@ -124,8 +124,8 @@ async function fetchChainMinerMetrics(
         // chain data. Real ranking needs the per-UID incentive vector (heavy);
         // until then honest null — the UI renders "—".
         rank: null,
-        incentive: avgInc,
-        trust: avgTru,
+        subnetAvgIncentive: avgInc,
+        subnetAvgTrust: avgTru,
         emission: null,
         consensus: null,
         validatorTrust: null,
@@ -133,7 +133,7 @@ async function fetchChainMinerMetrics(
         found: minerCount > 0,
       };
     } catch {
-      return { rank: null, incentive: null, trust: null, emission: null, consensus: null, validatorTrust: null, dividends: null, found: false };
+      return { rank: null, subnetAvgIncentive: null, subnetAvgTrust: null, emission: null, consensus: null, validatorTrust: null, dividends: null, found: false };
     }
   })();
   return Promise.race([query, timeout]);
@@ -204,8 +204,8 @@ function buildAlerts(
     if (dep.mode === "mock") {
       alerts.push({ level: "info", code: "mock_mode", message: "Mock deployment — no real GPU running" });
     }
-    if (chain.found && chain.incentive !== null && chain.incentive < 0.01) {
-      alerts.push({ level: "warning", code: "low_incentive", message: `Low incentive (${(chain.incentive * 100).toFixed(2)}%) — miner may be in warmup` });
+    if (chain.found && chain.subnetAvgIncentive !== null && chain.subnetAvgIncentive < 0.01) {
+      alerts.push({ level: "warning", code: "low_incentive", message: `Subnet average incentive is low (${(chain.subnetAvgIncentive * 100).toFixed(2)}%) — miners on this subnet may be in warmup` });
     }
   }
   return alerts;
@@ -293,7 +293,7 @@ class MonitoringCache {
         // hotkey. Uses a 10s timeout race so a slow chain doesn't block.
         const chain = dep.status === "started" && dep.hotkey
           ? await fetchChainMinerMetrics(dep.netuid, dep.hotkey)
-          : { rank: null, incentive: null, trust: null, emission: null, consensus: null, validatorTrust: null, dividends: null, found: false };
+          : { rank: null, subnetAvgIncentive: null, subnetAvgTrust: null, emission: null, consensus: null, validatorTrust: null, dividends: null, found: false };
 
         // Calculate rewards. AUDIT-MATH-5 — the old `incentive * 0.5` branch
         // fabricated TAO/day from a dimensionless fraction (and with the old

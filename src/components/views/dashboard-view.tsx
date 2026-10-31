@@ -10,7 +10,6 @@ import { computeVerdictMapFor } from "@/lib/infranex/verdict";
 import { costBasisFromConfig } from "@/lib/infranex/rent-earn";
 import { RunPickCard } from "@/components/cards/run-pick-card";
 import { CostBasisToggle } from "@/components/cards/cost-basis-toggle";
-import { RegisterOddsBlock } from "@/components/cards/register-odds";
 import { MetricCard } from "@/components/cards/metric-card";
 import { DataSourceBanner } from "@/components/cards/data-source-banner";
 import { EmissionDonut } from "@/components/charts/emission-donut";

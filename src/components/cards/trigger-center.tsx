@@ -46,7 +46,7 @@ function kindMetaOf(kind: string): { label: string; icon: typeof ShieldAlert; ch
 }
 
 export function TriggerCenter({ onNavigate }: { onNavigate: (v: ViewKey) => void }) {
-  const { data, isLoading, refetch, isFetching } = useTriggers();
+  const { data, isLoading } = useTriggers();
   const actions = useTriggerActions();
   const [busyId, setBusyId] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<string | null>(null);

@@ -162,9 +162,24 @@ export function buildDeploymentConfig(
   const template = SUBNET_TEMPLATES[subnet.category] ?? SUBNET_TEMPLATES.default;
   const hint = options?.profileHint ?? null;
   const podImage = resolvePodImage(hint?.cudaMinVersion);
-  const minerEntry = hint?.entrypoint ?? "neurons/miner.py";
+  // AUDIT-SEC-5 (2026-11-01) — the entrypoint is parsed from scraped repo
+  // content (README / tree) and is ultimately executed by the daemon via a
+  // shell. The parser upstream restricts characters, but the boundary here is
+  // the last line of defense: anything outside a strict path charset falls
+  // back to the stock entrypoint instead of reaching the command string.
+  const SAFE_ENTRYPOINT_RE = /^(?!.*\.\.)[\w][\w\-.\/]{0,200}$/;
+  const minerEntry =
+    hint?.entrypoint && SAFE_ENTRYPOINT_RE.test(hint.entrypoint)
+      ? hint.entrypoint
+      : "neurons/miner.py";
   const network = options?.network ?? "finney";
-  const walletName = options?.walletName ?? "infranex";
+  // Same class of guard for the operator-supplied wallet name (embedded in
+  // the shell command below): Bittensor wallet names are word chars + dashes.
+  const SAFE_WALLET_RE = /^[\w-]{1,64}$/;
+  const walletName =
+    options?.walletName && SAFE_WALLET_RE.test(options.walletName)
+      ? options.walletName
+      : "infranex";
   const hotkeyName = "default";
   const axonPort = 8091;
   const prometheusPort = 8092;

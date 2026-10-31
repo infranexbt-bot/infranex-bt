@@ -230,7 +230,7 @@ export const PIPELINE: StepDef[] = [
           remediation:
             "Install the NVIDIA driver matching the GPU (e.g. ubuntu-drivers autoinstall). Driver installs touch the kernel — always manual approval.",
         };
-      const [name, mem, driver] = r.stdout.split(",").map((s) => s.trim());
+      const [name, , driver] = r.stdout.split(",").map((s) => s.trim());
       facts.gpuName = name || facts.gpuName;
       facts.driverVersion = driver || undefined;
       facts.driverCuda = ok(cuda) ? firstLine(cuda.stdout) : undefined;

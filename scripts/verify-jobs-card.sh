@@ -24,7 +24,7 @@ if grep -q "Operator sign-in" /tmp/jc-snap.txt; then
   PR=$(grep -oE 'textbox "Access code"[^,]*, ref=(e[0-9]+)' /tmp/jc-snap.txt | grep -oE 'e[0-9]+' | head -1)
   BR=$(grep -oE 'button "Sign in" \[ref=(e[0-9]+)\]' /tmp/jc-snap.txt | grep -oE 'e[0-9]+' | head -1)
   agent-browser fill "@$UR" 'admin' > /dev/null
-  agent-browser fill "@$PR" 'BRJ2-W2GT-WJNF-97VC' > /dev/null
+  agent-browser fill "@$PR" "${INFRANEX_ADMIN_CODE:-}" > /dev/null
   agent-browser click "@$BR" > /dev/null
   sleep 6
   agent-browser snapshot > /tmp/jc-snap.txt 2>&1

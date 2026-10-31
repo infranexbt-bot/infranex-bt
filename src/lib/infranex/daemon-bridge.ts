@@ -491,10 +491,23 @@ def apply_config(args):
     env_pairs = (args or {}).get("env") or {}
     applied = []
     if env_pairs and isinstance(env_pairs, dict):
-        lines = "".join(f"export {k}={shlex.quote(str(v))}\\n" for k, v in env_pairs.items())
-        with open("/root/.infranex_miner_env", "a") as f:
-            f.write(lines)
-        applied.append(f"{len(env_pairs)} env vars")
+        # AUDIT-SEC-5 (2026-11-01): values are shlex-quoted, but the KEY used
+        # to be written raw into the export line. The file is later sourced
+        # by a shell, so a crafted key could break out of the export. Only
+        # accept strict POSIX identifier names.
+        import re as _re
+        _key_re = _re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+        safe_pairs = {k: v for k, v in env_pairs.items()
+                      if isinstance(k, str) and _key_re.match(k)}
+        skipped = len(env_pairs) - len(safe_pairs)
+        if safe_pairs:
+            lines = "".join(f"export {k}={shlex.quote(str(v))}\\n" for k, v in safe_pairs.items())
+            with open("/root/.infranex_miner_env", "a") as f:
+                f.write(lines)
+            note = f"{len(safe_pairs)} env vars"
+            if skipped:
+                note += f" ({skipped} skipped: invalid names)"
+            applied.append(note)
     if new_cmd and isinstance(new_cmd, str) and new_cmd.strip():
         MINER_OVERRIDE = new_cmd.strip()
         with open(OVERRIDE_FILE, "w") as f:

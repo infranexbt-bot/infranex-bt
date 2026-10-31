@@ -71,9 +71,6 @@ export function OpportunitiesView({ onSelectOpportunity, onStartMining }: Opport
   // AVOID). The old page scored rows with the Ledger band here and conviction
   // on the Dashboard — two answers to the same question. Now the conviction
   // engine (rent-earn × diligence × confidence, gated) is the ONLY verdict.
-  // OWNED-RIG-1 — the basis carries the rig profile (VRAM + TEE) so the
-  // verdict answers "can MY GPU run it & earn" on the owned basis.
-  const ownedBasis = profConfig?.hardwareMode === "owned";
   const pickMap = useMemo(
     () => computeMinePickMap(opportunities, costBasisFromConfig(profConfig)),
     [opportunities, profConfig]

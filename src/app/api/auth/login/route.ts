@@ -16,6 +16,13 @@ const WINDOW_MS = 5 * 60 * 1000;
 const MAX_FAILURES = 10;
 const attempts = new Map<string, { count: number; resetAt: number }>();
 
+// AUDIT-SEC-2 (2026-11-01): per-IP buckets alone can be bypassed by rotating
+// source IPs. Track failures per ACCOUNT as well — a distributed brute force
+// against one user ID now trips its own lockout.
+const ACCOUNT_WINDOW_MS = 15 * 60 * 1000;
+const ACCOUNT_MAX_FAILURES = 20;
+const accountAttempts = new Map<string, { count: number; resetAt: number }>();
+
 function clientIp(req: NextRequest): string {
   // WINDUP-1: prefer x-real-ip — Caddy sets it from the actual remote host.
   // AUDIT-3 (L-2): when falling back to x-forwarded-for, use the RIGHTMOST
@@ -40,13 +47,18 @@ function tooManyAttempts(ip: string): number {
   return rec.count;
 }
 
-function recordFailure(ip: string) {
-  const rec = attempts.get(ip);
+function bumpAttempts(map: Map<string, { count: number; resetAt: number }>, key: string, windowMs: number) {
+  const rec = map.get(key);
   if (rec && Date.now() <= rec.resetAt) {
     rec.count += 1;
   } else {
-    attempts.set(ip, { count: 1, resetAt: Date.now() + WINDOW_MS });
+    map.set(key, { count: 1, resetAt: Date.now() + windowMs });
   }
+}
+
+function recordFailure(ip: string, userId: string) {
+  bumpAttempts(attempts, ip, WINDOW_MS);
+  bumpAttempts(accountAttempts, userId.toLowerCase(), ACCOUNT_WINDOW_MS);
 }
 
 export async function POST(req: NextRequest) {
@@ -67,7 +79,10 @@ export async function POST(req: NextRequest) {
   }
 
   const ip = clientIp(req);
-  if (tooManyAttempts(ip) >= MAX_FAILURES) {
+  const accountRec = accountAttempts.get(userId.toLowerCase());
+  const accountLocked =
+    accountRec && Date.now() <= accountRec.resetAt && accountRec.count >= ACCOUNT_MAX_FAILURES;
+  if (tooManyAttempts(ip) >= MAX_FAILURES || accountLocked) {
     return NextResponse.json(
       { error: "Too many failed attempts — wait 5 minutes and try again." },
       { status: 429 }
@@ -76,7 +91,7 @@ export async function POST(req: NextRequest) {
 
   const user = await verifyLogin(userId, code);
   if (!user) {
-    recordFailure(ip);
+    recordFailure(ip, userId);
     // WALLET-ECON-1 — failed sign-ins are audited (userId attempt + IP
     // class; never the code itself).
     await logAudit({
@@ -92,6 +107,7 @@ export async function POST(req: NextRequest) {
   }
 
   attempts.delete(ip);
+  accountAttempts.delete(userId.toLowerCase());
   await db.appUser.update({
     where: { userId: user.userId },
     data: { lastLoginAt: new Date() },

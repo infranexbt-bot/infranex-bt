@@ -133,7 +133,7 @@ async function adminCookie(): Promise<string> {
   const r = await fetch(`${BASE}/api/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId: "admin", code: "BRJ2-W2GT-WJNF-97VC" }),
+    body: JSON.stringify({ userId: "admin", code: process.env.INFRANEX_ADMIN_CODE ?? "" }),
   });
   const setCookie = r.headers.get("set-cookie") ?? "";
   const c = setCookie.split(";")[0];

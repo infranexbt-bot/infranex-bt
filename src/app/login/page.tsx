@@ -6,7 +6,7 @@
 // set server-side and the browser continues to the app.
 
 import { FormEvent, Suspense, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Eye, EyeOff, Hexagon, Loader2, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,7 +23,6 @@ export default function LoginPage() {
 }
 
 function LoginForm() {
-  const router = useRouter();
   const params = useSearchParams();
   // AUDIT-3 (L-1) — open-redirect guard: protocol-relative ("//evil.com") and
   // backslash ("/\\evil.com") forms start with "/" but navigate OFF-origin.

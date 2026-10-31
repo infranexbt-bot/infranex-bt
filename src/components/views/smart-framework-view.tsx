@@ -194,7 +194,7 @@ function fmtNum(n: number): string {
 }
 
 export function SmartFrameworkView() {
-  const { goals, isLoading, error, createGoal, updateGoal, deleteGoal } = useSmartGoals();
+  const { goals, isLoading, error, updateGoal, deleteGoal } = useSmartGoals();
   const { toast } = useToast();
 
   const [filter, setFilter] = useState<"all" | GoalStatus>("all");

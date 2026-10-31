@@ -1,3 +1,4 @@
+import { parseNetuid } from "@/lib/infranex/validation";
 // Subnet Requirements Profiler API — GET ?netuid=N
 // Returns what the subnet needs (GPU, OS packages, python, pip deps, repo,
 // entrypoint, miner command) pulled from chain + GitHub. Cached 6h in DB.
@@ -15,10 +16,10 @@ export async function GET(req: Request) {
   const gate = await requireActiveUserRequest(req);
   if ("error" in gate) return NextResponse.json({ error: gate.error }, { status: gate.status });
   const url = new URL(req.url);
-  const netuid = parseInt(url.searchParams.get("netuid") ?? "", 10);
+  const netuid = parseNetuid(url.searchParams.get("netuid"));
   const refresh = url.searchParams.get("refresh") === "1";
-  if (!Number.isFinite(netuid) || netuid < 0 || netuid > 1024)
-    return NextResponse.json({ error: "netuid must be 0-1024" }, { status: 400 });
+  if (netuid === null)
+    return NextResponse.json({ error: "netuid must be an integer between 0 and 1023" }, { status: 400 });
   // AUDIT-SEC-4: only cache-bypassing refreshes are throttled — regular
   // reads hit the 6h DB cache and stay cheap.
   if (refresh) {

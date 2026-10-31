@@ -264,8 +264,13 @@ export const LIUM_GPUS: LiumGpuRow[] = [
 ];
 
 export const LIUM_MEASURED_AT = "2026-10-23";
-/** Hours in the lib's billing month (matches electricityMonthlyUsd). */
-export const HOURS_PER_MONTH = 729.6;
+/**
+ * AUDIT-AI-5 (2026-11-01): the local GPU-only electricity copy is gone —
+ * both now come from the single model in profitability.ts (explicit
+ * `hostWatts` opt-in, shared 729.6 h billing month).
+ */
+import { electricityMonthlyUsd, HOURS_PER_MONTH } from "./profitability";
+export { electricityMonthlyUsd, HOURS_PER_MONTH };
 
 // ---------------------------------------------------------------------------
 // PROVIDER-MARKETPLACE REVENUE — the mining-lens blind spot, fixed at the root.
@@ -341,11 +346,6 @@ export const LIUM_TIER_STYLE: Record<
 };
 
 // --- Payback math -----------------------------------------------------------
-
-/** Electricity for a card running 24/7: watts × 729.6 h/month ÷ 1000 × rate. */
-export function electricityMonthlyUsd(watts: number, usdPerKwh: number): number {
-  return (watts * 24 * 30.4 * usdPerKwh) / 1000;
-}
 
 export interface PaybackInput {
   capexUsd: number;

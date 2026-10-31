@@ -4,7 +4,6 @@ import {
   computeRawWinTier,
   WIN_TIER_RANK,
   WIN_TIER_STYLES,
-  type WinTier,
 } from "./win-odds";
 
 /**

@@ -17,7 +17,7 @@ for i in $(seq 1 30); do
   { [ "$c" = "200" ] || [ "$c" = "307" ]; } && { say "server up (~$((i*5))s)"; break; }
 done
 
-say "login: $(curl -s -c /tmp/audit-cookie.txt -X POST http://localhost:3000/api/auth/login -H 'Content-Type: application/json' -d '{"userId":"admin","code":"BRJ2-W2GT-WJNF-97VC"}' -o /tmp/audit-login.json -w '%{http_code}')"
+say "login: $(curl -s -c /tmp/audit-cookie.txt -X POST http://localhost:3000/api/auth/login -H 'Content-Type: application/json' -d '{"userId":"admin","code":"${INFRANEX_ADMIN_CODE:-}"}' -o /tmp/audit-login.json -w '%{http_code}')"
 head -c 100 /tmp/audit-login.json; echo
 
 say "--- guarded APIs WITH session ---"

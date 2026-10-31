@@ -1,3 +1,4 @@
+import { parseNetuid } from "@/lib/infranex/validation";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import {
@@ -102,9 +103,9 @@ export async function GET(request: Request) {
   }
 
   // ---- Single mode (dashboard seat panel, detail dialog) -----------------
-  const netuid = Number.parseInt(raw, 10);
-  if (!Number.isInteger(netuid) || netuid < 0 || netuid > 255) {
-    return NextResponse.json({ error: "netuid must be 0-255" }, { status: 400 });
+  const netuid = parseNetuid(raw);
+  if (netuid === null) {
+    return NextResponse.json({ error: "netuid must be an integer between 0 and 1023" }, { status: 400 });
   }
 
   const byNetuid = await loadSamplesByNetuid();

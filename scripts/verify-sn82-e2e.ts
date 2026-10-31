@@ -16,7 +16,7 @@ async function main() {
   const login = await fetch(`${BASE}/api/auth/login`, {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ userId: "admin", code: "BRJ2-W2GT-WJNF-97VC" }),
+    body: JSON.stringify({ userId: "admin", code: process.env.INFRANEX_ADMIN_CODE ?? "" }),
   });
   const setCookie = login.headers.get("set-cookie") ?? "";
   const cookie = setCookie.split(";")[0];

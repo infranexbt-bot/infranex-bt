@@ -161,10 +161,21 @@ export async function commitFinding(input: {
     where: { kind, dedupeKey, status: "open" },
   });
   if (existing) {
+    const freshEvidence = JSON.stringify(input.evidence);
+    // AUDIT-AI-7 (2026-11-01): implement the documented "exists" outcome —
+    // identical evidence no longer rewrites the row (updatedAt stays put, so
+    // the UI's "last changed" timestamp is truthful).
+    if (
+      existing.evidenceJson === freshEvidence &&
+      existing.severity === input.severity &&
+      existing.detail === input.detail
+    ) {
+      return "exists";
+    }
     await db.triggerEvent.update({
       where: { id: existing.id },
       data: {
-        evidenceJson: JSON.stringify(input.evidence),
+        evidenceJson: freshEvidence,
         detail: input.detail,
         title: input.title,
         runbookJson: JSON.stringify(input.runbook),

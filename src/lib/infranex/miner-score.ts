@@ -872,7 +872,8 @@ export function scoreMinersLedger(inputs: {
     costs.hardwareMode === "owned"
       ? electricityMonthlyUsd(
           hardware.tier.powerWatts * gpuCount,
-          costs.electricityUsdPerKwh ?? 0.12
+          costs.electricityUsdPerKwh ?? 0.12,
+          { hostWatts: 150 }
         )
       : unitRent * gpuCount;
   const infraCost =

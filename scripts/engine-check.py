@@ -1,3 +1,4 @@
+import os
 #!/usr/bin/env python3
 """Infranex BT — live engine health check.
 Exercises every engine end-to-end and prints a green/red verdict table:
@@ -45,7 +46,7 @@ def call(name, method, path, body=None, timeout=90):
 
 # 1 ── auth
 call("Auth / login", "POST", "/api/auth/login",
-     {"userId": "admin", "code": "BRJ2-W2GT-WJNF-97VC"})
+     {"userId": "admin", "code": os.environ.get("INFRANEX_ADMIN_CODE", "")})
 
 # 2 ── workers
 wk = call("Workers status", "GET", "/api/workers/status")

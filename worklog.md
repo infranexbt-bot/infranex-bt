@@ -2458,7 +2458,7 @@ Work Log:
 Stage Summary:
 - App is loaded and healthy: server, auth, chain data (129 subnets), overrides, owned rig profile all live
 - Rig profile loss root cause: ProfitabilitySettings row vanished across sandbox incidents; GET route's create-default-on-first-read masked it. Consider a startup assertion or seed script if it recurs
-- Login code for manual access: BRJ2-W2GT-WJNF-97VC
+- Login code for manual access: <redacted — set INFRANEX_ADMIN_CODE>
 
 ---
 Task ID: chutes-chances-1
@@ -2698,7 +2698,7 @@ Work Log:
 - Includes the Opportunity Score build (opportunity-score-1): core ranking live in Opportunities view
 
 Stage Summary:
-- App UP with all data flowing; login code unchanged (BRJ2-W2GT-WJNF-97VC); /guides/Infranex-BT-Investor-Brief.pdf public link also live again
+- App UP with all data flowing; login code unchanged (<redacted — set INFRANEX_ADMIN_CODE>); /guides/Infranex-BT-Investor-Brief.pdf public link also live again
 
 ---
 Task ID: net-earnings-1

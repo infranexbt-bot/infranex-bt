@@ -1,7 +1,7 @@
 "use client";
 
 // SMART-FRAMEWORK-1 — client data layer for the SMART goal engine.
-// Follows the platform's react-query hook conventions (see use-invest.ts).
+// Follows the platform's react-query hook conventions (see use-deployments.ts).
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 

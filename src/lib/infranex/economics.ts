@@ -14,7 +14,6 @@ import { db } from "@/lib/db";
 // All writers are best-effort: economics bookkeeping must never break the
 // passes that feed it.
 
-const DAO = 1e9; // 1 TAO = 1e9 rAO
 const DEVOPS_INTERVAL_S = 90; // matches INTERVALS.devops in workers.ts
 
 /** UTC "YYYY-MM-DD" for a Date. */

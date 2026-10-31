@@ -46,12 +46,10 @@ import {
 import { OpportunityScoreCell } from "@/components/opportunities/opportunity-score-cell";
 import {
   computeOpportunityScoreMap,
-  type SubnetOpportunityScore,
 } from "@/lib/infranex/subnet-opportunity";
 import {
   computeEntryDifficultyMap,
   DIFFICULTY_META,
-  type EntryDifficultyVerdict,
 } from "@/lib/infranex/entry-difficulty";
 import {
   classifyOpportunity,
@@ -61,8 +59,6 @@ import {
 import {
   computeNetEarningsMap,
   CONFIDENCE_BAND_STYLE,
-  CONSERVATIVE_VERDICT_META,
-  type NetEarningsEstimate,
 } from "@/lib/infranex/net-earnings";
 import {
   computeTaoAccumulationMap,
@@ -71,7 +67,7 @@ import {
 import { useOddsTrends } from "@/hooks/use-odds";
 import { useNetwork } from "@/hooks/use-network";
 import { useProfitabilityConfig } from "@/hooks/use-profitability";
-import { Swords, AlertTriangle, Ban, DollarSign, ShieldCheck, Coins, Target, TrendingUp } from "lucide-react";
+import { Swords, AlertTriangle, Ban, ShieldCheck, Coins, Target, TrendingUp } from "lucide-react";
 import type { Opportunity } from "@/lib/infranex/types";
 
 interface OpportunityTableProps {

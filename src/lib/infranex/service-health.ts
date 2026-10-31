@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { assertPublicResolution } from "@/lib/infranex/net-guard";
 import { commitFinding, autoResolve } from "./triggers-core";
 import { getAxonInfo } from "./metagraph";
 import { getDaemonView } from "./daemon-bridge";
@@ -289,6 +290,17 @@ export async function probeAxon(
   if (process.env.NODE_ENV === "production" && isPrivateProbeEndpoint(endpoint)) {
     return BLOCKED_PROBE;
   }
+  // AUDIT-SEC-3 (2026-11-01): the literal-IP check above misses DNS names that
+  // RESOLVE to private/loopback addresses (cloud metadata, internal services).
+  // Resolve and re-check every address before the socket is opened.
+  try {
+    await assertPublicResolution(endpoint);
+  } catch (e) {
+    return {
+      ...BLOCKED_PROBE,
+      errorDetail: `blocked: ${e instanceof Error ? e.message : "unresolvable endpoint"}`,
+    };
+  }
   const url = `http://${endpoint}:${port}/`;
   const started = Date.now();
   try {
@@ -573,7 +585,11 @@ async function evaluateServiceForDep(
         select: { totalMs: true },
       });
       const okMs = recentOk.map((r) => r.totalMs).filter((v): v is number => v !== null);
-      const median = rollingMedianMs(okMs.slice(1)); // exclude this probe
+      const prior = okMs.slice(1); // exclude this probe
+      // AUDIT-AI-3 (2026-11-01): the relative rule is documented to need ≥5
+      // prior samples ("once we have enough samples to trust it"). With fewer,
+      // the rolling median is not trusted — only the absolute line applies.
+      const median = prior.length >= 5 ? rollingMedianMs(prior) : null;
       const slow = isSlowProbe(outcome.totalMs, median, th);
 
       // --- Failed probes → PROBE_FAIL (critical, restart) ---

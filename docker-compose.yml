@@ -39,14 +39,13 @@ services:
 
   backend:
     build:
-      context: .
-      dockerfile: docker/Dockerfile.backend
+      context: ./backend
+      dockerfile: ../docker/Dockerfile.backend
       target: runner
     container_name: infranex-backend
     env_file:
       - .env
     environment:
-      - SUPABASE_URL=http://postgres:5432
       - REDIS_URL=redis://redis:6379/0
     ports:
       - "8000:8000"
@@ -64,8 +63,6 @@ services:
     container_name: infranex-frontend
     env_file:
       - .env
-    environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8000
     ports:
       - "3000:3000"
     depends_on:
@@ -73,14 +70,13 @@ services:
 
   worker:
     build:
-      context: .
-      dockerfile: docker/Dockerfile.backend
+      context: ./backend
+      dockerfile: ../docker/Dockerfile.backend
       target: runner
     container_name: infranex-worker
     env_file:
       - .env
     environment:
-      - SUPABASE_URL=http://postgres:5432
       - REDIS_URL=redis://redis:6379/0
     depends_on:
       postgres:

@@ -302,9 +302,6 @@ export interface LiveNetworkSnapshot {
   error?: string;
 }
 
-// Curated netuids we track in detail (for curated names/descriptions).
-const TRACKED_NETUIDS = [1, 2, 3, 4, 5, 7, 8, 9, 11, 12, 14, 17, 19, 21, 23, 25];
-
 // Substrate TAO has 9 decimals.
 const TAO_DECIMALS = 9;
 
@@ -314,11 +311,6 @@ function toTao(raw: unknown): number {
   return Number.isFinite(n) ? n : 0;
 }
 
-function toNumber(raw: unknown): number {
-  const s = String(raw ?? "0").replace(/[^0-9]/g, "");
-  const n = Number(s);
-  return Number.isFinite(n) ? n : 0;
-}
 
 async function fetchTaoPrice(): Promise<{
   usd: number;
