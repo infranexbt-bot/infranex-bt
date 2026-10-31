@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  :root {
+    --header-fill:#456454; --border:#b7d3c5; --icon:#3a7d5b; --accent:#298959;
+    --text:#232725; --muted:#77817c; --node-bg:#f0f5f2;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Liberation Sans', Arial, sans-serif; background: #ffffff; }
+  .canvas { width: 900px; padding: 26px 28px 20px; background: #ffffff; }
+  .cols { display: grid; grid-template-columns: 1fr 120px 1fr; }
+  .panel { border: 1.5px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .panel-head {
+    background: var(--header-fill); color: #ffffff; padding: 9px 14px;
+    font-size: 18px; font-weight: bold;
+  }
+  .panel-head .sub { display: block; font-size: 12.5px; font-weight: normal; opacity: .78; margin-top: 2px; }
+  .panel-body { padding: 12px; display: flex; flex-direction: column; gap: 9px; background: #fbfcfb; }
+  .step {
+    background: var(--node-bg); border: 1.2px solid var(--border); border-radius: 8px;
+    padding: 8px 11px;
+  }
+  .step .t { font-size: 16px; font-weight: bold; color: var(--text); }
+  .step .d { font-size: 13px; color: var(--muted); margin-top: 2px; line-height: 1.32; }
+  .mid { display: flex; flex-direction: column; justify-content: space-around; align-items: center; padding: 30px 6px; }
+  .flow-arrow { text-align: center; color: var(--accent); font-size: 13px; font-weight: bold; }
+  .flow-arrow .a { display: block; font-size: 24px; line-height: 1.1; }
+  .flow-arrow.back .a { transform: scaleX(-1); }
+  .loopback {
+    margin-top: 14px; border-top: 1.5px dashed var(--accent); padding-top: 9px;
+    display: flex; justify-content: center; gap: 10px; align-items: center;
+  }
+  .loopback span { font-size: 14.5px; color: var(--header-fill); font-weight: bold; }
+  .safety { margin-top: 12px; background: #fdf8ec; border: 1.5px solid #a08348; border-radius: 9px; padding: 9px 13px; font-size: 14.5px; color: var(--text); line-height: 1.4; }
+  .safety b { color: #7a5f2e; }
+</style>
+</head>
+<body>
+<div class="canvas" id="canvas">
+  <div class="cols">
+    <!-- Platform side -->
+    <div class="panel">
+      <div class="panel-head">Platform <span class="sub">Next.js backend - never pushes to hosts</span></div>
+      <div class="panel-body">
+        <div class="step"><div class="t">90 s monitor pass</div><div class="d">GPU health - subnet drift - performance lag - service probe</div></div>
+        <div class="step"><div class="t">Finding commit</div><div class="d">deduplicated TriggerEvent with evidence + runbook</div></div>
+        <div class="step"><div class="t">Decision split</div><div class="d">autopilot policy rules, or operator inbox (Apply to GPU)</div></div>
+        <div class="step"><div class="t">Command queue</div><div class="d">approved actions appended, waiting to be pulled</div></div>
+      </div>
+    </div>
+    <!-- Middle arrows -->
+    <div class="mid">
+      <div class="flow-arrow"><span class="a">&#8594;</span>telemetry POST<br>(HMAC-signed)</div>
+      <div class="flow-arrow back"><span class="a">&#8594;</span>command pull<br>(daemon dials out)</div>
+    </div>
+    <!-- Host side -->
+    <div class="panel">
+      <div class="panel-head">GPU host <span class="sub">Python daemon - stdlib only, one per deployment</span></div>
+      <div class="panel-body">
+        <div class="step"><div class="t">Collect</div><div class="d">nvidia-smi: temp, util, VRAM - process states</div></div>
+        <div class="step"><div class="t">Observe</div><div class="d">tails miner log: queries/hr, distinct validators</div></div>
+        <div class="step"><div class="t">Report</div><div class="d">signed POST every cadence; live log tail attached</div></div>
+        <div class="step"><div class="t">Execute</div><div class="d">pulled commands only: restart, resync, benchmark</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="loopback"><span>&#8635;</span><span>telemetry feeds the next monitor pass - the loop closes every 90 seconds</span></div>
+  <div class="safety"><b>Transport rule:</b> the platform holds no inbound channel to any host. All connectivity originates from the daemon (pull-only), commands are executed solely from its own signed queue, and every payload is HMAC-verified. A compromised platform cannot silently command a fleet it cannot reach.</div>
+</div>
+</body>
+</html>

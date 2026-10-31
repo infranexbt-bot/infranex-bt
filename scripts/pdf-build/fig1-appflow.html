@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  :root {
+    --header-fill:#456454; --cover-block:#556e62; --border:#b7d3c5; --icon:#3a7d5b;
+    --accent:#298959; --text:#232725; --muted:#77817c;
+    --node-bg:#f0f5f2; --band:#edeeed;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Liberation Sans', Arial, sans-serif; background: #ffffff; }
+  .canvas { width: 900px; padding: 26px 28px 20px; background: #ffffff; }
+  .grid { display: grid; grid-template-columns: 1fr 44px 1fr 44px 1fr; grid-auto-rows: min-content; }
+  .stage {
+    background: var(--node-bg); border: 1.5px solid var(--border);
+    border-radius: 10px; padding: 14px 14px 12px; min-height: 168px;
+  }
+  .stage-head {
+    display: flex; align-items: center; gap: 9px; margin-bottom: 9px;
+    padding-bottom: 8px; border-bottom: 1px solid var(--border);
+  }
+  .stage-num {
+    width: 30px; height: 30px; border-radius: 50%; background: var(--header-fill);
+    color: #ffffff; font-size: 16px; font-weight: bold; display: flex;
+    align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .stage-title { font-size: 21px; font-weight: bold; color: var(--text); }
+  .stage li { font-size: 15.5px; color: var(--text); line-height: 1.42; margin-left: 17px; margin-bottom: 4px; }
+  .stage li::marker { color: var(--icon); }
+  .arrow-h {
+    display: flex; align-items: center; justify-content: center;
+    color: var(--accent); font-size: 26px; font-weight: bold; padding-top: 60px;
+  }
+  .arrow-down {
+    grid-column: 5 / 6; display: flex; align-items: center; justify-content: center;
+    color: var(--accent); font-size: 26px; font-weight: bold; padding: 6px 0;
+  }
+  .row2-left { grid-column: 1 / 2; }
+  .down-slot { grid-column: 5 / 6; }
+  .footer-note {
+    margin-top: 16px; border-top: 1.5px solid var(--border); padding-top: 10px;
+    display: flex; gap: 26px; justify-content: center;
+  }
+  .fn { font-size: 15px; color: var(--muted); }
+  .fn b { color: var(--header-fill); }
+</style>
+</head>
+<body>
+<div class="canvas" id="canvas">
+  <div class="grid">
+    <!-- Row 1 -->
+    <div class="stage">
+      <div class="stage-head"><div class="stage-num">1</div><div class="stage-title">Discover</div></div>
+      <ul><li>Live chain sweep: 129+ subnets</li><li>Miner Fit hardware matching</li><li>Opportunity scoring &amp; EV</li></ul>
+    </div>
+    <div class="arrow-h">&#8594;</div>
+    <div class="stage">
+      <div class="stage-head"><div class="stage-num">2</div><div class="stage-title">Provision</div></div>
+      <ul><li>GPU / CPU offer catalogs</li><li>Cost &amp; ROI projection per offer</li><li>One-click pod rental (RunPod, Vast)</li></ul>
+    </div>
+    <div class="arrow-h">&#8594;</div>
+    <div class="stage">
+      <div class="stage-head"><div class="stage-num">3</div><div class="stage-title">Deploy</div></div>
+      <ul><li>Subnet requirements auto-pulled</li><li>Install plan: Docker / venv / cluster</li><li>3 human gates: wallet, cluster, launch</li></ul>
+    </div>
+    <!-- serpentine drop: under stage 3, into stage 4 -->
+    <div class="down-slot arrow-down">&#8595;</div>
+    <!-- Row 2 (serpentine: right to left) -->
+    <div class="stage row2-left">
+      <div class="stage-head"><div class="stage-num">6</div><div class="stage-title">Earn &amp; Optimize</div></div>
+      <ul><li>UID, incentive, emission tracking</li><li>Strategy board: hold / arbitrage</li><li>Runtime optimizer recipes</li></ul>
+    </div>
+    <div class="arrow-h">&#8592;</div>
+    <div class="stage">
+      <div class="stage-head"><div class="stage-num">5</div><div class="stage-title">Monitor &amp; Remediate</div></div>
+      <ul><li>90 s engine pass, every miner</li><li>Findings routed to inbox / autopilot</li><li>Approve-to-run fix actions</li></ul>
+    </div>
+    <div class="arrow-h">&#8592;</div>
+    <div class="stage">
+      <div class="stage-head"><div class="stage-num">4</div><div class="stage-title">Operate</div></div>
+      <ul><li>10-step host validation</li><li>Wallet gate: register on subnet</li><li>Daemon install: telemetry live</li></ul>
+    </div>
+  </div>
+  <div class="footer-note">
+    <span class="fn"><b>Operator touchpoints:</b> every stage runs from one web console</span>
+    <span class="fn"><b>Mock mode:</b> the full journey is rehearsable with zero GPU spend</span>
+  </div>
+</div>
+</body>
+</html>

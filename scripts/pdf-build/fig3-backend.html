@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  :root {
+    --header-fill:#456454; --border:#b7d3c5; --icon:#3a7d5b; --accent:#298959;
+    --text:#232725; --muted:#77817c; --node-bg:#f0f5f2; --ext-bg:#edeeed;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Liberation Sans', Arial, sans-serif; background: #ffffff; }
+  .canvas { width: 900px; padding: 26px 28px 20px; background: #ffffff; }
+  .main { display: grid; grid-template-columns: 1fr 200px; gap: 22px; }
+  .layer { display: flex; align-items: stretch; margin-bottom: 0; }
+  .layer-label {
+    flex: 0 0 128px; background: var(--header-fill); color: #fff; border-radius: 9px 0 0 9px;
+    display: flex; flex-direction: column; justify-content: center; padding: 10px 12px;
+  }
+  .layer-label .t { font-size: 17px; font-weight: bold; line-height: 1.25; }
+  .layer-label .s { font-size: 12.5px; opacity: .75; margin-top: 3px; }
+  .layer-nodes { flex: 1; display: flex; gap: 10px; border: 1.5px solid var(--border); border-left: none; border-radius: 0 9px 9px 0; padding: 10px; background: #fbfcfb; flex-wrap: wrap; }
+  .node {
+    flex: 1 1 30%; min-width: 150px; background: var(--node-bg); border: 1.2px solid var(--border);
+    border-radius: 8px; padding: 8px 10px;
+  }
+  .node .t { font-size: 16px; font-weight: bold; color: var(--text); }
+  .node .d { font-size: 13px; color: var(--muted); margin-top: 3px; line-height: 1.32; }
+  .conn-row { display: flex; margin: 4px 0 4px 128px; gap: 0; }
+  .conn { flex: 1; display: flex; justify-content: space-around; color: var(--accent); font-size: 20px; font-weight: bold; }
+  .conn span { padding: 0 30px; }
+  .ext {
+    background: var(--ext-bg); border: 1.5px dashed var(--icon); border-radius: 9px;
+    padding: 12px 12px;
+  }
+  .ext .t { font-size: 16px; font-weight: bold; color: var(--header-fill); margin-bottom: 8px; }
+  .ext .item { background: #ffffff; border: 1.2px solid var(--border); border-radius: 7px; padding: 7px 9px; margin-bottom: 8px; }
+  .ext .item:last-child { margin-bottom: 0; }
+  .ext .item .t2 { font-size: 14.5px; font-weight: bold; color: var(--text); }
+  .ext .item .d2 { font-size: 12.5px; color: var(--muted); margin-top: 2px; line-height: 1.3; }
+  .spacer { height: 10px; }
+</style>
+</head>
+<body>
+<div class="canvas" id="canvas">
+  <div class="main">
+    <div>
+      <!-- Layer 1 -->
+      <div class="layer">
+        <div class="layer-label"><div class="t">Presentation</div><div class="s">22 console views</div></div>
+        <div class="layer-nodes">
+          <div class="node"><div class="t">Intelligence views</div><div class="d">Dashboard, Miner Fit, Opportunities, Subnets, Validator Lab</div></div>
+          <div class="node"><div class="t">Mining views</div><div class="d">GPU/CPU Catalogs, Deployments, My Miners</div></div>
+          <div class="node"><div class="t">Operations views</div><div class="d">DevOps Engine, Monitoring, Optimization, Runbook</div></div>
+        </div>
+      </div>
+      <div class="conn-row"><div class="conn"><span>&#8597;</span><span>&#8597;</span></div></div>
+      <!-- Layer 2 -->
+      <div class="layer">
+        <div class="layer-label"><div class="t">API layer</div><div class="s">90 route files, 41 groups</div></div>
+        <div class="layer-nodes">
+          <div class="node"><div class="t">Session auth</div><div class="d">cookie session, DB-backed revocation checks</div></div>
+          <div class="node"><div class="t">Domain APIs</div><div class="d">deployments, devops, triggers, autopilot, network</div></div>
+          <div class="node"><div class="t">Platform APIs</div><div class="d">workers status/trigger, audit, alerts, settings</div></div>
+        </div>
+      </div>
+      <div class="conn-row"><div class="conn"><span>&#8597;</span><span>&#8597;</span></div></div>
+      <!-- Layer 3 -->
+      <div class="layer">
+        <div class="layer-label"><div class="t">Engines &amp; workers</div><div class="s">lib/ layer</div></div>
+        <div class="layer-nodes">
+          <div class="node"><div class="t">6 core engines</div><div class="d">Deployment, DevOps, Autopilot, Benchmarks, Ops Agent, Strategy</div></div>
+          <div class="node"><div class="t">8 background workers</div><div class="d">chain, market, github, devops, upstream, bench, digest, deploy-tick</div></div>
+          <div class="node"><div class="t">LLM service</div><div class="d">z-ai SDK completion, injectable for tests</div></div>
+        </div>
+      </div>
+      <div class="conn-row"><div class="conn"><span>&#8597;</span><span>&#8597;</span></div></div>
+      <!-- Layer 4 -->
+      <div class="layer">
+        <div class="layer-label"><div class="t">Data layer</div><div class="s">Prisma ORM</div></div>
+        <div class="layer-nodes">
+          <div class="node"><div class="t">45 models</div><div class="d">Deployment, TriggerEvent, HostCheck, GpuSample, BenchmarkRun</div></div>
+          <div class="node"><div class="t">Snapshots &amp; audit</div><div class="d">ChainSnapshot, UidSnapshot, AuditLog, SpendLedger</div></div>
+          <div class="node"><div class="t">Secrets</div><div class="d">AES-256-GCM at rest, ProviderKey vault</div></div>
+        </div>
+      </div>
+    </div>
+    <!-- External systems column -->
+    <div class="ext">
+      <div class="t">External systems</div>
+      <div class="item"><div class="t2">Bittensor chain</div><div class="d">RPC: metagraph, axons, burn cost, UID state</div></div>
+      <div class="item"><div class="t2">GitHub</div><div class="d">README / requirements / Dockerfile parsing</div></div>
+      <div class="item"><div class="t2">Compute providers</div><div class="d">RunPod, Vast: offers, pods, pricing</div></div>
+      <div class="item"><div class="t2">GPU hosts (SSH)</div><div class="d">validators, installers, daemon transport</div></div>
+      <div class="item"><div class="t2">Webhooks</div><div class="d">Slack / Discord alert channels</div></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

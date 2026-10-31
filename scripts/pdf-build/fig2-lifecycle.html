@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  :root {
+    --header-fill:#456454; --border:#b7d3c5; --icon:#3a7d5b; --accent:#298959;
+    --text:#232725; --muted:#77817c; --node-bg:#f0f5f2; --gate-bg:#fdf8ec; --gate-bd:#a08348;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Liberation Sans', Arial, sans-serif; background: #ffffff; }
+  .canvas { width: 900px; padding: 26px 28px 20px; background: #ffffff; }
+  .row { display: flex; align-items: stretch; gap: 0; }
+  .state {
+    flex: 1; background: var(--node-bg); border: 1.5px solid var(--border);
+    border-radius: 9px; padding: 11px 6px 10px; text-align: center; min-width: 0;
+  }
+  .state .name { font-size: 18.5px; font-weight: bold; color: var(--text); }
+  .state .desc { font-size: 13.5px; color: var(--muted); margin-top: 4px; line-height: 1.3; }
+  .state.gated { border-color: var(--accent); border-width: 2px; }
+  .gate-tag {
+    display: inline-block; margin-top: 7px; font-size: 12.5px; font-weight: bold;
+    color: var(--accent); background: #eaf4ee; border: 1px solid var(--accent);
+    border-radius: 20px; padding: 2px 9px;
+  }
+  .harrow {
+    flex: 0 0 30px; display: flex; align-items: center; justify-content: center;
+    color: var(--accent); font-size: 22px; font-weight: bold;
+  }
+  .turn-row { display: flex; justify-content: flex-end; padding-right: 5.5%; }
+  .turn-row span { color: var(--accent); font-size: 22px; font-weight: bold; padding: 5px 0; }
+  .vline-slot { flex: 0 0 30px; }
+  .loop-note {
+    margin-top: 14px; background: var(--gate-bg); border: 1.5px solid var(--gate-bd);
+    border-radius: 9px; padding: 10px 14px; display: flex; gap: 24px; align-items: center;
+  }
+  .loop-note .t { font-size: 15.5px; color: var(--text); line-height: 1.45; }
+  .loop-note .t b { color: var(--header-fill); }
+  .legend { margin-top: 10px; display: flex; gap: 26px; justify-content: center; }
+  .legend span { font-size: 14px; color: var(--muted); }
+  .chip { display: inline-block; width: 14px; height: 14px; border-radius: 4px; vertical-align: -2px; margin-right: 6px; }
+</style>
+</head>
+<body>
+<div class="canvas" id="canvas">
+  <!-- Row 1: requested → approved → provisioning → provisioned -->
+  <div class="row">
+    <div class="state"><div class="name">requested</div><div class="desc">offer + budget locked</div></div>
+    <div class="harrow">&#8594;</div>
+    <div class="state"><div class="name">approved</div><div class="desc">requirements profile built</div></div>
+    <div class="harrow">&#8594;</div>
+    <div class="state"><div class="name">provisioning</div><div class="desc">pod rented, SSH keypair issued</div></div>
+    <div class="harrow">&#8594;</div>
+    <div class="state"><div class="name">provisioned</div><div class="desc">pod RUNNING, SSH reachable</div></div>
+  </div>
+  <!-- serpentine turn: drop down on the right, under provisioned -->
+  <div class="turn-row"><span>&#8595;</span></div>
+  <!-- Row 2: serpentine continues right-to-left: setup ← ready ← deploying ← started -->
+  <div class="row">
+    <div class="state"><div class="name">started</div><div class="desc">miner live, auto-registered in DevOps</div></div>
+    <div class="harrow">&#8592;</div>
+    <div class="state gated"><div class="name">deploying</div><div class="desc">container / service launched</div><div class="gate-tag">launch gate</div></div>
+    <div class="harrow">&#8592;</div>
+    <div class="state"><div class="name">ready</div><div class="desc">install plan verified</div></div>
+    <div class="harrow">&#8592;</div>
+    <div class="state gated"><div class="name">setup</div><div class="desc">apt, Docker, repo, pip, env file</div><div class="gate-tag">wallet gate</div></div>
+  </div>
+  <div class="loop-note">
+    <span class="t"><b>Failure loop:</b> any step can fail &#8594; output + fix hint persisted &#8594; <b>Advance</b> re-runs only the failed step (idempotent retry, no stage rewind).</span>
+  </div>
+  <div class="legend">
+    <span><span class="chip" style="background:#eaf4ee;border:1.5px solid #298959;"></span>green outline = human approval gate (engine never proceeds past it without the operator)</span>
+  </div>
+</div>
+</body>
+</html>
