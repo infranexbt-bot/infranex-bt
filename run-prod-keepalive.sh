@@ -10,6 +10,12 @@ export NODE_ENV=production
 export DATABASE_URL="file:$PROJECT_DIR/db/custom.db"
 export INFRANEX_REPO_ROOT="$PROJECT_DIR"
 export INFRANEX_WORKERS=on
+# AUDIT-SEC-4 companion — the space-z.ai preview proxy rewrites the Host header
+# to an internal value, so Origin (public *.space-z.ai) never equals Host and
+# the CSRF gate 403s every browser POST ("Cross-origin request rejected").
+# NOTE: proxy.ts compares these entries against the bare hostname (no scheme),
+# so list host names only, comma-separated.
+export INFRANEX_ALLOWED_ORIGINS="x1vjv8jfmfp0-d.space-z.ai"
 export NODE_OPTIONS="--max-old-space-size=2048"
 
 # MEMORY-GUARD-3 (2026-09-29) — swap insurance: the 4GB sandbox kernel-OOM-

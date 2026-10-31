@@ -49,8 +49,25 @@ function isPublic(pathname: string): boolean {
 // requests so a forged cross-site POST from a legacy browser or same-site
 // subdomain is rejected at the edge. Non-browser clients (curl, the daemon
 // HMAC bridge, the local agent) send no Origin and are unaffected.
+//
+// SEC-4b (2026-11-01) — behind the space-z.ai preview proxy the Host header is
+// rewritten to the internal upstream, so a public *.space-z.ai Origin never
+// equals Host and every browser POST 403'd ("Cross-origin request rejected").
+// The allowlist companion (scheme-prefixed env value vs scheme-less .host)
+// could also never match. Fix: prefer x-forwarded-host, accept platform
+// Origins when the request arrived through the platform/loopback proxy,
+// honor sandboxed-iframe "Origin: null" only on platform hosts, and compare
+// allowlist entries host-to-host (scheme stripped).
 // ---------------------------------------------------------------------------
 const MUTATING_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
+
+// Host the browser was actually talking to. Behind the preview proxy Host is
+// rewritten to the internal upstream; the public hostname rides in
+// x-forwarded-host (first hop wins).
+function requestHost(req: NextRequest): string {
+  const forwarded = req.headers.get("x-forwarded-host")?.split(",")[0].trim();
+  return (forwarded || req.headers.get("host") || req.nextUrl.host).toLowerCase();
+}
 
 function originAllowed(req: NextRequest): boolean {
   if (!MUTATING_METHODS.has(req.method.toUpperCase())) return true;
@@ -61,6 +78,15 @@ function originAllowed(req: NextRequest): boolean {
   const origin = req.headers.get("origin");
   if (!origin) return true; // non-browser client (curl / daemon / agent)
 
+  const host = requestHost(req);
+  const hostName = host.split(":")[0];
+
+  // Sandboxed preview iframes send an opaque "Origin: null". Such requests
+  // cannot carry SameSite cookies anyway (opaque origin ⇒ cross-site), so
+  // opening the gate here rides nothing — but only honor it when the app
+  // itself is served on a platform host (the preview pane).
+  if (origin === "null") return hostName.endsWith(".space-z.ai");
+
   let originHost: string;
   try {
     originHost = new URL(origin).host;
@@ -69,31 +95,54 @@ function originAllowed(req: NextRequest): boolean {
   }
   if (!originHost) return false;
 
-  const host = req.headers.get("host") ?? req.nextUrl.host;
-  if (originHost === host) return true;
+  const originName = originHost.split(":")[0].toLowerCase();
 
-  // Preview platform: the app is served under *.space-z.ai; accept when BOTH
-  // the Origin and the Host are platform hosts (Host can differ from Origin
-  // across the front proxy).
+  // Same app: exact host match (with or without port).
+  if (originHost === host || originName === hostName) return true;
+
+  // Preview platform: app pages live under *.space-z.ai while the front proxy
+  // surfaces an internal Host. Accept platform Origins when this request
+  // arrived through the platform (platform or loopback/internal Host).
+  const INTERNAL_HOSTS = new Set(["localhost", "127.0.0.1", "::1", "0.0.0.0"]);
+  const hostInternal =
+    INTERNAL_HOSTS.has(hostName) || !hostName.includes(".");
   if (
-    originHost.endsWith(".space-z.ai") &&
-    host.endsWith(".space-z.ai")
+    originName.endsWith(".space-z.ai") &&
+    (hostName.endsWith(".space-z.ai") || hostInternal)
   ) {
     return true;
   }
 
-  // Optional operator allowlist for custom domains / tunnels.
+  // Optional operator allowlist for custom domains / tunnels. Entries may be
+  // bare hosts or full origins ("tunnel.example.com" or
+  // "https://tunnel.example.com") — compare host-to-host, scheme-less.
   const allowlist = (process.env.INFRANEX_ALLOWED_ORIGINS ?? "")
     .split(",")
     .map((s) => s.trim().toLowerCase())
-    .filter(Boolean);
-  return allowlist.includes(originHost.toLowerCase());
+    .filter(Boolean)
+    .map((s) => {
+      try {
+        return s.includes("://") ? new URL(s).host : s;
+      } catch {
+        return s;
+      }
+    })
+    .map((s) => s.split(":")[0]);
+  return allowlist.includes(originHost) || allowlist.includes(originName);
 }
 
 export default async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   if (!originAllowed(req)) {
+    // SEC-4b ops log: when the gate rejects, record the exact routing headers
+    // so proxy/gateway surprises (Host rewrite, stripped Origin, ...) are
+    // diagnosable from server.log instead of guesswork.
+    console.warn(
+      `[SEC-4b] rejected ${req.method} ${pathname} origin=${req.headers.get("origin")} ` +
+        `host=${req.headers.get("host")} xfh=${req.headers.get("x-forwarded-host")} ` +
+        `sfs=${req.headers.get("sec-fetch-site")}`
+    );
     return NextResponse.json(
       { error: "Cross-origin request rejected" },
       { status: 403 }
