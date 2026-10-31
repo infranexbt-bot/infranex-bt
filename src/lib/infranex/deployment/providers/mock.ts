@@ -31,7 +31,7 @@ export const MockProvider: ProviderAdapter = {
     };
   },
 
-  async getStatus(podId: string) {
+  async getStatus(_podId: string) {
     return { status: "running", ipAddress: "0.0.0.0" };
   },
 

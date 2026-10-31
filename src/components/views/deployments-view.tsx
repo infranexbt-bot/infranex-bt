@@ -618,7 +618,7 @@ function DeploymentDetail({
         </div>
 
         {tab === "verify" && (
-          <GoliveVerify deploymentId={d.id} minerName={d.minerName} netuid={d.netuid} status={d.status} />
+          <GoliveVerify deploymentId={d.id} minerName={d.minerName} />
         )}
 
         {tab === "logs" && (

@@ -81,7 +81,7 @@ async function loadRec(id: string) {
 class MockDeploymentTransport implements Transport {
   readonly kind = "mock" as const;
   async connect(): Promise<void> {}
-  async exec(command: string, timeoutMs = 30_000): Promise<ExecResult> {
+  async exec(command: string, _timeoutMs = 30_000): Promise<ExecResult> {
     const started = Date.now();
     const head = command.replace(/\s+/g, " ").trim().slice(0, 120);
     return {

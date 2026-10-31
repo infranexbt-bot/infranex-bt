@@ -579,7 +579,3 @@ export function saveProgress(done: string[]) {
     /* private mode — progress stays in-memory */
   }
 }
-
-export function totalStepCount(): number {
-  return SETUP_PHASES.reduce((acc, p) => acc + p.steps.length, 0);
-}

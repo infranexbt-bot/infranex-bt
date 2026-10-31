@@ -1,5 +1,5 @@
 import type { OpportunityClassification } from "./opportunity-class";
-import { classifyOpportunityMap, type OpportunityAction } from "./opportunity-class";
+import { classifyOpportunityMap } from "./opportunity-class";
 import { computeOpportunityScoreMap } from "./subnet-opportunity";
 import { computeNetEarningsMap } from "./net-earnings";
 import { computeEntryDifficultyMap } from "./entry-difficulty";
@@ -79,14 +79,6 @@ export function unifiedVerdict(
       return "WATCH";
   }
 }
-
-/** The classification action each verdict may legally come from — used by
- *  the verify script as an invariant contract. */
-export const VERDICT_LEGAL_ACTIONS: Record<UnifiedVerdict, OpportunityAction[]> = {
-  RUN: ["SCALE", "TEST"],
-  WATCH: ["TEST", "WATCHLIST"],
-  AVOID: ["AVOID"],
-};
 
 /** Single-pass verdict map over merged opportunity rows. Builds the SAME
  *  score + classification maps the table ranks by (same ctx parameters, so

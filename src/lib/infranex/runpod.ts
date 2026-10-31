@@ -54,7 +54,7 @@ export interface LiveGpuSnapshot {
 // (Also reused by the Vast.ai / Lambda adapters — their GPU labels are close
 // enough to the same vocabulary that canonical names stay consistent across
 // the wizard and the catalog.)
-export function normalizeModel(displayName: string, vramGb: number): {
+export function normalizeModel(displayName: string): {
   model: string;
   tierLabel: "Entry" | "Mid" | "High" | "Flagship";
   /** Canonical marketing VRAM for models where provider reporting drifts

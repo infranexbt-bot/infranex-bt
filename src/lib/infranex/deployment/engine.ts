@@ -375,7 +375,7 @@ export async function advanceDeployment(
         const result = await MockProvider.provision(config, id);
         providerPodId = result.podId;
         stepOutputs.provision.push(`Pod ID: ${result.podId}`, `IP: ${result.ipAddress ?? "—"}`);
-        return updateDeploymentState(id, next, providerPodId, stepOutputs, null, null, result.ipAddress);
+        return updateDeploymentState(id, next, providerPodId, stepOutputs);
       }
       // runpod / vast — real money path. Both providers get the same
       // ephemeral SSH keypair contract; Vast injects it via the onstart
@@ -444,8 +444,7 @@ async function updateDeploymentState(
   providerPodId: string | null,
   outputs: Record<string, string[]>,
   sshPublicKey?: string | null,
-  sshPrivKeyEnc?: string | null,
-  ipAddress?: string | null
+  sshPrivKeyEnc?: string | null
 ): Promise<DeploymentRecord> {
   const rec = await getDeployment(id);
   if (!rec) throw new Error("Deployment not found");

@@ -335,7 +335,7 @@ async function vastOffers(key: string): Promise<LiveOffer[]> {
     // the per-GPU price comparison in the wizard's VRAM filter.
     if (numGpus !== 1) continue;
     const vramRaw = Math.round(gpuRamMb / 1024);
-    const norm = normalizeModel(gpuName, vramRaw);
+    const norm = normalizeModel(gpuName);
     // Prefer the canonical marketing VRAM — Vast reports MiB (rounds to a
     // GiB figure like 140 for the H200) while subnet requirements and the
     // other providers speak marketing GB (141). Keeps the wizard's
@@ -389,7 +389,7 @@ async function lambdaOffers(key: string): Promise<LiveOffer[]> {
     const vramGb = vramMatch ? Number(vramMatch[1]) : 0;
     if (!vramGb) continue;
     const gpuLabel = desc.replace(/^1x\s*/i, "").trim() || name;
-    const norm = normalizeModel(gpuLabel, vramGb);
+    const norm = normalizeModel(gpuLabel);
     const hourly = cents / 100;
     out.push({
       id: `lambda-${name}`,
@@ -428,7 +428,7 @@ function normalizeRunpodGpuTypes(gpuTypes: RunpodGpuType[]): LiveOffer[] {
     const spot = lp.minimumBidPrice;
     const ondemand = lp.uninterruptablePrice;
     if (spot == null && ondemand == null) continue;
-    const norm = normalizeModel(g.displayName, g.memoryInGb);
+    const norm = normalizeModel(g.displayName);
     if (!norm) continue; // skip consumer/irrelevant GPUs
     const hourlyPrice = ondemand ?? spot ?? 0;
     out.push({

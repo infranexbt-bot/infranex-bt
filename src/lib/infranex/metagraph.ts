@@ -318,12 +318,19 @@ export async function getUidState(
 
   // Cohort stats among rewarded uids.
   const rewarded = vectors.incentive.filter((v) => v > 0.0005).sort((a, b) => a - b);
+  // AUDIT-AI-15 (2026-11-01): even-length cohorts must average the two middle
+  // samples — the old code took the upper-middle element, overstating the
+  // median for every even-sized earning cohort.
+  const mid = Math.floor(rewarded.length / 2);
+  const medianRewarded = rewarded.length
+    ? rewarded.length % 2 === 1
+      ? rewarded[mid]
+      : (rewarded[mid - 1] + rewarded[mid]) / 2
+    : 0;
   const cohort = {
     registeredUids,
     earningUids: rewarded.length,
-    medianRewardedIncentive: rewarded.length
-      ? rewarded[Math.floor(rewarded.length / 2)]
-      : 0,
+    medianRewardedIncentive: medianRewarded,
   };
 
   return {
@@ -342,8 +349,8 @@ export async function getUidState(
  * callers must treat null as "cannot probe right now", never as an alarm.
  *
  * Storage location drifted across specs: neuronsModule.axons (current) vs
- * subtensorModule.axons (legacy). The on-chain IPv4 is a little-endian u32
- * that decodes exactly like bittensor's int_to_ip().
+ * subtensorModule.axons (legacy). The on-chain IPv4 is a big-endian u32
+ * that decodes exactly like bittensor's int_to_ip() (big-endian, '!I' pack).
  */
 export async function getAxonInfo(
   netuid: number,

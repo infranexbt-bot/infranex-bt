@@ -115,13 +115,9 @@ const SOURCE_LABEL: Record<string, string> = {
 export function GoliveVerify({
   deploymentId,
   minerName,
-  netuid,
-  status,
 }: {
   deploymentId: string;
   minerName: string;
-  netuid: number;
-  status: string;
 }) {
   const [payload, setPayload] = useState<VerifyPayload | null>(null);
   const [loading, setLoading] = useState(true);

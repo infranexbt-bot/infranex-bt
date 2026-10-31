@@ -187,7 +187,6 @@ export function WinOddsPanel({
       if (net != null && (!best || net > best.net)) best = { w, net };
     }
     return best;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ranked, rows]);
   const flips = useQuery<{
     flips: {

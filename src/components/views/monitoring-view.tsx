@@ -126,7 +126,7 @@ export function MonitoringView({ onNavigate }: MonitoringViewProps) {
           </p>
           <div className="grid gap-4">
             {active.map((dep) => (
-              <DeploymentMonitoringCard key={dep.id} dep={dep} taoPriceUsd={overview.taoPriceUsd} />
+              <DeploymentMonitoringCard key={dep.id} dep={dep} />
             ))}
           </div>
         </section>
@@ -140,7 +140,7 @@ export function MonitoringView({ onNavigate }: MonitoringViewProps) {
           </p>
           <div className="grid gap-4 opacity-60">
             {terminal.map((dep) => (
-              <DeploymentMonitoringCard key={dep.id} dep={dep} taoPriceUsd={overview.taoPriceUsd} />
+              <DeploymentMonitoringCard key={dep.id} dep={dep} />
             ))}
           </div>
         </section>
@@ -238,10 +238,8 @@ function MetricCard({
 
 function DeploymentMonitoringCard({
   dep,
-  taoPriceUsd,
 }: {
   dep: MonitoredDeployment;
-  taoPriceUsd: number;
 }) {
   const { monitoring: m, status, mode } = dep;
   const isStarted = status === "started";

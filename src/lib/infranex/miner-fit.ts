@@ -90,7 +90,7 @@ function capitalLine(o: Opportunity, taoPriceUsd?: number): string {
   )} TAO (≈$${stakeUsd.toLocaleString()}, start smaller is OK) · running cost ≈$${monthly}/mo`;
 }
 
-function skillLine(o: Opportunity, cls: "skill" | "capacity" | "mixed"): string {
+function skillLine(_o: Opportunity, cls: "skill" | "capacity" | "mixed"): string {
   if (cls === "capacity")
     return "Basic copy-paste — install once, keep it running";
   if (cls === "skill")
@@ -98,7 +98,7 @@ function skillLine(o: Opportunity, cls: "skill" | "capacity" | "mixed"): string 
   return "Copy-paste to start, some tuning to earn well";
 }
 
-function timeLine(o: Opportunity, cls: "skill" | "capacity" | "mixed"): string {
+function timeLine(_o: Opportunity, cls: "skill" | "capacity" | "mixed"): string {
   if (cls === "capacity") return "1–2 h/week after setup (mostly watching)";
   if (cls === "skill") return "5–15 h/week while climbing, 2–4 h/week to hold rank";
   return "2–4 h/week to stay competitive";

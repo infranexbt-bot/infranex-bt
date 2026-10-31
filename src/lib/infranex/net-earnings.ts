@@ -387,24 +387,6 @@ export function computeNetEarningsMap(
   return m;
 }
 
-/** Ranking helper — expected (base) net earnings, worst rows sink. Rows
- *  without an estimate rank last; ties broken by conservative month. */
-export function rankByNetEarnings<T extends LiveOpportunity>(
-  rows: T[],
-  est: Map<string, NetEarningsEstimate>
-): T[] {
-  return [...rows].sort((a, b) => {
-    const ea = est.get(a.id ?? "");
-    const eb = est.get(b.id ?? "");
-    if (!ea && !eb) return 0;
-    if (!ea) return 1;
-    if (!eb) return -1;
-    if (eb.base.netMonthlyUsd !== ea.base.netMonthlyUsd)
-      return eb.base.netMonthlyUsd - ea.base.netMonthlyUsd;
-    return eb.conservative.netMonthlyUsd - ea.conservative.netMonthlyUsd;
-  });
-}
-
 export const CONFIDENCE_BAND_STYLE: Record<ConfidenceBand, { label: string; className: string }> = {
   HIGH: { label: "High conf.", className: "text-success border-success/40 bg-success/10" },
   MEDIUM: { label: "Med conf.", className: "text-warning border-warning/40 bg-warning/10" },

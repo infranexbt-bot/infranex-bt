@@ -127,7 +127,6 @@ interface DeepProbes {
 async function runDeepProbes(
   id: string,
   mode: string,
-  netuid: number,
   unit: string,
   dockerPath: boolean
 ): Promise<DeepProbes> {
@@ -271,7 +270,7 @@ export async function GET(
     ]);
 
     const deepProbes = deep
-      ? await runDeepProbes(id, row.mode, row.netuid, unit, dockerPath)
+      ? await runDeepProbes(id, row.mode, unit, dockerPath)
       : {
           ran: false,
           note: null as string | null,

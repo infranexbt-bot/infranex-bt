@@ -130,7 +130,7 @@ export async function akashGpuOffers(): Promise<LiveAkashGpuOffer[]> {
     if (!displayName) continue;
     // Canonicalize through the shared GPU map (skips consumer chips, fixes
     // VRAM drift) — unknown datacenter models pass through untouched.
-    const norm = normalizeModel(displayName, vramRaw);
+    const norm = normalizeModel(displayName);
     const vramGb = norm?.vramGb ?? vramRaw;
 
     const avail = g.providerAvailability?.available ?? g.availability?.available ?? 0;

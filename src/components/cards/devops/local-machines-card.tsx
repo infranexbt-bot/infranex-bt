@@ -100,11 +100,9 @@ function CommandRow({ c }: { c: LocalCommandDTO }) {
 
 function HostRow({
   host,
-  origin,
   onRevoked,
 }: {
   host: LocalHostDTO;
-  origin: string;
   onRevoked: (msg: string) => void;
 }) {
   const chip = statusChip(host.status, host.lastSeenAt);
@@ -436,7 +434,7 @@ export function LocalMachinesCard() {
         ) : (
           <div className="space-y-2.5">
             {hosts.map((h) => (
-              <HostRow key={h.id} host={h} origin={origin} onRevoked={setNote} />
+              <HostRow key={h.id} host={h} onRevoked={setNote} />
             ))}
           </div>
         )}

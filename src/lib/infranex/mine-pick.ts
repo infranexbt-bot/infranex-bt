@@ -93,16 +93,6 @@ export interface MinePick {
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
-export const MINE_PICK_BAND_STYLE: Record<
-  MinePickBand,
-  { label: string; color: string; bg: string }
-> = {
-  PRIME: { label: "PRIME", color: "text-success", bg: "bg-success/10" },
-  READY: { label: "READY", color: "text-primary", bg: "bg-primary/10" },
-  MARGINAL: { label: "MARGINAL", color: "text-warning", bg: "bg-warning/10" },
-  "NO-GO": { label: "NO-GO", color: "text-destructive", bg: "bg-destructive/10" },
-};
-
 /** Mirror of rent-earn's isCpuWork — kept local so the engine stays decoupled. */
 function isCpuWork(o: Opportunity): boolean {
   return (

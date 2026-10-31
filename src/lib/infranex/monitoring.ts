@@ -189,8 +189,7 @@ export interface MonitoringAlert {
 function buildAlerts(
   dep: { status: string; mode: string; providerPodId: string | null },
   pod: RunpodPod | undefined,
-  chain: ChainMinerMetrics,
-  taoPriceUsd: number
+  chain: ChainMinerMetrics
 ): MonitoringAlert[] {
   const alerts: MonitoringAlert[] = [];
   if (dep.status === "started") {
@@ -316,7 +315,7 @@ class MonitoringCache {
           ? Math.floor((Date.now() - new Date(pod.createdAt).getTime()) / 1000)
           : null;
 
-        const alerts = buildAlerts(dep, pod, chain, taoPriceUsd);
+        const alerts = buildAlerts(dep, pod, chain);
 
         monitored.push({
           id: dep.id,
