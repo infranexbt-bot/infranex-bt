@@ -2908,3 +2908,19 @@ Work Log:
 Stage Summary:
 - The operator-approved segment mapping is now a permanent, live part of the GPU Landscape page above the A/B/C/D class buckets, with provenance note (repo-evidence rationale per row).
 - Files: modified src/components/views/gpu-landscape-view.tsx only (pure display panel; no scoring/data paths touched).
+
+---
+Task ID: csrf-gate-fix-sec4b
+Agent: main (Super Z)
+Task: User reported "Cross-origin request rejected" on the web app
+
+Work Log:
+- Reproduced: every mutating request via the public preview URL (e.g. login POST) 403s with {"error":"Cross-origin request rejected"} from the AUDIT-SEC-4 CSRF gate in src/proxy.ts; GETs unaffected — pages render, only sign-in/POSTs break
+- Three stacked causes: (1) space-z.ai preview proxy rewrites Host to an internal/pull value (observed gw.internal.example.net), so Origin (public *.space-z.ai) never equals Host; (2) SEC-4's platform exception required BOTH Origin and Host to be *.space-z.ai — fails under Host rewrite; (3) INFRANEX_ALLOWED_ORIGINS companion could never match: env value carries a scheme while comparison used scheme-less new URL(origin).host
+- Fix (SEC-4b, src/proxy.ts): prefer x-forwarded-host; exact host match with/without port; accept platform Origins regardless of Host rewriting (sec-fetch-site:cross-site browser-attestation check still runs first — cross-site attackers incl. sibling tenants stay blocked); honor sandboxed-iframe "Origin: null" only on platform hosts; allowlist compared scheme-less
+- Instrumented: [SEC-4b] rejection log + env-gated [GATE] verdict log (INFRANEX_GATE_DEBUG=1 exported in run-prod-keepalive.sh); rebuilt standalone + keepalive restart
+- Verified: browser E2E login on live instance → dashboard, GATE verdict=allow; evil.com Origin still 403; local curl probes consistent
+- EDGE CAVEAT (confirms dual-instance finding above): public URL is served by platform edge instance B (content-frozen); browser POST via public URL never reaches instance K (no [GATE] log) and still 403s with the old gate → public users get the fix only after platform cold-restart of B
+
+Stage Summary:
+- Gate fixed + committed; public URL heals on next platform cold restart (restart button / sandbox recycle), then keepalive cron reboots the fixed build from disk
