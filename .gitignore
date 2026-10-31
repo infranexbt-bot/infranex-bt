@@ -88,3 +88,8 @@ bt-miner/
 
 # CI workflows excluded from git (push token lacks workflow scope) - kept locally only
 .github/workflows/
+
+# Local session-cookie artifacts from curl-based verification (contain session tokens)
+*cookies*.txt
+tmp-snc.txt
+scripts/e2e-out/
