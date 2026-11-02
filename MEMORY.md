@@ -1,6 +1,6 @@
 # Infranex BT — Project Memory
 
-> Last updated: 2026-10-17 · Companion docs: [`ARCHITECTURE.md`](./ARCHITECTURE.md) ·
+> Last updated: 2026-11-02 · Companion docs: [`ARCHITECTURE.md`](./ARCHITECTURE.md) ·
 > [`RULES.md`](./RULES.md) · raw history: `worklog.md` (append-only)
 > Purpose: everything a future session must know to be productive in the
 > first 5 minutes — environment truths, runbooks, incident history, key facts.
@@ -26,18 +26,21 @@ SPA — deep paths like `/subnets` 404 by design; use authed API calls.
    (all tables → 0 rows), kill processes, invalidate the GitHub PAT, and
    clear cookies. Source code (git-tracked files) survives; uncommitted
    work may not.
-2. **The dev server is platform-supervised.** It comes back automatically
-   after recycle; `bun install` may still be running right after boot —
-   wait for it.
-3. **NEVER `pkill "next dev"`** — it kills the platform's server. A nohup'd
-   standalone server does NOT survive between tool calls either (reaped).
-   The dev server is the only durable runtime.
-4. **`/tmp` is not writable** — use project-root paths for temp files.
-5. Container memory: ~4GB, no swap. A production build needs
-   `NODE_OPTIONS=--max-old-space-size=2048`.
-6. Work happened in a different PID namespace per tool session — verify by
+2. **Boot path (fixed 2026-11-02):** after recycle the platform runs
+   `bun run dev` — which is now `bash run-prod-keepalive.sh` (package.json
+   `"dev"`). The script boots the PRODUCTION standalone (full env incl.
+   `INFRANEX_ALLOWED_ORIGINS`, RSS watchdog, auto-restart) and only falls
+   back to `next dev` if `.next/standalone/server.js` is missing. A
+   recycled sandbox therefore self-heals to production — no manual rescue.
+   Real dev mode is `bun run dev:next`.
+3. **NEVER `pkill -f server.js` / `pkill next dev`** — it kills the prod
+   server. Target by exact PID. Also beware `pkill -o` (matches the OLDEST
+   process, i.e. the real one, not the test instance).
+4. Container memory: ~4GB, no swap (supervisor attempts a 2GB swapfile once
+   per sandbox). Production build needs `NODE_OPTIONS=--max-old-space-size=2048`.
+5. Work happened in a different PID namespace per tool session — verify by
    HTTP (`curl localhost:3000`), not `ps`.
-7. **OOM incident (2026-10-29):** next-server leaked to 2.5GB RSS over ~4h →
+6. **OOM incident (2026-10-29):** next-server leaked to 2.5GB RSS over ~4h →
    kernel global OOM killed it AND the platform supervisor did not relaunch it
    (supervisor only boots the dev server on sandbox recycle). setsid/nohup
    revivals from tool calls only live for that one tool call. Fix: user
@@ -107,6 +110,7 @@ the Validator Lab.
 | 2025-10 | nohup keepalive reaped between tool calls | Background processes are not durable; dev server is |
 | 2025-10 | Git push 401 after recycle | PAT invalidated by recycle — need fresh token from owner; local commits queue up (e.g. `f3a06da` hardware column) |
 | 2025-10 | `GET /subnets` → 404 "bug" report | SPA — verify via `/` + authed APIs |
+| 2026-11-02 | Recycle → platform booted bare `next dev` (missing `INFRANEX_ALLOWED_ORIGINS`) → CSRF gate 403'd every public browser POST | Proper fix: `"dev"` now delegates to `run-prod-keepalive.sh` (prod standalone + full env + watchdog + `next dev` fallback); verified live on port 3999 before rollout |
 
 ---
 

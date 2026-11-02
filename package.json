@@ -3,9 +3,10 @@
   "version": "0.2.1",
   "private": true,
   "scripts": {
-    "dev": "DATABASE_URL=file:/home/z/my-project/db/custom.db next dev -p 3000 2>&1 | tee dev.log",
+    "dev": "bash run-prod-keepalive.sh",
+    "dev:next": "next dev -p 3000",
     "build": "next build && cp -r .next/static .next/standalone/.next/ && cp -r public .next/standalone/",
-    "start": "NODE_ENV=production DATABASE_URL=file:/home/z/my-project/db/custom.db INFRANEX_REPO_ROOT=/home/z/my-project bun .next/standalone/server.js 2>&1 | tee server.log",
+    "start": "NODE_ENV=production DATABASE_URL=file:/home/z/my-project/db/custom.db INFRANEX_REPO_ROOT=/home/z/my-project INFRANEX_WORKERS=on INFRANEX_ALLOWED_ORIGINS=https://x1vjv8jfmfp0-d.space-z.ai bun .next/standalone/server.js 2>&1 | tee server.log",
     "lint": "eslint .",
     "db:push": "DATABASE_URL=file:/home/z/my-project/db/custom.db prisma db push --accept-data-loss",
     "db:generate": "prisma generate",
