@@ -39,12 +39,12 @@ const INITIAL: HealthCheck[] = [
   {
     id: "chain",
     name: "Bittensor Finney chain",
-    description: "HTTP JSON-RPC to the public entrypoint node",
+    description: "Server-side RPC probe of the public entrypoint node via /api/chain-health",
     status: "pending",
     latencyMs: null,
     detail: "Not checked yet",
     lastChecked: null,
-    endpoint: "https://entrypoint-finney.opentensor.ai/rpc",
+    endpoint: "/api/chain-health",
   },
   {
     id: "price",
@@ -103,17 +103,11 @@ async function probe(check: HealthCheck): Promise<HealthCheck> {
     }
 
     if (check.id === "chain") {
-      const res = await fetch(check.endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          jsonrpc: "2.0",
-          id: 1,
-          method: "chain_getHeader",
-          params: [],
-        }),
-        cache: "no-store",
-      });
+      // HEALTH-PROBE-1: probe server-side via /api/chain-health. A direct
+      // browser POST to the RPC showed "Failed to fetch" whenever the node
+      // rate-limited without CORS headers — even while the chain (and the
+      // app's own server-side polling) were perfectly healthy.
+      const res = await fetch("/api/chain-health", { cache: "no-store" });
       const latency = Math.round(performance.now() - start);
       if (!res.ok) {
         return {
@@ -124,15 +118,19 @@ async function probe(check: HealthCheck): Promise<HealthCheck> {
           lastChecked: Date.now(),
         };
       }
-      const j = (await res.json()) as { result?: { number?: string } };
-      const block = j.result?.number
-        ? parseInt(j.result.number, 16).toLocaleString()
-        : "?";
+      const j = (await res.json()) as {
+        source: string;
+        blockNumber?: number;
+        error?: string;
+      };
+      const ok = j.source === "live";
       return {
         ...check,
-        status: "pass",
+        status: ok ? "pass" : "fail",
         latencyMs: latency,
-        detail: `Reachable — latest block ${block}`,
+        detail: ok
+          ? `Reachable — latest block ${j.blockNumber?.toLocaleString() ?? "?"}`
+          : `Source: ${j.source}${j.error ? ` — ${j.error}` : ""}`,
         lastChecked: Date.now(),
       };
     }

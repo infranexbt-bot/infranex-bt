@@ -420,8 +420,8 @@ function ResolutionSteps({
 }) {
   const steps: Record<string, string[]> = {
     chain: [
-      "The Bittensor Finney chain node may be temporarily unreachable or rate-limiting.",
-      "Wait 30s — the next poll will retry automatically.",
+      "The probe runs server-side (/api/chain-health), so a failure means the app server itself cannot reach the Finney node — not your browser or network.",
+      "Wait 30s — the next poll will retry automatically (the node may be rate-limiting).",
       "If persistent, the public entrypoint node may be down. Check https://taostats.io or try again later.",
       "The app will keep showing the last cached snapshot until the chain recovers.",
     ],
