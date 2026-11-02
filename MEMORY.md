@@ -36,8 +36,28 @@ SPA — deep paths like `/subnets` 404 by design; use authed API calls.
 3. **NEVER `pkill -f server.js` / `pkill next dev`** — it kills the prod
    server. Target by exact PID. Also beware `pkill -o` (matches the OLDEST
    process, i.e. the real one, not the test instance).
+   - `next-server` RENAMES its process title — `ps`/`pgrep -f server.js`
+     find nothing. Find it with `ss -ltnp` (shows `users:(("next-server
+     (v16...)",pid=…))`), or scan `/proc/*/cmdline`.
+   - **PUBLISHED-ALIAS RULE (2026-11-02):** the `preview-chat-<chat_id>`
+     published URL proxies to the PLATFORM's own supervised boot tree. If
+     you kill that tree (even to free build memory), the published alias
+     502s until the NEXT recycle re-registers it, while the canonical
+     `x1vjv8jfmfp0-d.space-z.ai` host (raw port forward) keeps working.
+     To free memory for a build, prefer building alongside the server with
+     a lower heap, or accept the alias outage — never kill the platform
+     tree unless the user is told first.
 4. Container memory: ~4GB, no swap (supervisor attempts a 2GB swapfile once
-   per sandbox). Production build needs `NODE_OPTIONS=--max-old-space-size=2048`.
+   per sandbox). Production build needs `NODE_OPTIONS=--max-old-space-size=2048`
+   and ~1.8GB free — a running server + workers can push the build into
+   exit-137 (OOM kill). Check `free -m` first.
+4b. **Health probes (HEALTH-PROBE-1/2, 2026-11-02):** the System & Errors
+   panel must NEVER fetch external APIs from the browser (CORS-less 429s
+   show as "Failed to fetch"; browsers can't set User-Agent). Both the
+   Finney RPC and the TAO price feed are probed server-side now:
+   `/api/chain-health` and `/api/price-health` (the latter runs the real
+   `getPrices()` pipeline — Binance primary, CoinGecko fallback, stale-serve
+   — so CoinGecko 429s show as metadata, not failures).
 5. Work happened in a different PID namespace per tool session — verify by
    HTTP (`curl localhost:3000`), not `ps`.
 6. **OOM incident (2026-10-29):** next-server leaked to 2.5GB RSS over ~4h →

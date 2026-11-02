@@ -426,10 +426,10 @@ function ResolutionSteps({
       "The app will keep showing the last cached snapshot until the chain recovers.",
     ],
     price: [
-      "CoinGecko's free API rate-limits requests. If you've polled too frequently, wait 60s.",
-      "CoinGecko may be blocking the request (needs a User-Agent header — already set).",
-      "If down, the app still works with live chain data; only the TAO/USD conversion shows as '—'.",
-      "For production, add a CoinGecko API key or switch to a paid price provider.",
+      "The probe runs the app's real price pipeline server-side (/api/price-health): Binance primary, CoinGecko fallback, stale-serve cache.",
+      "Status 'cached' = upstreams are rate-limiting right now; the pipeline serves the last known price (up to 24h old) — the app stays fully usable.",
+      "A hard failure means no source returned a price in 24h — check https://status.binance.com and https://taostats.io.",
+      "The probe reuses the pipeline's 5-minute cache, so it adds no extra rate-limit pressure on CoinGecko.",
     ],
     api: [
       "The local /api/network route failed — check the dev server logs at /home/z/my-project/dev.log.",

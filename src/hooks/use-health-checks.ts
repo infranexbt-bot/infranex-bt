@@ -49,12 +49,12 @@ const INITIAL: HealthCheck[] = [
   {
     id: "price",
     name: "TAO price feed",
-    description: "CoinGecko simple price API for TAO/USD",
+    description: "Server-side CoinGecko probe via /api/price-health",
     status: "pending",
     latencyMs: null,
     detail: "Not checked yet",
     lastChecked: null,
-    endpoint: "https://api.coingecko.com/api/v3/simple/price",
+    endpoint: "/api/price-health",
   },
   {
     id: "gpu",
@@ -136,15 +136,10 @@ async function probe(check: HealthCheck): Promise<HealthCheck> {
     }
 
     if (check.id === "price") {
-      const url =
-        "https://api.coingecko.com/api/v3/simple/price?ids=bittensor&vs_currencies=usd";
-      const res = await fetch(url, {
-        headers: {
-          "User-Agent": "infranex-bt/1.0",
-          Accept: "application/json",
-        },
-        cache: "no-store",
-      });
+      // HEALTH-PROBE-2: probe server-side via /api/price-health. A direct
+      // browser fetch showed "Failed to fetch" on rate-limited responses
+      // (no CORS headers), and browsers cannot set a custom User-Agent.
+      const res = await fetch("/api/price-health", { cache: "no-store" });
       const latency = Math.round(performance.now() - start);
       if (!res.ok) {
         return {
@@ -155,13 +150,20 @@ async function probe(check: HealthCheck): Promise<HealthCheck> {
           lastChecked: Date.now(),
         };
       }
-      const j = (await res.json()) as { bittensor?: { usd?: number } };
-      const usd = j.bittensor?.usd;
+      const j = (await res.json()) as {
+        source: string;
+        taoPriceUsd?: number;
+        via?: string;
+        error?: string;
+      };
+      const ok = j.source === "live" || j.source === "cached";
       return {
         ...check,
-        status: usd ? "pass" : "fail",
+        status: ok ? "pass" : "fail",
         latencyMs: latency,
-        detail: usd ? `TAO/USD $${usd.toFixed(2)}` : "No price in response",
+        detail: ok
+          ? `TAO/USD $${j.taoPriceUsd?.toFixed(2) ?? "?"} (via ${j.via ?? "?"}${j.source === "cached" ? ", cached" : ""})`
+          : `Source: ${j.source}${j.error ? ` — ${j.error}` : ""}`,
         lastChecked: Date.now(),
       };
     }
