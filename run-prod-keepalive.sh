@@ -10,6 +10,20 @@
 # target project-dir processes spawned across tool sessions. The platform's
 # own recycle supervisor is unaffected by this.
 PROJECT_DIR="/home/z/my-project"
+
+# SINGLETON GUARD (2026-11-02, rev2) — COOPERATIVE lock. The platform may
+# auto-run `bun run dev` while a tool-session instance is alive. With flock -n
+# the loser EXITED — and if the reaper later killed the winner, nothing was
+# left serving (observed twice). A BLOCKING flock makes the loser wait; when
+# the winner dies the waiter takes over. On acquiring the lock, probe the
+# port: if something already answers, a live supervisor owns it — stand down.
+exec 9>/tmp/infranex-supervisor.lock
+flock 9
+if curl -s -m 3 -o /dev/null http://127.0.0.1:3000/ 2>/dev/null; then
+  echo "[$(date '+%H:%M:%S')] another supervisor already serving :3000 — standing down" >> "$PROJECT_DIR/server.log"
+  exit 0
+fi
+
 cd /
 export DATABASE_URL="file:$PROJECT_DIR/db/custom.db"
 export INFRANEX_REPO_ROOT="$PROJECT_DIR"
@@ -46,7 +60,12 @@ fi
 # act: it freezes the whole sandbox and takes unrelated processes with it.
 # Dev fallback skips the watchdog: Turbopack legitimately spikes during
 # compiles and a kill there would just churn.
-RSS_LIMIT_KB=1843200   # 1.8 GB in kB
+# 2026-11-02: dmesg showed the kernel global-OOM kills the server at
+# ~1.68 GB RSS — BELOW our old 1.8 GB limit, so the watchdog never fired and
+# the kernel froze the whole sandbox (user-facing "sandbox is inactive").
+# 1.4 GB gives the supervisor a comfortable margin to do a clean restart
+# before the kernel ever gets involved.
+RSS_LIMIT_KB=1433600   # 1.4 GB in kB
 WATCHDOG_POLL=15       # seconds between RSS samples
 
 while true; do
@@ -76,6 +95,11 @@ while true; do
                    ps --ppid "$SERVER_PID" -o rss= 2>/dev/null) \
                  | awk '{s+=$1} END{print s+0}')
       [ -z "$TREE_RSS" ] && TREE_RSS=0
+      # RSS ramp telemetry — log once we cross 800MB so the slope that leads
+      # to a spike is visible in server.log without spamming every poll.
+      if [ "$TREE_RSS" -gt 819200 ]; then
+        echo "[$(date '+%H:%M:%S')] RSS ${TREE_RSS}kB / ${RSS_LIMIT_KB}kB" >> "$PROJECT_DIR/server.log"
+      fi
       if [ "$TREE_RSS" -gt "$RSS_LIMIT_KB" ]; then
         echo "[$(date '+%H:%M:%S')] WATCHDOG: server tree RSS ${TREE_RSS}kB > ${RSS_LIMIT_KB}kB — killing for a clean restart (kernel OOM preempted)" >> "$PROJECT_DIR/server.log"
         kill -9 "$SERVER_PID" 2>/dev/null

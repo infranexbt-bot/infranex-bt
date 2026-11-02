@@ -67,6 +67,24 @@ SPA — deep paths like `/subnets` 404 by design; use authed API calls.
    If stale: the newest code goes live at the NEXT recycle/restart — the
    disk copy is what boots. Don't burn time trying to kill an invisible
    main-netns process.
+4e. **KERNEL-OOM THRESHOLD + COOPERATIVE SUPERVISOR (2026-11-02):** dmesg
+   showed the kernel global-OOM kills next-server at **~1.68–2.25 GB RSS** —
+   BELOW the old 1.8 GB watchdog limit, so the kernel always won the race,
+   froze the whole sandbox, and the platform then served the user
+   `{"error":"sandbox is inactive"}`. Fixes in run-prod-keepalive.sh:
+   (a) RSS_LIMIT_KB=1433600 (1.4 GB) — supervisor restarts the server
+   cleanly BEFORE the kernel acts; logs RSS ramps >800 MB to server.log;
+   (b) cooperative flock on /tmp/infranex-supervisor.lock — a second
+   instance (platform auto-run vs manual) BLOCKS on the lock, and on
+   acquiring it probes :3000: if something answers it stands down, else it
+   takes over. With flock -n the loser exited and if the reaper later
+   killed the winner, nothing was left serving (observed twice).
+   Tool-spawned setsid servers die within ~1–2 min / at the next tool
+   call; ONLY the platform's `bun run dev` tree is durable. Platform-side
+   10-min heartbeat cron (job 496139) wakes a sleeping sandbox and
+   restarts :3000 if dead. `{"error":"sandbox is inactive"}` = sandbox
+   asleep between messages — platform edge has nothing to proxy to; it
+   self-heals on the next heartbeat/chat message, then refresh.
 4d. **POST-RECYCLE TOPOLOGY (mapped 2026-11-02, recycle @10:06):** three
    isolated netns/pidns worlds:
    (a) tool-call world (what we see): Caddy :81 + zcode-driver (pid ~930)
@@ -165,6 +183,7 @@ the Validator Lab.
 | 2025-10 | `GET /subnets` → 404 "bug" report | SPA — verify via `/` + authed APIs |
 | 2026-11-02 | Recycle → platform booted bare `next dev` (missing `INFRANEX_ALLOWED_ORIGINS`) → CSRF gate 403'd every public browser POST | Proper fix: `"dev"` now delegates to `run-prod-keepalive.sh` (prod standalone + full env + watchdog + `next dev` fallback); verified live on port 3999 before rollout |
 | 2026-11-02 | Published alias 502 SURVIVED a recycle; canonical served stale snapshot build (health routes 404) | See §2 4d: canonical = platform's published snapshot (can't hot-swap); Caddy :81 upstream unreachable from inside; don't chase the alias — use canonical, wait for re-publish |
+| 2026-11-02 | 3× kernel OOM killed next-server at 1.68–2.25 GB RSS (below the 1.8 GB watchdog) → sandbox freeze → user saw `{"error":"sandbox is inactive"}` on the published URL; after the 10:06 recycle the alias routes to tool-netns :3000 (was: Caddy :81 dead upstream) | See §2 4e: watchdog 1.4 GB + RSS telemetry + cooperative flock; 10-min heartbeat cron (job 496139); "sandbox is inactive" = sandbox asleep — heals on next heartbeat/message |
 
 ---
 
