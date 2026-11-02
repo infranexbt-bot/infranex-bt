@@ -67,6 +67,30 @@ SPA — deep paths like `/subnets` 404 by design; use authed API calls.
    If stale: the newest code goes live at the NEXT recycle/restart — the
    disk copy is what boots. Don't burn time trying to kill an invisible
    main-netns process.
+4d. **POST-RECYCLE TOPOLOGY (mapped 2026-11-02, recycle @10:06):** three
+   isolated netns/pidns worlds:
+   (a) tool-call world (what we see): Caddy :81 + zcode-driver (pid ~930)
+   live HERE; `ss` shows only platform ports 81/12600/12700/19001/19005/19006.
+   (b) platform service netns (invisible): runs the app that the CANONICAL
+   host forwards to — it serves the PLATFORM'S PUBLISHED SNAPSHOT build
+   (HTML comment BUILD_ID), NOT our supervisor's instance. Login + data
+   APIs work there even when the build is old.
+   (c) supervisor world (invisible): the recycle's `bun run dev` →
+   run-prod-keepalive.sh instance; writes dev.log/server.log in the shared
+   filesystem. Its `next dev` fallback bound :3000 fine — so it is in yet
+   another netns, NOT the canonical-routed one.
+   - Caddy :81 502s for EVERY Host header and its upstream connects to NO
+     local TCP port (proven: bound ::1:3000 + v4 3001-3003/8080/8000/8081
+     probes during requests — zero hits; admin API :2019 closed; Caddyfile
+     root-readable only). Published alias = edge → Caddy :81 → dead upstream,
+     and this SURVIVED a recycle (unlike the earlier PUBLISHED-ALIAS RULE
+     case). Not fixable from inside; only the platform or a re-publish heals
+     it. Canonical stays the reliable entry.
+   - DO NOT hold :3000 in the tool netns long-term (run-local-upstream.sh
+     kept here for reference): on future recycles the platform tree may run
+     the app in THIS netns on :3000 (pre-2026-11-02 topology) and a
+     permanent holder would fight it. Setsid revivals from tool calls are
+     reaped between calls anyway.
 5. Work happened in a different PID namespace per tool session — verify by
    HTTP (`curl localhost:3000`), not `ps`.
 6. **OOM incident (2026-10-29):** next-server leaked to 2.5GB RSS over ~4h →
@@ -140,6 +164,7 @@ the Validator Lab.
 | 2025-10 | Git push 401 after recycle | PAT invalidated by recycle — need fresh token from owner; local commits queue up (e.g. `f3a06da` hardware column) |
 | 2025-10 | `GET /subnets` → 404 "bug" report | SPA — verify via `/` + authed APIs |
 | 2026-11-02 | Recycle → platform booted bare `next dev` (missing `INFRANEX_ALLOWED_ORIGINS`) → CSRF gate 403'd every public browser POST | Proper fix: `"dev"` now delegates to `run-prod-keepalive.sh` (prod standalone + full env + watchdog + `next dev` fallback); verified live on port 3999 before rollout |
+| 2026-11-02 | Published alias 502 SURVIVED a recycle; canonical served stale snapshot build (health routes 404) | See §2 4d: canonical = platform's published snapshot (can't hot-swap); Caddy :81 upstream unreachable from inside; don't chase the alias — use canonical, wait for re-publish |
 
 ---
 
