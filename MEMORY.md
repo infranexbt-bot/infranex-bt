@@ -58,6 +58,15 @@ SPA — deep paths like `/subnets` 404 by design; use authed API calls.
    `/api/chain-health` and `/api/price-health` (the latter runs the real
    `getPrices()` pipeline — Binance primary, CoinGecko fallback, stale-serve
    — so CoinGecko 429s show as metadata, not failures).
+4c. **STALE-BOOT QUIRK (2026-11-02):** a recycle can boot the server from a
+   snapshot where the project files are restored AFTER process start — the
+   RUNNING server then serves an older BUILD_ID than `.next/BUILD_ID` on
+   disk, and the server's tree is invisible to tool-call namespaces (can't
+   be killed/restarted). After every recycle, compare the served build id
+   (HTML comment `<!--BUILDID-->` on any page) vs `cat .next/BUILD_ID`.
+   If stale: the newest code goes live at the NEXT recycle/restart — the
+   disk copy is what boots. Don't burn time trying to kill an invisible
+   main-netns process.
 5. Work happened in a different PID namespace per tool session — verify by
    HTTP (`curl localhost:3000`), not `ps`.
 6. **OOM incident (2026-10-29):** next-server leaked to 2.5GB RSS over ~4h →
