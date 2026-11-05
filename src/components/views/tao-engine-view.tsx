@@ -19,6 +19,7 @@ import {
   AlertTriangle,
   ArrowDownRight,
   ArrowDownUp,
+  Banknote,
   Info,
   Landmark,
   Minus,
@@ -27,6 +28,7 @@ import {
   Timer,
   TrendingDown,
   TrendingUp,
+  Wallet,
 } from "lucide-react";
 import {
   Card,
@@ -48,12 +50,17 @@ import {
 import { cn } from "@/lib/utils";
 import type { RootBaselineRow, SubnetStakeOpportunity } from "@/lib/infranex/tao-engine";
 import type { TaoMarketSignal, TaoMarketAction } from "@/lib/infranex/tao-market";
+import type { ThreeRoutePlan, PlanRisk } from "@/lib/infranex/tao-engine-plan";
 
 interface RecommendResponse {
   stakeTao: number;
   root: RootBaselineRow;
   beatingRoot: SubnetStakeOpportunity[];
   belowRoot: SubnetStakeOpportunity[];
+  plan: ThreeRoutePlan;
+  marketAction: TaoMarketAction | null;
+  marketConfidence: string | null;
+  marketScore: number | null;
   summary: {
     researchedSubnets: number;
     opportunities: number;
@@ -67,6 +74,12 @@ interface RecommendResponse {
 
 const fmt = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
 const pct = (n: number, d = 2) => `${n.toFixed(d)}%`;
+const RISKS: { key: PlanRisk; label: string }[] = [
+  { key: "safe", label: "Safe" },
+  { key: "balanced", label: "Balanced" },
+  { key: "aggressive", label: "Aggressive" },
+];
+const HORIZONS = [30, 90, 365];
 
 interface MarketResponse {
   signal: TaoMarketSignal;
@@ -197,6 +210,184 @@ function MarketRouteCard() {
   );
 }
 
+function ScenarioTable({
+  scenarios,
+  allocTao,
+}: {
+  scenarios: ThreeRoutePlan["hold"]["scenarios"];
+  allocTao: number;
+}) {
+  if (allocTao <= 0 || scenarios.length === 0) {
+    return <div className="text-[12px] text-muted-foreground">No allocation on this route.</div>;
+  }
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead className="h-7 text-[11px]">Price {scenarios[0].priceChgPct >= 0 ? "" : ""}move</TableHead>
+          <TableHead className="h-7 text-right text-[11px]">End TAO</TableHead>
+          <TableHead className="h-7 text-right text-[11px]">End USD</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {scenarios.map((s) => (
+          <TableRow key={s.priceChgPct}>
+            <TableCell className="h-7 py-1 text-[11px]">
+              {s.priceChgPct >= 0 ? "+" : ""}{s.priceChgPct.toFixed(1)}%
+            </TableCell>
+            <TableCell className="h-7 py-1 text-right font-mono text-[11px]">{s.endTao.toFixed(2)}</TableCell>
+            <TableCell className="h-7 py-1 text-right font-mono text-[11px]">
+              {s.endUsd != null ? `$${fmt.format(s.endUsd)}` : "—"}
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
+}
+
+function StrategyPlannerCard({
+  plan,
+  risk,
+  onRiskChange,
+  horizon,
+  onHorizonChange,
+  marketAction,
+  marketScore,
+  spotUsd,
+}: {
+  plan: ThreeRoutePlan;
+  risk: PlanRisk;
+  onRiskChange: (r: PlanRisk) => void;
+  horizon: number;
+  onHorizonChange: (h: number) => void;
+  marketAction: string | null;
+  marketScore: number | null;
+  spotUsd: number | null;
+}) {
+  const a = plan.allocation;
+  const segments = [
+    { key: "stake", label: "STAKE", tao: a.stakeTao, pct: a.stakePct, cls: "bg-emerald-500/80", icon: Landmark, route: plan.stake },
+    { key: "hold", label: "HOLD", tao: a.holdTao, pct: a.holdPct, cls: "bg-sky-500/80", icon: Wallet, route: plan.hold },
+    { key: "cash", label: "CASH", tao: a.cashTao, pct: a.cashPct, cls: "bg-amber-500/80", icon: Banknote, route: plan.cash },
+  ];
+
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-base">
+          <Sparkles className="h-4 w-4 text-primary" />
+          Strategy Planner — stake / hold / sell
+        </CardTitle>
+        <CardDescription>
+          One answer for your {fmt.format(plan.stakeTao)} TAO: how much goes to validator staking, how much
+          stays a plain TAO hold, how much stays cash. Rules are deterministic and shown in the reasons below —
+          the price grid is a scenario, not a forecast.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-4">
+        {/* Controls */}
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="flex items-center gap-1 rounded-lg border p-1">
+            {RISKS.map((r) => (
+              <button
+                key={r.key}
+                onClick={() => onRiskChange(r.key)}
+                className={cn(
+                  "rounded-md px-3 py-1 text-xs font-medium transition-colors",
+                  risk === r.key ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"
+                )}
+              >
+                {r.label}
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center gap-1 rounded-lg border p-1">
+            {HORIZONS.map((h) => (
+              <button
+                key={h}
+                onClick={() => onHorizonChange(h)}
+                className={cn(
+                  "rounded-md px-3 py-1 text-xs font-medium transition-colors",
+                  horizon === h ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"
+                )}
+              >
+                {h === 365 ? "1y" : `${h}d`}
+              </button>
+            ))}
+          </div>
+          {marketAction && (
+            <div className="text-xs text-muted-foreground">
+              market: <span className="font-semibold text-foreground">{marketAction}</span>
+              {marketScore != null && ` (score ${marketScore > 0 ? "+" : ""}${marketScore})`}
+            </div>
+          )}
+        </div>
+
+        {/* Allocation bar */}
+        <div className="flex h-9 w-full overflow-hidden rounded-lg border">
+          {segments.map((s) => (
+            <div
+              key={s.key}
+              className={cn("flex items-center justify-center text-[11px] font-semibold text-white", s.cls)}
+              style={{ width: `${s.pct}%` }}
+              title={`${s.label}: ${s.tao} TAO (${s.pct.toFixed(0)}%)`}
+            >
+              {s.pct >= 8 ? `${s.pct.toFixed(0)}%` : ""}
+            </div>
+          ))}
+        </div>
+
+        {/* Route cards */}
+        <div className="grid gap-3 md:grid-cols-3">
+          {segments.map((s) => {
+            const Icon = s.icon;
+            return (
+              <div key={s.key} className="rounded-lg border p-3">
+                <div className="flex items-center gap-2 text-sm font-semibold">
+                  <Icon className="h-4 w-4 text-primary" />
+                  {s.label}
+                  <span className="ml-auto font-mono text-sm">{s.tao > 0 ? `${fmt.format(s.tao)} TAO` : "—"}</span>
+                </div>
+                {s.key === "stake" && (
+                  <div className="mt-0.5 text-[11px] text-muted-foreground">
+                    target: {plan.stakeTarget === "subnet" ? "subnet validators (VIABLE list)" : "root staking (no subnet beats root)"}
+                  </div>
+                )}
+                <ul className="mt-2 space-y-1 text-[11px] text-muted-foreground">
+                  {s.route.notes.slice(0, 2).map((n) => (
+                    <li key={n} className="flex gap-1">
+                      <Info className="mt-0.5 h-3 w-3 shrink-0" />{n}
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-2 border-t pt-2">
+                  <ScenarioTable scenarios={s.route.scenarios} allocTao={s.tao} />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Auditable reasons */}
+        <ul className="grid gap-1 text-[12px] text-muted-foreground md:grid-cols-2">
+          {plan.reasons.map((r) => (
+            <li key={r} className="flex gap-1.5">
+              <Info className="mt-0.5 h-3 w-3 shrink-0" />
+              {r}
+            </li>
+          ))}
+        </ul>
+        <div className="text-[11px] text-muted-foreground">
+          Spot {spotUsd != null ? `$${spotUsd.toFixed(2)}` : "—"} · horizon {plan.horizonDays}d · risk "{plan.risk}" ·
+          stake bucket earns the {plan.stakeTarget === "subnet" ? "subnet" : "root"} yield band; both staked and held
+          slices ride the same price grid so routes stay comparable.
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 function RiskChip({ level }: { level: SubnetStakeOpportunity["riskLevel"] }) {
   const style =
     level === "medium"
@@ -212,12 +403,16 @@ function RiskChip({ level }: { level: SubnetStakeOpportunity["riskLevel"] }) {
 
 export function TaoEngineView() {
   const [stakeInput, setStakeInput] = useState("100");
+  const [risk, setRisk] = useState<PlanRisk>("balanced");
+  const [horizon, setHorizon] = useState(90);
   const stake = Math.max(Number(stakeInput) > 0 ? Number(stakeInput) : 100, 1);
 
   const { data, isLoading, isError, error } = useQuery<RecommendResponse>({
-    queryKey: ["tao-engine-recommend", stake],
+    queryKey: ["tao-engine-recommend", stake, risk, horizon],
     queryFn: async () => {
-      const res = await fetch(`/api/tao-engine/recommend?stake=${stake}&limit=12`);
+      const res = await fetch(
+        `/api/tao-engine/recommend?stake=${stake}&limit=12&risk=${risk}&horizon=${horizon}`
+      );
       if (!res.ok) {
         const j = (await res.json().catch(() => ({}))) as { error?: string };
         throw new Error(j.error ?? `HTTP ${res.status}`);
@@ -291,6 +486,20 @@ export function TaoEngineView() {
           )}
         </CardContent>
       </Card>
+
+      {/* Strategy planner — stake / hold / sell */}
+      {data?.plan && (
+        <StrategyPlannerCard
+          plan={data.plan}
+          risk={risk}
+          onRiskChange={setRisk}
+          horizon={horizon}
+          onHorizonChange={setHorizon}
+          marketAction={data.marketAction}
+          marketScore={data.marketScore}
+          spotUsd={data.summary.taoPriceUsd}
+        />
+      )}
 
       {/* Market route — buy / hold / sell */}
       <MarketRouteCard />

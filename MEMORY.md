@@ -247,7 +247,17 @@ validator). Mining features stay but are no longer the flagship.
   payload API (computeTaoEngineOptions/summarizeTaoEngine, verdict gates
   STRONG/VIABLE/SPECULATIVE/AVOID). 28/28 tests green (`bun test tests/tao-engine.test.ts`).
 - `/api/tao-engine?stakeTao&risk&limit` (per-validator verdict options, disk-read
-  baseline) + `/api/tao-engine/recommend?stake&limit` (subnet-level).
+  baseline) + `/api/tao-engine/recommend?stake&limit&risk&horizon` (subnet-level
+  + three-route plan).
+- Three-route planner (2026-11-06): `tao-engine-plan.ts` (pure, 13 tests) unifies
+  market signal (tao-market.ts, 250d Binance closes via shared
+  `tao-market-klines.ts` loader) + staking edge into a stake/hold/cash allocation
+  for the user's amount — deterministic pp rules (BUY 60/30/10 · HOLD 40/40/20 ·
+  REDUCE 20/30/50 · SELL 0/10/90; safe shifts to cash, aggressive to stake only
+  when VIABLE exists; low confidence −10pp stake; no root-beater → stake bucket
+  routes to root). Vol-scaled σ·√t scenario grid shared by hold/stake; cash shows
+  re-buy power. UI: Strategy Planner card in tao-engine-view (risk/horizon
+  toggles, allocation bar, per-route scenario tables, auditable reasons).
 - UI: `src/components/views/tao-engine-view.tsx`, sidebar "TAO Engine" (02b),
   fetches /api/tao-engine/recommend. Verified live in browser.
 - Verdict gates: STRONG = pool ≥100k · dilution ≤10× · take ≤10% · conc ≤70% ·
