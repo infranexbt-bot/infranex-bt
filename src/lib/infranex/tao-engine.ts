@@ -158,7 +158,7 @@ export function entryAlphaForStake(poolAlpha: number, poolTao: number, stakeTao:
 
 /** Root baseline net APY % (market gross net of take). */
 export function rootNetApyPct(): number {
-  return r2(TAO_ENGINE.ROOT_GROSS_APY_PCT * (1 - TAO_ENGINE.ROOT_TAKE_PCT) * 100);
+  return r2(TAO_ENGINE.ROOT_GROSS_APY_PCT * (1 - TAO_ENGINE.ROOT_TAKE_PCT));
 }
 
 export interface RootBaselineRow {

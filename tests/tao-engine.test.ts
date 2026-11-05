@@ -1,289 +1,309 @@
 import { describe, expect, test } from "bun:test";
 import {
-  computeTaoEngineOptions,
-  summarizeTaoEngine,
-  type TaoEngineValidatorOption,
+  TAO_ENGINE,
+  computeSubnetStakeOpportunity,
+  entryAlphaForStake,
+  normalizeTake,
+  rankSubnetOpportunities,
+  rootBaselineRow,
+  rootNetApyPct,
+  screenSubnetsForLane,
+  validatorLaneAlphaPerDay,
+  type SubnetStakeInputs,
+  type ValidatorStakeInput,
 } from "../src/lib/infranex/tao-engine";
-import type { TaoEngineResearchPayload } from "../src/lib/infranex/tao-engine-types";
 import baseline from "../src/lib/infranex/tao-engine-baseline.json";
 
 // ---------------------------------------------------------------------------
-// TAO ENGINE — unit tests (pure math over a synthetic research payload,
-// plus structural assertions against the frozen chain baseline).
+// TAO ENGINE — unit tests (pure math, no network).
 // Model chain-verified 2026-11-05: scripts/tao-engine-probe.ts,
 // research: scripts/tao-engine-research.ts.
 // ---------------------------------------------------------------------------
 
-const ROOT_NET = 4.31;
-
-function vRow(p: {
-  uid: number; take: number; captureShare: number; stakeAlpha: number;
-  captureAlphaPerDay?: number;
-}) {
+function val(partial: Partial<ValidatorStakeInput> & { uid: number }): ValidatorStakeInput {
   return {
-    uid: p.uid,
-    hotkey: `5Hot${p.uid}`,
-    stakeAlpha: p.stakeAlpha,
-    captureShare: p.captureShare,
-    captureAlphaPerDay: p.captureAlphaPerDay ?? 1000 * p.captureShare,
-    take: p.take,
-    apySustainablePct: 0,
-    apyInstantPct: 0,
-    apyLowPct: 0,
-    apyHighPct: 0,
-    taoPerDaySustainable: 0,
+    hotkey: `5Hot${partial.uid}`,
+    stakeAlpha: 10_000,
+    captureShare: 0.1,
+    take: 0.18,
+    ...partial,
   };
 }
 
-function subRow(p: {
-  netuid: number; name?: string | null; poolTao: number; poolAlpha: number;
-  spot?: number; realizable?: number | null; laneAlphaPerDay?: number;
-  dilution?: number | null; drift24h?: number | null; concentration?: number | null;
-  validators: ReturnType<typeof vRow>[];
-}) {
-  const spot = p.spot ?? 0.05;
-  const laneAlpha = p.laneAlphaPerDay ?? 1000;
+/** Healthy subnet: 190k TAO pool, 3.8M α, lane 25k α/day, 4 spread validators. */
+function healthyInputs(over: Partial<SubnetStakeInputs> = {}): SubnetStakeInputs {
   return {
-    netuid: p.netuid,
-    name: p.name === undefined ? `Subnet ${p.netuid}` : p.name,
-    poolTao: p.poolTao,
-    poolAlpha: p.poolAlpha,
-    alphaSpotTao: spot,
-    realizableTao: p.realizable === undefined ? spot * 0.98 : p.realizable,
-    emissionTaoPerDay: 100,
-    laneAlphaPerDay: laneAlpha,
-    laneTaoPerDay: laneAlpha * (p.realizable === undefined ? spot * 0.98 : p.realizable),
-    laneStakeTao: p.validators.reduce((a, v) => a + v.stakeAlpha, 0) * spot,
-    dilutionRatio: p.dilution ?? 2,
-    alphaChange24hPct: p.drift24h ?? 0,
-    validatorsResearched: p.validators.length,
-    validators: p.validators,
-    bestApySustainablePct: 0,
-    medianTake: 0.18,
-    topValidatorConcentration: p.concentration ?? Math.max(...p.validators.map((v) => v.captureShare)),
-    notes: [],
-  };
-}
-
-function payload(subnets: ReturnType<typeof subRow>[]): TaoEngineResearchPayload {
-  return {
-    model: "tao-engine-research-v2",
-    fetchedAt: "2026-11-05T16:08:31.145Z",
-    block: 9440930,
-    taoPriceUsd: 216,
-    referenceStakeTao: 100,
-    rootBaseline: {
-      poolTao: 5_474_079,
-      emissionTaoPerDay: 646,
-      naiveChainApyPct: 4.31,
-      marketGrossApyPct: 5.25,
-      takePct: 18,
-      netApyPct: ROOT_NET,
-    },
-    subnets: [],
-    allResearched: subnets,
-  } as TaoEngineResearchPayload;
-}
-
-// A "STRONG candidate" subnet: deep pool, low dilution, low-take validators,
-// spread lane, calm price. Sustainable APY lands above root.
-function strongSubnet(netuid = 51): ReturnType<typeof subRow> {
-  return subRow({
-    netuid,
+    netuid: 51,
     name: "lium.io",
     poolTao: 190_000,
     poolAlpha: 3_800_000,
-    spot: 0.05,
+    alphaSpotTao: 0.05,
+    realizableTao: 0.049,
     laneAlphaPerDay: 25_000,
-    dilution: 2,
-    drift24h: 0.4,
     validators: [
-      vRow({ uid: 1, take: 0.09, captureShare: 0.4, stakeAlpha: 1_000_000 }),
-      vRow({ uid: 2, take: 0.05, captureShare: 0.3, stakeAlpha: 900_000 }),
-      vRow({ uid: 3, take: 0.0, captureShare: 0.2, stakeAlpha: 800_000 }),
-      vRow({ uid: 4, take: 0.18, captureShare: 0.1, stakeAlpha: 700_000 }),
+      val({ uid: 1, captureShare: 0.4, take: 0.09, stakeAlpha: 1_000_000 }),
+      val({ uid: 2, captureShare: 0.3, take: 0.05, stakeAlpha: 900_000 }),
+      val({ uid: 3, captureShare: 0.2, take: 0.0, stakeAlpha: 800_000 }),
+      val({ uid: 4, captureShare: 0.1, take: 0.18, stakeAlpha: 700_000 }),
     ],
-  });
+    dilutionRatio: 2,
+    alphaChange24hPct: 0.4,
+    emissionEnabled: true,
+    ...over,
+  };
 }
 
-// --- user-stake math ----------------------------------------------------------
+// --- take normalization ------------------------------------------------------
 
-describe("computeTaoEngineOptions — user stake math", () => {
-  test("sustainable APY is invariant to stake size (lane-equilibrium yield)", () => {
-    const pl = payload([strongSubnet()]);
-    const a = computeTaoEngineOptions(pl, { stakeTao: 100 })[0];
-    const b = computeTaoEngineOptions(pl, { stakeTao: 2500 })[0];
-    expect(a.sustainableApyPct).toBe(b.sustainableApyPct);
-    expect(b.taoPerDay).toBeCloseTo((a.taoPerDay * 2500) / 100, 2);
+describe("normalizeTake", () => {
+  test("chain-verified scale: 11796 raw → 18%", () => {
+    expect(normalizeTake(11796)).toBeCloseTo(0.18, 4);
   });
-  test("taoPerDay: capture·(1−take)/laneStake · S · realizable", () => {
-    const pl = payload([strongSubnet()]);
-    const sub = strongSubnet();
-    const v1 = sub.validators[0];
-    const laneStakeAlpha = sub.validators.reduce((a, v) => a + v.stakeAlpha, 0);
-    const realizable = 0.05 * 0.98;
-    const expected = ((v1.captureAlphaPerDay * (1 - 0.09)) / laneStakeAlpha) * 100 * realizable;
-    const opt = computeTaoEngineOptions(pl, { stakeTao: 100 }).find((o) => o.validatorUid === 1)!;
-    expect(opt.taoPerDay).toBeCloseTo(Math.round(expected * 1e4) / 1e4, 3);
+  test("5898 → 9%, 655 → 1%, 0 → 0%", () => {
+    expect(normalizeTake(5898)).toBeCloseTo(0.09, 4);
+    expect(normalizeTake(655)).toBeCloseTo(0.01, 4);
+    expect(normalizeTake(0)).toBe(0);
   });
-  test("instant APY beats sustainable for a lightly-staked validator and grows as stake shrinks", () => {
-    const shallowValidator = subRow({
-      netuid: 82,
-      name: "Noah",
-      poolTao: 2_500,
-      poolAlpha: 65_000,
+  test("out-of-range raw falls back to the chain default 18%", () => {
+    expect(normalizeTake(60000)).toBe(TAO_ENGINE.DEFAULT_TAKE);
+    expect(normalizeTake(-5)).toBe(TAO_ENGINE.DEFAULT_TAKE);
+    expect(normalizeTake(NaN)).toBe(TAO_ENGINE.DEFAULT_TAKE);
+  });
+});
+
+// --- entry alpha (balancer shape) -------------------------------------------
+
+describe("entryAlphaForStake", () => {
+  test("tiny stake ≈ spot rate; own impact negligible", () => {
+    const alphaPerTao = entryAlphaForStake(3_800_000, 190_000, 100) / 100;
+    // spot 0.05 TAO/α = 20 α/TAO; own impact moves it by ~0.05%
+    expect(alphaPerTao).toBeGreaterThan(19.98);
+    expect(alphaPerTao).toBeLessThan(20.0);
+  });
+  test("large stake self-dilutes (own impact priced in)", () => {
+    const small = entryAlphaForStake(3_800_000, 190_000, 100) / 100;
+    const big = entryAlphaForStake(3_800_000, 190_000, 95_000) / 95_000;
+    expect(big).toBeLessThan(small);
+  });
+  test("zero/negative inputs → 0", () => {
+    expect(entryAlphaForStake(0, 100, 100)).toBe(0);
+    expect(entryAlphaForStake(100, 0, 100)).toBe(0);
+    expect(entryAlphaForStake(100, 100, -1)).toBe(0);
+  });
+});
+
+// --- root baseline ------------------------------------------------------------
+
+describe("root baseline", () => {
+  test("5.25% gross net of 18% take = 4.31%", () => {
+    expect(rootNetApyPct()).toBe(4.31);
+  });
+  test("baseline row: monthly TAO from the net figure", () => {
+    const row = rootBaselineRow(1200);
+    expect(row.netApyPct).toBe(4.31);
+    expect(row.taoPerMonth).toBeCloseTo((1200 * 0.0431) / 12, 2);
+  });
+});
+
+// --- subnet opportunity -------------------------------------------------------
+
+describe("computeSubnetStakeOpportunity", () => {
+  test("sustainable APY: capture·(1−take)/laneStake · S · realizable · 365", () => {
+    const rec = computeSubnetStakeOpportunity(healthyInputs())!;
+    // uid1: capture 10000 α/d, take 9% → net 9100 α/d; lane stake 3.4M α
+    const expected = ((10_000 * 0.91) / 3_400_000) * 100 * 0.049 * 365;
+    expect(rec.bestValidator.apySustainablePct).toBeCloseTo(Math.round(expected * 100) / 100, 2);
+  });
+  test("low-take validators win the sustainable ranking on equal capture", () => {
+    const rec = computeSubnetStakeOpportunity(healthyInputs())!;
+    const u1 = rec.validators.find((v) => v.uid === 1)!; // 40% share, 9% take
+    const u4 = rec.validators.find((v) => v.uid === 4)!; // 10% share, 18% take
+    expect(u1.apySustainablePct).toBeGreaterThan(u4.apySustainablePct);
+    expect(rec.bestValidator.uid).toBe(1);
+  });
+  test("0% take beats 18% take at identical capture", () => {
+    const rec = computeSubnetStakeOpportunity(healthyInputs({
       validators: [
-        vRow({ uid: 0, take: 0.18, captureShare: 0.69, stakeAlpha: 32_000 }),
-        vRow({ uid: 1, take: 0.0, captureShare: 0.31, stakeAlpha: 10_500 }),
+        val({ uid: 1, captureShare: 0.5, take: 0.0, stakeAlpha: 1_000_000 }),
+        val({ uid: 2, captureShare: 0.5, take: 0.18, stakeAlpha: 1_000_000 }),
       ],
-    });
-    const opts = computeTaoEngineOptions(payload([shallowValidator]), { stakeTao: 100 });
-    for (const o of opts) expect(o.instantApyPct).toBeGreaterThan(o.sustainableApyPct);
-    const uid1 = opts.find((o) => o.validatorUid === 1)!;
-    expect(uid1.takePct).toBe(0);
+    }))!;
+    const zero = rec.validators.find((v) => v.uid === 1)!;
+    const full = rec.validators.find((v) => v.uid === 2)!;
+    expect(zero.apySustainablePct).toBeCloseTo(full.apySustainablePct / 0.82, 1);
   });
-  test("exit slippage scales with the user's stake", () => {
-    const sub = strongSubnet();
-    const pl = payload([sub]);
-    const small = computeTaoEngineOptions(pl, { stakeTao: 100 })[0].exitSlippagePct;
-    const big = computeTaoEngineOptions(pl, { stakeTao: 100_000 })[0].exitSlippagePct;
-    expect(big).toBeGreaterThan(small);
-    expect(small).toBeLessThan(1);
+  test("sustainable APY is stake-invariant; taoPerDay scales linearly", () => {
+    const a = computeSubnetStakeOpportunity(healthyInputs(), { stakeTao: 100 })!;
+    const b = computeSubnetStakeOpportunity(healthyInputs(), { stakeTao: 2500 })!;
+    expect(b.bestValidator.apySustainablePct).toBe(a.bestValidator.apySustainablePct);
+    expect(b.bestValidator.taoPerDay).toBeCloseTo(a.bestValidator.taoPerDay * 25, 2);
   });
-  test("honest band brackets sustainable; falling α widens the floor", () => {
-    const calm = computeTaoEngineOptions(payload([strongSubnet()]), { stakeTao: 100 })[0];
-    expect(calm.apyLowPct).toBeLessThan(calm.sustainableApyPct);
-    expect(calm.apyHighPct).toBeGreaterThan(calm.sustainableApyPct);
-    const falling = computeTaoEngineOptions(
-      payload([subRow({ ...strongSubnet(), drift24h: -30 })]),
-      { stakeTao: 100 }
-    )[0];
-    expect(falling.apyLowPct).toBeLessThan(calm.apyLowPct);
-    expect(falling.apyHighPct).toBeGreaterThan(calm.sustainableApyPct);
+  test("instant APY: transient upside; heavier stake → lower instant at equal capture", () => {
+    const rec = computeSubnetStakeOpportunity(healthyInputs({
+      validators: [
+        val({ uid: 1, captureShare: 0.3, take: 0.09, stakeAlpha: 3_000_000 }),
+        val({ uid: 2, captureShare: 0.3, take: 0.09, stakeAlpha: 1_000 }),
+      ],
+    }))!;
+    const heavy = rec.validators.find((v) => v.uid === 1)!;
+    const light = rec.validators.find((v) => v.uid === 2)!;
+    expect(light.apyInstantPct).toBeGreaterThan(heavy.apyInstantPct * 100);
+    expect(heavy.apyInstantPct).toBeGreaterThan(0);
+  });
+  test("exit slippage scales with stake and is flagged over 3%", () => {
+    const small = computeSubnetStakeOpportunity(healthyInputs(), { stakeTao: 100 })!;
+    const big = computeSubnetStakeOpportunity(healthyInputs(), { stakeTao: 50_000 })!;
+    expect(small.exitSlippagePct).toBeLessThan(1);
+    expect(big.exitSlippagePct).toBeGreaterThan(small.exitSlippagePct!);
+    expect(big.notes.join(" ")).toMatch(/exit slippage/);
+  });
+  test("honest band brackets sustainable; falling α deepens the floor", () => {
+    const calm = computeSubnetStakeOpportunity(healthyInputs())!;
+    const uid = calm.bestValidator;
+    expect(uid.apyLowPct).toBeLessThanOrEqual(uid.apySustainablePct);
+    expect(uid.apyHighPct).toBeGreaterThanOrEqual(uid.apySustainablePct);
+    const falling = computeSubnetStakeOpportunity(healthyInputs({ alphaChange24hPct: -20 }))!;
+    expect(falling.bestValidator.apyLowPct).toBeLessThan(uid.apyLowPct);
+    expect(falling.bestValidator.apyHighPct).toBeGreaterThan(uid.apySustainablePct);
+  });
+  test("drift clamp: −90% crash clamps to −60%", () => {
+    const rec = computeSubnetStakeOpportunity(healthyInputs({ alphaChange24hPct: -90 }))!;
+    const uid = rec.bestValidator;
+    expect(uid.apyLowPct).toBeCloseTo(Math.round(uid.apySustainablePct * 0.15 * 100) / 100, 2);
+  });
+  test("beatsRoot: on above 4.31% with adequate pool; off below", () => {
+    expect(computeSubnetStakeOpportunity(healthyInputs())!.beatsRoot).toBe(true);
+    const weak = computeSubnetStakeOpportunity(healthyInputs({ laneAlphaPerDay: 1000 }))!;
+    expect(weak.beatsRoot).toBe(false);
+  });
+  test("thin pool (<1k TAO) can never beat root — honesty gate", () => {
+    const rec = computeSubnetStakeOpportunity(healthyInputs({ poolTao: 500 }))!;
+    expect(rec.beatsRoot).toBe(false);
+    expect(rec.notes.join(" ")).toMatch(/below minimum depth/);
+  });
+  test("dust validators (stake < 1000 α) are ignored", () => {
+    const rec = computeSubnetStakeOpportunity(healthyInputs({
+      validators: [val({ uid: 9, stakeAlpha: 500 }), ...healthyInputs().validators],
+    }))!;
+    expect(rec.validators.find((v) => v.uid === 9)).toBeUndefined();
+  });
+  test("returns null on dead inputs — never a fabricated row", () => {
+    expect(computeSubnetStakeOpportunity(healthyInputs({ laneAlphaPerDay: 0 }))).toBeNull();
+    expect(computeSubnetStakeOpportunity(healthyInputs({ poolTao: 0 }))).toBeNull();
+    expect(computeSubnetStakeOpportunity(healthyInputs({ alphaSpotTao: 0 }))).toBeNull();
+    expect(computeSubnetStakeOpportunity(healthyInputs({ emissionEnabled: false }))).toBeNull();
+    expect(computeSubnetStakeOpportunity(healthyInputs({ validators: [] }))).toBeNull();
+    expect(computeSubnetStakeOpportunity(healthyInputs({ validators: [val({ uid: 1, stakeAlpha: 10 })] }))).toBeNull();
+  });
+  test("risk: deep + calm + spread lane → medium; shallow or whale lane → high", () => {
+    const deep = computeSubnetStakeOpportunity(healthyInputs({ alphaChange24hPct: 1 }))!;
+    expect(deep.riskLevel).toBe("medium");
+    const whale = computeSubnetStakeOpportunity(healthyInputs({
+      alphaChange24hPct: 1,
+      validators: [val({ uid: 1, captureShare: 0.95, stakeAlpha: 3_000_000 })],
+    }))!;
+    expect(whale.riskLevel).toBe("high");
+    expect(whale.notes.join(" ")).toMatch(/captures 95%/);
+  });
+  test("dilution note fires above 3×; concentration reported", () => {
+    const rec = computeSubnetStakeOpportunity(healthyInputs({ dilutionRatio: 6.2 }))!;
+    expect(rec.notes.join(" ")).toMatch(/dilution 6\.2×/);
+    expect(rec.topValidatorConcentration).toBeCloseTo(0.4, 6);
   });
 });
 
-// --- verdict gates ------------------------------------------------------------
+// --- ranking ------------------------------------------------------------------
 
-describe("computeTaoEngineOptions — verdict gates", () => {
-  test("deep + calm + low take + spread lane + low dilution → STRONG", () => {
-    const [opt] = computeTaoEngineOptions(payload([strongSubnet()]), { stakeTao: 100 });
-    expect(opt.verdict).toBe("STRONG");
-    expect(opt.riskLevel).toBe("low");
-    expect(opt.beatsRoot).toBe(true);
+describe("rankSubnetOpportunities", () => {
+  const mk = (netuid: number, apy: number, beatsRoot: boolean) => ({
+    netuid,
+    name: `S${netuid}`,
+    bestApySustainablePct: apy,
+    beatsRoot,
   });
-  test("shallow pool → at best SPECULATIVE even with high APY", () => {
-    const spec = subRow({
-      netuid: 70, name: "Fugal", poolTao: 345, poolAlpha: 36_000, dilution: 455,
-      validators: [vRow({ uid: 0, take: 0.18, captureShare: 0.58, stakeAlpha: 2_600 })],
-    });
-    const [opt] = computeTaoEngineOptions(payload([spec]), { stakeTao: 100 });
-    expect(opt.sustainableApyPct).toBeGreaterThan(ROOT_NET);
-    expect(opt.verdict).toBe("SPECULATIVE");
+  test("root-beaters first by sustainable APY; below-root kept separately", () => {
+    const { beatingRoot, belowRoot } = rankSubnetOpportunities([
+      mk(1, 9, true), mk(2, 50, true), mk(3, 3, false), mk(4, 4.5, false),
+    ]);
+    expect(beatingRoot.map((s) => s.netuid)).toEqual([2, 1]);
+    expect(belowRoot.map((s) => s.netuid)).toEqual([4, 3]);
   });
-  test("α collapsing ≤ −20%/24h → AVOID regardless of yield", () => {
-    const crash = subRow({
-      netuid: 4, poolTao: 150_000, drift24h: -25,
-      validators: [vRow({ uid: 0, take: 0.05, captureShare: 0.5, stakeAlpha: 900_000 })],
-    });
-    const [opt] = computeTaoEngineOptions(payload([crash]), { stakeTao: 100 });
-    expect(opt.verdict).toBe("AVOID");
-  });
-  test("below root baseline → AVOID", () => {
-    const weak = subRow({
-      netuid: 8, poolTao: 200_000,
-      validators: [vRow({ uid: 0, take: 0.18, captureShare: 0.5, stakeAlpha: 5_000_000, captureAlphaPerDay: 100 })],
-    });
-    const [opt] = computeTaoEngineOptions(payload([weak]), { stakeTao: 100 });
-    expect(opt.beatsRoot).toBe(false);
-    expect(opt.verdict).toBe("AVOID");
-  });
-  test("18% take blocks STRONG even on a deep calm pool", () => {
-    const highTake = subRow({
-      netuid: 9, poolTao: 190_000, poolAlpha: 3_800_000, laneAlphaPerDay: 25_000,
-      validators: [vRow({ uid: 0, take: 0.18, captureShare: 0.4, stakeAlpha: 1_000_000 })],
-    });
-    const [opt] = computeTaoEngineOptions(payload([highTake]), { stakeTao: 100 });
-    expect(opt.verdict).not.toBe("STRONG");
+  test("limit applies across both buckets", () => {
+    const { beatingRoot, belowRoot } = rankSubnetOpportunities(
+      [mk(1, 9, true), mk(2, 50, true), mk(3, 3, false)],
+      { limit: 2 }
+    );
+    expect(beatingRoot).toHaveLength(2);
+    expect(belowRoot).toHaveLength(0);
   });
 });
 
-// --- ordering, filtering, summary ----------------------------------------------
+// --- snapshot screen (pure, no RPC) -------------------------------------------
 
-describe("computeTaoEngineOptions — ordering and filters", () => {
-  const pl = payload([
-    subRow({
-      netuid: 70, name: "Fugal", poolTao: 345, poolAlpha: 36_000, dilution: 455,
-      validators: [vRow({ uid: 0, take: 0.18, captureShare: 0.58, stakeAlpha: 2_600 })],
-    }),
-    strongSubnet(51),
-    subRow({
-      netuid: 8, poolTao: 200_000,
-      validators: [vRow({ uid: 0, take: 0.18, captureShare: 0.5, stakeAlpha: 5_000_000, captureAlphaPerDay: 50 })],
-    }),
-  ]);
+describe("screenSubnetsForLane + validatorLaneAlphaPerDay", () => {
+  const snap = {
+    subnets: [
+      { netuid: 0, emissionTaoPerDay: 646, movingPrice: 1, subnetTao: 5_474_079 }, // root — skipped
+      { netuid: 51, name: "lium.io", emissionTaoPerDay: 100, minerEmissionTaoPerDay: 50, movingPrice: 0.05, subnetTao: 190_000, realizablePriceTao: 0.048, alphaPriceChange24h: 0.7, dilutionRatio: 6.1 },
+      { netuid: 82, name: "Noah", emissionTaoPerDay: 200, minerEmissionTaoPerDay: 100, movingPrice: 0.04, subnetTao: 2_400, alphaPriceChange24h: -0.1, dilutionRatio: null },
+      { netuid: 99, name: null, emissionTaoPerDay: 0, minerEmissionTaoPerDay: 0, movingPrice: 0.01, subnetTao: 100 }, // dead — skipped
+    ],
+  };
 
-  test("tier order: STRONG/VIABLE before SPECULATIVE before AVOID", () => {
-    const opts = computeTaoEngineOptions(pl, { stakeTao: 100, maxOptions: 50 });
-    const tiers = opts.map((o) => o.verdict);
-    const firstAvoid = tiers.indexOf("AVOID");
-    const lastSpec = tiers.lastIndexOf("SPECULATIVE");
-    const firstViableOrStrong = tiers.findIndex((t) => t === "STRONG" || t === "VIABLE");
-    expect(firstViableOrStrong).toBeLessThan(lastSpec);
-    expect(lastSpec).toBeLessThan(firstAvoid);
+  test("lane α/day = lane TAO/day ÷ spot", () => {
+    const sub = (snap.subnets as never[])[1] as never as Parameters<typeof validatorLaneAlphaPerDay>[0];
+    expect(validatorLaneAlphaPerDay(sub)).toBeCloseTo(1000, 4);
   });
-  test("maxOptions caps the output", () => {
-    expect(computeTaoEngineOptions(pl, { stakeTao: 100, maxOptions: 2 })).toHaveLength(2);
-  });
-  test("riskTolerance=safe drops SPECULATIVE and AVOID", () => {
-    const safe = computeTaoEngineOptions(pl, { stakeTao: 100, riskTolerance: "safe" });
-    expect(safe.length).toBeGreaterThan(0);
-    expect(safe.every((o) => o.verdict === "STRONG" || o.verdict === "VIABLE")).toBe(true);
-  });
-  test("zero stake is clamped to ≥0 and produces zero economics, not NaN", () => {
-    const opts = computeTaoEngineOptions(payload([strongSubnet()]), { stakeTao: 0 });
-    expect(opts.length).toBeGreaterThan(0);
-    for (const o of opts) {
-      expect(Number.isFinite(o.taoPerDay)).toBe(true);
-      expect(Number.isFinite(o.sustainableApyPct)).toBe(true);
-    }
-  });
-  test("summarizeTaoEngine: tier counts, root monthly, top option", () => {
-    const s = summarizeTaoEngine(pl, 500);
-    expect(s.rootBaselineApyPct).toBe(ROOT_NET);
-    expect(s.rootMonthlyTao).toBeCloseTo((500 * 0.0431) / 12, 2);
-    expect(s.strong + s.viable + s.speculative + s.avoid).toBeGreaterThan(0);
-    expect(s.topOption).not.toBeNull();
-    expect(s.researchedSubnets).toBe(3);
-    expect(s.baselineFetchedAt).toBe("2026-11-05T16:08:31.145Z");
+  test("root and dead subnets excluded; sorted by lane TAO/day", () => {
+    const rows = screenSubnetsForLane(snap as never);
+    expect(rows.map((r) => r.netuid)).toEqual([82, 51]);
+    // Noah: (200−100) TAO/day at realizable fallback 0.04 → 4 TAO/day
+    expect(rows[0].laneTaoPerDay).toBeCloseTo(4, 4);
+    // lium.io: 50 × 0.048 = 2.4 TAO/day
+    expect(rows[1].laneTaoPerDay).toBeCloseTo(2.4, 4);
+    expect(rows.every((r) => r.needsDeepDive)).toBe(true);
   });
 });
 
 // --- frozen chain baseline (structural, refresh-tolerant) ----------------------
 
 describe("tao-engine-baseline.json (frozen live research)", () => {
-  const pl = baseline as unknown as TaoEngineResearchPayload;
-
-  test("schema shape and sane root baseline", () => {
-    expect(pl.model).toBe("tao-engine-research-v2");
-    expect(pl.rootBaseline.netApyPct).toBeGreaterThan(3);
-    expect(pl.rootBaseline.netApyPct).toBeLessThan(8);
-    expect((pl.allResearched ?? []).length).toBeGreaterThanOrEqual(30);
+  test("schema: sane root baseline and ≥30 researched subnets", () => {
+    expect(baseline.model).toBe("tao-engine-research-v2");
+    expect(baseline.rootBaseline.netApyPct).toBeGreaterThan(3);
+    expect(baseline.rootBaseline.netApyPct).toBeLessThan(8);
+    expect((baseline.allResearched as unknown[]).length).toBeGreaterThanOrEqual(30);
   });
-  test("every researched subnet carries validator rows with the model fields", () => {
-    for (const sub of pl.allResearched as never as Array<{ validators: unknown[]; laneAlphaPerDay: number; poolTao: number }>) {
-      expect(Array.isArray(sub.validators)).toBe(true);
-      expect(sub.poolTao).toBeGreaterThan(0);
+  test("live subnets flow through the engine cleanly (no NaN, root gate active)", () => {
+    let checked = 0;
+    for (const raw of baseline.allResearched as Array<Record<string, unknown>>) {
+      const vals = raw.validators as Array<Record<string, unknown>>;
+      if (!Array.isArray(vals) || vals.length === 0) continue;
+      const inputs: SubnetStakeInputs = {
+        netuid: raw.netuid as number,
+        name: (raw.name as string) ?? null,
+        poolTao: raw.poolTao as number,
+        poolAlpha: raw.poolAlpha as number,
+        alphaSpotTao: raw.alphaSpotTao as number,
+        realizableTao: (raw.realizableTao as number) ?? (raw.alphaSpotTao as number),
+        laneAlphaPerDay: raw.laneAlphaPerDay as number,
+        validators: vals.map((v) => ({
+          uid: v.uid as number,
+          hotkey: v.hotkey as string,
+          stakeAlpha: v.stakeAlpha as number,
+          captureShare: v.captureShare as number,
+          take: v.take as number,
+        })),
+        dilutionRatio: (raw.dilutionRatio as number) ?? null,
+        alphaChange24hPct: (raw.alphaChange24hPct as number) ?? null,
+        emissionEnabled: true,
+      };
+      const rec = computeSubnetStakeOpportunity(inputs);
+      if (rec == null) continue;
+      checked++;
+      expect(Number.isFinite(rec.bestApySustainablePct)).toBe(true);
+      expect(rec.bestValidator.apyLowPct).toBeLessThanOrEqual(rec.bestValidator.apySustainablePct);
     }
-  });
-  test("live snapshot of the engine over the real baseline runs clean", () => {
-    const opts = computeTaoEngineOptions(pl, { stakeTao: 100, maxOptions: 1000 });
-    expect(opts.length).toBeGreaterThan(20);
-    for (const o of opts) {
-      expect(Number.isFinite(o.sustainableApyPct)).toBe(true);
-      expect(o.apyLowPct <= o.sustainableApyPct).toBe(true);
-    }
-    const nonAvoid = opts.filter((o: TaoEngineValidatorOption) => o.verdict !== "AVOID");
-    expect(nonAvoid.length).toBeGreaterThan(0);
+    expect(checked).toBeGreaterThanOrEqual(30);
   });
 });
