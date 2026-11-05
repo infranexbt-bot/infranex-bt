@@ -88,6 +88,11 @@ export interface SubnetStakeInputs {
   realizableTao: number;
   /** Validator-lane α per day (from the research deep-dive). */
   laneAlphaPerDay: number;
+  /** FULL-lane stake in α (Σ over ALL validators, not just the mapped rows).
+   *  The research payload slices the top-8 validators into the rows but
+   *  laneStakeTao covers the whole lane — when provided, this overrides the
+   *  Σ-of-mapped-rows denominator so APY is not inflated by the slice. */
+  laneStakeAlpha?: number;
   validators: ValidatorStakeInput[];
   dilutionRatio: number | null;
   alphaChange24hPct: number | null;
@@ -290,7 +295,10 @@ export function computeSubnetStakeOpportunity(
 
   const spot = inputs.alphaSpotTao;
   const realizable = inputs.realizableTao > 0 ? Math.min(inputs.realizableTao, spot) : spot;
-  const laneStakeAlpha = vals.reduce((s, v) => s + v.stakeAlpha, 0);
+  const laneStakeAlpha =
+    inputs.laneStakeAlpha != null && inputs.laneStakeAlpha > 0
+      ? inputs.laneStakeAlpha
+      : vals.reduce((s, v) => s + v.stakeAlpha, 0);
   if (!(laneStakeAlpha > 0)) return null;
 
   const drift = Math.max(
