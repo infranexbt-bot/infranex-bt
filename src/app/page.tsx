@@ -7,6 +7,7 @@ import { DashboardView } from "@/components/views/dashboard-view";
 import { FitView } from "@/components/views/fit-view";
 import { OpportunitiesView } from "@/components/views/opportunities-view";
 import { TaoEngineView } from "@/components/views/tao-engine-view";
+import { InvestPlaybookView } from "@/components/views/invest-playbook-view";
 import { SubnetsView } from "@/components/views/subnets-view";
 import { JudgeView } from "@/components/views/judge-view";
 import { CpuGuideView } from "@/components/views/cpu-guide-view";
@@ -39,6 +40,7 @@ const VIEW_META: Record<
   fit: { title: "Miner Fit", eyebrow: "Section · 01b · Personal advisor" },
   opportunities: { title: "Opportunities", eyebrow: "Section · 02 · Scoring" },
   "tao-engine": { title: "TAO Engine", eyebrow: "Section · 02b · Staking accumulation" },
+  "invest-playbook": { title: "Investor Playbook", eyebrow: "Section · 02c · Staking & buy/hold" },
   subnets: { title: "Subnets", eyebrow: "Section · 03 · Chain explorer" },
   judge: { title: "Validator Lab", eyebrow: "Section · 04 · Validator intelligence" },
   "cpu-guide": { title: "CPU Guide", eyebrow: "Section · 05 · Harnyx SN67 mining path" },
@@ -164,6 +166,7 @@ export default function Home() {
         />
       )}
       {view === "tao-engine" && <TaoEngineView />}
+      {view === "invest-playbook" && <InvestPlaybookView />}
       {view === "subnets" && <SubnetsView />}
       {view === "judge" && <JudgeView />}
       {view === "cpu-guide" && <CpuGuideView onNavigate={setView} />}
