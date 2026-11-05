@@ -274,6 +274,7 @@ export type ViewKey =
   | "dashboard"
   | "fit"
   | "opportunities"
+  | "tao-engine"
   | "subnets"
   | "judge"
   | "cpu-guide"

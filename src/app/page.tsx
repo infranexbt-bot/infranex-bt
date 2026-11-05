@@ -6,6 +6,7 @@ import { StandaloneShell } from "@/components/layout/standalone-shell";
 import { DashboardView } from "@/components/views/dashboard-view";
 import { FitView } from "@/components/views/fit-view";
 import { OpportunitiesView } from "@/components/views/opportunities-view";
+import { TaoEngineView } from "@/components/views/tao-engine-view";
 import { SubnetsView } from "@/components/views/subnets-view";
 import { JudgeView } from "@/components/views/judge-view";
 import { CpuGuideView } from "@/components/views/cpu-guide-view";
@@ -37,6 +38,7 @@ const VIEW_META: Record<
   dashboard: { title: "Network Intelligence", eyebrow: "Section · 01 · Dashboard" },
   fit: { title: "Miner Fit", eyebrow: "Section · 01b · Personal advisor" },
   opportunities: { title: "Opportunities", eyebrow: "Section · 02 · Scoring" },
+  "tao-engine": { title: "TAO Engine", eyebrow: "Section · 02b · Staking accumulation" },
   subnets: { title: "Subnets", eyebrow: "Section · 03 · Chain explorer" },
   judge: { title: "Validator Lab", eyebrow: "Section · 04 · Validator intelligence" },
   "cpu-guide": { title: "CPU Guide", eyebrow: "Section · 05 · Harnyx SN67 mining path" },
@@ -161,6 +163,7 @@ export default function Home() {
           onStartMining={handleStartMining}
         />
       )}
+      {view === "tao-engine" && <TaoEngineView />}
       {view === "subnets" && <SubnetsView />}
       {view === "judge" && <JudgeView />}
       {view === "cpu-guide" && <CpuGuideView onNavigate={setView} />}
