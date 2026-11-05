@@ -217,3 +217,38 @@ H200 is the real earner (~71% utilization). Miner start: `btcli register` →
 Provider Portal + Discord (mandatory) → Sysbox+NVIDIA toolkit script →
 `curl -fsSL https://lium.io/mine.sh | bash -s -- -k <hotkey_ss58>` → portal
 node add.
+
+---
+
+## 8. TAO ENGINE — validator staking (2026-11-05)
+
+Owner pivot: the product is now "find the best way to **accumulate TAO**",
+with the owner focused on **validator staking** (delegating, not running a
+validator). Mining features stay but are no longer the flagship.
+
+**Model (chain-verified via storage probes, `scripts/tao-engine-probe.ts`):**
+- validators = uids with dividends > 0; captureShare = div/Σdiv (u16, Σ≈65535)
+- take = `subtensorModule.delegates(hotkey)` u16/65535 (11796 → 18% cap;
+  live spread 0–18%). `keys` is a DOUBLE map (netuid, uid) — `keys.multi([[n,u]…])`.
+- stake = `totalHotkeyAlpha(hotkey, netuid)` (α); full-lane stake via
+  `totalAlphaStaked(netuid)`/laneStakeTao — ALWAYS use the full lane as the
+  denominator (sliced top-8 rows inflate APY ~2×; this bug was fixed).
+- sustainable APY = capture·(1−take)/laneStake_α · S · realizable · 365/S·100
+  — stake-INVARIANT lane equilibrium; instant APY (join-one-validator) is
+  transient upside, never ranked. Root baseline 4.31% net gates every pick.
+
+**Artifacts (all committed):**
+- `scripts/tao-engine-research.ts` → `scripts/tao-engine-research.json` +
+  synced `src/lib/infranex/tao-engine-baseline.json` (36-subnet deep-dive,
+  2026-11-05 block 9440930: 4/36 beat root — α3 Teutonic 9.97%, α51 lium.io
+  9.04%, α116 Carbon 13.68%, α82 Noah 50% but tiny pool; refresh = rerun script)
+- `src/lib/infranex/tao-engine.ts` — pure engine: screen API
+  (screenSubnetsForLane/normalizeTake/entryAlphaForStake/rootBaselineRow) +
+  payload API (computeTaoEngineOptions/summarizeTaoEngine, verdict gates
+  STRONG/VIABLE/SPECULATIVE/AVOID). 28/28 tests green (`bun test tests/tao-engine.test.ts`).
+- `/api/tao-engine?stakeTao&risk&limit` (per-validator verdict options, disk-read
+  baseline) + `/api/tao-engine/recommend?stake&limit` (subnet-level).
+- UI: `src/components/views/tao-engine-view.tsx`, sidebar "TAO Engine" (02b),
+  fetches /api/tao-engine/recommend. Verified live in browser.
+- Verdict gates: STRONG = pool ≥100k · dilution ≤10× · take ≤10% · conc ≤70% ·
+  slip ≤3% · α24h ≥−2%; AVOID = below root or α ≤−20%/24h; else SPECULATIVE.
