@@ -93,3 +93,6 @@ bt-miner/
 *cookies*.txt
 tmp-snc.txt
 scripts/e2e-out/
+
+# sandbox swap artifact — never commit (2GB, breaks GitHub push)
+.swapfile
