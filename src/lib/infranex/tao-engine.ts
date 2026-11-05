@@ -409,3 +409,266 @@ export function rankSubnetOpportunities<T extends { bestApySustainablePct: numbe
     belowRoot: below.slice(0, Math.max(0, limit - beating.length)),
   };
 }
+
+// ---------------------------------------------------------------------------
+// BASELINE-PAYLOAD API — computeTaoEngineOptions / summarizeTaoEngine.
+//
+// Consumes the frozen research payload (tao-engine-baseline.json, produced by
+// scripts/tao-engine-research.ts) and answers the user question directly:
+// "given S TAO, rank the (subnet, validator) picks." Sustainable APY is the
+// lane-equilibrium headline (invariant to stake size); instant APY is the
+// transient upside of joining one validator's stake pool and is NEVER ranked.
+// ---------------------------------------------------------------------------
+
+import type { TaoEngineResearchPayload } from "./tao-engine-types";
+
+export interface TaoEngineValidatorOption {
+  netuid: number;
+  subnetName: string;
+  validatorUid: number;
+  validatorHotkey: string;
+  /** Delegate take (commission), %. */
+  takePct: number;
+  /** Share of the subnet's validator lane this validator captures, %. */
+  captureSharePct: number;
+  /** Validator's own α stake on this subnet. */
+  stakeAlpha: number;
+  /** Lane-level figures (whole subnet validator lane). */
+  laneTaoPerDay: number;
+  laneStakeAlpha: number;
+  poolTao: number;
+  alphaSpotTao: number;
+  /** realizablePriceTao — avg price when the subnet's daily α flow sells. */
+  realizableTao: number;
+  // --- user-stake-specific (S from opts) ---
+  stakeTao: number;
+  /** α minted when staking S at the current pool ratio. */
+  entryAlpha: number;
+  /** Round-trip exit slippage for S, % of stake value. */
+  exitSlippagePct: number;
+  /** Sustainable net TAO/day for S (take-adjusted, realizable-priced). */
+  taoPerDay: number;
+  taoPerMonth: number;
+  /** Sustainable net APY % for S — THE headline (stake-invariant). */
+  sustainableApyPct: number;
+  /** Honest band from α 24h drift. */
+  apyLowPct: number;
+  apyHighPct: number;
+  /** Transient upside APY % (join one validator's stake pool now). */
+  instantApyPct: number;
+  /** Root net APY % this must beat (from the payload baseline). */
+  rootBaselineApyPct: number;
+  beatsRoot: boolean;
+  dilutionRatio: number | null;
+  alphaChange24hPct: number | null;
+  topValidatorConcentrationPct: number | null;
+  riskLevel: "low" | "medium" | "high";
+  verdict: "STRONG" | "VIABLE" | "SPECULATIVE" | "AVOID";
+  notes: string[];
+  /** Baseline staleness (payload fetchedAt). */
+  baselineFetchedAt: string;
+}
+
+export interface TaoEngineOptions {
+  /** The user's stake in TAO (default 100 — the research reference). */
+  stakeTao?: number;
+  /** Max options returned (default 12). */
+  maxOptions?: number;
+  /** Risk tolerance: "any" (default) | "safe" (STRONG+VIABLE only). */
+  riskTolerance?: "any" | "safe";
+}
+
+interface PayloadSubnet {
+  netuid: number;
+  name: string | null;
+  poolTao: number;
+  poolAlpha: number;
+  alphaSpotTao: number;
+  realizableTao: number | null;
+  laneAlphaPerDay: number;
+  laneTaoPerDay: number;
+  laneStakeTao: number;
+  dilutionRatio: number | null;
+  alphaChange24hPct: number | null;
+  validators: Array<{
+    uid: number;
+    hotkey: string;
+    stakeAlpha: number;
+    captureShare: number;
+    captureAlphaPerDay: number;
+    take: number;
+  }>;
+  topValidatorConcentration: number | null;
+  notes: string[];
+}
+
+function classifyVerdict(o: {
+  beatsRoot: boolean;
+  poolTao: number;
+  dilutionRatio: number | null;
+  takePct: number;
+  concentrationPct: number | null;
+  exitSlippagePct: number | null;
+  alphaChange24hPct: number | null;
+}): TaoEngineValidatorOption["verdict"] {
+  if (!o.beatsRoot) return "AVOID";
+  if (o.alphaChange24hPct != null && o.alphaChange24hPct <= -20) return "AVOID";
+  const dil = o.dilutionRatio;
+  if (
+    o.poolTao >= TAO_ENGINE.DEEP_POOL_TAO &&
+    dil != null && dil <= 10 &&
+    o.takePct <= 10 &&
+    (o.concentrationPct == null || o.concentrationPct <= 70) &&
+    (o.exitSlippagePct == null || o.exitSlippagePct <= 3) &&
+    (o.alphaChange24hPct == null || o.alphaChange24hPct >= -2)
+  ) return "STRONG";
+  if (
+    o.poolTao >= 50_000 &&
+    (dil == null || dil <= 10) &&
+    (o.exitSlippagePct == null || o.exitSlippagePct <= 5)
+  ) return "VIABLE";
+  return "SPECULATIVE";
+}
+
+/** Rank (subnet, validator) staking options for the user's stake S over the
+ *  frozen research payload. Pure — safe on server and client. */
+export function computeTaoEngineOptions(
+  payload: TaoEngineResearchPayload,
+  opts: TaoEngineOptions = {}
+): TaoEngineValidatorOption[] {
+  const stakeTao = Math.max(opts.stakeTao ?? TAO_ENGINE.REFERENCE_STAKE_TAO, 0);
+  const maxOptions = Math.max(opts.maxOptions ?? 12, 1);
+  const rootNet = payload.rootBaseline?.netApyPct ?? rootNetApyPct();
+  const out: TaoEngineValidatorOption[] = [];
+
+  const subnets = (payload.allResearched ?? payload.subnets ?? []) as unknown as PayloadSubnet[];
+  for (const sub of subnets) {
+    const spot = sub.alphaSpotTao ?? 0;
+    if (!(spot > 0) || !(sub.poolTao > 0)) continue;
+    const realizable =
+      sub.realizableTao != null && sub.realizableTao > 0 ? Math.min(sub.realizableTao, spot) : spot;
+
+    // Full-lane stake (research sums ALL validators before slicing the top 8
+    // into the payload) — prefer it; fall back to the in-row sum.
+    let laneStakeAlpha =
+      sub.laneStakeTao > 0 && spot > 0 ? sub.laneStakeTao / spot : 0;
+    if (!(laneStakeAlpha > 0)) {
+      laneStakeAlpha = sub.validators.reduce((s, v) => s + (v.stakeAlpha ?? 0), 0);
+    }
+    if (!(laneStakeAlpha > 0)) continue;
+
+    const entryAlpha = stakeTao > 0 ? sub.poolAlpha * (stakeTao / (sub.poolTao + stakeTao)) : 0;
+    const exitSlippagePct =
+      stakeTao > 0 && entryAlpha > 0 && sub.poolAlpha > 0
+        ? entryAlpha >= sub.poolAlpha * 0.5
+          ? 100
+          : r2((entryAlpha / (sub.poolAlpha + entryAlpha)) * 100)
+        : 0;
+
+    const drift = Math.max(
+      -TAO_ENGINE.DRIFT_CLAMP_PCT,
+      Math.min(TAO_ENGINE.DRIFT_CLAMP_PCT, sub.alphaChange24hPct ?? 0)
+    ) / 100;
+    const down = -TAO_ENGINE.BAND_BASE + Math.min(0, drift);
+    const up = TAO_ENGINE.BAND_BASE + Math.max(0, drift);
+    const concentrationPct =
+      sub.topValidatorConcentration != null ? r2(sub.topValidatorConcentration * 100) : null;
+
+    for (const v of sub.validators) {
+      if (!(v.stakeAlpha > 0) || !(v.captureAlphaPerDay > 0)) continue;
+      const take = Math.max(0, Math.min(TAO_ENGINE.MAX_TAKE, v.take ?? TAO_ENGINE.DEFAULT_TAKE));
+      const takePct = r2(take * 100);
+      const netCapture = v.captureAlphaPerDay * (1 - take);
+      const taoPerDay = (netCapture / laneStakeAlpha) * stakeTao * realizable;
+      const sustainableApyPct = stakeTao > 0 ? r2((taoPerDay * 365 * 100) / stakeTao) : 0;
+      const instShare = entryAlpha > 0 ? entryAlpha / (v.stakeAlpha + entryAlpha) : 0;
+      const instantApyPct = stakeTao > 0 ? r2(((netCapture * instShare * realizable) * 365 * 100) / stakeTao) : 0;
+      const beatsRoot = sustainableApyPct > rootNet;
+
+      const verdict = classifyVerdict({
+        beatsRoot,
+        poolTao: sub.poolTao,
+        dilutionRatio: sub.dilutionRatio ?? null,
+        takePct,
+        concentrationPct,
+        exitSlippagePct,
+        alphaChange24hPct: sub.alphaChange24hPct ?? null,
+      });
+
+      const notes: string[] = [...(sub.notes ?? [])];
+      if (exitSlippagePct > 3) notes.push(`exit slippage ${exitSlippagePct}% for a ${stakeTao} TAO round trip`);
+      if (takePct === 0) notes.push("0% validator take");
+      if (v.take == null || !Number.isFinite(v.take)) notes.push("take defaulted to 18% (chain read failed)");
+
+      const riskLevel: TaoEngineValidatorOption["riskLevel"] =
+        verdict === "STRONG" ? "low" : verdict === "VIABLE" ? "medium" : "high";
+
+      out.push({
+        netuid: sub.netuid,
+        subnetName: sub.name ?? `Subnet ${sub.netuid}`,
+        validatorUid: v.uid,
+        validatorHotkey: v.hotkey,
+        takePct,
+        captureSharePct: r2((v.captureShare ?? 0) * 100),
+        stakeAlpha: Math.round(v.stakeAlpha),
+        laneTaoPerDay: sub.laneTaoPerDay ?? r2(sub.laneAlphaPerDay * realizable),
+        laneStakeAlpha: Math.round(laneStakeAlpha),
+        poolTao: sub.poolTao,
+        alphaSpotTao: spot,
+        realizableTao: realizable,
+        stakeTao,
+        entryAlpha: r4(entryAlpha),
+        exitSlippagePct,
+        taoPerDay: r4(taoPerDay),
+        taoPerMonth: r2(taoPerDay * 30),
+        sustainableApyPct,
+        apyLowPct: r2(sustainableApyPct * (1 + down)),
+        apyHighPct: r2(sustainableApyPct * (1 + up)),
+        instantApyPct,
+        rootBaselineApyPct: rootNet,
+        beatsRoot,
+        dilutionRatio: sub.dilutionRatio ?? null,
+        alphaChange24hPct: sub.alphaChange24hPct ?? null,
+        topValidatorConcentrationPct: concentrationPct,
+        riskLevel,
+        verdict,
+        notes,
+        baselineFetchedAt: payload.fetchedAt,
+      });
+    }
+  }
+
+  const tier: Record<TaoEngineValidatorOption["verdict"], number> = {
+    STRONG: 0, VIABLE: 1, SPECULATIVE: 2, AVOID: 3,
+  };
+  out.sort((a, b) => {
+    if (tier[a.verdict] !== tier[b.verdict]) return tier[a.verdict] - tier[b.verdict];
+    return b.sustainableApyPct - a.sustainableApyPct;
+  });
+
+  const filtered =
+    opts.riskTolerance === "safe"
+      ? out.filter((o) => o.verdict === "STRONG" || o.verdict === "VIABLE")
+      : out;
+  return filtered.slice(0, maxOptions);
+}
+
+/** Aggregate summary for the UI header: tier counts, root reference, top pick. */
+export function summarizeTaoEngine(payload: TaoEngineResearchPayload, stakeTao: number) {
+  const options = computeTaoEngineOptions(payload, { stakeTao, maxOptions: 1000 });
+  const count = (v: TaoEngineValidatorOption["verdict"]) => options.filter((o) => o.verdict === v).length;
+  const rootNet = payload.rootBaseline?.netApyPct ?? rootNetApyPct();
+  return {
+    stakeTao,
+    rootBaselineApyPct: rootNet,
+    strong: count("STRONG"),
+    viable: count("VIABLE"),
+    speculative: count("SPECULATIVE"),
+    avoid: count("AVOID"),
+    researchedSubnets: (payload.allResearched ?? payload.subnets ?? []).length,
+    baselineFetchedAt: payload.fetchedAt,
+    baselineBlock: payload.block,
+    topOption: options.find((o) => o.verdict !== "AVOID") ?? null,
+    rootMonthlyTao: r2((stakeTao * (rootNet / 100)) / 12),
+  };
+}
