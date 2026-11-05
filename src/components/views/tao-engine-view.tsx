@@ -15,13 +15,18 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
+  Activity,
   AlertTriangle,
+  ArrowDownRight,
   ArrowDownUp,
   Info,
   Landmark,
+  Minus,
   ShieldCheck,
   Sparkles,
   Timer,
+  TrendingDown,
+  TrendingUp,
 } from "lucide-react";
 import {
   Card,
@@ -42,6 +47,7 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import type { RootBaselineRow, SubnetStakeOpportunity } from "@/lib/infranex/tao-engine";
+import type { TaoMarketSignal, TaoMarketAction } from "@/lib/infranex/tao-market";
 
 interface RecommendResponse {
   stakeTao: number;
@@ -61,6 +67,135 @@ interface RecommendResponse {
 
 const fmt = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
 const pct = (n: number, d = 2) => `${n.toFixed(d)}%`;
+
+interface MarketResponse {
+  signal: TaoMarketSignal;
+  dataSources: {
+    klinesFetchedAt: string;
+    klinesDays: number;
+    klinesStale: boolean;
+    spotSource: string | null;
+    spotFetchedAt: string | null;
+    baselineBlock: number;
+  };
+  disclaimer: string;
+}
+
+const ACTION_STYLE: Record<TaoMarketAction, { cls: string; icon: typeof TrendingUp; label: string }> = {
+  BUY: { cls: "bg-emerald-500/10 text-emerald-600 border-emerald-500/30", icon: TrendingUp, label: "BUY — accumulate" },
+  HOLD: { cls: "bg-sky-500/10 text-sky-600 border-sky-500/30", icon: Minus, label: "HOLD — keep compounding" },
+  REDUCE: { cls: "bg-amber-500/10 text-amber-600 border-amber-500/30", icon: ArrowDownRight, label: "REDUCE — trim new buys" },
+  SELL: { cls: "bg-red-500/10 text-red-600 border-red-500/30", icon: TrendingDown, label: "SELL — de-risk" },
+};
+
+function MarketRouteCard() {
+  const { data, isLoading, isError, error } = useQuery<MarketResponse>({
+    queryKey: ["tao-engine-market"],
+    queryFn: async () => {
+      const res = await fetch("/api/tao-engine/market");
+      if (!res.ok) {
+        const j = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(j.error ?? `HTTP ${res.status}`);
+      }
+      return res.json() as Promise<MarketResponse>;
+    },
+    staleTime: 5 * 60_000,
+    refetchInterval: 5 * 60_000,
+  });
+
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-base">
+          <Activity className="h-4 w-4 text-primary" />
+          Market Route — buy / hold / sell TAO
+        </CardTitle>
+        <CardDescription>
+          Mechanical trend overlay on daily closes (SMA50/200, momentum, drawdown, volatility) plus the
+          staking-yield edge. Every score point is auditable in the reasons below — not a prediction.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {isLoading && <div className="py-6 text-center text-sm text-muted-foreground">Reading the tape…</div>}
+        {isError && (
+          <div className="py-6 text-center text-sm text-red-500">
+            Market signal unavailable: {error instanceof Error ? error.message : "unknown"}
+          </div>
+        )}
+        {data && (
+          <>
+            <div className="flex flex-wrap items-center gap-4">
+              {(() => {
+                const a = ACTION_STYLE[data.signal.action];
+                const Icon = a.icon;
+                return (
+                  <div className={cn("flex items-center gap-2 rounded-lg border px-4 py-2", a.cls)}>
+                    <Icon className="h-5 w-5" />
+                    <div>
+                      <div className="text-lg font-bold leading-none">{a.label}</div>
+                      <div className="text-[11px] opacity-80">
+                        score {data.signal.score > 0 ? "+" : ""}{data.signal.score} · confidence {data.signal.confidence}
+                        {data.signal.stale && " · stale data"}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+              <div className="flex flex-1 flex-wrap gap-6 text-sm">
+                <div>
+                  <div className="text-xs text-muted-foreground">Spot</div>
+                  <div className="font-semibold">${data.signal.spot.priceUsd.toFixed(2)}</div>
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground">30d momentum</div>
+                  <div className="font-semibold">
+                    {data.signal.momentum.d30Pct != null ? pct(data.signal.momentum.d30Pct, 1) : "—"}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground">vs SMA50 / SMA200</div>
+                  <div className="font-semibold">
+                    {data.signal.trend.priceVsSma50Pct != null ? pct(data.signal.trend.priceVsSma50Pct, 1) : "—"} /{" "}
+                    {data.signal.trend.priceVsSma200Pct != null ? pct(data.signal.trend.priceVsSma200Pct, 1) : "—"}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground">From 180d high</div>
+                  <div className="font-semibold">
+                    {data.signal.drawdown.fromHigh180Pct != null ? pct(data.signal.drawdown.fromHigh180Pct, 1) : "—"}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground">Volatility (30d ann.)</div>
+                  <div className="font-semibold">
+                    {data.signal.volatility.annualizedPct != null ? pct(data.signal.volatility.annualizedPct, 0) : "—"}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="mt-3 rounded-md border bg-muted/40 p-3 text-sm">
+              <span className="font-semibold">Playbook: </span>
+              {data.signal.playbook}
+            </div>
+            <ul className="mt-3 grid gap-1 text-[12px] text-muted-foreground md:grid-cols-2">
+              {data.signal.reasons.map((r) => (
+                <li key={r} className="flex gap-1.5">
+                  <Info className="mt-0.5 h-3 w-3 shrink-0" />
+                  {r}
+                </li>
+              ))}
+            </ul>
+            <div className="mt-3 text-[11px] text-muted-foreground">
+              {data.disclaimer} · {data.dataSources.klinesDays} daily closes (Binance) · spot via{" "}
+              {data.dataSources.spotSource ?? "cache"} · staking edge from baseline block{" "}
+              {fmt.format(data.dataSources.baselineBlock)}.
+            </div>
+          </>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
 
 function RiskChip({ level }: { level: SubnetStakeOpportunity["riskLevel"] }) {
   const style =
@@ -156,6 +291,9 @@ export function TaoEngineView() {
           )}
         </CardContent>
       </Card>
+
+      {/* Market route — buy / hold / sell */}
+      <MarketRouteCard />
 
       {/* Recommendations */}
       <Card>
