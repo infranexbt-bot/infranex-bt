@@ -194,8 +194,8 @@ export function TaoEngineView() {
                   <TableHead className="text-right">TAO/mo</TableHead>
                   <TableHead className="text-right">Instant upside</TableHead>
                   <TableHead className="text-right">Exit slip</TableHead>
-                  <TableHead>Pool</TableHead>
                   <TableHead>Risk</TableHead>
+                  <TableHead>Notes</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
