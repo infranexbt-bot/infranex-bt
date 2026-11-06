@@ -12,7 +12,7 @@
 // Math: lib/infranex/tao-engine.ts (pure, unit-tested).
 // ---------------------------------------------------------------------------
 
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Activity,
@@ -20,6 +20,7 @@ import {
   ArrowDownRight,
   ArrowDownUp,
   Banknote,
+  ChevronDown,
   Info,
   Landmark,
   Minus,
@@ -28,6 +29,7 @@ import {
   Timer,
   TrendingDown,
   TrendingUp,
+  Trophy,
   Wallet,
 } from "lucide-react";
 import {
@@ -37,6 +39,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -49,7 +52,9 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import type { RootBaselineRow, SubnetStakeOpportunity } from "@/lib/infranex/tao-engine";
-import type { TaoMarketSignal, TaoMarketAction } from "@/lib/infranex/tao-market";
+import type { ScoredValidatorRow } from "@/lib/infranex/validator-score";
+import { BuyHoldTrack, type MarketResponse } from "./buy-hold-track";
+import type { TaoMarketAction } from "@/lib/infranex/tao-market";
 import type { ThreeRoutePlan, PlanRisk } from "@/lib/infranex/tao-engine-plan";
 
 interface RecommendResponse {
@@ -57,6 +62,8 @@ interface RecommendResponse {
   root: RootBaselineRow;
   beatingRoot: SubnetStakeOpportunity[];
   belowRoot: SubnetStakeOpportunity[];
+  /** FLAT scored cross-subnet validator ranking — the headline list. */
+  topValidators: ScoredValidatorRow[];
   plan: ThreeRoutePlan;
   marketAction: TaoMarketAction | null;
   marketConfidence: string | null;
@@ -81,27 +88,122 @@ const RISKS: { key: PlanRisk; label: string }[] = [
 ];
 const HORIZONS = [30, 90, 365];
 
-interface MarketResponse {
-  signal: TaoMarketSignal;
-  dataSources: {
-    klinesFetchedAt: string;
-    klinesDays: number;
-    klinesStale: boolean;
-    spotSource: string | null;
-    spotFetchedAt: string | null;
-    baselineBlock: number;
-  };
-  disclaimer: string;
+const VERDICT_STYLE: Record<string, string> = {
+  STRONG: "bg-emerald-500/10 text-emerald-600 border-emerald-500/30",
+  VIABLE: "bg-sky-500/10 text-sky-600 border-sky-500/30",
+  SPECULATIVE: "bg-amber-500/10 text-amber-600 border-amber-500/30",
+  AVOID: "bg-red-500/10 text-red-600 border-red-500/30",
+};
+const GRADE_STYLE: Record<string, string> = {
+  A: "bg-emerald-500/15 text-emerald-600 border-emerald-500/40",
+  B: "bg-lime-500/15 text-lime-700 border-lime-500/40",
+  C: "bg-amber-500/15 text-amber-600 border-amber-500/40",
+  D: "bg-red-500/15 text-red-600 border-red-500/40",
+};
+const scoreBarCls = (grade: string) =>
+  grade === "A" ? "bg-emerald-500" : grade === "B" ? "bg-lime-500" : grade === "C" ? "bg-amber-500" : "bg-red-500";
+
+function ScoreBadge({ score, grade }: { score: number; grade: string }) {
+  return (
+    <div className="flex items-center justify-end gap-2">
+      <div className="h-1.5 w-14 overflow-hidden rounded-full bg-muted">
+        <div className={cn("h-full rounded-full", scoreBarCls(grade))} style={{ width: `${Math.min(100, Math.max(0, score))}%` }} />
+      </div>
+      <span className={cn("rounded-md border px-1.5 py-0.5 font-mono text-[11px] font-bold tabular", GRADE_STYLE[grade] ?? GRADE_STYLE.D)}>
+        {score.toFixed(0)}
+      </span>
+      <span className="text-[10px] font-semibold text-muted-foreground">{grade}</span>
+    </div>
+  );
 }
 
-const ACTION_STYLE: Record<TaoMarketAction, { cls: string; icon: typeof TrendingUp; label: string }> = {
-  BUY: { cls: "bg-emerald-500/10 text-emerald-600 border-emerald-500/30", icon: TrendingUp, label: "BUY — accumulate" },
-  HOLD: { cls: "bg-sky-500/10 text-sky-600 border-sky-500/30", icon: Minus, label: "HOLD — keep compounding" },
-  REDUCE: { cls: "bg-amber-500/10 text-amber-600 border-amber-500/30", icon: ArrowDownRight, label: "REDUCE — trim new buys" },
-  SELL: { cls: "bg-red-500/10 text-red-600 border-red-500/30", icon: TrendingDown, label: "SELL — de-risk" },
-};
+// ---------------------------------------------------------------------------
+// BEST VALIDATORS TO STAKE — the flat scored ranking (opportunity-engine
+// pattern): verdict tier → Validator Stake Score → sustainable APY. This is
+// the headline answer to "which validators should I stake for good returns?"
+// ---------------------------------------------------------------------------
+function TopValidatorsCard({ data }: { data: RecommendResponse }) {
+  const rows = data.topValidators.filter((r) => r.verdict !== "AVOID").slice(0, 8);
+  const avoidCount = data.topValidators.filter((r) => r.verdict === "AVOID").length;
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="flex items-center gap-2 text-base">
+          <ShieldCheck className="h-4 w-4 text-primary" />
+          Best validators to stake — scored 0–100
+        </CardTitle>
+        <CardDescription>
+          Validator Stake Score = yield edge vs root (30%) · reward quality (20%) · exit liquidity (15%) ·
+          take (10%) · decentralization (10%) · price stability (10%) · dilution (5%). Missing data scores a
+          neutral 35 and is flagged; verdict AVOID caps the score at 25. Same auditable inputs as the APY math.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {rows.length === 0 && (
+          <div className="py-6 text-center text-sm text-muted-foreground">
+            Nothing scores above AVOID right now — root staking is the honest pick.
+          </div>
+        )}
+        {rows.length > 0 && (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-8">#</TableHead>
+                <TableHead>Subnet · Validator</TableHead>
+                <TableHead className="text-right">Score</TableHead>
+                <TableHead>Verdict</TableHead>
+                <TableHead className="text-right">Take</TableHead>
+                <TableHead className="text-right">Sustainable APY (band)</TableHead>
+                <TableHead className="text-right">TAO/mo</TableHead>
+                <TableHead className="text-right">Exit slip</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {rows.map((r, i) => (
+                <TableRow key={`${r.netuid}-${r.validatorUid}`}>
+                  <TableCell className="font-mono text-[11px] text-muted-foreground">{i + 1}</TableCell>
+                  <TableCell>
+                    <div className="font-medium">α{r.netuid} · {r.subnetName}</div>
+                    <div className="font-mono text-[10px] text-muted-foreground">
+                      uid{r.validatorUid} · {r.validatorHotkey.slice(0, 10)}… · lane {r.captureSharePct.toFixed(1)}%
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right"><ScoreBadge score={r.score.score} grade={r.score.grade} /></TableCell>
+                  <TableCell>
+                    <span className={cn("rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase", VERDICT_STYLE[r.verdict])}>
+                      {r.verdict}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-right tabular">{pct(r.takePct, 1)}</TableCell>
+                  <TableCell className="text-right">
+                    <div className="font-semibold tabular">{pct(r.sustainableApyPct)}</div>
+                    <div className="text-[11px] text-muted-foreground tabular">
+                      {pct(r.apyLowPct, 1)} … {pct(r.apyHighPct, 1)}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right tabular">{r.taoPerMonth.toFixed(3)}</TableCell>
+                  <TableCell className="text-right tabular">{r.exitSlippagePct != null ? pct(r.exitSlippagePct, 2) : "—"}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+        {avoidCount > 0 && (
+          <div className="mt-2 text-[11px] text-muted-foreground">
+            {avoidCount} researched pick{avoidCount === 1 ? "" : "s"} scored AVOID (root-losing or α crashing) and
+            {avoidCount === 1 ? " is" : " are"} hidden from this list — score capped at 25 there.
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
 
-function MarketRouteCard() {
+// ---------------------------------------------------------------------------
+// MARKET SECTION — Track 2 (BUY/HOLD: signal, entries, DCA ladder, sizing).
+// Shared card extracted from the Investor Playbook (merged into this view).
+// ---------------------------------------------------------------------------
+function MarketSection() {
   const { data, isLoading, isError, error } = useQuery<MarketResponse>({
     queryKey: ["tao-engine-market"],
     queryFn: async () => {
@@ -117,98 +219,24 @@ function MarketRouteCard() {
   });
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-base">
-          <Activity className="h-4 w-4 text-primary" />
-          Market Route — buy / hold / sell TAO
-        </CardTitle>
-        <CardDescription>
-          Mechanical trend overlay on daily closes (SMA50/200, momentum, drawdown, volatility) plus the
-          staking-yield edge. Every score point is auditable in the reasons below — not a prediction.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        {isLoading && <div className="py-6 text-center text-sm text-muted-foreground">Reading the tape…</div>}
-        {isError && (
-          <div className="py-6 text-center text-sm text-red-500">
+    <div>
+      {isLoading && (
+        <Card>
+          <CardContent className="py-6 text-center text-sm text-muted-foreground">Reading the tape…</CardContent>
+        </Card>
+      )}
+      {isError && (
+        <Card>
+          <CardContent className="py-6 text-center text-sm text-red-500">
             Market signal unavailable: {error instanceof Error ? error.message : "unknown"}
-          </div>
-        )}
-        {data && (
-          <>
-            <div className="flex flex-wrap items-center gap-4">
-              {(() => {
-                const a = ACTION_STYLE[data.signal.action];
-                const Icon = a.icon;
-                return (
-                  <div className={cn("flex items-center gap-2 rounded-lg border px-4 py-2", a.cls)}>
-                    <Icon className="h-5 w-5" />
-                    <div>
-                      <div className="text-lg font-bold leading-none">{a.label}</div>
-                      <div className="text-[11px] opacity-80">
-                        score {data.signal.score > 0 ? "+" : ""}{data.signal.score} · confidence {data.signal.confidence}
-                        {data.signal.stale && " · stale data"}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })()}
-              <div className="flex flex-1 flex-wrap gap-6 text-sm">
-                <div>
-                  <div className="text-xs text-muted-foreground">Spot</div>
-                  <div className="font-semibold">${data.signal.spot.priceUsd.toFixed(2)}</div>
-                </div>
-                <div>
-                  <div className="text-xs text-muted-foreground">30d momentum</div>
-                  <div className="font-semibold">
-                    {data.signal.momentum.d30Pct != null ? pct(data.signal.momentum.d30Pct, 1) : "—"}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-xs text-muted-foreground">vs SMA50 / SMA200</div>
-                  <div className="font-semibold">
-                    {data.signal.trend.priceVsSma50Pct != null ? pct(data.signal.trend.priceVsSma50Pct, 1) : "—"} /{" "}
-                    {data.signal.trend.priceVsSma200Pct != null ? pct(data.signal.trend.priceVsSma200Pct, 1) : "—"}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-xs text-muted-foreground">From 180d high</div>
-                  <div className="font-semibold">
-                    {data.signal.drawdown.fromHigh180Pct != null ? pct(data.signal.drawdown.fromHigh180Pct, 1) : "—"}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-xs text-muted-foreground">Volatility (30d ann.)</div>
-                  <div className="font-semibold">
-                    {data.signal.volatility.annualizedPct != null ? pct(data.signal.volatility.annualizedPct, 0) : "—"}
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="mt-3 rounded-md border bg-muted/40 p-3 text-sm">
-              <span className="font-semibold">Playbook: </span>
-              {data.signal.playbook}
-            </div>
-            <ul className="mt-3 grid gap-1 text-[12px] text-muted-foreground md:grid-cols-2">
-              {data.signal.reasons.map((r) => (
-                <li key={r} className="flex gap-1.5">
-                  <Info className="mt-0.5 h-3 w-3 shrink-0" />
-                  {r}
-                </li>
-              ))}
-            </ul>
-            <div className="mt-3 text-[11px] text-muted-foreground">
-              {data.disclaimer} · {data.dataSources.klinesDays} daily closes (Binance) · spot via{" "}
-              {data.dataSources.spotSource ?? "cache"} · staking edge from baseline block{" "}
-              {fmt.format(data.dataSources.baselineBlock)}.
-            </div>
-          </>
-        )}
-      </CardContent>
-    </Card>
+          </CardContent>
+        </Card>
+      )}
+      {data && <BuyHoldTrack market={data} />}
+    </div>
   );
 }
+
 
 function ScenarioTable({
   scenarios,
@@ -501,8 +529,11 @@ export function TaoEngineView() {
         />
       )}
 
-      {/* Market route — buy / hold / sell */}
-      <MarketRouteCard />
+      {/* Best validators — scored headline */}
+      {data && <TopValidatorsCard data={data} />}
+
+      {/* Market route — buy / hold / sell (Track 2, merged playbook) */}
+      <MarketSection />
 
       {/* Recommendations */}
       <Card>

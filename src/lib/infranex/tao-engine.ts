@@ -510,7 +510,7 @@ interface PayloadSubnet {
   notes: string[];
 }
 
-function classifyVerdict(o: {
+export function classifyVerdict(o: {
   beatsRoot: boolean;
   poolTao: number;
   dilutionRatio: number | null;

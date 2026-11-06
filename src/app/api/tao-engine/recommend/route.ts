@@ -11,6 +11,7 @@ import { computeMarketSignal } from "@/lib/infranex/tao-market";
 import { loadTaoCloses } from "@/lib/infranex/tao-market-klines";
 import { getPrice } from "@/lib/infranex/prices";
 import { computeThreeRoutePlan, type PlanRisk } from "@/lib/infranex/tao-engine-plan";
+import { scoreAllValidators, type ScoredValidatorRow } from "@/lib/infranex/validator-score";
 import baselinePayload from "@/lib/infranex/tao-engine-baseline.json";
 
 export const dynamic = "force-dynamic";
@@ -34,6 +35,9 @@ export const maxDuration = 30;
 //   root      — root staking baseline row (the floor every pick must beat)
 //   beatingRoot[] — subnet opportunities ranked by sustainable APY
 //   belowRoot[]   — researched but not root-beating (context rows)
+//   topValidators[] — FLAT scored cross-subnet validator ranking (0–100
+//                     Validator Stake Score, opportunity-engine pattern:
+//                     verdict tier → score → APY). The headline list.
 //   summary   — counts + baseline metadata
 //   plan      — three-route allocation + horizon scenarios + reasons
 //   marketAction/confidence/score — compact echo for the UI planner card
@@ -80,11 +84,16 @@ function buildBody(stakeTao: number, limit: number) {
   }
   const { beatingRoot, belowRoot } = rankSubnetOpportunities(opportunities, { limit });
   const root = rootBaselineRow(stakeTao);
+  // VALIDATOR-STAKE-SCORE — opportunity-style 0–100 per validator, flat list
+  // across all subnets (verdict tier → score → APY). Pure lib, same inputs
+  // the APY math uses — nothing new is fabricated here.
+  const topValidators: ScoredValidatorRow[] = scoreAllValidators(opportunities);
   return {
     stakeTao,
     root,
     beatingRoot,
     belowRoot,
+    topValidators,
     summary: {
       researchedSubnets: subs.length,
       opportunities: opportunities.length,
