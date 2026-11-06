@@ -12,7 +12,7 @@
 // Math: lib/infranex/tao-engine.ts (pure, unit-tested).
 // ---------------------------------------------------------------------------
 
-import { Fragment, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Activity,
@@ -123,8 +123,18 @@ function ScoreBadge({ score, grade }: { score: number; grade: string }) {
 // the headline answer to "which validators should I stake for good returns?"
 // ---------------------------------------------------------------------------
 function TopValidatorsCard({ data }: { data: RecommendResponse }) {
+  const [showAll, setShowAll] = useState(false);
+  // Headline: best 8 non-AVOID. The FULL SCORE BOARD below exposes every
+  // scored validator row (incl. AVOID, score-capped) — same engine output,
+  // same rank order, nothing re-ranked or hidden.
   const rows = data.topValidators.filter((r) => r.verdict !== "AVOID").slice(0, 8);
-  const avoidCount = data.topValidators.filter((r) => r.verdict === "AVOID").length;
+  const all = data.topValidators;
+  const avoidCount = all.filter((r) => r.verdict === "AVOID").length;
+  const boardSubnets = new Set(all.map((r) => r.netuid)).size;
+  const verdictCounts = all.reduce<Record<string, number>>((m, r) => {
+    m[r.verdict] = (m[r.verdict] ?? 0) + 1;
+    return m;
+  }, {});
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -190,8 +200,112 @@ function TopValidatorsCard({ data }: { data: RecommendResponse }) {
         )}
         {avoidCount > 0 && (
           <div className="mt-2 text-[11px] text-muted-foreground">
-            {avoidCount} researched pick{avoidCount === 1 ? "" : "s"} scored AVOID (root-losing or α crashing) and
-            {avoidCount === 1 ? " is" : " are"} hidden from this list — score capped at 25 there.
+            {avoidCount} researched pick{avoidCount === 1 ? "" : "s"} scored AVOID (root-losing or α crashing), score
+            capped at 25 — excluded from the headline, visible in the full score board below.
+          </div>
+        )}
+
+        {/* FULL SCORE BOARD — every scored validator across every researched
+            subnet, including AVOID rows. Answers "what about the OTHER subnet
+            validators?" with the same auditable math, no display cap. */}
+        {all.length > 0 && (
+          <div className="mt-4 border-t pt-3">
+            <button
+              type="button"
+              onClick={() => setShowAll((s) => !s)}
+              className="flex w-full items-center justify-between gap-2 rounded-md border border-border/60 bg-muted/30 px-3 py-2 text-left text-xs font-semibold transition-colors hover:bg-muted/50"
+            >
+              <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                <Trophy className="h-3.5 w-3.5 shrink-0 text-primary" />
+                <span>
+                  Full score board — all {all.length} scored validators across {boardSubnets} researched subnets
+                </span>
+                <span className="font-normal text-muted-foreground">
+                  (STRONG {verdictCounts.STRONG ?? 0} · VIABLE {verdictCounts.VIABLE ?? 0} · SPECULATIVE{" "}
+                  {verdictCounts.SPECULATIVE ?? 0} · AVOID {verdictCounts.AVOID ?? 0})
+                </span>
+              </span>
+              <ChevronDown
+                className={cn(
+                  "h-4 w-4 shrink-0 text-muted-foreground transition-transform",
+                  showAll && "rotate-180"
+                )}
+              />
+            </button>
+            {showAll && (
+              <div className="mt-3 max-h-[480px] overflow-y-auto rounded-md border">
+                <Table>
+                  <TableHeader className="sticky top-0 z-10 bg-card">
+                    <TableRow>
+                      <TableHead className="w-8">#</TableHead>
+                      <TableHead>Subnet · Validator</TableHead>
+                      <TableHead className="text-right">Score</TableHead>
+                      <TableHead>Verdict</TableHead>
+                      <TableHead className="text-right">Take</TableHead>
+                      <TableHead className="text-right">Lane cap</TableHead>
+                      <TableHead className="text-right">Validator stake</TableHead>
+                      <TableHead className="text-right">Sustainable APY</TableHead>
+                      <TableHead className="text-right">Exit slip</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {all.map((r, i) => (
+                      <TableRow
+                        key={`board-${r.netuid}-${r.validatorUid}`}
+                        className={cn(r.verdict === "AVOID" && "opacity-60")}
+                      >
+                        <TableCell className="font-mono text-[11px] text-muted-foreground">{i + 1}</TableCell>
+                        <TableCell>
+                          <div className="font-medium">α{r.netuid} · {r.subnetName}</div>
+                          <div className="font-mono text-[10px] text-muted-foreground">
+                            uid{r.validatorUid} · {r.validatorHotkey.slice(0, 10)}… · lane {r.captureSharePct.toFixed(1)}%
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <ScoreBadge score={r.score.score} grade={r.score.grade} />
+                          {r.score.cappedByVerdict && (
+                            <div className="text-[10px] text-muted-foreground">capped · AVOID</div>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <span
+                            className={cn(
+                              "rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase",
+                              VERDICT_STYLE[r.verdict]
+                            )}
+                          >
+                            {r.verdict}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-right tabular">{pct(r.takePct, 1)}</TableCell>
+                        <TableCell className="text-right tabular">
+                          {r.concentrationPct != null ? pct(r.concentrationPct, 1) : "—"}
+                        </TableCell>
+                        <TableCell className="text-right tabular">
+                          {fmt.format(Math.round(r.stakeAlpha))}α
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className={cn("font-semibold tabular", !r.beatsRoot && "text-muted-foreground")}>
+                            {pct(r.sustainableApyPct)}
+                          </div>
+                          <div className="text-[10px] text-muted-foreground tabular">
+                            {r.beatsRoot ? `vs root ${pct(r.rootBaselineApyPct, 1)}` : "below root"}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right tabular">
+                          {r.exitSlippagePct != null ? pct(r.exitSlippagePct, 2) : "—"}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+            <p className="mt-2 text-[11px] text-muted-foreground">
+              Every validator of every researched subnet is scored — the {rows.length} above make the headline; the
+              rest rank here by the same math. Validators on subnets outside the research baseline have no
+              dividend/pool data, so they are not scored — nothing is fabricated.
+            </p>
           </div>
         )}
       </CardContent>
