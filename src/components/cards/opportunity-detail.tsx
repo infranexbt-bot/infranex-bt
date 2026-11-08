@@ -12,7 +12,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { TrendingUp, AlertTriangle, Cpu, Wallet, Calculator, Coins, Gauge, Compass } from "lucide-react";
+import { TrendingUp, AlertTriangle, Cpu, Wallet, Calculator, Coins, Gauge, Compass, Shield } from "lucide-react";
 import { formatNumber } from "@/lib/utils";
 import { assessSeatChance, formatBurnTao } from "@/lib/infranex/miner-score";
 import { computeMinePick, VERDICT_STYLE } from "@/lib/infranex/mine-pick";
@@ -20,6 +20,7 @@ import { unifiedVerdict } from "@/lib/infranex/verdict";
 import { computeSubnetOpportunityScore } from "@/lib/infranex/subnet-opportunity";
 import { computeEntryDifficulty, DIFFICULTY_META } from "@/lib/infranex/entry-difficulty";
 import { classifyOpportunity, ACTION_META } from "@/lib/infranex/opportunity-class";
+import { computeSeatTierFromRatio, WIN_TIER_STYLES } from "@/lib/infranex/win-odds";
 import { costBasisFromConfig } from "@/lib/infranex/rent-earn";
 import { RegisterOddsBlock, RegisterOddsInline } from "@/components/cards/register-odds";
 import { HostingWarningBlock, HostingChips } from "@/components/cards/hosting-requirements";
@@ -46,6 +47,43 @@ interface OpportunityDetailDialogProps {
   onOpenChange: (open: boolean) => void;
   /** DILIGENCE-1 — provision hand-off (Deployments stepper, preselected). */
   onProvision?: () => void;
+}
+
+/** ENTRY-SCORE-3 — the per-row entry-odds brief for the detail dialog: the
+ *  same seat-safety taxonomy the Subnets chips and the engine's
+ *  SEAT_MONOPOLIZED gate use, expressed as the numbers a newcomer needs
+ *  before paying the registration burn. Pure — no hooks. */
+function entryBrief(o: Opportunity) {
+  const tier = computeSeatTierFromRatio({
+    rewardedRatio: o.rewardedRatio,
+    top10IncentiveShare: o.top10IncentiveShare,
+  });
+  const breadth = o.rewardedRatio ?? null;
+  const openPot =
+    o.top10IncentiveShare != null
+      ? Math.min(1, Math.max(0, 1 - o.top10IncentiveShare))
+      : null;
+  const oddsPct =
+    breadth != null && openPot != null
+      ? Math.round(breadth * openPot * 1000) / 10
+      : null;
+  const prizePerSeat = (o.estimatedDailyReward ?? 0) > 0 ? o.estimatedDailyReward : null;
+  const evTao =
+    prizePerSeat != null && breadth != null && openPot != null
+      ? Math.round(prizePerSeat * breadth * openPot * 1000) / 1000
+      : null;
+  const runwayHours =
+    o.immunityBlocks != null && o.immunityBlocks > 0
+      ? Math.round((o.immunityBlocks * 12) / 3600 * 10) / 10
+      : null;
+  const displacement = o.freeSlots != null && o.freeSlots <= 0;
+  const hasAny =
+    tier != null ||
+    oddsPct != null ||
+    runwayHours != null ||
+    (o.burnCostTao != null && o.burnCostTao > 0) ||
+    o.freeSlots != null;
+  return { tier, breadth, openPot, oddsPct, prizePerSeat, evTao, runwayHours, displacement, hasAny };
 }
 
 /** REALIZABILITY-AUDIT — adaptive % for tiny dilution-backed shares. */
@@ -746,6 +784,86 @@ export function OpportunityDetailDialog({
                 )}
               </div>
             )}
+
+            {/* ENTRY-SCORE-3 — the seat-safety brief: what a NEW seat
+                realistically earns here, from the same signals the Subnets
+                chips and the engine's gates use. */}
+            {(() => {
+              const eb = entryBrief(o);
+              if (!eb.hasAny) return null;
+              return (
+                <div className="mt-3 border-t border-border/60 pt-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                      <Shield className="h-3 w-3 text-primary" />
+                      Entry odds — what a NEW seat earns
+                    </p>
+                    {eb.tier && (
+                      <span
+                        className={cn(
+                          "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium",
+                          WIN_TIER_STYLES[eb.tier].chipClass,
+                        )}
+                      >
+                        <span className={cn("h-1.5 w-1.5 rounded-full", WIN_TIER_STYLES[eb.tier].dotClass)} />
+                        {WIN_TIER_STYLES[eb.tier].label}
+                      </span>
+                    )}
+                  </div>
+                  <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-[10px] leading-snug text-muted-foreground">
+                    {eb.breadth != null && (
+                      <span>
+                        <span className="font-mono text-foreground">{Math.round(eb.breadth * 100)}%</span> of seats paid last epoch
+                      </span>
+                    )}
+                    {o.top10IncentiveShare != null && (
+                      <span>
+                        top-10% take <span className="font-mono text-foreground">{Math.round(o.top10IncentiveShare * 100)}%</span>
+                        {eb.openPot != null && <> · <span className="font-mono text-foreground">{Math.round(eb.openPot * 100)}%</span> of pot open</>}
+                      </span>
+                    )}
+                    {eb.oddsPct != null && (
+                      <span>
+                        est. month-1 odds ≈ <span className="font-mono text-foreground">{eb.oddsPct}%</span>
+                      </span>
+                    )}
+                    {eb.prizePerSeat != null && (
+                      <span>
+                        typical earning seat ≈ <span className="font-mono text-foreground">{eb.prizePerSeat.toFixed(2)} TAO/day</span>
+                        {eb.evTao != null && (
+                          <> · est. new-seat EV ≈ <span className="font-mono text-foreground">{eb.evTao.toFixed(2)} TAO/day</span></>
+                        )}
+                      </span>
+                    )}
+                    {o.rewardMedianShare != null && o.rewardMedianShare < 0.5 && (
+                      <span>
+                        median earner gets <span className="font-mono text-foreground">{Math.round(o.rewardMedianShare * 100)}%</span> of the mean
+                      </span>
+                    )}
+                    {eb.displacement ? (
+                      <span className="text-warning">subnet full — displacement entry (out-compete an incumbent)</span>
+                    ) : o.freeSlots != null && o.freeSlots > 0 ? (
+                      <span>
+                        <span className="font-mono text-foreground">{o.freeSlots}</span> free slot{o.freeSlots === 1 ? "" : "s"}
+                      </span>
+                    ) : null}
+                    {eb.runwayHours != null && (
+                      <span>
+                        ~<span className="font-mono text-foreground">{eb.runwayHours}h</span> immunity runway
+                      </span>
+                    )}
+                    {o.burnCostTao != null && o.burnCostTao > 0 && (
+                      <span>
+                        entry burn ≈ <span className="font-mono text-foreground">{o.burnCostTao.toFixed(2)} TAO</span>
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-1 text-[10px] leading-snug text-muted-foreground/70">
+                    odds = breadth × open pot (mean-based estimate) · EV uses the typical (median) earning seat — whale-heavy spreads pay newcomers less
+                  </p>
+                </div>
+              );
+            })()}
 
             {/* TAO-ACCUMULATION-1 — the goal view: TAO banked per month at
                 realizable α→TAO prices, measured against the user's goal. */}
