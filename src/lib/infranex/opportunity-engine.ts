@@ -34,8 +34,10 @@
  * Client-safe pure module: no db, no server imports.
  */
 
-import type { EntryScore } from "./entry-score";
+import type { EntryScore, EntryScoreInput } from "./entry-score";
+import { rankEntryScores } from "./entry-score";
 import type { WinTier } from "./win-odds";
+import { computeRawWinTier } from "./win-odds";
 
 export type RunVerdict = "RUN" | "WATCH" | "AVOID";
 
@@ -171,4 +173,42 @@ export function rankOpportunityVerdicts(
       (b.entry.newcomerOddsPct ?? -1) - (a.entry.newcomerOddsPct ?? -1) ||
       a.netuid - b.netuid,
   );
+}
+
+/**
+ * ONE snapshot pass → entry scores + seat tiers + verdicts, ranked. Single
+ * code path shared by the Subnets leaderboard and the Opportunities page so
+ * the two surfaces can never disagree on what RUN means.
+ */
+export function rankOpportunitiesFromSubnets(
+  subs: EntryScoreInput[],
+): { byNetuid: Map<number, OpportunityVerdict>; ranked: OpportunityVerdict[] } {
+  const { byNetuid: entries } = rankEntryScores(subs);
+  const items: OpportunityVerdict[] = [];
+  for (const s of subs) {
+    const entry = entries.get(s.netuid);
+    if (!entry) continue;
+    items.push(computeOpportunityVerdict(entry, computeRawWinTier(s)));
+  }
+  return {
+    byNetuid: new Map(items.map((o) => [o.netuid, o])),
+    ranked: rankOpportunityVerdicts(items),
+  };
+}
+
+/** Tooltip body for an engine chip — verdict, blended score, month-1 odds
+ *  and the reasons. Shared by the Subnets strip and the Opportunities strip. */
+export function opportunityTooltip(o: OpportunityVerdict): string {
+  const lines: string[] = [];
+  lines.push(
+    `${o.verdict} — opportunity score ${o.score ?? "?"}/100` +
+      (o.entry.newcomerOddsPct != null
+        ? ` · est. month-1 odds for a fresh seat ${o.entry.newcomerOddsPct}%`
+        : ""),
+  );
+  lines.push(...o.reasons);
+  lines.push(
+    "score = entry score 70% + seat safety 30% (open 100 · fightable 65 · knife 25 · no-go 0) · verdict: grade A/B/C → RUN, knife-fight C or no data → WATCH, D/F or winner-take-all → AVOID",
+  );
+  return lines.join("\n");
 }

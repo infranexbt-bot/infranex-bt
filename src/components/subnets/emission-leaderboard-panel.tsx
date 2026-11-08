@@ -13,16 +13,14 @@ import {
   type WinTier,
 } from "@/lib/infranex/win-odds";
 import {
-  rankEntryScores,
   ENTRY_GRADE_STYLES,
   type EntryScore,
 } from "@/lib/infranex/entry-score";
 import {
-  computeOpportunityVerdict,
-  rankOpportunityVerdicts,
+  rankOpportunitiesFromSubnets,
+  opportunityTooltip,
   RUN_VERDICT_STYLES,
   RUN_VERDICT_RANK,
-  type OpportunityVerdict,
   type RunVerdict,
 } from "@/lib/infranex/opportunity-engine";
 
@@ -152,21 +150,7 @@ function entryTooltip(es: EntryScore): string {
   return lines.join("\n");
 }
 
-// OPPORTUNITY-ENGINE tooltip — verdict, blended score and the reasons.
-function opportunityTooltip(o: OpportunityVerdict): string {
-  const lines: string[] = [];
-  lines.push(
-    `${o.verdict} — opportunity score ${o.score ?? "?"}/100` +
-      (o.entry.newcomerOddsPct != null
-        ? ` · est. month-1 odds for a fresh seat ${o.entry.newcomerOddsPct}%`
-        : ""),
-  );
-  lines.push(...o.reasons);
-  lines.push(
-    "score = entry score 70% + seat safety 30% (open 100 · fightable 65 · knife 25 · no-go 0) · verdict: grade A/B/C → RUN, knife-fight C or no data → WATCH, D/F or winner-take-all → AVOID",
-  );
-  return lines.join("\n");
-}
+// OPPORTUNITY-ENGINE tooltip — shared with the Opportunities page strip.
 
 /** Protocol-default owner cut (bittensor.com/docs/concepts/emissions — the
  *  default emission weight vector). Used when the chain's weight vector is
@@ -232,54 +216,39 @@ export function EmissionLeaderboardPanel({
   const [expanded, setExpanded] = useState(false);
   const [sort, setSort] = useState<SortKey>("emission");
 
-  // ENTRY-SCORE — one honest 0-100 "what are my odds as a NEW miner here"
-  // number per subnet, computed over the same active earning set the table
-  // shows, plus the five best entry points for the picks strip.
-  const entryModel = useMemo(() => {
-    const active = rows.filter((r) => r.emissionTaoPerDay > 0);
-    return rankEntryScores(
-      active.map((r) => ({
-        netuid: r.netuid,
-        minersCount: r.minersCount,
-        rewardedMiners: r.rewardedMiners,
-        top10IncentiveShare: r.top10IncentiveShare,
-        incentiveMedianShare: r.incentiveMedianShare,
-        minerEmissionTaoPerDay: r.minerEmissionTaoPerDay,
-        maxUids: r.maxUids,
-        immunityBlocks: r.immunityBlocks,
-        burnCostTao: r.burnCostTao,
-      })),
+  // OPPORTUNITY-ENGINE — ONE snapshot pass: entry score (70%) × seat safety
+  // (30%) → one 0-100 opportunity score and a blunt RUN / WATCH / AVOID
+  // verdict per earning subnet, ranked RUN-first for the strip. Same helper
+  // the Opportunities page uses, so the two surfaces can never disagree.
+  // Declared BEFORE the table's sort memo — the sort branches read it.
+  const engineModel = useMemo(() => {
+    return rankOpportunitiesFromSubnets(
+      rows
+        .filter((r) => r.emissionTaoPerDay > 0)
+        .map((r) => ({
+          netuid: r.netuid,
+          minersCount: r.minersCount,
+          rewardedMiners: r.rewardedMiners,
+          top10IncentiveShare: r.top10IncentiveShare,
+          incentiveMedianShare: r.incentiveMedianShare,
+          minerEmissionTaoPerDay: r.minerEmissionTaoPerDay,
+          maxUids: r.maxUids,
+          immunityBlocks: r.immunityBlocks,
+          burnCostTao: r.burnCostTao,
+        })),
     );
   }, [rows]);
 
-  // OPPORTUNITY-ENGINE — entry score (70%) × seat safety (30%) → one 0-100
-  // opportunity score and a blunt RUN / WATCH / AVOID verdict per earning
-  // subnet, ranked RUN-first for the strip. Declared BEFORE the table's sort
-  // memo — the Opportunity sort branch reads it.
-  const oppModel = useMemo(() => {
-    const items: OpportunityVerdict[] = [];
-    for (const r of rows) {
-      if (r.emissionTaoPerDay <= 0) continue;
-      const es = entryModel.byNetuid.get(r.netuid);
-      if (!es) continue;
-      items.push(computeOpportunityVerdict(es, seatTier(r)));
-    }
-    return {
-      byNetuid: new Map(items.map((o) => [o.netuid, o])),
-      ranked: rankOpportunityVerdicts(items),
-    };
-  }, [rows, entryModel]);
-
   const verdictCounts = useMemo(
     () =>
-      oppModel.ranked.reduce(
+      engineModel.ranked.reduce(
         (acc, o) => {
           acc[o.verdict] += 1;
           return acc;
         },
         { RUN: 0, WATCH: 0, AVOID: 0 } as Record<RunVerdict, number>,
       ),
-    [oppModel],
+    [engineModel],
   );
 
   const model = useMemo(() => {
@@ -295,7 +264,7 @@ export function EmissionLeaderboardPanel({
           // Mirror rankOpportunityVerdicts exactly (verdict → score → odds)
           // as one number: rank*1e6 dominates, score*1e3 spans 0-100k, odds
           // 0-100 fills the tail — so the table order matches the strip.
-          const o = oppModel.byNetuid.get(r.netuid);
+          const o = engineModel.byNetuid.get(r.netuid);
           return [
             o ? 0 : 1,
             o
@@ -306,7 +275,7 @@ export function EmissionLeaderboardPanel({
           ];
         }
         if (sort === "entry") {
-          const es = entryModel.byNetuid.get(r.netuid);
+          const es = engineModel.byNetuid.get(r.netuid)?.entry;
           return [es?.score != null ? 0 : 1, -(es?.score ?? 0)];
         }
         if (sort === "safest") {
@@ -327,7 +296,7 @@ export function EmissionLeaderboardPanel({
       });
     }
     return { active, total };
-  }, [rows, sort, entryModel, oppModel]);
+  }, [rows, sort, engineModel]);
 
   // Seat-band counts across the earning subnets, for the sort-row summary.
   const seatCounts = useMemo(() => {
@@ -434,12 +403,12 @@ export function EmissionLeaderboardPanel({
         {/* RANKED OPPORTUNITIES — the engine's action list: RUN first, then
             opportunity score desc. Top 8; the table's Opportunity column
             carries every row. */}
-        {oppModel.ranked.length > 0 && (
+        {engineModel.ranked.length > 0 && (
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
               Ranked opportunities
             </span>
-            {oppModel.ranked.slice(0, 8).map((o, i) => {
+            {engineModel.ranked.slice(0, 8).map((o, i) => {
               const row = rows.find((x) => x.netuid === o.netuid);
               const meta = RUN_VERDICT_STYLES[o.verdict];
               return (
@@ -633,7 +602,7 @@ export function EmissionLeaderboardPanel({
                     </td>
                     <td className="py-1.5 text-right">
                       {(() => {
-                        const es = entryModel.byNetuid.get(r.netuid);
+                        const es = engineModel.byNetuid.get(r.netuid)?.entry;
                         if (!es || es.score == null) {
                           return (
                             <span className="font-mono text-muted-foreground">—</span>
@@ -655,7 +624,7 @@ export function EmissionLeaderboardPanel({
                     </td>
                     <td className="py-1.5 text-right">
                       {(() => {
-                        const o = oppModel.byNetuid.get(r.netuid);
+                        const o = engineModel.byNetuid.get(r.netuid);
                         if (!o) {
                           return (
                             <span className="font-mono text-muted-foreground">—</span>

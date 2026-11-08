@@ -17,6 +17,12 @@ import { WinOddsPanel } from "@/components/cards/win-odds-panel";
 import { ProfitabilitySettingsDialog } from "@/components/cards/profitability-settings";
 import { CostBasisToggle } from "@/components/cards/cost-basis-toggle";
 import { useNetwork, mergeOpportunities } from "@/hooks/use-network";
+import {
+  rankOpportunitiesFromSubnets,
+  opportunityTooltip,
+  RUN_VERDICT_STYLES,
+  type RunVerdict,
+} from "@/lib/infranex/opportunity-engine";
 import { useProfitabilityConfig } from "@/hooks/use-profitability";
 import { useSubnetOverrides } from "@/hooks/use-subnet-overrides";
 import {
@@ -83,6 +89,48 @@ export function OpportunitiesView({ onSelectOpportunity, onStartMining }: Opport
     () => computeVerdictMapFor(opportunities as never, profConfig),
     [opportunities, profConfig]
   );
+  // OPPORTUNITY-ENGINE-3 — ONE vocabulary across pages: the same engine that
+  // stamps RUN/WATCH/AVOID on the Subnets leaderboard (entry score 70% ×
+  // seat safety 30%) decides the verdict here too. One helper computes both,
+  // so the two surfaces can never disagree on what RUN means.
+  const engineModel = useMemo(() => {
+    return rankOpportunitiesFromSubnets(
+      (snap?.subnets ?? [])
+        .filter((s) => (s.emissionTaoPerDay ?? 0) > 0)
+        .map((s) => ({
+          netuid: s.netuid,
+          minersCount: s.minersCount ?? null,
+          rewardedMiners: s.rewardedMiners ?? null,
+          top10IncentiveShare: s.top10IncentiveShare ?? null,
+          incentiveMedianShare: s.incentiveMedianShare ?? null,
+          minerEmissionTaoPerDay: s.minerEmissionTaoPerDay ?? 0,
+          maxUids: s.maxUids ?? null,
+          immunityBlocks: s.immunityBlocks ?? null,
+          burnCostTao: s.burnCostTao ?? null,
+        })),
+    );
+  }, [snap]);
+  // Fused verdict per row id: the engine verdict, demoted to AVOID only when
+  // the row's own P&L is negative (every epoch worked loses money — the one
+  // gate that outranks seat odds). Rows the engine can't see (no emission)
+  // fall back to the evidence verdict. The other evidence gates (below-
+  // target, payout, difficulty) stay visible per-row via the Action column
+  // and the ≥$300 markers — they no longer overwrite the shared vocabulary.
+  const fusedVerdictMap = useMemo(() => {
+    const m = new Map<string, RunVerdict>();
+    for (const o of opportunities) {
+      const key = o.id ?? "";
+      const engineV = engineModel.byNetuid.get(o.netuid);
+      if (!engineV) {
+        const legacy = verdictMap.get(key);
+        if (legacy) m.set(key, legacy);
+        continue;
+      }
+      const negativeNet = o.netMonthlyUsd != null && o.netMonthlyUsd < 0;
+      m.set(key, negativeNet ? "AVOID" : engineV.verdict);
+    }
+    return m;
+  }, [opportunities, engineModel, verdictMap]);
   const target = profConfig?.minNetProfitTargetUsd ?? 300;
   const passCount = opportunities.filter((o) => o.meetsMinimum !== false).length;
   // Mode-aware lens labels — must never say "Rented" while the cost basis is Owned.
@@ -118,15 +166,15 @@ export function OpportunitiesView({ onSelectOpportunity, onStartMining }: Opport
       else if (gf.maxVram === 0) r = r.filter((o) => o.minVramGb <= 0);
       else if (gf.maxVram != null) r = r.filter((o) => o.minVramGb <= gf.maxVram!);
     }
-    if (filter !== "all") r = r.filter((o) => verdictMap.get(o.id ?? "") === filter);
+    if (filter !== "all") r = r.filter((o) => fusedVerdictMap.get(o.id ?? "") === filter);
     return r;
-  }, [filter, gpuFilter, opportunities, pickMap, verdictMap]);
+  }, [filter, gpuFilter, opportunities, pickMap, fusedVerdictMap]);
 
   const tabs: { key: typeof filter; label: string; count: number }[] = [
     { key: "all", label: "All", count: filtered.length },
-    { key: "RUN", label: "RUN", count: filtered.filter((o) => verdictMap.get(o.id ?? "") === "RUN").length },
-    { key: "WATCH", label: "WATCH", count: filtered.filter((o) => verdictMap.get(o.id ?? "") === "WATCH").length },
-    { key: "AVOID", label: "AVOID", count: filtered.filter((o) => verdictMap.get(o.id ?? "") === "AVOID").length },
+    { key: "RUN", label: "RUN", count: filtered.filter((o) => fusedVerdictMap.get(o.id ?? "") === "RUN").length },
+    { key: "WATCH", label: "WATCH", count: filtered.filter((o) => fusedVerdictMap.get(o.id ?? "") === "WATCH").length },
+    { key: "AVOID", label: "AVOID", count: filtered.filter((o) => fusedVerdictMap.get(o.id ?? "") === "AVOID").length },
   ];
 
   return (
@@ -149,17 +197,19 @@ export function OpportunitiesView({ onSelectOpportunity, onStartMining }: Opport
             <span className="font-medium text-foreground/80">
               winner-take-all seats
             </span>
-            ) always sink a row, no matter how high the raw score. The seat
-            safety you saw on Subnets is now <em>inside</em> the score: whale
-            concentration caps miner competitiveness, and a Don&apos;t-enter
-            reward spread forces AVOID. Click a score for its evidence.{" "}
-            <span className="font-medium text-success">RUN</span> = evidence-backed
-            (positive net, verified payout, open reward spread, score ≥ 50) ·{" "}
-            <span className="font-medium text-warning">WATCH</span> = interesting,
-            evidence incomplete or a knife-fight spread ·{" "}
-            <span className="font-medium text-destructive">AVOID</span> = negative
-            economics, hardware-gated, whale-monopolized seats or below your
-            minimum.
+            ) always sink a row, no matter how high the raw score. The{" "}
+            <span className="font-medium text-primary">RUN / WATCH / AVOID verdict</span>{" "}
+            now speaks the same language as Subnets — the new-entrant engine
+            (entry score 70% + seat safety 30%) decides: grade A/B/C on a
+            field better than knife-fight ={" "}
+            <span className="font-medium text-success">RUN</span> · knife-fight
+            C or no data yet ={" "}
+            <span className="font-medium text-warning">WATCH</span> · grade D/F
+            or winner-take-all seats ={" "}
+            <span className="font-medium text-destructive">AVOID</span> — and a
+            negative P&amp;L (every epoch worked loses money) forces AVOID on
+            top. The Scale/Test/Watchlist/Avoid evidence chip stays per-row in
+            the Action column as the deployment lens.
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
             Minimum entry rule: net &lt;{" "}
@@ -229,7 +279,7 @@ export function OpportunitiesView({ onSelectOpportunity, onStartMining }: Opport
         pickFor={(o) => {
           const p = pickMap.get(o.id ?? "");
             return {
-              verdict: verdictMap.get(o.id ?? "") ?? p?.verdict,
+              verdict: fusedVerdictMap.get(o.id ?? "") ?? p?.verdict,
               netMonthly: p?.rent.expectedNetMonthlyUsd ?? null,
             };
         }}
@@ -301,11 +351,45 @@ export function OpportunitiesView({ onSelectOpportunity, onStartMining }: Opport
           </p>
         </CardHeader>
         <CardContent>
+          {/* OPPORTUNITY-ENGINE-3 — the same ranked strip as the Subnets
+              leaderboard: the new-entrant engine's action list, RUN first.
+              One helper computes both, so the verdicts can never disagree. */}
+          {engineModel.ranked.length > 0 && (
+            <div className="mb-3 flex flex-wrap items-center gap-1.5">
+              <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                Entry engine
+              </span>
+              {engineModel.ranked.slice(0, 8).map((o, i) => {
+                const meta = RUN_VERDICT_STYLES[o.verdict];
+                const name =
+                  opportunities.find((x) => x.netuid === o.netuid)?.subnetName ?? "";
+                return (
+                  <span
+                    key={o.netuid}
+                    className={cn(
+                      "inline-flex items-center gap-1 whitespace-nowrap rounded-full border px-2 py-0.5 text-[10px]",
+                      meta.chipClass,
+                    )}
+                    title={opportunityTooltip(o)}
+                  >
+                    <span className="font-mono text-muted-foreground/70">#{i + 1}</span>
+                    <span className="font-mono">SN{o.netuid}</span>
+                    <span className="font-medium text-foreground">{name}</span>
+                    <span className="font-mono font-semibold">{o.verdict}</span>
+                    {o.score != null && (
+                      <span className="font-mono text-muted-foreground">{o.score}</span>
+                    )}
+                  </span>
+                );
+              })}
+            </div>
+          )}
           {layout === "table" ? (
             <OpportunityTable
               opportunities={filtered}
               onSelect={onSelectOpportunity}
               onStartMining={onStartMining}
+              fusedVerdictMap={fusedVerdictMap}
             />
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

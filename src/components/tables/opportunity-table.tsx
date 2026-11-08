@@ -67,6 +67,7 @@ import {
 import { useOddsTrends } from "@/hooks/use-odds";
 import { useNetwork } from "@/hooks/use-network";
 import { useProfitabilityConfig } from "@/hooks/use-profitability";
+import type { RunVerdict } from "@/lib/infranex/opportunity-engine";
 import { Swords, AlertTriangle, Ban, ShieldCheck, Coins, Target, TrendingUp } from "lucide-react";
 import type { Opportunity } from "@/lib/infranex/types";
 
@@ -76,6 +77,10 @@ interface OpportunityTableProps {
   onStartMining?: (o: Opportunity) => void;
   className?: string;
   compact?: boolean;
+  /** OPPORTUNITY-ENGINE-3 — fused verdict map (row id → RUN/WATCH/AVOID)
+   *  from the new-entrant engine, shared with the view's tabs. When absent
+   *  the table falls back to its own evidence-derived verdicts. */
+  fusedVerdictMap?: Map<string, RunVerdict>;
 }
 
 type SortKey =
@@ -165,6 +170,7 @@ export function OpportunityTable({
   onStartMining,
   className,
   compact = false,
+  fusedVerdictMap,
 }: OpportunityTableProps) {
   const [sortKey, setSortKey] = useState<SortKey>("opportunity");
   const [dir, setDir] = useState<"asc" | "desc">("desc");
@@ -537,7 +543,7 @@ export function OpportunityTable({
                   dir={dir}
                   onSort={handleSort}
                 >
-                  <span title={`CONVICTION — the seat-quality lens (rent-earn × diligence × confidence). ${L.convictionStatTooltip} It ORDERS the list but no longer decides the verdict: RUN/WATCH/AVOID derive from the evidence score + classification (VERDICT-UNIFY-2) — RUN needs positive net, verified payout and score ≥ 50.`}>
+                  <span title={`CONVICTION — the seat-quality lens (rent-earn × diligence × confidence). ${L.convictionStatTooltip} It ORDERS the list but no longer decides the verdict: RUN/WATCH/AVOID come from the new-entrant Opportunity Engine (entry score 70% × seat safety 30% — the same verdict as the Subnets page); a negative P&L forces AVOID, and the Scale/Test/Watchlist/Avoid chip in Action carries the deployment evidence.`}>
                     Conviction
                   </span>
                 </SortableTh>
@@ -693,10 +699,16 @@ export function OpportunityTable({
                 const pick = pickMap.get(o.id);
                 const est = netEarningsMap.get(o.id);
                 const tao: TaoAccumulation | undefined = taoMap.get(o.id);
-                // VERDICT-UNIFY-2 — the chip reads the evidence-derived verdict;
-                // falls back to the conviction verdict only if the row is
-                // unclassifiable (both agree that nothing positive is claimed).
-                const uVerdict = verdictMap.get(o.id) ?? pick?.verdict ?? "WATCH";
+                // VERDICT-UNIFY-2 + OPPORTUNITY-ENGINE-3 — the chip prefers
+                // the fused verdict (new-entrant engine, negative-P&L
+                // demotion) passed from the view; falls back to the evidence
+                // verdict, then the conviction verdict, for rows the engine
+                // can't see (both agree nothing positive is claimed).
+                const uVerdict =
+                  fusedVerdictMap?.get(o.id) ??
+                  verdictMap.get(o.id) ??
+                  pick?.verdict ??
+                  "WATCH";
                 const vs = VERDICT_STYLE[uVerdict];
                 const risk = getStatusColor(o.riskLevel);
                 const prof = o.profitability;
