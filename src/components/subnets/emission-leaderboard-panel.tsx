@@ -17,6 +17,14 @@ import {
   ENTRY_GRADE_STYLES,
   type EntryScore,
 } from "@/lib/infranex/entry-score";
+import {
+  computeOpportunityVerdict,
+  rankOpportunityVerdicts,
+  RUN_VERDICT_STYLES,
+  RUN_VERDICT_RANK,
+  type OpportunityVerdict,
+  type RunVerdict,
+} from "@/lib/infranex/opportunity-engine";
 
 /**
  * EMISSION-LEADERBOARD — "Top Subnets by Current Emission Share".
@@ -105,6 +113,7 @@ function earningRatio(r: EmissionRow): number | null {
 }
 
 const SORTS = [
+  { key: "opportunity", label: "Opportunity" },
   { key: "emission", label: "Emission" },
   { key: "entry", label: "New entrant" },
   { key: "inclusive", label: "Most inclusive" },
@@ -139,6 +148,22 @@ function entryTooltip(es: EntryScore): string {
   }
   lines.push(
     "score = seats paid 40 · pot outside top-10% 35 · median fairness 10 · prize/seat 15 (mean-based estimate)",
+  );
+  return lines.join("\n");
+}
+
+// OPPORTUNITY-ENGINE tooltip — verdict, blended score and the reasons.
+function opportunityTooltip(o: OpportunityVerdict): string {
+  const lines: string[] = [];
+  lines.push(
+    `${o.verdict} — opportunity score ${o.score ?? "?"}/100` +
+      (o.entry.newcomerOddsPct != null
+        ? ` · est. month-1 odds for a fresh seat ${o.entry.newcomerOddsPct}%`
+        : ""),
+  );
+  lines.push(...o.reasons);
+  lines.push(
+    "score = entry score 70% + seat safety 30% (open 100 · fightable 65 · knife 25 · no-go 0) · verdict: grade A/B/C → RUN, knife-fight C or no data → WATCH, D/F or winner-take-all → AVOID",
   );
   return lines.join("\n");
 }
@@ -227,6 +252,36 @@ export function EmissionLeaderboardPanel({
     );
   }, [rows]);
 
+  // OPPORTUNITY-ENGINE — entry score (70%) × seat safety (30%) → one 0-100
+  // opportunity score and a blunt RUN / WATCH / AVOID verdict per earning
+  // subnet, ranked RUN-first for the strip. Declared BEFORE the table's sort
+  // memo — the Opportunity sort branch reads it.
+  const oppModel = useMemo(() => {
+    const items: OpportunityVerdict[] = [];
+    for (const r of rows) {
+      if (r.emissionTaoPerDay <= 0) continue;
+      const es = entryModel.byNetuid.get(r.netuid);
+      if (!es) continue;
+      items.push(computeOpportunityVerdict(es, seatTier(r)));
+    }
+    return {
+      byNetuid: new Map(items.map((o) => [o.netuid, o])),
+      ranked: rankOpportunityVerdicts(items),
+    };
+  }, [rows, entryModel]);
+
+  const verdictCounts = useMemo(
+    () =>
+      oppModel.ranked.reduce(
+        (acc, o) => {
+          acc[o.verdict] += 1;
+          return acc;
+        },
+        { RUN: 0, WATCH: 0, AVOID: 0 } as Record<RunVerdict, number>,
+      ),
+    [oppModel],
+  );
+
   const model = useMemo(() => {
     const active = rows.filter((r) => r.emissionTaoPerDay > 0);
     const total = active.reduce((acc, r) => acc + r.emissionTaoPerDay, 0);
@@ -236,6 +291,20 @@ export function EmissionLeaderboardPanel({
       // EARNING/TIER SORTS — rows the scan hasn't measured yet (no earning
       // ratio) always sink to the bottom in emission order.
       const key = (r: EmissionRow): [number, number] => {
+        if (sort === "opportunity") {
+          // Mirror rankOpportunityVerdicts exactly (verdict → score → odds)
+          // as one number: rank*1e6 dominates, score*1e3 spans 0-100k, odds
+          // 0-100 fills the tail — so the table order matches the strip.
+          const o = oppModel.byNetuid.get(r.netuid);
+          return [
+            o ? 0 : 1,
+            o
+              ? RUN_VERDICT_RANK[o.verdict] * 1e6 -
+                (o.score ?? -1) * 1e3 -
+                (o.entry.newcomerOddsPct ?? -1)
+              : 0,
+          ];
+        }
         if (sort === "entry") {
           const es = entryModel.byNetuid.get(r.netuid);
           return [es?.score != null ? 0 : 1, -(es?.score ?? 0)];
@@ -258,7 +327,7 @@ export function EmissionLeaderboardPanel({
       });
     }
     return { active, total };
-  }, [rows, sort, entryModel]);
+  }, [rows, sort, entryModel, oppModel]);
 
   // Seat-band counts across the earning subnets, for the sort-row summary.
   const seatCounts = useMemo(() => {
@@ -355,37 +424,41 @@ export function EmissionLeaderboardPanel({
             <span className="text-warning">{seatCounts.KNIFE_FIGHT} knife</span>{" · "}
             <span className="text-destructive">{seatCounts.DONT_ENTER} no-go</span>
             {seatCounts.unknown > 0 && <> · {seatCounts.unknown} no data</>}
+            {" · verdict: "}
+            <span className="text-success">{verdictCounts.RUN} run</span>{" · "}
+            <span className="text-warning">{verdictCounts.WATCH} watch</span>{" · "}
+            <span className="text-destructive">{verdictCounts.AVOID} avoid</span>
           </span>
         </div>
 
-        {/* ENTRY-PICKS — the five best new-entrant tables right now. */}
-        {entryModel.topPicks.length > 0 && (
+        {/* RANKED OPPORTUNITIES — the engine's action list: RUN first, then
+            opportunity score desc. Top 8; the table's Opportunity column
+            carries every row. */}
+        {oppModel.ranked.length > 0 && (
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
-              Entry picks
+              Ranked opportunities
             </span>
-            {entryModel.topPicks.map((p) => {
-              const row = rows.find((x) => x.netuid === p.netuid);
+            {oppModel.ranked.slice(0, 8).map((o, i) => {
+              const row = rows.find((x) => x.netuid === o.netuid);
+              const meta = RUN_VERDICT_STYLES[o.verdict];
               return (
                 <span
-                  key={p.netuid}
+                  key={o.netuid}
                   className={cn(
                     "inline-flex items-center gap-1 whitespace-nowrap rounded-full border px-2 py-0.5 text-[10px]",
-                    ENTRY_GRADE_STYLES[p.grade],
+                    meta.chipClass,
                   )}
-                  title={entryTooltip(p)}
+                  title={opportunityTooltip(o)}
                 >
-                  <span className="font-mono">SN{p.netuid}</span>
+                  <span className="font-mono text-muted-foreground/70">#{i + 1}</span>
+                  <span className="font-mono">SN{o.netuid}</span>
                   <span className="font-medium text-foreground">
                     {row?.displayName ?? ""}
                   </span>
-                  <span className="font-mono font-semibold">
-                    {p.grade}·{p.score}
-                  </span>
-                  {p.newcomerOddsPct != null && (
-                    <span className="text-muted-foreground">
-                      ≈{p.newcomerOddsPct}% odds
-                    </span>
+                  <span className="font-mono font-semibold">{o.verdict}</span>
+                  {o.score != null && (
+                    <span className="font-mono text-muted-foreground">{o.score}</span>
                   )}
                 </span>
               );
@@ -394,7 +467,7 @@ export function EmissionLeaderboardPanel({
         )}
 
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[1290px] text-left text-xs">
+          <table className="w-full min-w-[1400px] text-left text-xs">
             <thead>
               <tr className="border-b border-border/60 text-[10px] uppercase tracking-wide text-muted-foreground">
                 <th className="py-1.5 pr-2 font-medium">#</th>
@@ -409,6 +482,7 @@ export function EmissionLeaderboardPanel({
                 <th className="py-1.5 text-right font-medium" title="Miners earning / registered — UIDs that earned incentive (>0) last epoch, out of all registered miner UIDs">Miners earning</th>
                 <th className="py-1.5 text-right font-medium" title="Seat safety — Win-Odds tier from the earning ratio (share of registered miners paid last epoch) paired with the top-10% incentive concentration">Seat safety</th>
                 <th className="py-1.5 text-right font-medium" title="New-entrant score — 0-100 odds for a FRESH seat from breadth of paid seats, pot outside the top-10% cohort, median-earner fairness and TAO/day per earning seat; A = best odds. Hover for the full breakdown">Entry score</th>
+                <th className="py-1.5 text-right font-medium" title="Opportunity engine — entry score (70%) blended with seat safety (30%) into one 0-100 score, then a blunt action verdict: RUN = grade A/B/C on a field better than knife-fight · WATCH = grade C on a knife fight or no data yet · AVOID = grade D/F or winner-take-all. Hover a cell for the reasons">Opportunity</th>
               </tr>
             </thead>
             <tbody>
@@ -579,6 +653,30 @@ export function EmissionLeaderboardPanel({
                         );
                       })()}
                     </td>
+                    <td className="py-1.5 text-right">
+                      {(() => {
+                        const o = oppModel.byNetuid.get(r.netuid);
+                        if (!o) {
+                          return (
+                            <span className="font-mono text-muted-foreground">—</span>
+                          );
+                        }
+                        const meta = RUN_VERDICT_STYLES[o.verdict];
+                        return (
+                          <span
+                            className={cn(
+                              "inline-flex items-center gap-1 whitespace-nowrap rounded-full border px-2 py-0.5 text-[10px] font-medium",
+                              meta.chipClass,
+                            )}
+                            title={opportunityTooltip(o)}
+                          >
+                            <span className={cn("h-1.5 w-1.5 rounded-full", meta.dotClass)} />
+                            <span className="font-mono font-semibold">{o.verdict}</span>
+                            {o.score != null && <span className="font-mono">{o.score}</span>}
+                          </span>
+                        );
+                      })()}
+                    </td>
                   </tr>
                 );
               })}
@@ -603,6 +701,7 @@ export function EmissionLeaderboardPanel({
                   <td className="py-1.5 pr-2 text-right font-mono text-muted-foreground">
                     {fmt(restLanes.miner)}
                   </td>
+                  <td className="py-1.5 text-right">—</td>
                   <td className="py-1.5 text-right">—</td>
                   <td className="py-1.5 text-right">—</td>
                   <td className="py-1.5 text-right">—</td>
@@ -639,7 +738,12 @@ export function EmissionLeaderboardPanel({
             fairness 10 + TAO/day per earning seat 15, log-scaled; missing
             data drops out instead of being assumed — tooltips carry the
             factors, the est. month-1 odds and the ≈TAO/day for a new seat) ·
-            Entry picks = the five highest-scored earning subnets · Hardware =
+            Ranked opportunities = the engine&apos;s top-8 action list, RUN
+            first · Opportunity = entry score 70% + seat safety 30% blended
+            into one 0-100 score, then a blunt verdict — grade A/B/C on a
+            field better than knife-fight = RUN, grade C on a knife fight or
+            no score data yet = WATCH, grade D/F or winner-take-all seats =
+            AVOID · Hardware =
             GPU/CPU class + required GPU scraped from each subnet's repo
           </span>
         </div>
