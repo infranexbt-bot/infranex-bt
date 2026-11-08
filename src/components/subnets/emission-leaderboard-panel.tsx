@@ -31,6 +31,10 @@ export interface EmissionRow {
    *  is derived as emissionTaoPerDay × cut/(1−cut). */
   ownerCutPct: number | null;
   minersCount: number | null;
+  /** MINERS-EARNING — UIDs that actually earned incentive (>0) last epoch,
+   *  i.e. registered miners that were rewarded. Null when the chain scan
+   *  hasn't measured it yet. Displayed as "earning / registered". */
+  rewardedMiners: number | null;
   /** "GPU" | "CPU" | "unknown" — derived from the repo-scraped requirements. */
   hwClass: "GPU" | "CPU" | "unknown";
   /** e.g. "8× H200/B200-class node" — null when unknown. */
@@ -39,6 +43,16 @@ export interface EmissionRow {
 }
 
 const TOP_N_COLLAPSED = 20;
+/** Color for the earning-ratio micro-bar: emerald when most registered
+ *  miners are paid, amber when the reward is a knife fight, rose when
+ *  nobody earns (or the data is zero). */
+function earnBarClass(rewarded: number, registered: number) {
+  if (rewarded <= 0) return "bg-rose-500";
+  const ratio = registered > 0 ? rewarded / registered : 0;
+  if (ratio >= 0.5) return "bg-emerald-500";
+  if (ratio >= 0.2) return "bg-amber-500";
+  return "bg-orange-500";
+}
 /** Protocol-default owner cut (bittensor.com/docs/concepts/emissions — the
  *  default emission weight vector). Used when the chain's weight vector is
  *  unreadable for a subnet. */
@@ -161,7 +175,7 @@ export function EmissionLeaderboardPanel({
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[1020px] text-left text-xs">
+          <table className="w-full min-w-[1080px] text-left text-xs">
             <thead>
               <tr className="border-b border-border/60 text-[10px] uppercase tracking-wide text-muted-foreground">
                 <th className="py-1.5 pr-2 font-medium">#</th>
@@ -173,7 +187,7 @@ export function EmissionLeaderboardPanel({
                 <th className="py-1.5 pr-2 text-right font-medium" title="Owner lane — protocol cut taken before per-uid distribution (eTAO emission-weight vector; 18% default)">Owner τ/d</th>
                 <th className="py-1.5 pr-2 text-right font-medium" title="Validator lane — measured from live per-uid emission (dividends side)">Validator τ/d</th>
                 <th className="py-1.5 pr-2 text-right font-medium" title="Miner lane — measured from live per-uid emission (incentive uids); what miners compete for">Miner τ/d</th>
-                <th className="py-1.5 text-right font-medium">Miners</th>
+                <th className="py-1.5 text-right font-medium" title="Miners earning / registered — UIDs that earned incentive (>0) last epoch, out of all registered miner UIDs">Miners earning</th>
               </tr>
             </thead>
             <tbody>
@@ -266,8 +280,41 @@ export function EmissionLeaderboardPanel({
                         <span className="text-warning">0</span>
                       )}
                     </td>
-                    <td className="py-1.5 text-right font-mono text-muted-foreground">
-                      {r.minersCount ?? "—"}
+                    <td className="py-1.5 text-right">
+                      {r.minersCount != null || r.rewardedMiners != null ? (
+                        <div
+                          className="flex flex-col items-end gap-0.5"
+                          title={`${r.rewardedMiners ?? "?"} of ${r.minersCount ?? "?"} registered miners earned incentive last epoch — the rest hold a seat but earn nothing`}
+                        >
+                          <span className="font-mono">
+                            <span
+                              className={cn(
+                                r.rewardedMiners === 0 && "text-warning",
+                                r.rewardedMiners != null && r.rewardedMiners > 0 && "text-foreground",
+                              )}
+                            >
+                              {r.rewardedMiners ?? "—"}
+                            </span>
+                            <span className="text-muted-foreground">
+                              {" / "}
+                              {r.minersCount ?? "—"}
+                            </span>
+                            <span className="ml-1 text-[10px] text-muted-foreground/70">earning</span>
+                          </span>
+                          {r.rewardedMiners != null && r.minersCount != null && r.minersCount > 0 && (
+                            <div className="h-0.5 w-14 overflow-hidden rounded-full bg-muted/40">
+                              <div
+                                className={cn("h-full rounded-full", earnBarClass(r.rewardedMiners, r.minersCount))}
+                                style={{
+                                  width: `${Math.min(100, (r.rewardedMiners / r.minersCount) * 100)}%`,
+                                }}
+                              />
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="font-mono text-muted-foreground">—</span>
+                      )}
                     </td>
                   </tr>
                 );
@@ -317,7 +364,9 @@ export function EmissionLeaderboardPanel({
             paid before the per-uid distribution) · Validator & Miner =
             measured live from per-uid emission (0 in Miner = all
             emission flows validator-side) · TAO/day is the neuron side, so
-            Owner + Validator + Miner = the whole-subnet emission · Hardware =
+            Owner + Validator + Miner = the whole-subnet emission · Miners
+            earning = UIDs with incentive &gt; 0 last epoch out of all registered
+            miner UIDs (bar: share of miners actually paid) · Hardware =
             GPU/CPU class + required GPU scraped from each subnet's repo
           </span>
         </div>

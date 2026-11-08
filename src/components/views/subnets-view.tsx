@@ -72,6 +72,7 @@ export function SubnetsView() {
         minerEmissionTaoPerDay: s.minerEmissionTaoPerDay ?? 0,
         ownerCutPct: s.ownerCutPct ?? null,
         minersCount: s.minersCount ?? null,
+        rewardedMiners: s.rewardedMiners ?? null,
         hwClass: isCpu ? "CPU" : gpuReq ? "GPU" : "unknown",
         gpuReq: isCpu ? null : gpuReq,
         minVramGb: hw?.minVramGb ?? null,
