@@ -6,6 +6,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TrendingUp, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  computeRawWinTier,
+  WIN_TIER_STYLES,
+  WIN_TIER_RANK,
+  type WinTier,
+} from "@/lib/infranex/win-odds";
 
 /**
  * EMISSION-LEADERBOARD — "Top Subnets by Current Emission Share".
@@ -35,6 +41,10 @@ export interface EmissionRow {
    *  i.e. registered miners that were rewarded. Null when the chain scan
    *  hasn't measured it yet. Displayed as "earning / registered". */
   rewardedMiners: number | null;
+  /** SEAT-SAFETY input — share of last-epoch incentive captured by the top
+   *  10% of UIDs (0-1). Paired with the earning ratio into the Win-Odds
+   *  tier (computeRawWinTier) shown in the Seat safety column. */
+  top10IncentiveShare: number | null;
   /** "GPU" | "CPU" | "unknown" — derived from the repo-scraped requirements. */
   hwClass: "GPU" | "CPU" | "unknown";
   /** e.g. "8× H200/B200-class node" — null when unknown. */
@@ -43,6 +53,52 @@ export interface EmissionRow {
 }
 
 const TOP_N_COLLAPSED = 20;
+
+// SEAT-SAFETY — earning ratio + top-10% incentive concentration → Win-Odds
+// tier (same thresholds as the Miner Fit / Win Odds panel, one taxonomy
+// across the app: Open field → Fightable → Knife fight → Don't enter).
+function seatTier(r: EmissionRow): WinTier | null {
+  return computeRawWinTier({
+    minersCount: r.minersCount,
+    rewardedMiners: r.rewardedMiners,
+    top10IncentiveShare: r.top10IncentiveShare,
+  });
+}
+
+function seatTooltip(r: EmissionRow, tier: WinTier): string {
+  const bits: string[] = [];
+  if (r.rewardedMiners != null && r.minersCount != null && r.minersCount > 0) {
+    const pct = Math.round((r.rewardedMiners / r.minersCount) * 100);
+    bits.push(
+      `${r.rewardedMiners}/${r.minersCount} miners paid last epoch (${pct}%)`,
+    );
+  }
+  if (r.top10IncentiveShare != null) {
+    bits.push(
+      `top-10% of UIDs take ${Math.round(r.top10IncentiveShare * 100)}% of incentives`,
+    );
+  }
+  bits.push(WIN_TIER_STYLES[tier].headline);
+  return bits.join(" · ");
+}
+
+// EARNING-RATIO SORT — share of registered miners that were paid last
+// epoch. Null (scan hasn't measured this subnet yet) always sinks last.
+function earningRatio(r: EmissionRow): number | null {
+  return r.rewardedMiners != null &&
+    r.minersCount != null &&
+    r.minersCount > 0
+    ? r.rewardedMiners / r.minersCount
+    : null;
+}
+
+const SORTS = [
+  { key: "emission", label: "Emission" },
+  { key: "inclusive", label: "Most inclusive" },
+  { key: "exclusive", label: "Most exclusive" },
+  { key: "safest", label: "Safest seats" },
+] as const;
+type SortKey = (typeof SORTS)[number]["key"];
 /** Color for the earning-ratio micro-bar: emerald when most registered
  *  miners are paid, amber when the reward is a knife fight, rose when
  *  nobody earns (or the data is zero). */
@@ -115,14 +171,53 @@ export function EmissionLeaderboardPanel({
   isLoading?: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const [sort, setSort] = useState<SortKey>("emission");
 
   const model = useMemo(() => {
-    const active = rows
-      .filter((r) => r.emissionTaoPerDay > 0)
-      .sort((a, b) => b.emissionTaoPerDay - a.emissionTaoPerDay);
+    const active = rows.filter((r) => r.emissionTaoPerDay > 0);
     const total = active.reduce((acc, r) => acc + r.emissionTaoPerDay, 0);
+    if (sort === "emission") {
+      active.sort((a, b) => b.emissionTaoPerDay - a.emissionTaoPerDay);
+    } else {
+      // EARNING/TIER SORTS — rows the scan hasn't measured yet (no earning
+      // ratio) always sink to the bottom in emission order.
+      const key = (r: EmissionRow): [number, number] => {
+        if (sort === "safest") {
+          const tier = seatTier(r);
+          const rank = tier ? WIN_TIER_RANK[tier] : 4;
+          return [tier ? 0 : 1, rank * 1000 - (earningRatio(r) ?? 0)];
+        }
+        const ratio = earningRatio(r);
+        if (ratio == null) return [1, 0];
+        return [0, sort === "inclusive" ? -ratio : ratio];
+      };
+      active.sort((a, b) => {
+        const [ga, va] = key(a);
+        const [gb, vb] = key(b);
+        return (
+          ga - gb || va - vb || b.emissionTaoPerDay - a.emissionTaoPerDay
+        );
+      });
+    }
     return { active, total };
-  }, [rows]);
+  }, [rows, sort]);
+
+  // Seat-band counts across the earning subnets, for the sort-row summary.
+  const seatCounts = useMemo(() => {
+    const c = {
+      OPEN_FIELD: 0,
+      FIGHTABLE: 0,
+      KNIFE_FIGHT: 0,
+      DONT_ENTER: 0,
+      unknown: 0,
+    };
+    for (const r of model.active) {
+      const t = seatTier(r);
+      if (t) c[t] += 1;
+      else c.unknown += 1;
+    }
+    return c;
+  }, [model.active]);
 
   if (isLoading || model.total <= 0) {
     return (
@@ -174,8 +269,39 @@ export function EmissionLeaderboardPanel({
           </span>
         </div>
 
+        {/* SORT + SEAT-BAND SUMMARY — re-rank the same earning set by how
+            widely its rewards spread (inclusive vs exclusive) or by the
+            Win-Odds seat tier. */}
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
+            Sort
+          </span>
+          {SORTS.map((s) => (
+            <button
+              key={s.key}
+              onClick={() => setSort(s.key)}
+              className={cn(
+                "rounded-full border px-2.5 py-0.5 text-[11px] transition-colors",
+                sort === s.key
+                  ? "border-primary/60 bg-primary/10 text-primary"
+                  : "border-border/60 text-muted-foreground hover:border-border hover:text-foreground",
+              )}
+            >
+              {s.label}
+            </button>
+          ))}
+          <span className="ml-auto text-[10px] text-muted-foreground">
+            seat safety:{" "}
+            <span className="text-success">{seatCounts.OPEN_FIELD} open</span>{" · "}
+            <span className="text-primary">{seatCounts.FIGHTABLE} fightable</span>{" · "}
+            <span className="text-warning">{seatCounts.KNIFE_FIGHT} knife</span>{" · "}
+            <span className="text-destructive">{seatCounts.DONT_ENTER} no-go</span>
+            {seatCounts.unknown > 0 && <> · {seatCounts.unknown} no data</>}
+          </span>
+        </div>
+
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[1080px] text-left text-xs">
+          <table className="w-full min-w-[1180px] text-left text-xs">
             <thead>
               <tr className="border-b border-border/60 text-[10px] uppercase tracking-wide text-muted-foreground">
                 <th className="py-1.5 pr-2 font-medium">#</th>
@@ -188,6 +314,7 @@ export function EmissionLeaderboardPanel({
                 <th className="py-1.5 pr-2 text-right font-medium" title="Validator lane — measured from live per-uid emission (dividends side)">Validator τ/d</th>
                 <th className="py-1.5 pr-2 text-right font-medium" title="Miner lane — measured from live per-uid emission (incentive uids); what miners compete for">Miner τ/d</th>
                 <th className="py-1.5 text-right font-medium" title="Miners earning / registered — UIDs that earned incentive (>0) last epoch, out of all registered miner UIDs">Miners earning</th>
+                <th className="py-1.5 text-right font-medium" title="Seat safety — Win-Odds tier from the earning ratio (share of registered miners paid last epoch) paired with the top-10% incentive concentration">Seat safety</th>
               </tr>
             </thead>
             <tbody>
@@ -316,6 +443,26 @@ export function EmissionLeaderboardPanel({
                         <span className="font-mono text-muted-foreground">—</span>
                       )}
                     </td>
+                    <td className="py-1.5 text-right">
+                      {(() => {
+                        const tier = seatTier(r);
+                        const meta = WIN_TIER_STYLES[tier ?? "UNKNOWN"];
+                        return (
+                          <span
+                            className={cn(
+                              "inline-flex items-center gap-1 whitespace-nowrap rounded-full border px-2 py-0.5 text-[10px] font-medium",
+                              meta.chipClass,
+                            )}
+                            title={seatTooltip(r, tier ?? "UNKNOWN")}
+                          >
+                            <span
+                              className={cn("h-1.5 w-1.5 rounded-full", meta.dotClass)}
+                            />
+                            {meta.label}
+                          </span>
+                        );
+                      })()}
+                    </td>
                   </tr>
                 );
               })}
@@ -340,6 +487,7 @@ export function EmissionLeaderboardPanel({
                   <td className="py-1.5 pr-2 text-right font-mono text-muted-foreground">
                     {fmt(restLanes.miner)}
                   </td>
+                  <td className="py-1.5 text-right">—</td>
                   <td className="py-1.5 text-right">—</td>
                 </tr>
               )}
@@ -366,7 +514,10 @@ export function EmissionLeaderboardPanel({
             emission flows validator-side) · TAO/day is the neuron side, so
             Owner + Validator + Miner = the whole-subnet emission · Miners
             earning = UIDs with incentive &gt; 0 last epoch out of all registered
-            miner UIDs (bar: share of miners actually paid) · Hardware =
+            miner UIDs (bar: share of miners actually paid) · Seat safety =
+            Win-Odds tier pairing the earning ratio with the top-10% incentive
+            concentration (Open field → Fightable → Knife fight → Don&apos;t
+            enter) · Hardware =
             GPU/CPU class + required GPU scraped from each subnet's repo
           </span>
         </div>

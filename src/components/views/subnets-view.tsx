@@ -73,6 +73,7 @@ export function SubnetsView() {
         ownerCutPct: s.ownerCutPct ?? null,
         minersCount: s.minersCount ?? null,
         rewardedMiners: s.rewardedMiners ?? null,
+        top10IncentiveShare: s.top10IncentiveShare ?? null,
         hwClass: isCpu ? "CPU" : gpuReq ? "GPU" : "unknown",
         gpuReq: isCpu ? null : gpuReq,
         minVramGb: hw?.minVramGb ?? null,
