@@ -1,5 +1,6 @@
 import type { LiveOpportunity } from "./live-merge";
 import { resolveCompat, type CompatTier } from "./compat";
+import { computeSeatTierFromRatio } from "./win-odds";
 
 // ---------------------------------------------------------------------------
 // OPPORTUNITY-SCORE-2 — the per-subnet Opportunity Score (0–100), the core
@@ -126,7 +127,8 @@ export type OpportunityGateKind =
   | "HARDWARE_INCOMPATIBLE"
   | "PAYOUT_UNVERIFIED"
   | "NET_NEGATIVE"
-  | "NET_BELOW_TARGET";
+  | "NET_BELOW_TARGET"
+  | "SEAT_MONOPOLIZED";
 
 export interface OpportunityGate {
   kind: OpportunityGateKind;
@@ -285,6 +287,33 @@ function scoreMinerCompetitiveness(o: LiveOpportunity): OpportunityScoreComponen
   if (chance) {
     ev.push(chance.note);
     points = points * 0.7 + clamp(chance.pct, 0, 100) * 0.3;
+  }
+  // SEAT-SAFETY (ENTRY-SCORE-2) — whale concentration caps this component
+  // using the same Win-Odds taxonomy the Subnets seat chips show: breadth
+  // alone is not competitiveness if the top-10% cohort eats the pot.
+  const seatTier = computeSeatTierFromRatio({
+    rewardedRatio: ratio,
+    top10IncentiveShare: o.top10IncentiveShare,
+  });
+  if (o.top10IncentiveShare != null) {
+    const takePct = Math.round(o.top10IncentiveShare * 100);
+    if (seatTier === "OPEN_FIELD") {
+      ev.push(
+        `Top-10% of UIDs take ${takePct}% of the pot — ${100 - takePct}% stays open to the other 90% of miners.`,
+      );
+    } else {
+      ev.push(`Top-10% of UIDs take ${takePct}% of the pot.`);
+    }
+  }
+  if (seatTier === "DONT_ENTER") {
+    points = Math.min(points, 15);
+    ev.push("Winner-take-all reward spread — a new seat earns ≈ nothing; component floored.");
+  } else if (seatTier === "KNIFE_FIGHT") {
+    points = Math.min(points, 35);
+    ev.push("Knife-fight reward spread — pro farms take most of the pot; component capped.");
+  } else if (seatTier === "FIGHTABLE") {
+    points = Math.min(points, 65);
+    ev.push("Whale-heavy reward spread — real odds, but concentration holds this component down.");
   }
   if (o.liveMiners != null) {
     ev.push(`≈${o.liveMiners} registered miners observed on chain.`);
@@ -611,6 +640,27 @@ function computeGates(o: LiveOpportunity, ctx: OpportunityScoreContext): Opportu
       detail: `Net profit is below your $${Math.round(ctx.minNetTargetUsd ?? 300)}/mo minimum — viable only if you accept less.`,
     });
   }
+  // SEAT-MONOPOLY GATE (ENTRY-SCORE-2) — the same Win-Odds taxonomy the
+  // Subnets seat-safety chips use, now gating the Opportunity Score: a
+  // winner-take-all reward spread means the headline $/mo is a mean over a
+  // few earning whales and a NEW seat earns ≈ nothing. Hard gate — caps the
+  // effective score at 20 and sinks the row below every ungated one.
+  const seat = computeSeatTierFromRatio({
+    rewardedRatio: o.rewardedRatio,
+    top10IncentiveShare: o.top10IncentiveShare,
+  });
+  if (seat === "DONT_ENTER") {
+    const bits: string[] = [];
+    if (o.rewardedRatio != null)
+      bits.push(`${Math.round(o.rewardedRatio * 100)}% of seats earned last epoch`);
+    if (o.top10IncentiveShare != null)
+      bits.push(`top-10% of UIDs take ${Math.round(o.top10IncentiveShare * 100)}% of the incentive`);
+    gates.push({
+      kind: "SEAT_MONOPOLIZED",
+      label: "Winner-take-all seats",
+      detail: `Reward spread is winner-take-all (${bits.join(" · ") || "no measurable reward breadth"}) — a NEW seat earns ≈ nothing here regardless of the per-miner economics, which describe the whale cohort, not the seat you would get.`,
+    });
+  }
   return gates;
 }
 
@@ -619,6 +669,7 @@ const GATE_CAPS: Record<OpportunityGateKind, number> = {
   PAYOUT_UNVERIFIED: 49,
   NET_NEGATIVE: 15,
   NET_BELOW_TARGET: 35,
+  SEAT_MONOPOLIZED: 20,
 };
 
 function bandOf(score: number): OpportunityBand {

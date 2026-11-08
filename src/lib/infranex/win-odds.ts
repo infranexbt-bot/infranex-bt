@@ -256,6 +256,42 @@ export const WIN_TIER_RANK: Record<WinTier, number> = {
 };
 
 /**
+ * Raw seat tier from the live-merge field shape (a measured rewarded RATIO +
+ * top-10% concentration) — the single owner of the tier thresholds;
+ * computeRawWinTier (chain-snapshot shape) delegates here and the
+ * opportunity score / classification engines reuse it so the Subnets seat
+ * chips, the Win-Odds panel and the Opportunity verdicts can never disagree.
+ * Returns null when neither input is known.
+ */
+export function computeSeatTierFromRatio(sub: {
+  rewardedRatio?: number | null;
+  top10IncentiveShare?: number | null;
+}): WinTier | null {
+  const ratio = sub.rewardedRatio ?? null;
+  const top10 = sub.top10IncentiveShare ?? null;
+  if (ratio == null && top10 == null) return null;
+  if (
+    (ratio != null && ratio < 0.05) ||
+    (top10 != null && top10 >= 0.95)
+  ) {
+    return "DONT_ENTER";
+  }
+  if (
+    (ratio != null && ratio < 0.2) ||
+    (top10 != null && top10 >= 0.85)
+  ) {
+    return "KNIFE_FIGHT";
+  }
+  if (
+    (ratio != null && ratio < 0.5) ||
+    (top10 != null && top10 >= 0.5)
+  ) {
+    return "FIGHTABLE";
+  }
+  return "OPEN_FIELD";
+}
+
+/**
  * Raw tier from ONLY the fields persisted in ChainSnapshot.subnetsJson
  * (rewardedMiners/minersCount/top10IncentiveShare/rewardMedianShare) —
  * same thresholds as computeWinOdds minus the merge-time discounts
@@ -275,26 +311,5 @@ export function computeRawWinTier(sub: {
   const top10 = sub.top10IncentiveShare ?? null;
   if ((rewarded == null && top10 == null) || miners <= 0) return null;
   const rewardedRatio = rewarded != null ? rewarded / miners : null;
-
-  if (
-    (rewardedRatio != null && rewardedRatio < 0.05) ||
-    (top10 != null && top10 >= 0.95)
-  ) {
-    return "DONT_ENTER";
-  }
-  if (
-    (rewardedRatio != null && rewardedRatio < 0.2) ||
-    (top10 != null && top10 >= 0.85)
-  ) {
-    return "KNIFE_FIGHT";
-  }
-  // Without month-1 odds, a spread of <50% rewarded or whales ≥50% is at
-  // best fightable — matches the panel's FIGHTABLE preconditions.
-  if (
-    (rewardedRatio != null && rewardedRatio < 0.5) ||
-    (top10 != null && top10 >= 0.5)
-  ) {
-    return "FIGHTABLE";
-  }
-  return "OPEN_FIELD";
+  return computeSeatTierFromRatio({ rewardedRatio, top10IncentiveShare: top10 });
 }

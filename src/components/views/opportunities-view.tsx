@@ -142,17 +142,24 @@ export function OpportunitiesView({ onSelectOpportunity, onStartMining }: Opport
           <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
             ONE ranked list, ONE core number. The{" "}
             <span className="font-medium text-primary">Opportunity Score</span>{" "}
-            (/100 = net contribution 30 · miner performance 20 · hardware fit 20
-            · entry risk 15 · data quality 15) ranks the table — hard gates
-            (hardware mismatch, unverified payout, negative net) always sink a
-            row, no matter how high the raw score. Click a score for its
-            evidence.{" "}
+            (/100 = net contribution 30 · miner competitiveness 20 · reward
+            sustainability 15 · validator acceptance 10 · GPU cost efficiency
+            10 · operational reliability 10 · risk 5) ranks the table — hard
+            gates (hardware mismatch, unverified payout, negative net,{" "}
+            <span className="font-medium text-foreground/80">
+              winner-take-all seats
+            </span>
+            ) always sink a row, no matter how high the raw score. The seat
+            safety you saw on Subnets is now <em>inside</em> the score: whale
+            concentration caps miner competitiveness, and a Don&apos;t-enter
+            reward spread forces AVOID. Click a score for its evidence.{" "}
             <span className="font-medium text-success">RUN</span> = evidence-backed
-            (positive net, verified payout, score ≥ 50) ·{" "}
+            (positive net, verified payout, open reward spread, score ≥ 50) ·{" "}
             <span className="font-medium text-warning">WATCH</span> = interesting,
-            evidence incomplete ·{" "}
+            evidence incomplete or a knife-fight spread ·{" "}
             <span className="font-medium text-destructive">AVOID</span> = negative
-            economics, hardware-gated or below your minimum.
+            economics, hardware-gated, whale-monopolized seats or below your
+            minimum.
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
             Minimum entry rule: net &lt;{" "}

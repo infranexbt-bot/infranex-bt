@@ -2,6 +2,7 @@ import type { LiveOpportunity } from "./live-merge";
 import type { SubnetOpportunityScore } from "./subnet-opportunity";
 import type { NetEarningsEstimate } from "./net-earnings";
 import type { EntryDifficultyVerdict } from "./entry-difficulty";
+import { computeSeatTierFromRatio } from "./win-odds";
 
 // ---------------------------------------------------------------------------
 // OPPORTUNITY-CLASS-1 — the four-way action classification.
@@ -102,6 +103,51 @@ export function computeOpportunityClass(
       headline: "Do not deploy — the refusal reasons below are hard, not stylistic.",
       reasons: avoidReasons,
       upgradePath: null,
+    };
+  }
+
+  // --- SEAT-SAFETY (ENTRY-SCORE-2) — the Win-Odds taxonomy gates the tiers.
+  // Same thresholds as the Subnets seat chips and the score's
+  // SEAT_MONOPOLIZED gate: a winner-take-all reward spread is a hard refusal
+  // (the economics describe the whale cohort, not a newcomer's seat), and a
+  // knife fight is never more than WATCHLIST regardless of the P&L.
+  const seatTier = computeSeatTierFromRatio({
+    rewardedRatio: o.rewardedRatio,
+    top10IncentiveShare: o.top10IncentiveShare,
+  });
+  if (seatTier === "DONT_ENTER") {
+    const bits: string[] = [];
+    if (o.rewardedRatio != null)
+      bits.push(`only ${Math.round(o.rewardedRatio * 100)}% of seats earned last epoch`);
+    if (o.top10IncentiveShare != null)
+      bits.push(`the top-10% of UIDs take ${Math.round(o.top10IncentiveShare * 100)}% of the incentive`);
+    return {
+      id: o.id,
+      netuid: o.netuid,
+      action: "AVOID",
+      headline: "Do not enter — winner-take-all reward spread; a new seat earns ≈ nothing.",
+      reasons: [
+        `${bits.join(" · ") || "No measurable reward breadth"}.`,
+        "The per-miner economics describe the whale cohort, not the seat a newcomer actually gets.",
+        ...avoidReasons,
+      ],
+      upgradePath:
+        "Re-classifies when the spread opens: ≥ 5% of seats earning AND top-10% share < 95%.",
+    };
+  }
+  if (seatTier === "KNIFE_FIGHT") {
+    return {
+      id: o.id,
+      netuid: o.netuid,
+      action: "WATCHLIST",
+      headline: "Knife fight — pro farms take most of the pot; watch, don't deploy.",
+      reasons: [
+        `${o.rewardedRatio != null ? `${Math.round(o.rewardedRatio * 100)}% of seats earned last epoch` : "Reward breadth unmeasured"}${o.top10IncentiveShare != null ? ` · top-10% of UIDs take ${Math.round(o.top10IncentiveShare * 100)}% of the incentive` : ""}.`,
+        "Even with positive economics a new seat competes for the scraps outside the whale cohort.",
+        ...avoidReasons,
+      ],
+      upgradePath:
+        "Re-classifies when breadth ≥ 20% of seats earning AND top-10% share < 85%.",
     };
   }
 
