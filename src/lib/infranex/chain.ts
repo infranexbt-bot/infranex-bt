@@ -221,6 +221,15 @@ export interface LiveSubnetMetrics {
   emissionTaoPerDay: number | null;
   /** Emission flowing to miners (incentive uids) in TAO per day. */
   minerEmissionTaoPerDay: number | null;
+  /** EMISSION-SPLIT (eTAO) — the subnet owner's slot of the on-chain
+   *  emission-weight vector [burn, recycle, owner, validator, miner], as a
+   *  fraction of the WHOLE subnet emission (0.18 = protocol default; SN8
+   *  runs 0.0). The owner cut is taken BEFORE the per-uid distribution, so
+   *  it never appears in the per-uid Emission vec that emissionTaoPerDay
+   *  sums — consumers derive the owner lane as
+   *  emissionTaoPerDay × cut/(1−cut). Null when the weight vector is
+   *  missing or degenerate (UI falls back to the 18% default). */
+  ownerCutPct: number | null;
   /** REALIZABILITY-AUDIT — average TAO per α actually received when the
    *  subnet's whole daily neuron α flow (α/block × 7200) is sold back into
    *  its own pool. Balancer sell (pallets/swap balancer.rs, near-50/50
@@ -703,6 +712,7 @@ class SnapshotCache {
           maxUidsArr,
           burnArr,
           immunityArr,
+          emissionWeightsArr,
         ] = await Promise.all([
           multi(mods.emission as never),
           multi(mods.incentive as never),
@@ -713,6 +723,10 @@ class SnapshotCache {
           multi(mods.maxAllowedUids as never),
           multi(mods.burn as never),
           multi(mods.immunityPeriod as never),
+          // EMISSION-SPLIT: per-subnet emission weight vector — owner slot
+          // read live so owner-configured cuts (eTAO, since Oct 2026) show
+          // the REAL split, not the 18% default.
+          multi(mods.subnetEmissionWeights as never),
         ]);
 
         const numVec = (raw: unknown): number[] => {
@@ -832,6 +846,31 @@ class SnapshotCache {
               minerAlphaRao + validatorAlphaRao > 0
                 ? minerAlphaRao / (minerAlphaRao + validatorAlphaRao)
                 : 0.5;
+            // EMISSION-SPLIT (eTAO) — owner slot as a fraction of the whole
+            // subnet emission. The vec is [burn, recycle, owner, validator,
+            // miner] u64 weights; u64s serialize as numbers (<2^53) or 0x
+            // hex strings (≥2^53). Burn/recycle slots are excluded — they
+            // don't reach the owner/validator/miner lanes. Degenerate vecs
+            // (missing, short, or zero lane sum) → null → UI default 18%.
+            const u64Of = (v: unknown): bigint => {
+              if (typeof v === "string") {
+                return BigInt(v.startsWith("0x") ? v : v === "" ? "0" : v);
+              }
+              return BigInt(Math.trunc(Number(v) || 0));
+            };
+            const wRaw = (
+              emissionWeightsArr[j] as { toJSON?: () => unknown } | null
+            )?.toJSON?.();
+            const wArr = Array.isArray(wRaw) ? wRaw : [];
+            const ZERO = BigInt(0);
+            const wOwner = wArr.length >= 5 ? u64Of(wArr[2]) : ZERO;
+            const wValidator = wArr.length >= 5 ? u64Of(wArr[3]) : ZERO;
+            const wMiner = wArr.length >= 5 ? u64Of(wArr[4]) : ZERO;
+            const wLaneSum = wOwner + wValidator + wMiner;
+            const ownerCutPct =
+              wArr.length >= 5 && wLaneSum > ZERO
+                ? Number(wOwner) / Number(wLaneSum)
+                : null;
 
             // --- On-chain identity / owner / registration age ---
             const identityOpt = identitiesArr[j] as {
@@ -939,6 +978,7 @@ class SnapshotCache {
               emissionTaoPerDay: emissionPerDayTao > 0 ? emissionPerDayTao : null,
               minerEmissionTaoPerDay:
                 emissionPerDayTao > 0 ? emissionPerDayTao * minerShare : null,
+              ownerCutPct,
               realizablePriceTao,
               rewardRealizability,
               dilutionRatio,

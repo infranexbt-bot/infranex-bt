@@ -70,6 +70,7 @@ export function SubnetsView() {
         displayName: hw?.name ?? s.name ?? `SN ${s.netuid}`,
         emissionTaoPerDay: s.emissionTaoPerDay ?? 0,
         minerEmissionTaoPerDay: s.minerEmissionTaoPerDay ?? 0,
+        ownerCutPct: s.ownerCutPct ?? null,
         minersCount: s.minersCount ?? null,
         hwClass: isCpu ? "CPU" : gpuReq ? "GPU" : "unknown",
         gpuReq: isCpu ? null : gpuReq,

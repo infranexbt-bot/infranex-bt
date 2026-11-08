@@ -22,6 +22,14 @@ export interface EmissionRow {
   displayName: string;
   emissionTaoPerDay: number;
   minerEmissionTaoPerDay: number;
+  /** EMISSION-SPLIT (eTAO) — owner slot as a fraction of the WHOLE subnet
+   *  emission, read live from the chain's emission-weight vector. Null →
+   *  protocol default 18% (docs: "Subnets that have never changed it keep
+   *  the historical split: 18% owner / 41% validator / 41% miner"). The
+   *  owner cut is taken BEFORE the per-uid distribution, so the neuron-side
+   *  emissionTaoPerDay covers only the (1 − cut) remainder — the owner lane
+   *  is derived as emissionTaoPerDay × cut/(1−cut). */
+  ownerCutPct: number | null;
   minersCount: number | null;
   /** "GPU" | "CPU" | "unknown" — derived from the repo-scraped requirements. */
   hwClass: "GPU" | "CPU" | "unknown";
@@ -31,6 +39,10 @@ export interface EmissionRow {
 }
 
 const TOP_N_COLLAPSED = 20;
+/** Protocol-default owner cut (bittensor.com/docs/concepts/emissions — the
+ *  default emission weight vector). Used when the chain's weight vector is
+ *  unreadable for a subnet. */
+const DEFAULT_OWNER_CUT = 0.18;
 const BAR_COLORS = [
   "bg-emerald-500", "bg-cyan-500", "bg-violet-500", "bg-amber-500",
   "bg-sky-500", "bg-rose-500", "bg-lime-500", "bg-orange-500",
@@ -52,6 +64,31 @@ function hwBadgeClass(hw: EmissionRow["hwClass"]) {
     default:
       return "border-border/60 text-muted-foreground";
   }
+}
+
+/** EMISSION-SPLIT — derive the Owner / Validator / Miner lanes (TAO/day) for
+ *  a row, so O + V + M = the whole-subnet emission. The measured per-uid
+ *  value (emissionTaoPerDay) is the NEURON side: it already contains the
+ *  realized validator+miner split but NOT the owner cut, which the chain
+ *  pays out before the per-uid distribution — hence owner = E × cut/(1−cut)
+ *  and whole = E / (1−cut). */
+function laneSplit(r: EmissionRow): {
+  oc: number;
+  ownerTao: number;
+  validatorTao: number;
+  minerTao: number;
+  wholeTao: number;
+} {
+  const oc = Math.min(Math.max(r.ownerCutPct ?? DEFAULT_OWNER_CUT, 0), 0.66);
+  const wholeTao =
+    oc < 1 && r.emissionTaoPerDay > 0 ? r.emissionTaoPerDay / (1 - oc) : 0;
+  const ownerTao = wholeTao * oc;
+  const minerTao = Math.min(
+    Math.max(r.minerEmissionTaoPerDay, 0),
+    r.emissionTaoPerDay
+  );
+  const validatorTao = Math.max(r.emissionTaoPerDay - minerTao, 0);
+  return { oc, ownerTao, validatorTao, minerTao, wholeTao };
 }
 
 export function EmissionLeaderboardPanel({
@@ -87,6 +124,17 @@ export function EmissionLeaderboardPanel({
   const visible = expanded ? active : active.slice(0, TOP_N_COLLAPSED);
   const rest = active.slice(TOP_N_COLLAPSED);
   const restSum = rest.reduce((acc, r) => acc + r.emissionTaoPerDay, 0);
+  // Lane sums for the collapsed "(N smaller subnets)" row.
+  const restLanes = rest.reduce(
+    (acc, r) => {
+      const ls = laneSplit(r);
+      acc.owner += ls.ownerTao;
+      acc.validator += ls.validatorTao;
+      acc.miner += ls.minerTao;
+      return acc;
+    },
+    { owner: 0, validator: 0, miner: 0 }
+  );
   const price = taoPriceUsd ?? 0;
 
   return (
@@ -113,7 +161,7 @@ export function EmissionLeaderboardPanel({
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[860px] text-left text-xs">
+          <table className="w-full min-w-[1020px] text-left text-xs">
             <thead>
               <tr className="border-b border-border/60 text-[10px] uppercase tracking-wide text-muted-foreground">
                 <th className="py-1.5 pr-2 font-medium">#</th>
@@ -122,17 +170,19 @@ export function EmissionLeaderboardPanel({
                 <th className="py-1.5 pr-2 font-medium">Share</th>
                 <th className="py-1.5 pr-2 text-right font-medium">TAO/day</th>
                 <th className="py-1.5 pr-2 text-right font-medium">≈ $/day</th>
-                <th className="py-1.5 pr-2 text-right font-medium">Miner pool</th>
+                <th className="py-1.5 pr-2 text-right font-medium" title="Owner lane — protocol cut taken before per-uid distribution (eTAO emission-weight vector; 18% default)">Owner τ/d</th>
+                <th className="py-1.5 pr-2 text-right font-medium" title="Validator lane — measured from live per-uid emission (dividends side)">Validator τ/d</th>
+                <th className="py-1.5 pr-2 text-right font-medium" title="Miner lane — measured from live per-uid emission (incentive uids); what miners compete for">Miner τ/d</th>
                 <th className="py-1.5 text-right font-medium">Miners</th>
               </tr>
             </thead>
             <tbody>
               {visible.map((r, i) => {
                 const share = (r.emissionTaoPerDay / total) * 100;
-                const minerShare =
-                  r.emissionTaoPerDay > 0
-                    ? (r.minerEmissionTaoPerDay / r.emissionTaoPerDay) * 100
-                    : 0;
+                const { ownerTao, validatorTao, minerTao, wholeTao } =
+                  laneSplit(r);
+                const pctOfWhole = (v: number) =>
+                  wholeTao > 0 ? (v / wholeTao) * 100 : 0;
                 return (
                   <tr key={r.netuid} className="border-b border-border/30 last:border-0">
                     <td className="py-1.5 pr-2 font-mono text-muted-foreground">{i + 1}</td>
@@ -181,11 +231,35 @@ export function EmissionLeaderboardPanel({
                       {price > 0 ? `$${fmt(r.emissionTaoPerDay * price, 0)}` : "—"}
                     </td>
                     <td className="py-1.5 pr-2 text-right font-mono">
-                      {r.minerEmissionTaoPerDay > 0 ? (
+                      {r.emissionTaoPerDay > 0 ? (
                         <span>
-                          {fmt(r.minerEmissionTaoPerDay)}
+                          {fmt(ownerTao)}
+                          <span className="ml-1 text-[10px] text-muted-foreground/70">
+                            ({pctOfWhole(ownerTao).toFixed(0)}%)
+                          </span>
+                        </span>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
+                    <td className="py-1.5 pr-2 text-right font-mono text-muted-foreground">
+                      {r.emissionTaoPerDay > 0 ? (
+                        <span>
+                          {fmt(validatorTao)}
+                          <span className="ml-1 text-[10px] text-muted-foreground/70">
+                            ({pctOfWhole(validatorTao).toFixed(0)}%)
+                          </span>
+                        </span>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
+                    <td className="py-1.5 pr-2 text-right font-mono">
+                      {r.emissionTaoPerDay > 0 ? (
+                        <span>
+                          {fmt(minerTao)}
                           <span className="ml-1 text-[10px] text-muted-foreground">
-                            ({minerShare.toFixed(0)}%)
+                            ({pctOfWhole(minerTao).toFixed(0)}%)
                           </span>
                         </span>
                       ) : (
@@ -210,7 +284,15 @@ export function EmissionLeaderboardPanel({
                   <td className="py-1.5 pr-2 text-right font-mono">
                     {price > 0 ? `$${fmt(restSum * price, 0)}` : "—"}
                   </td>
-                  <td className="py-1.5 pr-2 text-right">—</td>
+                  <td className="py-1.5 pr-2 text-right font-mono text-muted-foreground">
+                    {fmt(restLanes.owner)}
+                  </td>
+                  <td className="py-1.5 pr-2 text-right font-mono text-muted-foreground">
+                    {fmt(restLanes.validator)}
+                  </td>
+                  <td className="py-1.5 pr-2 text-right font-mono text-muted-foreground">
+                    {fmt(restLanes.miner)}
+                  </td>
                   <td className="py-1.5 text-right">—</td>
                 </tr>
               )}
@@ -229,9 +311,14 @@ export function EmissionLeaderboardPanel({
           </Button>
           <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
             <Info className="h-3 w-3" />
-            Emission = whole-subnet value in TAO/day from live chain shares · Miner pool = the
-            incentive-uid side miners actually compete for (0 = all emission flows validator-side) ·
-            Hardware = GPU/CPU class + required GPU scraped from each subnet's repo
+            Split = Owner / Validator / Miner lanes of each subnet's daily
+            emission · Owner = the owner's protocol cut from the on-chain
+            emission-weight vector (eTAO — owner-configurable, 18% default,
+            paid before the per-uid distribution) · Validator & Miner =
+            measured live from per-uid emission (0 in Miner = all
+            emission flows validator-side) · TAO/day is the neuron side, so
+            Owner + Validator + Miner = the whole-subnet emission · Hardware =
+            GPU/CPU class + required GPU scraped from each subnet's repo
           </span>
         </div>
       </CardContent>
