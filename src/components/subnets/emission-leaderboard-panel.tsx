@@ -12,6 +12,11 @@ import {
   WIN_TIER_RANK,
   type WinTier,
 } from "@/lib/infranex/win-odds";
+import {
+  rankEntryScores,
+  ENTRY_GRADE_STYLES,
+  type EntryScore,
+} from "@/lib/infranex/entry-score";
 
 /**
  * EMISSION-LEADERBOARD — "Top Subnets by Current Emission Share".
@@ -45,6 +50,13 @@ export interface EmissionRow {
    *  10% of UIDs (0-1). Paired with the earning ratio into the Win-Odds
    *  tier (computeRawWinTier) shown in the Seat safety column. */
   top10IncentiveShare: number | null;
+  /** ENTRY-SCORE inputs — median-vs-mean share across EARNING UIDs (0-1),
+   *  registration capacity, immunity period (blocks) and the live
+   *  registration burn (TAO). See lib/infranex/entry-score.ts. */
+  incentiveMedianShare: number | null;
+  maxUids: number | null;
+  immunityBlocks: number | null;
+  burnCostTao: number | null;
   /** "GPU" | "CPU" | "unknown" — derived from the repo-scraped requirements. */
   hwClass: "GPU" | "CPU" | "unknown";
   /** e.g. "8× H200/B200-class node" — null when unknown. */
@@ -94,6 +106,7 @@ function earningRatio(r: EmissionRow): number | null {
 
 const SORTS = [
   { key: "emission", label: "Emission" },
+  { key: "entry", label: "New entrant" },
   { key: "inclusive", label: "Most inclusive" },
   { key: "exclusive", label: "Most exclusive" },
   { key: "safest", label: "Safest seats" },
@@ -109,6 +122,27 @@ function earnBarClass(rewarded: number, registered: number) {
   if (ratio >= 0.2) return "bg-amber-500";
   return "bg-orange-500";
 }
+// ENTRY-SCORE tooltip — the full breakdown, one factor per line.
+function entryTooltip(es: EntryScore): string {
+  const lines: string[] = [];
+  if (es.score != null) {
+    lines.push(`New-entrant score ${es.score}/100 — grade ${es.grade}`);
+  }
+  lines.push(...es.reasons);
+  if (es.newcomerOddsPct != null) {
+    lines.push(
+      `est. month-1 odds for a fresh seat: ${es.newcomerOddsPct}%` +
+        (es.newcomerEvTao != null
+          ? ` · ≈${es.newcomerEvTao.toFixed(2)} TAO/day`
+          : ""),
+    );
+  }
+  lines.push(
+    "score = seats paid 40 · pot outside top-10% 35 · median fairness 10 · prize/seat 15 (mean-based estimate)",
+  );
+  return lines.join("\n");
+}
+
 /** Protocol-default owner cut (bittensor.com/docs/concepts/emissions — the
  *  default emission weight vector). Used when the chain's weight vector is
  *  unreadable for a subnet. */
@@ -173,6 +207,26 @@ export function EmissionLeaderboardPanel({
   const [expanded, setExpanded] = useState(false);
   const [sort, setSort] = useState<SortKey>("emission");
 
+  // ENTRY-SCORE — one honest 0-100 "what are my odds as a NEW miner here"
+  // number per subnet, computed over the same active earning set the table
+  // shows, plus the five best entry points for the picks strip.
+  const entryModel = useMemo(() => {
+    const active = rows.filter((r) => r.emissionTaoPerDay > 0);
+    return rankEntryScores(
+      active.map((r) => ({
+        netuid: r.netuid,
+        minersCount: r.minersCount,
+        rewardedMiners: r.rewardedMiners,
+        top10IncentiveShare: r.top10IncentiveShare,
+        incentiveMedianShare: r.incentiveMedianShare,
+        minerEmissionTaoPerDay: r.minerEmissionTaoPerDay,
+        maxUids: r.maxUids,
+        immunityBlocks: r.immunityBlocks,
+        burnCostTao: r.burnCostTao,
+      })),
+    );
+  }, [rows]);
+
   const model = useMemo(() => {
     const active = rows.filter((r) => r.emissionTaoPerDay > 0);
     const total = active.reduce((acc, r) => acc + r.emissionTaoPerDay, 0);
@@ -182,6 +236,10 @@ export function EmissionLeaderboardPanel({
       // EARNING/TIER SORTS — rows the scan hasn't measured yet (no earning
       // ratio) always sink to the bottom in emission order.
       const key = (r: EmissionRow): [number, number] => {
+        if (sort === "entry") {
+          const es = entryModel.byNetuid.get(r.netuid);
+          return [es?.score != null ? 0 : 1, -(es?.score ?? 0)];
+        }
         if (sort === "safest") {
           const tier = seatTier(r);
           const rank = tier ? WIN_TIER_RANK[tier] : 4;
@@ -200,7 +258,7 @@ export function EmissionLeaderboardPanel({
       });
     }
     return { active, total };
-  }, [rows, sort]);
+  }, [rows, sort, entryModel]);
 
   // Seat-band counts across the earning subnets, for the sort-row summary.
   const seatCounts = useMemo(() => {
@@ -300,8 +358,43 @@ export function EmissionLeaderboardPanel({
           </span>
         </div>
 
+        {/* ENTRY-PICKS — the five best new-entrant tables right now. */}
+        {entryModel.topPicks.length > 0 && (
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
+              Entry picks
+            </span>
+            {entryModel.topPicks.map((p) => {
+              const row = rows.find((x) => x.netuid === p.netuid);
+              return (
+                <span
+                  key={p.netuid}
+                  className={cn(
+                    "inline-flex items-center gap-1 whitespace-nowrap rounded-full border px-2 py-0.5 text-[10px]",
+                    ENTRY_GRADE_STYLES[p.grade],
+                  )}
+                  title={entryTooltip(p)}
+                >
+                  <span className="font-mono">SN{p.netuid}</span>
+                  <span className="font-medium text-foreground">
+                    {row?.displayName ?? ""}
+                  </span>
+                  <span className="font-mono font-semibold">
+                    {p.grade}·{p.score}
+                  </span>
+                  {p.newcomerOddsPct != null && (
+                    <span className="text-muted-foreground">
+                      ≈{p.newcomerOddsPct}% odds
+                    </span>
+                  )}
+                </span>
+              );
+            })}
+          </div>
+        )}
+
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[1180px] text-left text-xs">
+          <table className="w-full min-w-[1290px] text-left text-xs">
             <thead>
               <tr className="border-b border-border/60 text-[10px] uppercase tracking-wide text-muted-foreground">
                 <th className="py-1.5 pr-2 font-medium">#</th>
@@ -315,6 +408,7 @@ export function EmissionLeaderboardPanel({
                 <th className="py-1.5 pr-2 text-right font-medium" title="Miner lane — measured from live per-uid emission (incentive uids); what miners compete for">Miner τ/d</th>
                 <th className="py-1.5 text-right font-medium" title="Miners earning / registered — UIDs that earned incentive (>0) last epoch, out of all registered miner UIDs">Miners earning</th>
                 <th className="py-1.5 text-right font-medium" title="Seat safety — Win-Odds tier from the earning ratio (share of registered miners paid last epoch) paired with the top-10% incentive concentration">Seat safety</th>
+                <th className="py-1.5 text-right font-medium" title="New-entrant score — 0-100 odds for a FRESH seat from breadth of paid seats, pot outside the top-10% cohort, median-earner fairness and TAO/day per earning seat; A = best odds. Hover for the full breakdown">Entry score</th>
               </tr>
             </thead>
             <tbody>
@@ -463,6 +557,28 @@ export function EmissionLeaderboardPanel({
                         );
                       })()}
                     </td>
+                    <td className="py-1.5 text-right">
+                      {(() => {
+                        const es = entryModel.byNetuid.get(r.netuid);
+                        if (!es || es.score == null) {
+                          return (
+                            <span className="font-mono text-muted-foreground">—</span>
+                          );
+                        }
+                        return (
+                          <span
+                            className={cn(
+                              "inline-flex items-center gap-1 whitespace-nowrap rounded-full border px-2 py-0.5 text-[10px] font-medium",
+                              ENTRY_GRADE_STYLES[es.grade],
+                            )}
+                            title={entryTooltip(es)}
+                          >
+                            <span className="font-mono font-semibold">{es.grade}</span>
+                            <span className="font-mono">{es.score}</span>
+                          </span>
+                        );
+                      })()}
+                    </td>
                   </tr>
                 );
               })}
@@ -487,6 +603,7 @@ export function EmissionLeaderboardPanel({
                   <td className="py-1.5 pr-2 text-right font-mono text-muted-foreground">
                     {fmt(restLanes.miner)}
                   </td>
+                  <td className="py-1.5 text-right">—</td>
                   <td className="py-1.5 text-right">—</td>
                   <td className="py-1.5 text-right">—</td>
                 </tr>
@@ -517,7 +634,12 @@ export function EmissionLeaderboardPanel({
             miner UIDs (bar: share of miners actually paid) · Seat safety =
             Win-Odds tier pairing the earning ratio with the top-10% incentive
             concentration (Open field → Fightable → Knife fight → Don&apos;t
-            enter) · Hardware =
+            enter) · Entry score = odds for a FRESH seat, 0-100 (breadth of
+            paid seats 40 + pot outside the top-10% cohort 35 + median-earner
+            fairness 10 + TAO/day per earning seat 15, log-scaled; missing
+            data drops out instead of being assumed — tooltips carry the
+            factors, the est. month-1 odds and the ≈TAO/day for a new seat) ·
+            Entry picks = the five highest-scored earning subnets · Hardware =
             GPU/CPU class + required GPU scraped from each subnet's repo
           </span>
         </div>
