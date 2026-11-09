@@ -96,3 +96,4 @@ scripts/e2e-out/
 
 # sandbox swap artifact — never commit (2GB, breaks GitHub push)
 .swapfile
+.ops-token
