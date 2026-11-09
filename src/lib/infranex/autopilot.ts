@@ -77,12 +77,21 @@ export function ruleMatches(
   if (!rule.enabled) return { match: false, reason: "rule disabled" };
   if (NEVER_AUTO_KINDS.has(event.kind))
     return { match: false, reason: `kind ${event.kind} is human-only (denylist)` };
-  if (
-    event.kind === "ARBITRAGE" &&
+  if (event.kind === "ARBITRAGE" &&
     typeof event.evidence.suggestedAction === "string" &&
     event.evidence.suggestedAction === "recycle"
   )
     return { match: false, reason: "recycle suggestion terminates a deployment — human-only" };
+  // COMPUTE-ROTATION-1 — a redeploy rotation recycles the deployment (and the
+  // next deploy on the target subnet burns registration τ + provisioning
+  // spend). Same money rule as ARBITRAGE recycle: detection is automated,
+  // the spend is human-approved.
+  if (
+    event.kind === "ROTATION" &&
+    typeof event.evidence.suggestedAction === "string" &&
+    event.evidence.suggestedAction === "redeploy"
+  )
+    return { match: false, reason: "rotation redeploy terminates a deployment and burns registration τ — human-only" };
   if (rule.kind !== "ANY" && rule.kind !== event.kind)
     return { match: false, reason: `kind ${event.kind} != rule ${rule.kind}` };
   if (
