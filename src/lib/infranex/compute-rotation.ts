@@ -140,7 +140,7 @@ export async function runComputeRotationPass(): Promise<RotationPassResult> {
   // --- Live deployments -----------------------------------------------------
   const deps = await db.deployment.findMany({
     where: { status: "running" },
-    select: { id: true, netuid: true, gpuModel: true, name: true },
+    select: { id: true, netuid: true, gpuModel: true, minerName: true, subnetName: true },
   });
   result.deployments = deps.length;
   if (deps.length === 0) return result;
@@ -199,7 +199,7 @@ export async function runComputeRotationPass(): Promise<RotationPassResult> {
   for (const dep of deps) {
     const cur = live.get(dep.netuid);
     if (!cur) {
-      result.notes.push(`dep ${dep.id}: SN${dep.netuid} missing from snapshot — skipped`);
+      result.notes.push(`dep ${dep.id} (${dep.minerName}): SN${dep.netuid} missing from snapshot — skipped`);
       continue;
     }
     const opp = oppByNetuid.get(dep.netuid);
