@@ -482,6 +482,28 @@ export async function actOnTrigger(id: string): Promise<{ event: TriggerEventDTO
       actionNote =
         "Acknowledged — runway margins logged. Keep the failover or migration path warm before the immunity window closes.";
     }
+  } else if (kind === "ROTATION" && row.deploymentId) {
+    // COMPUTE-ROTATION-1 — the current subnet turned hostile mid-deployment
+    // and the evidence names the engine's next-best reachable target.
+    // "redeploy" = the recycle reflex: spin the miner down (billing stops),
+    // free the GPU, point the operator at the target in the Deployment
+    // wizard. The registration burn + provisioning on the NEW subnet are
+    // real money, so the recycle itself is the approved step and the fresh
+    // deploy stays a deliberate wizard pass — never a background action.
+    const evidence = safeParse(row.evidenceJson);
+    const toNetuid = typeof evidence.toNetuid === "number" ? evidence.toNetuid : null;
+    const toName = typeof evidence.toName === "string" ? evidence.toName : "";
+    if (evidence.suggestedAction === "redeploy" && toNetuid != null) {
+      const { terminateDeployment } = await import("./deployment/engine");
+      await terminateDeployment(row.deploymentId);
+      actionNote =
+        `Applied to GPU — compute rotated: SN${evidence.fromNetuid ?? "?"} miner spun down, billing stopped, ` +
+        `GPU capacity freed for redeployment on SN${toNetuid}${toName ? ` ${toName}` : ""}. ` +
+        `Re-deploy from the Deployment wizard (target pre-justified by the rank simulator's EV ranking).`;
+    } else {
+      actionNote =
+        "Acknowledged — the board has no better reachable target right now (cooldowns active or all EVs worse than staying). The rotation watcher re-checks every devops pass and will refresh this event when a target clears the bar.";
+    }
   } else {
     actionNote = "No action bound to this event.";
   }
