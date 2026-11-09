@@ -179,6 +179,18 @@ export function buildCurve(incentive: number[]): {
   return { sorted, earners };
 }
 
+/** API response = replay + chain-read metadata (block, freshness). */
+export interface EvalReplayResponse extends EvalReplayResult {
+  meta?: {
+    /** Subnet hyperparams read alongside the vectors. */
+    hyperparams: { tempo: number | null; immunityPeriod: number | null; maxAllowedUids: number | null };
+    /** Block the incentive vector was read at (staleness anchor). */
+    vectorBlock: number;
+    fetchedAt: number;
+    snapshotAt: string | null;
+  };
+}
+
 // ---------------------------------------------------------------------------
 // The replay
 // ---------------------------------------------------------------------------

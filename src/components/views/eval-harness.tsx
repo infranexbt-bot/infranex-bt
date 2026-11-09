@@ -60,7 +60,11 @@ export function EvalHarness() {
   // Default subnet: the best-ranked runnable one (first row of the rank sim).
   const effectiveNetuid = netuid ?? subnets[0]?.netuid ?? null;
 
-  const { data, error, isFetching } = useEvalReplay(effectiveNetuid, percentile, hotkey);
+  const { data, error, isFetching, refetch } = useEvalReplay({
+    netuid: effectiveNetuid,
+    percentile: hotkey ? null : percentile,
+    hotkey,
+  });
 
   const maxShare = useMemo(() => {
     const tops = data?.curve.topEarners ?? [];
@@ -81,7 +85,7 @@ export function EvalHarness() {
             Eval harness — would YOUR model earn this epoch?
           </h3>
           <p className="mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-            score replay · live per-UID incentive vector · block {data?.meta.vectorBlock ?? "…"} · measured, not
+            score replay · live per-UID incentive vector · block {data?.meta?.vectorBlock ?? "…"} · measured, not
             modeled
           </p>
         </div>
@@ -113,15 +117,24 @@ export function EvalHarness() {
           {isFetching && (
             <span className="mono inline-flex items-center gap-1.5 rounded-md border border-success/50 bg-success/10 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-success">
               <Gauge className="h-3 w-3 animate-pulse" aria-hidden="true" />
-              live · 60s
+              chain read
             </span>
           )}
+          <button
+            type="button"
+            onClick={() => refetch()}
+            className="mono h-8 rounded-md border border-border/70 bg-background/40 px-2 text-[10px] text-muted-foreground hover:text-foreground"
+            title="Re-read the chain vectors now"
+          >
+            Refresh
+          </button>
         </div>
       </div>
 
       {error && (
         <p className="mono mt-3 text-[11px] text-destructive">
-          replay unavailable — {error instanceof Error ? error.message : "unknown error"} · the 60s poll keeps retrying
+          replay unavailable — {error instanceof Error ? error.message : "unknown error"} · hit Refresh to retry the
+          chain read
         </p>
       )}
 
