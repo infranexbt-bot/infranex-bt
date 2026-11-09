@@ -10,6 +10,7 @@ import {
   Scale,
   Zap,
   Skull,
+  Repeat,
   ChevronDown,
   ChevronRight,
   CheckCircle2,
@@ -28,6 +29,9 @@ const KIND_META = {
   SCALE: { label: "SCALE", icon: Scale, chip: "border-sky-500/40 bg-sky-500/10 text-sky-300" },
   KILL: { label: "KILL", icon: Skull, chip: "border-red-500/40 bg-red-500/10 text-red-300" },
   DEREG_RISK: { label: "DEREG-RISK", icon: ShieldAlert, chip: "border-violet-500/40 bg-violet-500/10 text-violet-300" },
+  // COMPUTE-ROTATION-1 — the rig's subnet turned hostile; evidence names the
+  // next-best reachable target. Approval recycles the deployment.
+  ROTATION: { label: "ROTATION", icon: Repeat, chip: "border-orange-500/40 bg-orange-500/10 text-orange-300" },
 } as const;
 
 // WINDUP-1 (crash fix): this card predates the newer trigger kinds
