@@ -53,6 +53,12 @@ export function canonicalGpuToken(raw: string | null | undefined): string | null
   return null;
 }
 
+/** Case-insensitive membership — the seed writes "RTX PRO 6000", the scraper "RTX Pro 6000". */
+function seedHasModel(models: string[], token: string): boolean {
+  const t = token.toLowerCase();
+  return models.some((m) => m.toLowerCase() === t);
+}
+
 // ---------------------------------------------------------------------------
 // Merge — seed rows + DB scrape layer
 // ---------------------------------------------------------------------------
@@ -115,7 +121,7 @@ export function mergeLiveRows(
     const token = canonicalGpuToken(o.recommendedGpu ?? null);
     let delta: LiveDelta | null = null;
     if (token) {
-      delta = row.models.includes(token) ? "match" : "differs";
+      delta = seedHasModel(row.models, token) ? "match" : "differs";
     } else if (o.recommendedGpu === null && row.models.length > 0) {
       // The scrape succeeded but found no model in README/min_compute — the
       // seed may have found one in a Docker file, so this is NOT a delta.
@@ -277,7 +283,7 @@ export async function sweepBatch(opts?: { limit?: number; netuid?: number }): Pr
           repo,
           status: "scraped",
           model: token,
-          delta: token ? (row.models.includes(token) ? "match" : "differs") : null,
+          delta: token ? (seedHasModel(row.models, token) ? "match" : "differs") : null,
         });
       } else {
         // Repo deleted/offline/no README — cache the failure so the sweep
