@@ -42,6 +42,7 @@ import { useGpuResearch } from "@/hooks/use-gpu-research";
 import { GpuBuyDecisionPanel } from "@/components/views/gpu-buy-decision-panel";
 import { GpuSubnetExplorer } from "@/components/views/gpu-subnet-explorer";
 import { RankSimulator } from "@/components/views/rank-simulator";
+import { EvalHarness } from "@/components/views/eval-harness";
 
 // ---------------------------------------------------------------------------
 // SUBNET GPU REQUIREMENTS RESEARCH — repo-level audit of all 129 Bittensor
@@ -480,6 +481,9 @@ export function GpuResearchView() {
 
       {/* --- Rank simulator --------------------------------------------------- */}
       <RankSimulator />
+
+      {/* --- Eval harness (score replay) --------------------------------------- */}
+      <EvalHarness />
 
       {/* --- GPU Buy Decision ------------------------------------------------- */}
       <GpuBuyDecisionPanel />
