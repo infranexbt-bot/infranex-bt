@@ -250,10 +250,10 @@ export function replayEval(
       impossibleForEveryone: impossible,
       note: impossible
         ? `Even the #1 earner (${(earners[0].incentive * 100).toFixed(2)}% share × realized pool ${realizedPool.toFixed(2)} τ/d) cannot clear $${targetUsd}/mo — no placement on this subnet reaches the target.`
-        : rankNeeded != null && clearingSeats >= earners.length * 0.5
-          ? `Target $${targetUsd}/mo needs ≥ ${(incentiveNeeded * 100).toFixed(2)}% of the realized pool — ${clearingSeats} of ${earners.length} paid seats clear it today (floor: rank #${earners.indexOf(earners[earners.length - 1]) + 1}). Here the question is not IF you earn — it is HOW MUCH.`
+        : rankNeeded != null && clearingSeats >= N * 0.5
+          ? `Target $${targetUsd}/mo needs ≥ ${(incentiveNeeded * 100).toFixed(2)}% of the realized pool — ${clearingSeats} of ${N} seats clear it today (the paid floor clears it too). Here the question is not IF you earn — it is HOW MUCH.`
           : rankNeeded != null
-            ? `To make $${targetUsd}/mo you need ≥ ${(incentiveNeeded * 100).toFixed(2)}% of the realized pool — only ${clearingSeats} of ${earners.length} paid seats clear it; the bar sits at rank #${rankNeeded} of ${N} (UID #${earners[rankNeeded - 1].uid}). Out-score that cohort.`
+            ? `To make $${targetUsd}/mo you need ≥ ${(incentiveNeeded * 100).toFixed(2)}% of the realized pool — only ${clearingSeats} of ${N} seats clear it today; the bar sits at rank #${rankNeeded} of ${N} (UID #${earners[rankNeeded - 1].uid}). Out-score that cohort.`
             : `Target needs ≥ ${(incentiveNeeded * 100).toFixed(2)}% of the realized pool — no current earner reaches it (the pool itself is too small).`,
     };
   }
