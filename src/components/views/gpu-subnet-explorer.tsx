@@ -60,6 +60,31 @@ function tao(n: number | null | undefined, digits = 1): string {
   return n.toLocaleString(undefined, { maximumFractionDigits: digits, minimumFractionDigits: digits });
 }
 
+/**
+ * WHY-AVOID — restate the platform's seat-safety gates from the per-row data
+ * the explorer already carries, so an AVOID chip is never unexplained.
+ * Mirrors win-odds DONT_ENTER (rewardedRatio < 5% OR top-10% share ≥ 95%)
+ * and the net-negative refusal, measured on THIS subnet's epoch:
+ *   · net < 0              → the money answer (every epoch worked loses $)
+ *   · rewarded ratio < 5%  → winner-take-all; the per-earner figure above
+ *                            describes the whale cohort, not a new seat
+ *   · ratio ≥ 5% + positive net → whale concentration (top-10% ≥ 95%)
+ * Returns null for non-AVOID rows — SCALE/TEST/WATCHLIST carry their own
+ * meaning and the platform never re-derives them here.
+ */
+function seatSafetyNote(s: ExplorerSubnet): string | null {
+  if (s.classification !== "AVOID") return null;
+  if (s.netMonthlyUsd != null && s.netMonthlyUsd < 0)
+    return `net-negative P&L — −$${Math.abs(Math.round(s.netMonthlyUsd)).toLocaleString()}/mo`;
+  if (s.minersCount != null && s.rewardedMiners != null && s.minersCount > 0) {
+    const ratio = s.rewardedMiners / s.minersCount;
+    if (ratio < 0.05)
+      return `only ${s.rewardedMiners}/${s.minersCount} seats earned last epoch (${(ratio * 100).toFixed(1)}%) — winner-take-all`;
+    return "top-10% of UIDs take ≥95% of the incentive — whale cohort";
+  }
+  return null;
+}
+
 function TeeBadge({ family }: { family: ExplorerFamily }) {
   if (family.tee === "yes")
     return (
@@ -165,6 +190,7 @@ function FamilySummary({ family }: { family: ExplorerFamily }) {
 
 function SubnetRow({ s }: { s: ExplorerSubnet }) {
   const gated = !s.reachable;
+  const why = seatSafetyNote(s);
   return (
     <TableRow className={cn("align-top", gated && "opacity-55")}>
       <TableCell className="mono tabular text-muted-foreground">{s.netuid}</TableCell>
@@ -252,12 +278,20 @@ function SubnetRow({ s }: { s: ExplorerSubnet }) {
                   ? "border-success/50 bg-success/10 text-success"
                   : "border-border/70 bg-background/40 text-muted-foreground"
             )}
-            title={`Platform opportunity classification: ${s.classification}/${s.difficulty ?? "—"}${s.netMonthlyUsd != null ? ` · net ${usd(s.netMonthlyUsd)}/mo` : ""}`}
+            title={`Platform opportunity classification: ${s.classification}/${s.difficulty ?? "—"}${s.netMonthlyUsd != null ? ` · net ${usd(s.netMonthlyUsd)}/mo` : ""}${why ? ` · ${why}` : ""}`}
           >
             {s.classification}
           </span>
         ) : (
           <span className="mono text-[10px] text-muted-foreground">unclassified</span>
+        )}
+        {why && (
+          <p
+            className="mono mt-1 max-w-[190px] whitespace-normal text-[10px] leading-snug tabular text-muted-foreground"
+            title="Why AVOID — measured on this subnet's last epoch: negative net P&L, or a winner-take-all reward spread (&lt;5% of seats earning, or the top-10% of UIDs taking ≥95% of the incentive). The per-earner $ describes the whales, not the seat a newcomer gets."
+          >
+            {why}
+          </p>
         )}
         {s.netMonthlyUsd != null && (
           <p className="mono mt-1 text-[10px] tabular text-muted-foreground">{usd(s.netMonthlyUsd)}/mo net</p>
@@ -432,6 +466,16 @@ export function GpuSubnetExplorer() {
               <span className="mono text-warning">TEE-gated</span> demand Confidential Computing this card cannot
               provide and are excluded from the pool and per-earner stats. Miners are paid in subnet α —
               realizability (0.86–0.999) is already netted in the per-earner figures.
+            </p>
+            <p>
+              <span className="font-semibold text-foreground/90">Platform view = “should a NEW miner deploy here today?”</span>
+              {" "}
+              Not “is this subnet profitable”. AVOID fires on two hard gates: negative net P&L, or a winner-take-all
+              reward spread (&lt;5% of seats earning, or the top-10% of UIDs taking ≥95% of the incentive) — the
+              per-earner $ then describes the whale cohort, not the seat you would get. That is why the biggest
+              per-earner rows (Targon, Chutes, Affine) still read AVOID, while the rare
+              <span className="mono text-success"> SCALE</span> rows are open-spread subnets where a new seat
+              actually earns.
             </p>
             <p>
               <span className="font-semibold text-foreground/90">Per earning UID ≠ your income.</span> It is the
