@@ -280,6 +280,7 @@ export type ViewKey =
   | "judge"
   | "cpu-guide"
   | "gpu-landscape"
+  | "gpu-research"
   | "miner-playbook"
   | "smart-framework"
   | "host-earn"

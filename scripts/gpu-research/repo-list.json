@@ -1,0 +1,647 @@
+[
+ {
+  "netuid": 0,
+  "name": null,
+  "gh": null
+ },
+ {
+  "netuid": 1,
+  "name": "Apex",
+  "gh": "https://github.com/macrocosm-os/apex"
+ },
+ {
+  "netuid": 2,
+  "name": "DaniLabs",
+  "gh": "https://github.com/DaniLabsAI/subnet"
+ },
+ {
+  "netuid": 3,
+  "name": "Teutonic",
+  "gh": "https://github.com/unarbos/teutonic"
+ },
+ {
+  "netuid": 4,
+  "name": "Targon",
+  "gh": "https://github.com/manifold-inc/targon"
+ },
+ {
+  "netuid": 5,
+  "name": "Hone",
+  "gh": "https://github.com/hone-subnet-org/hone-subnet"
+ },
+ {
+  "netuid": 6,
+  "name": "Numinous",
+  "gh": "https://github.com/numinouslabs/numinous"
+ },
+ {
+  "netuid": 7,
+  "name": "Allways",
+  "gh": "https://github.com/entrius/allways"
+ },
+ {
+  "netuid": 8,
+  "name": "Vanta",
+  "gh": "https://github.com/taoshidev/vanta-network"
+ },
+ {
+  "netuid": 9,
+  "name": "iota",
+  "gh": "https://github.com/macrocosm-os/iota"
+ },
+ {
+  "netuid": 10,
+  "name": "Pareton",
+  "gh": "https://github.com/Pareton-ai/pareton"
+ },
+ {
+  "netuid": 11,
+  "name": "TrajectoryRL",
+  "gh": "https://github.com/trajectoryRL/trajectoryRL"
+ },
+ {
+  "netuid": 12,
+  "name": "Compute Horde",
+  "gh": "https://github.com/backend-developers-ltd/ComputeHorde/"
+ },
+ {
+  "netuid": 13,
+  "name": "Data Universe",
+  "gh": "https://github.com/macrocosm-os/data-universe"
+ },
+ {
+  "netuid": 14,
+  "name": "Cacheon",
+  "gh": "https://github.com/latent-to/cacheon"
+ },
+ {
+  "netuid": 15,
+  "name": "ORO",
+  "gh": "https://github.com/ORO-AI/oro"
+ },
+ {
+  "netuid": 16,
+  "name": "Zero Hour",
+  "gh": "https://github.com/fast-thinker/kenju"
+ },
+ {
+  "netuid": 17,
+  "name": "404\u2014GEN",
+  "gh": "https://github.com/404-Repo/404-gen-subnet"
+ },
+ {
+  "netuid": 18,
+  "name": "Zeus",
+  "gh": "https://github.com/Orpheus-AI/Zeus"
+ },
+ {
+  "netuid": 19,
+  "name": "blockmachine",
+  "gh": "https://github.com/taostat/blockmachine/"
+ },
+ {
+  "netuid": 20,
+  "name": "Witness",
+  "gh": "https://github.com/witnessvision/witness_subnet/"
+ },
+ {
+  "netuid": 21,
+  "name": "AdTAO",
+  "gh": "https://github.com/ippcteam/SN21-adtao"
+ },
+ {
+  "netuid": 22,
+  "name": "Desearch",
+  "gh": "https://github.com/datura-ai/desearch"
+ },
+ {
+  "netuid": 23,
+  "name": "Trishool",
+  "gh": "https://github.com/TrishoolAI/trishool-phase2"
+ },
+ {
+  "netuid": 24,
+  "name": "ms.computer",
+  "gh": "https://github.com/SILX-LABS/QUASAR-SUBNET/"
+ },
+ {
+  "netuid": 25,
+  "name": "UR",
+  "gh": "https://github.com/urfoundation/sn"
+ },
+ {
+  "netuid": 26,
+  "name": "Perturb",
+  "gh": "https://github.com/0xsigurd/Perturb"
+ },
+ {
+  "netuid": 27,
+  "name": "Komms",
+  "gh": "https://github.com/Komms-protocol/komms-docs"
+ },
+ {
+  "netuid": 28,
+  "name": "SayGM",
+  "gh": "https://github.com/taostat/gm-miner"
+ },
+ {
+  "netuid": 29,
+  "name": "ho\u03c4floa\u03c4",
+  "gh": "https://github.com/coldint/hotfloat"
+ },
+ {
+  "netuid": 30,
+  "name": "Endure Network",
+  "gh": "https://github.com/Endure-Network/endure-subnet"
+ },
+ {
+  "netuid": 31,
+  "name": "rec4ll",
+  "gh": null
+ },
+ {
+  "netuid": 32,
+  "name": "ItsAI",
+  "gh": "https://github.com/It-s-AI/llm-detection"
+ },
+ {
+  "netuid": 33,
+  "name": "ReadyAI",
+  "gh": "https://github.com/afterpartyai/bittensor-conversation-genome-project"
+ },
+ {
+  "netuid": 34,
+  "name": "Yugos",
+  "gh": "https://github.com/BitMind-AI/yugos"
+ },
+ {
+  "netuid": 35,
+  "name": "Jacob Robert Steeves",
+  "gh": null
+ },
+ {
+  "netuid": 36,
+  "name": "Weir",
+  "gh": "https://github.com/weircompute/weir-subnet"
+ },
+ {
+  "netuid": 37,
+  "name": "Aurelius",
+  "gh": "https://github.com/Aurelius-Protocol/Aurelius-Protocol"
+ },
+ {
+  "netuid": 38,
+  "name": "ChronoLLM",
+  "gh": "https://github.com/chronollm/sn38"
+ },
+ {
+  "netuid": 39,
+  "name": "deprecated",
+  "gh": "https://github.com/deprecated/deprecated"
+ },
+ {
+  "netuid": 40,
+  "name": "Ralph",
+  "gh": "https://github.com/RalphLabsAI/ralph"
+ },
+ {
+  "netuid": 41,
+  "name": "Almanac",
+  "gh": "https://github.com/corvxai/almanac"
+ },
+ {
+  "netuid": 42,
+  "name": "Unknown",
+  "gh": null
+ },
+ {
+  "netuid": 43,
+  "name": "Graphite",
+  "gh": "https://github.com/GraphiteAI/Graphite-Subnet"
+ },
+ {
+  "netuid": 44,
+  "name": "Score",
+  "gh": "https://github.com/score-technologies/turbovision"
+ },
+ {
+  "netuid": 45,
+  "name": "AlphaRidge.ai",
+  "gh": "https://github.com/Team-Rizzo/alpharidge-ai"
+ },
+ {
+  "netuid": 46,
+  "name": "Instant",
+  "gh": "https://github.com/Subnet46/sn46-validator"
+ },
+ {
+  "netuid": 47,
+  "name": "GPUForge",
+  "gh": "https://github.com/forgenet47/gpuforge"
+ },
+ {
+  "netuid": 48,
+  "name": "Quantum Compute",
+  "gh": "https://github.com/qbittensor-labs/quantum-compute"
+ },
+ {
+  "netuid": 49,
+  "name": "Nepher Robotics",
+  "gh": "https://github.com/nepher-ai/nepher-subnet"
+ },
+ {
+  "netuid": 50,
+  "name": "Synth",
+  "gh": "https://github.com/mode-network/synth-subnet"
+ },
+ {
+  "netuid": 51,
+  "name": "lium.io",
+  "gh": "https://github.com/Datura-ai/lium-io"
+ },
+ {
+  "netuid": 52,
+  "name": "Dojo",
+  "gh": "https://github.com/tensorplex-labs/dojo"
+ },
+ {
+  "netuid": 53,
+  "name": "engy",
+  "gh": "https://github.com/hanlinai/engy"
+ },
+ {
+  "netuid": 54,
+  "name": "Yanez",
+  "gh": "https://github.com/yanez-compliance/MIID-subnet"
+ },
+ {
+  "netuid": 55,
+  "name": "NIOME",
+  "gh": "https://github.com/genomesio/subnet-niome"
+ },
+ {
+  "netuid": 56,
+  "name": "Gradients",
+  "gh": "https://github.com/gradients-ai/G.O.D"
+ },
+ {
+  "netuid": 57,
+  "name": null,
+  "gh": null
+ },
+ {
+  "netuid": 58,
+  "name": "Attune",
+  "gh": "https://github.com/robotensor/attune-subnet"
+ },
+ {
+  "netuid": 59,
+  "name": null,
+  "gh": null
+ },
+ {
+  "netuid": 60,
+  "name": "Bitsec.ai",
+  "gh": "https://github.com/Bitsec-AI/sandbox"
+ },
+ {
+  "netuid": 61,
+  "name": "RedTeam",
+  "gh": "https://github.com/RedTeamSubnet/RedTeam"
+ },
+ {
+  "netuid": 62,
+  "name": "Ridges",
+  "gh": "https://github.com/ridgesai/ridges"
+ },
+ {
+  "netuid": 63,
+  "name": "Enigma",
+  "gh": "https://github.com/qbittensor-labs/enigma"
+ },
+ {
+  "netuid": 64,
+  "name": "Chutes",
+  "gh": "https://github.com/chutesai/chutes"
+ },
+ {
+  "netuid": 65,
+  "name": "True Performance Network",
+  "gh": "https://github.com/taofu-labs/true-performance-network"
+ },
+ {
+  "netuid": 66,
+  "name": "conjectures",
+  "gh": "https://github.com/conjectures-io/conjectures-validator"
+ },
+ {
+  "netuid": 67,
+  "name": "Harnyx",
+  "gh": "https://github.com/harnyx/harnyx"
+ },
+ {
+  "netuid": 68,
+  "name": "NOVA",
+  "gh": "https://github.com/metanova-labs/nova/"
+ },
+ {
+  "netuid": 69,
+  "name": "Herald",
+  "gh": "https://github.com/HeraldMedia/herald"
+ },
+ {
+  "netuid": 70,
+  "name": "Fugal",
+  "gh": "https://github.com/fugal-ai/fugal-subnet"
+ },
+ {
+  "netuid": 71,
+  "name": "Leadpoet",
+  "gh": "https://github.com/leadpoet/leadpoet"
+ },
+ {
+  "netuid": 72,
+  "name": "StreetVision by NATIX",
+  "gh": "https://github.com/natixnetwork/streetvision-subnet"
+ },
+ {
+  "netuid": 73,
+  "name": "Elenost",
+  "gh": null
+ },
+ {
+  "netuid": 74,
+  "name": "Gittensor",
+  "gh": "https://github.com/entrius/gittensor/tree/main"
+ },
+ {
+  "netuid": 75,
+  "name": "Hippius",
+  "gh": "https://github.com/thenervelab/thebrain"
+ },
+ {
+  "netuid": 76,
+  "name": "Ormas",
+  "gh": "https://github.com/heroncovelabs/ormas-subnet"
+ },
+ {
+  "netuid": 77,
+  "name": "Liquidity",
+  "gh": "https://github.com/creativebuilds/sn77"
+ },
+ {
+  "netuid": 78,
+  "name": "Umi",
+  "gh": "https://github.com/Umi-BitSign/umi"
+ },
+ {
+  "netuid": 79,
+  "name": "MVTRX",
+  "gh": "https://github.com/taos-im/sn-79"
+ },
+ {
+  "netuid": 80,
+  "name": "OpenRoboto",
+  "gh": "https://github.com/openroboto-ai/openroboto-subnet"
+ },
+ {
+  "netuid": 81,
+  "name": "Reliquary",
+  "gh": "https://github.com/reliquadotai/reliquary"
+ },
+ {
+  "netuid": 82,
+  "name": "Noah",
+  "gh": "https://github.com/Vora-Inc/NOAH"
+ },
+ {
+  "netuid": 83,
+  "name": "CliqueAI",
+  "gh": "https://github.com/toptensor/CliqueAI"
+ },
+ {
+  "netuid": 84,
+  "name": null,
+  "gh": null
+ },
+ {
+  "netuid": 85,
+  "name": "Vidaio",
+  "gh": "https://github.com/vidaio-subnet/vidaio-subnet"
+ },
+ {
+  "netuid": 86,
+  "name": "OnSale",
+  "gh": null
+ },
+ {
+  "netuid": 87,
+  "name": "Provenonce",
+  "gh": null
+ },
+ {
+  "netuid": 88,
+  "name": "Investing",
+  "gh": "https://github.com/mobiusfund/investing"
+ },
+ {
+  "netuid": 89,
+  "name": "InfiniteQuant",
+  "gh": "https://github.com/DeltaCompute24/InfiniteQuant-Subnet"
+ },
+ {
+  "netuid": 90,
+  "name": "KubeTEE",
+  "gh": "https://github.com/KubeTEE-AI/kubetee-subnet"
+ },
+ {
+  "netuid": 91,
+  "name": "cascade",
+  "gh": "https://github.com/TensorLink-AI/cascade"
+ },
+ {
+  "netuid": 92,
+  "name": "REAX",
+  "gh": "https://github.com/reaxlabs/reax-subnet"
+ },
+ {
+  "netuid": 93,
+  "name": "Bitcast",
+  "gh": "https://github.com/bitcast-network/bitcast"
+ },
+ {
+  "netuid": 94,
+  "name": "Cathedral",
+  "gh": "https://github.com/cathedralai/cathedral-sandbox"
+ },
+ {
+  "netuid": 95,
+  "name": "Actual",
+  "gh": "https://github.com/actual-computer/toks"
+ },
+ {
+  "netuid": 96,
+  "name": "Verathos",
+  "gh": "https://github.com/verathos-ai/verathos"
+ },
+ {
+  "netuid": 97,
+  "name": "Ingot",
+  "gh": "https://github.com/DendriteLabs/ingot"
+ },
+ {
+  "netuid": 98,
+  "name": "NeverPlayAlone",
+  "gh": "https://github.com/neverplayalone/neverplayalone_subnet"
+ },
+ {
+  "netuid": 99,
+  "name": null,
+  "gh": null
+ },
+ {
+  "netuid": 100,
+  "name": "Cortex",
+  "gh": "https://github.com/CortexLM/cortex"
+ },
+ {
+  "netuid": 101,
+  "name": "Tag101",
+  "gh": "https://github.com/tag101-ai/tag101"
+ },
+ {
+  "netuid": 102,
+  "name": "ConnitoAI",
+  "gh": "https://github.com/Connito-AI/Connito"
+ },
+ {
+  "netuid": 103,
+  "name": "Terza Inference",
+  "gh": "https://github.com/terza-labs/terza-miner"
+ },
+ {
+  "netuid": 104,
+  "name": "TAOstatus",
+  "gh": "https://github.com/taostatus/taostatus-subnet"
+ },
+ {
+  "netuid": 105,
+  "name": "Beam",
+  "gh": "https://github.com/Beam-Network/beam"
+ },
+ {
+  "netuid": 106,
+  "name": "Nodexo",
+  "gh": "https://github.com/nodexo-ai/nodexo"
+ },
+ {
+  "netuid": 107,
+  "name": "Minos",
+  "gh": "https://github.com/minos-protocol/minos_subnet"
+ },
+ {
+  "netuid": 108,
+  "name": "ChipForge",
+  "gh": "https://github.com/TatsuProject/ChipForge_SN108"
+ },
+ {
+  "netuid": 109,
+  "name": "Finsight",
+  "gh": null
+ },
+ {
+  "netuid": 110,
+  "name": "Green Compute",
+  "gh": null
+ },
+ {
+  "netuid": 111,
+  "name": "Claims",
+  "gh": "https://github.com/DeSciClaims/Claims"
+ },
+ {
+  "netuid": 112,
+  "name": "THOR",
+  "gh": null
+ },
+ {
+  "netuid": 113,
+  "name": null,
+  "gh": null
+ },
+ {
+  "netuid": 114,
+  "name": "SOMA",
+  "gh": "https://github.com/DendriteHQ/SOMA"
+ },
+ {
+  "netuid": 115,
+  "name": "MoirAI",
+  "gh": "https://github.com/moirai115/MoirAI"
+ },
+ {
+  "netuid": 116,
+  "name": "Carbon",
+  "gh": "https://github.com/carbonphysicsai/Carbon"
+ },
+ {
+  "netuid": 117,
+  "name": "everyframe.studio",
+  "gh": "https://github.com/everyframe-studios/everyframe-miner"
+ },
+ {
+  "netuid": 118,
+  "name": "Ditto",
+  "gh": "https://github.com/orgs/ditto-assistant/repositories"
+ },
+ {
+  "netuid": 119,
+  "name": "CapabilityForge Next",
+  "gh": "https://github.com/capabilityforge-next/capabilityforge"
+ },
+ {
+  "netuid": 120,
+  "name": "Affine",
+  "gh": "https://github.com/AffineFoundation/affine"
+ },
+ {
+  "netuid": 121,
+  "name": "sundae_bar",
+  "gh": "https://github.com/sundae-bar/bittensor-subnet"
+ },
+ {
+  "netuid": 122,
+  "name": "CookingTAO",
+  "gh": "https://github.com/CookingTao"
+ },
+ {
+  "netuid": 123,
+  "name": "MANTIS",
+  "gh": "https://github.com/Barbariandev/MANTIS"
+ },
+ {
+  "netuid": 124,
+  "name": "Swarm",
+  "gh": "https://github.com/swarm-subnet/swarm"
+ },
+ {
+  "netuid": 125,
+  "name": "Refinery",
+  "gh": "https://github.com/Barbariandev/refinery"
+ },
+ {
+  "netuid": 126,
+  "name": "Attelier",
+  "gh": "https://github.com/attelierai/attelier_subnet"
+ },
+ {
+  "netuid": 127,
+  "name": "Zils",
+  "gh": "https://github.com/ooo-hq/zils"
+ },
+ {
+  "netuid": 128,
+  "name": "ByteLeap",
+  "gh": "https://github.com/byteleapai/byteleap-Miner"
+ }
+]

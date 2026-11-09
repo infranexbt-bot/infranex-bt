@@ -126,7 +126,7 @@ const CPU_ONLY_RE = /cpu-only|no\s*gpu|\bqpu\b|quantum/i;
 
 // --- Hand-curated overrides ----------------------------------------------
 // Odd README wording that regexes would mis-bucket. Each entry records why.
-const OVERRIDES: Record<
+export const OVERRIDES: Record<
   number,
   { classes: GpuClass[]; special?: SpecialGroup; note: string }
 > = {
