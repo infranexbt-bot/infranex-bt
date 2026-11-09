@@ -13,23 +13,32 @@ import {
 } from "@/components/ui/table";
 import {
   Atom,
+  AlertTriangle,
+  CheckCircle2,
+  Clock3,
   Cpu,
   ExternalLink,
   FileSearch,
   FileQuestion,
   Github,
   HelpCircle,
+  Loader2,
   PackageOpen,
+  Radio,
+  RefreshCw,
   Search,
   SquareDashedBottomCode,
   XCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import {
   GPU_RESEARCH_META,
   GPU_RESEARCH_ROWS,
   type GpuResearchRow,
 } from "@/lib/infranex/gpu-research-seed";
+import type { LiveDelta, LiveGpuResearchRow } from "@/lib/infranex/gpu-research-live";
+import { useGpuResearch } from "@/hooks/use-gpu-research";
 
 // ---------------------------------------------------------------------------
 // SUBNET GPU REQUIREMENTS RESEARCH — repo-level audit of all 129 Bittensor
@@ -144,38 +153,174 @@ function ArtifactBadges({ row, model }: { row: GpuResearchRow; model: string }) 
   );
 }
 
+function timeAgo(iso: string | null): string {
+  if (!iso) return "never";
+  const s = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));
+  if (s < 60) return `${s}s ago`;
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  return `${Math.floor(h / 24)}d ago`;
+}
+
+const DELTA_META: Record<LiveDelta, { label: string; chip: string; tip: string }> = {
+  match: {
+    label: "live ✓",
+    chip: "border-success/50 bg-success/10 text-success",
+    tip: "Today's live re-scan confirms the audited GPU requirement.",
+  },
+  differs: {
+    label: "live Δ",
+    chip: "border-warning/60 bg-warning/10 text-warning",
+    tip: "Today's live re-scan found a different requirement than the audit seed — the repo changed since the audit. Trust the live value for renting decisions.",
+  },
+  "cpu-only": {
+    label: "live: CPU-only",
+    chip: "border-border bg-card/60 text-muted-foreground",
+    tip: "The live min_compute.yml now declares CPU-only — no GPU required.",
+  },
+};
+
+/** Per-row live freshness + delta line, shown under the status badge. */
+function LiveCell({ row }: { row: LiveGpuResearchRow }) {
+  if (!row.live) {
+    return (
+      <span className="mono mt-1 flex items-center gap-1 text-[10px] text-muted-foreground/60">
+        <Clock3 className="h-3 w-3" aria-hidden="true" />
+        awaiting live scan
+      </span>
+    );
+  }
+  const { delta, fresh, model, scrapedAt, gpuCount } = row.live;
+  return (
+    <span className="mt-1 flex flex-col items-start gap-1">
+      <span
+        className={cn(
+          "mono inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[9.5px] font-semibold",
+          fresh
+            ? "border-success/50 bg-success/10 text-success"
+            : "border-border/70 bg-muted/40 text-muted-foreground"
+        )}
+        title={`Live GitHub re-scan ${timeAgo(scrapedAt)}${model ? ` — model: ${model}` : " — no model named in README/min_compute"}`}
+      >
+        <span className={cn("h-1.5 w-1.5 rounded-full", fresh ? "animate-pulse bg-success" : "bg-muted-foreground/50")} />
+        live · {timeAgo(scrapedAt)}
+      </span>
+      {delta && (
+        <span
+          className={cn(
+            "mono inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[9.5px] font-semibold",
+            DELTA_META[delta].chip
+          )}
+          title={DELTA_META[delta].tip}
+        >
+          {delta === "match" ? (
+            <CheckCircle2 className="h-3 w-3" aria-hidden="true" />
+          ) : delta === "cpu-only" ? (
+            <Cpu className="h-3 w-3" aria-hidden="true" />
+          ) : (
+            <AlertTriangle className="h-3 w-3" aria-hidden="true" />
+          )}
+          {delta === "differs" && model ? `live Δ: ${model}${gpuCount ? ` ×${gpuCount}` : ""}` : DELTA_META[delta].label}
+        </span>
+      )}
+    </span>
+  );
+}
+
+interface SweepProgress {
+  scanned: number;
+  failed: number;
+  remaining: number;
+  universe: number;
+}
+
 export function GpuResearchView() {
+  const { data, isFetching, refetch } = useGpuResearch();
   const [filter, setFilter] = useState<ClsFilter>("all");
   const [query, setQuery] = useState("");
+  const [sweep, setSweep] = useState<SweepProgress | null>(null);
+  const [sweepError, setSweepError] = useState<string | null>(null);
+
+  // Seed fallback while the first fetch is in flight — no flash of empty.
+  const allRows: LiveGpuResearchRow[] = data?.rows ?? GPU_RESEARCH_ROWS.map((r) => ({ ...r, live: null }));
+  const meta = data?.meta ?? {
+    ...GPU_RESEARCH_META,
+    lastScrapeAt: null,
+    liveRows: 0,
+    liveUniverse: 111,
+    stale: true,
+    sweepInFlight: false,
+    autoSweepStarted: false,
+  };
+
+  /** Loop the bounded rescan endpoint until the whole universe is fresh. */
+  async function rescanAll() {
+    if (sweep) return;
+    setSweepError(null);
+    setSweep({ scanned: 0, failed: 0, remaining: meta.liveUniverse, universe: meta.liveUniverse });
+    let scannedTotal = 0;
+    let failedTotal = 0;
+    try {
+      for (let round = 0; round < 40; round++) {
+        const res = await fetch("/api/gpu-research/rescan", { method: "POST" });
+        if (res.status === 202) {
+          // Another sweep (auto or another tab) holds the cursor — wait it out.
+          await new Promise((r) => setTimeout(r, 4000));
+          continue;
+        }
+        if (!res.ok) throw new Error(`rescan ${res.status}`);
+        const j = (await res.json()) as {
+          scanned: number;
+          updated: number;
+          failed: number;
+          remaining: number;
+          universe: number;
+          done: boolean;
+        };
+        scannedTotal += j.updated;
+        failedTotal += j.failed;
+        setSweep({ scanned: scannedTotal, failed: failedTotal, remaining: j.remaining, universe: j.universe });
+        await refetch();
+        if (j.done || j.scanned === 0) break;
+      }
+    } catch (e) {
+      setSweepError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setSweep(null);
+      void refetch();
+    }
+  }
 
   // Model demand — how many subnets name each model across all artifacts.
   const modelCounts = useMemo(() => {
     const counts = new Map<string, number>();
-    for (const row of GPU_RESEARCH_ROWS) {
+    for (const row of allRows) {
       for (const m of row.models) counts.set(m, (counts.get(m) ?? 0) + 1);
     }
     return [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
-  }, []);
+  }, [allRows]);
 
   const clsCounts = useMemo(() => {
     const c: Record<string, number> = {};
-    for (const row of GPU_RESEARCH_ROWS) c[row.cls] = (c[row.cls] ?? 0) + 1;
+    for (const row of allRows) c[row.cls] = (c[row.cls] ?? 0) + 1;
     return c;
-  }, []);
+  }, [allRows]);
 
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return GPU_RESEARCH_ROWS.filter((r) => {
+    return allRows.filter((r) => {
       if (filter !== "all" && r.cls !== filter) return false;
       if (!q) return true;
       const hay = `${r.netuid} ${r.name} ${r.models.join(" ")} ${r.headline} ${r.repo ?? ""}`.toLowerCase();
       return hay.includes(q);
     });
-  }, [filter, query]);
+  }, [allRows, filter, query]);
 
   const maxModelCount = modelCounts[0]?.[1] ?? 1;
   const filterChips: { key: ClsFilter; label: string; count: number }[] = [
-    { key: "all", label: "All", count: GPU_RESEARCH_ROWS.length },
+    { key: "all", label: "All", count: allRows.length },
     ...(
       ["datacenter", "pro", "consumer", "cpu-only", "quantum", "unverified"] as const
     ).map((k) => ({ key: k, label: CLS_META[k].label, count: clsCounts[k] ?? 0 })),
@@ -194,25 +339,95 @@ export function GpuResearchView() {
               Subnet GPU Requirements Research
             </h2>
             <p className="mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-              repo-level audit · audited {GPU_RESEARCH_META.auditedAt} · default-branch tarball sweep
+              repo-level audit · audited {meta.auditedAt} · default-branch tarball sweep
             </p>
           </div>
+          <div className="ml-auto flex flex-wrap items-center gap-2">
+            <span
+              className="mono inline-flex items-center gap-1.5 rounded-md border border-success/50 bg-success/10 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-success"
+              title="The page polls every 60s; when the live layer is stale a bounded GitHub re-scan batch runs automatically — no background worker needed."
+            >
+              <Radio className="h-3.5 w-3.5 animate-pulse" aria-hidden="true" />
+              live · 60s
+            </span>
+            <span
+              className="mono inline-flex items-center gap-1.5 rounded-md border border-border/70 bg-background/40 px-2 py-1 text-[10px] text-muted-foreground"
+              title="Newest live GitHub re-scan across the audit universe."
+            >
+              <Clock3 className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
+              {meta.liveRows}/{meta.liveUniverse} rescanned
+              {meta.lastScrapeAt ? ` · newest ${timeAgo(meta.lastScrapeAt)}` : ""}
+            </span>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={rescanAll}
+              disabled={!!sweep || isFetching}
+              className="h-8 gap-1.5"
+            >
+              {sweep || isFetching ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+              ) : (
+                <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />
+              )}
+              {sweep
+                ? `scanning ${sweep.scanned + sweep.failed}/${sweep.universe}`
+                : "Rescan now"}
+            </Button>
+          </div>
         </div>
+        {(sweep || sweepError || meta.sweepInFlight || meta.autoSweepStarted) && (
+          <p
+            className={cn(
+              "mono mt-3 flex items-center gap-1.5 text-[11px]",
+              sweepError ? "text-destructive" : "text-muted-foreground"
+            )}
+          >
+            {sweepError ? (
+              <>
+                <AlertTriangle className="h-3.5 w-3.5" aria-hidden="true" />
+                rescan error: {sweepError} — the 60s auto-refresh keeps retrying
+              </>
+            ) : sweep ? (
+              <>
+                <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" aria-hidden="true" />
+                full re-scan running — {sweep.scanned} repos re-verified
+                {sweep.failed ? `, ${sweep.failed} unreachable` : ""}, {sweep.remaining} left · GitHub
+                raw fetches, sequential
+              </>
+            ) : (
+              <>
+                <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" aria-hidden="true" />
+                auto-sweep running — the oldest audit rows are being re-scanned from GitHub right
+                now; fresh rows land on the next poll
+              </>
+            )}
+          </p>
+        )}
         <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-          A repo-level audit of all {GPU_RESEARCH_META.totalSubnets} Bittensor subnets: READMEs,{" "}
+          A repo-level audit of all {meta.totalSubnets} Bittensor subnets: READMEs,{" "}
           <span className="mono text-foreground/90">min_compute.yml</span> declarations and Docker
           files were scanned to identify which GPU models miners are actually asked to run —
           H200, RTX 4090, or something else. Where the three artifact classes stay silent, the
           platform&apos;s hand-verified curated specs (deep repo docs / official pages) fill the
           gap and the row is marked <span className="text-primary">docs-verified</span>; where no
-          repo exists at all, the row says so instead of guessing.
+          repo exists at all, the row says so instead of guessing. <span className="text-foreground/90">On
+          top of the audit, a live layer re-scans every repo from GitHub on a rolling basis</span>{" "}
+          — each row shows when it was last re-verified and flags a delta if the repo changed
+          since the audit.
         </p>
         <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
-          <StatCard label="Subnets audited" value={GPU_RESEARCH_META.totalSubnets} sub="netuid 0–128" />
+          <StatCard label="Subnets audited" value={meta.totalSubnets} sub="netuid 0–128" />
           <StatCard
             label="Repos scanned"
-            value={GPU_RESEARCH_META.reposScanned}
-            sub={`${GPU_RESEARCH_META.noRepo + GPU_RESEARCH_META.repoOffline} without a live repo`}
+            value={meta.reposScanned}
+            sub={`${meta.noRepo + meta.repoOffline} without a live repo`}
+          />
+          <StatCard
+            label="Live re-verified"
+            value={meta.liveRows}
+            sub={meta.lastScrapeAt ? `newest ${timeAgo(meta.lastScrapeAt)}` : "scan starting"}
+            accent="text-success"
           />
           <StatCard
             label="Datacenter ask"
@@ -230,11 +445,6 @@ export function GpuResearchView() {
             label="No GPU needed"
             value={(clsCounts["cpu-only"] ?? 0) + (clsCounts.quantum ?? 0)}
             sub="CPU-only + QPU paths"
-          />
-          <StatCard
-            label="Unverified"
-            value={clsCounts.unverified ?? 0}
-            sub="no model named in source"
           />
         </div>
         <div className="mt-4 flex flex-wrap items-center gap-2">
@@ -421,6 +631,7 @@ export function GpuResearchView() {
                         <StIcon className="h-3 w-3" aria-hidden="true" />
                         {st.label}
                       </Badge>
+                      <LiveCell row={row} />
                     </TableCell>
                   </TableRow>
                 );
@@ -436,7 +647,8 @@ export function GpuResearchView() {
           </Table>
         </div>
         <p className="mono mt-3 text-[11px] text-muted-foreground">
-          showing {rows.length} of {GPU_RESEARCH_ROWS.length} subnets
+          showing {rows.length} of {allRows.length} subnets · live layer polled every 60s ·
+          deltas against the {meta.auditedAt} audit are flagged live Δ
         </p>
       </section>
 
@@ -471,6 +683,15 @@ export function GpuResearchView() {
               badge on every model chip tells you which artifact supplied it (R/M/D/C). A model that
               appears only in a Dockerfile may be a CI artifact, not a miner requirement — when the
               repo names a model but the requirement line matters, check the quote before renting.
+            </p>
+            <p>
+              <span className="font-semibold text-foreground/90">5 · Live layer.</span> The audit
+              is a snapshot, so this page keeps re-scanning the repos from GitHub on a rolling
+              basis — a bounded batch runs whenever the live layer is older than 30 minutes
+              (driven by the page&apos;s own 60s polling) plus a manual <span className="mono">Rescan
+              now</span> for a full sweep. Every re-scan lands with a timestamp; a row whose live
+              finding disagrees with the audit is flagged <span className="text-warning">live Δ</span>,
+              and a fresh confirmation shows <span className="text-success">live ✓</span>.
             </p>
           </div>
         </div>
