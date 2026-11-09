@@ -151,6 +151,8 @@ export interface EvalReplayResult {
     incentiveAtRank: number | null;
     /** τ/day the target demands (pre-realizability pool share). */
     targetTaoPerDay: number | null;
+    /** Paid seats that clear the target today — "how wide is the door". */
+    clearingSeats: number | null;
     /** True when rank #1's incentive × realized pool still misses the target. */
     impossibleForEveryone: boolean;
     note: string;
@@ -235,18 +237,24 @@ export function replayEval(
     const incentiveNeeded = targetTaoPerDay / realizedPool;
     const hit = earners.findIndex((r) => r.incentive >= incentiveNeeded);
     const rankNeeded = hit >= 0 ? hit + 1 : null;
+    // How many paid seats clear the target today — the honest "how wide is
+    // the door" number (a target only rank #1 clears is a knife fight).
+    const clearingSeats = earners.filter((r) => r.incentive >= incentiveNeeded).length;
     const impossible = rankNeeded == null && earners.length > 0 && earners[0].incentive < incentiveNeeded;
     bar = {
       incentiveNeeded,
       rankNeeded,
       incentiveAtRank: rankNeeded != null ? earners[rankNeeded - 1].incentive : null,
       targetTaoPerDay,
+      clearingSeats,
       impossibleForEveryone: impossible,
       note: impossible
         ? `Even the #1 earner (${(earners[0].incentive * 100).toFixed(2)}% share × realized pool ${realizedPool.toFixed(2)} τ/d) cannot clear $${targetUsd}/mo — no placement on this subnet reaches the target.`
-        : rankNeeded != null
-          ? `To make $${targetUsd}/mo you need ≥ ${(incentiveNeeded * 100).toFixed(2)}% of the realized pool — today that is rank #${rankNeeded} of ${N} (UID #${earners[rankNeeded - 1].uid}). Out-score that cohort.`
-          : `Target needs ≥ ${(incentiveNeeded * 100).toFixed(2)}% of the realized pool — no current earner reaches it (the pool itself is too small).`,
+        : rankNeeded != null && clearingSeats >= earners.length * 0.5
+          ? `Target $${targetUsd}/mo needs ≥ ${(incentiveNeeded * 100).toFixed(2)}% of the realized pool — ${clearingSeats} of ${earners.length} paid seats clear it today (floor: rank #${earners.indexOf(earners[earners.length - 1]) + 1}). Here the question is not IF you earn — it is HOW MUCH.`
+          : rankNeeded != null
+            ? `To make $${targetUsd}/mo you need ≥ ${(incentiveNeeded * 100).toFixed(2)}% of the realized pool — only ${clearingSeats} of ${earners.length} paid seats clear it; the bar sits at rank #${rankNeeded} of ${N} (UID #${earners[rankNeeded - 1].uid}). Out-score that cohort.`
+            : `Target needs ≥ ${(incentiveNeeded * 100).toFixed(2)}% of the realized pool — no current earner reaches it (the pool itself is too small).`,
     };
   }
 
