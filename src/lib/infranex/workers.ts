@@ -14,6 +14,7 @@ import { runUpstreamPass } from "./upstream";
 import { runBenchmarkPass } from "./benchmarks";
 import { runRunwayPass } from "./runway";
 import { runWinTierWatchPass } from "./win-odds-watch";
+import { runComputeRotationPass } from "./compute-rotation";
 import { runAlertsDigestPass } from "./alerts";
 import { runDeploymentTickerPass } from "./deployment/ticker";
 
@@ -197,6 +198,14 @@ async function runDevopsWorker(): Promise<WorkerRunResult> {
     const devops = await runDevopsPass({ accrueSpend: true });
     await runTriggerPass();
     await runUidDefensePass();
+    // COMPUTE-ROTATION-1 — rotation watcher: fires ROTATION when a live
+    // deployment's subnet turns hostile and pre-computes the next-best
+    // reachable target. Must never take the worker down.
+    try {
+      await runComputeRotationPass();
+    } catch (e) {
+      console.warn(`[devops-worker] rotation pass skipped: ${e instanceof Error ? e.message : e}`);
+    }
     try {
       await runServiceHealthPass();
     } catch (e) {
