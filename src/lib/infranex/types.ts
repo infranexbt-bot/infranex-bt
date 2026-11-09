@@ -281,6 +281,7 @@ export type ViewKey =
   | "cpu-guide"
   | "gpu-landscape"
   | "gpu-research"
+  | "gpu-decision"
   | "miner-playbook"
   | "smart-framework"
   | "host-earn"
