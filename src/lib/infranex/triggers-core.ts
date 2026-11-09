@@ -38,7 +38,15 @@ export type TriggerKind =
   // OPPORTUNITY-ENGINE-2 (§10) — committed by the devops pass when a live
   // deployment's measured earnings lag its TRUST-LOOP projection beyond the
   // configured threshold: the evidence-backed STOP-OR-SWITCH recommendation.
-  | "PERFORMANCE_LAG";
+  | "PERFORMANCE_LAG"
+  // COMPUTE-ROTATION-1 — committed by the rotation watcher (compute-rotation.ts)
+  // when a LIVE deployment's subnet turns hostile while deployment: reward
+  // spread collapses to winner-take-all, the platform verdict flips to AVOID
+  // (negative net), or the seat tier regresses below the earning floor. The
+  // evidence carries the engine's next-best reachable target (rank-simulator
+  // EV ranking, cooldown-excluded). Approval = recycle the rig toward that
+  // target — registration burn + provisioning spend stay HUMAN-approved.
+  | "ROTATION";
 
 export const TRIGGER_KIND_META: Record<
   TriggerKind,
@@ -75,6 +83,9 @@ export const TRIGGER_KIND_META: Record<
   RUNWAY: { label: "Runway", severity: "critical", color: "lime" },
   // WIN-ODDS-1 — reward spread improved between scans; a new seat can earn.
   SEAT_FLIP: { label: "Seat Flip", severity: "info", color: "emerald" },
+  // COMPUTE-ROTATION-1 — live subnet turned hostile mid-deployment; the
+  // evidence names the engine's next-best reachable target.
+  ROTATION: { label: "Rotation", severity: "critical", color: "orange" },
 };
 
 export interface TriggerEventDTO {
