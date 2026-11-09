@@ -433,7 +433,13 @@ export function GpuSubnetExplorer() {
                     </span>
                   </TableHead>
                   <TableHead className="w-[120px]">Per earning UID</TableHead>
-                  <TableHead className="w-[130px]">Platform view</TableHead>
+                  <TableHead className="w-[130px]">
+                    <span
+                      title="Verdict for a NEW miner deploying here today — not “is this subnet profitable”. AVOID = negative net P&L, or winner-take-all reward spread (<5% of seats earning or top-10% of UIDs ≥95% of incentive); SCALE = open spread + positive P&L. Reasons are shown under each chip."
+                    >
+                      Platform view
+                    </span>
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
