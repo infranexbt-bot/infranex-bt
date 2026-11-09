@@ -180,8 +180,10 @@ function RankRow({ s, rank }: { s: RankSimRow; rank: number }) {
 }
 
 export function RankSimulator() {
-  const { data, isFetching, error } = useRankSimulator(null);
+  // Card selector state lives here and IS the query input — changing it
+  // refetches /api/gpu-rank-simulator?gpu=… (null = configured rig default).
   const [gpu, setGpu] = useState<string | null>(null);
+  const { data, isFetching, error } = useRankSimulator(gpu);
 
   // Keep the selector in sync with the rig default once loaded.
   useEffect(() => {
