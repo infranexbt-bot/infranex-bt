@@ -40,6 +40,7 @@ import {
 import type { LiveDelta, LiveGpuResearchRow } from "@/lib/infranex/gpu-research-live";
 import { useGpuResearch } from "@/hooks/use-gpu-research";
 import { GpuBuyDecisionPanel } from "@/components/views/gpu-buy-decision-panel";
+import { GpuSubnetExplorer } from "@/components/views/gpu-subnet-explorer";
 
 // ---------------------------------------------------------------------------
 // SUBNET GPU REQUIREMENTS RESEARCH — repo-level audit of all 129 Bittensor
@@ -472,6 +473,9 @@ export function GpuResearchView() {
           </span>
         </div>
       </section>
+
+      {/* --- GPU → Subnets explorer ------------------------------------------- */}
+      <GpuSubnetExplorer />
 
       {/* --- GPU Buy Decision ------------------------------------------------- */}
       <GpuBuyDecisionPanel />
